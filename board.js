@@ -9,13 +9,12 @@ V.board = m => {
 };
 
 V.draw = async (m, id) => {
-  if (id === "new") { const nid = uid(); D.docs.unshift({ id: nid, type: "draw", title: "Neue Zeichnung", subjectId: docFilter, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + nid, { strokes: [], bg: "grid", H: 1000 }); save(); return go("draw/" + nid); }
+  if (id === "new") { const nid = uid(); D.docs.unshift({ id: nid, type: "draw", title: "Neue Zeichnung", subjectId: subjectOfFolder(docFolder), folderId: docFolder, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + nid, { strokes: [], bg: "grid", H: 1000 }); save(); return go("draw/" + nid); }
   const d = D.docs.find(x => x.id === id); if (!d || d.type !== "draw") return go("board");
   const saved = (await KV.get("draw:" + id)) || { strokes: [], bg: "grid", H: 1000 };
   const W = 1600; const st = { strokes: saved.strokes || [], hist: [], redo: [], tool: "pen", color: "#111111", size: 4, bg: saved.bg || "grid", H: saved.H || 1000, cur: null, penSeen: false, pending: null };
   const COL = ["#111111", "#e5484d", "#f59e0b", "#16a34a", "#2563eb", "#7c3aed", "#ec4899", "#ffffff"];
   const TOOLS = [["hand", "Verschieben", "up"], ["pen", "Stift", "pen"], ["hl", "Marker", "hl"], ["eraser", "Radierer", "eraser"], ["line", "Linie", "line"], ["arrow", "Pfeil", "arrow"], ["rect", "Rechteck", "square"], ["ellipse", "Ellipse", "circle"], ["text", "Text", "text"], ["img", "Bild", "image"]];
-  m.classList.add("tinted"); m.style.setProperty("--panel", "#e8e3ff");
   m.innerHTML = `<div class="editor board"><div class="ned-top"><div class="nt-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><input class="ed-title" id="et" value="${esc(d.title)}" aria-label="Titel">${subjectSelect(d.subjectId, "ed-sub")}</div>
   <div class="ned-tb tb btools">${TOOLS.map(([k, t, i]) => `<button class="tbtn ${k === st.tool ? "on" : ""}" data-t="${k}" title="${t}">${ic(i)}</button>`).join("")}<i class="sep"></i><button class="tbtn" id="un" title="Rückgängig (Strg+Z)">${ic("undo")}</button><button class="tbtn" id="re" title="Wiederholen">${ic("redo")}</button><button class="tbtn" id="cl" title="Alles löschen">${ic("trash")}</button></div>
   <div class="nt-r"><span class="saved" id="sv">Gespeichert</span><button class="btn ghost" id="ai-m">${ic("spark")}<span class="hide-sm">KI</span></button><button class="btn ghost" id="exp">${ic("download")}<span class="hide-sm">PNG</span></button><button class="icon-btn" id="del" aria-label="Löschen">${ic("trash")}</button></div></div>
@@ -121,7 +120,7 @@ V.draw = async (m, id) => {
   $("#un", m).onclick = undo; $("#re", m).onclick = redo;
   $("#cl", m).onclick = async () => { if (st.strokes.length && await confirmBox("Zeichenfläche komplett leeren?", "Leeren")) { snap(); st.strokes = []; render(); touch(); } };
   $("#fi", m).onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) { setTool("pen"); return; } const bmp = await createImageBitmap(f), s = Math.min(1, 700 / bmp.width), c = document.createElement("canvas"); c.width = bmp.width * s; c.height = bmp.height * s; c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); st.pending = { src: c.toDataURL("image/jpeg", .85), w: c.width, h: c.height }; st.tool = "place"; $$("[data-t]", m).forEach(b => b.classList.remove("on")); cv.style.touchAction = "pinch-zoom"; toast("Tippe dorthin, wo das Bild hin soll"); };
-  $("#eb", m).onclick = () => go("board"); $("#et", m).oninput = touch;
+  $("#eb", m).onclick = () => go(d.folderId ? "docs/" + d.folderId : "board"); $("#et", m).oninput = touch;
   $(".ed-sub", m).onchange = e => { d.subjectId = e.target.value; save(); refreshNav(); };
   $("#del", m).onclick = async () => { await deleteDoc(d); go("board"); };
   $("#exp", m).onclick = () => { cv.toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = (d.title || "zeichnung") + ".png"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); }); };

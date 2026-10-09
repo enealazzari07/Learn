@@ -30,8 +30,8 @@ function onboarding() {
   $$("#ob-l button", el).forEach(b => b.onclick = () => { level = b.dataset.l; picked.clear(); $$("#ob-l button", el).forEach(x => x.classList.toggle("on", x === b)); drawChips(); });
   $("#ob-go", el).onclick = () => {
     D.profile.name = $("#ob-n", el).value.trim(); D.profile.level = level; D.profile.onboarded = true;
-    [...picked].forEach((n, i) => D.subjects.push({ id: uid(), name: n, color: COLORS[i % COLORS.length] }));
-    const wid = uid(); D.docs.unshift({ id: wid, type: "note", title: "Willkommen bei Lumi", subjectId: "", updated: Date.now(), created: Date.now(), text: "" });
+    [...picked].forEach((n, i) => { const sid = uid(), c = COLORS[i % COLORS.length]; D.subjects.push({ id: sid, name: n, color: c }); D.folders.push({ id: uid(), name: n, parent: "", color: c, subjectId: sid }); }); D.foldersInit = true;
+    const wid = uid(); D.docs.unshift({ id: wid, type: "note", title: "Willkommen bei Lumi", subjectId: "", folderId: "", paper: "white", updated: Date.now(), created: Date.now(), text: "" });
     const w = `<h1>Willkommen bei Lumi</h1><p>Das ist deine erste Notiz. Probiere die Werkzeuge oben aus:</p><ul class="chk"><li><input type="checkbox"> Text <b>fett</b>, <i>kursiv</i> oder <mark>markiert</mark> machen</li><li><input type="checkbox"> Eine Tabelle oder ein Bild einfügen</li><li><input type="checkbox"> Mit <b>KI</b> eine Zusammenfassung oder Karteikarten erstellen</li><li><input type="checkbox"> Im Bereich <b>Zeichnen</b> Skizzen und Formeln aufschreiben</li><li><input type="checkbox"> Im <b>Planer</b> Hausaufgaben und Prüfungen eintragen</li></ul><p>Tipp: Mit Strg/Cmd + K findest du alles blitzschnell.</p>`;
     KV.set("html:" + wid, w); D.docs[0].text = htmlToText(w);
     save(); close(); toast("Alles bereit!"); go("today"); buildShell(true);
@@ -61,32 +61,67 @@ function refreshNav() {
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
   <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
-  <div class="sp hide-mob"></div><div class="side-h hide-mob"><span>${SUBJ()}</span><button id="addsubj" aria-label="Neu">${ic("plus")}</button></div>
-  <div class="subjlist hide-mob">${D.subjects.map(x => `<button class="space ${docFilter === x.id && curView === "docs" ? "on" : ""}" data-sub="${x.id}" title="${esc(x.name)}"><i style="background:${x.color}"></i><span>${esc(x.name)}</span><b>${D.docs.filter(d => d.subjectId === x.id).length || ""}</b></button>`).join("") || `<p class="note nosub">Noch keine ${SUBJ()}.</p>`}</div>`;
-  $$("[data-go]", s).forEach(b => b.onclick = () => { if (b.dataset.go === "docs") docFilter = ""; go(b.dataset.go); });
-  $$("[data-sub]", s).forEach(b => b.onclick = () => { docFilter = b.dataset.sub; go("docs"); });
+  <div class="sp hide-mob"></div><div class="side-h hide-mob"><span>Ordner</span><button id="addsubj" aria-label="Neuer Ordner">${ic("plus")}</button></div>
+  <div class="subjlist hide-mob">${D.folders.filter(f => !f.parent).map(x => `<button class="space ${curView === "docs" && folderPath(docFolder)[0]?.id === x.id ? "on" : ""}" data-fold="${x.id}" title="${esc(x.name)}"><i style="background:${x.color}"></i><span>${esc(x.name)}</span><b>${folderCount(x.id) || ""}</b></button>`).join("") || `<p class="note nosub">Noch keine Ordner.</p>`}</div>`;
+  $$("[data-go]", s).forEach(b => b.onclick = () => { if (b.dataset.go === "docs") docFolder = ""; go(b.dataset.go); });
+  $$("[data-fold]", s).forEach(b => b.onclick = () => go("docs/" + b.dataset.fold));
   $("#newbtn", s).onclick = e => newMenu(e.currentTarget);
   $("#sidetgl", s).onclick = () => { sideOpen = !sideOpen; try { localStorage.setItem("lumi-side", sideOpen ? "1" : "0"); } catch {} applyRail(); };
-  $("#addsubj", s) && ($("#addsubj", s).onclick = newSubject);
+  $("#addsubj", s) && ($("#addsubj", s).onclick = () => newFolder(""));
   $("#morebtn", s).onclick = e => menu(e.currentTarget, NAVS.filter(n => !mob.find(m => m[0] === n[0])).map(([k, l, i]) => ({ label: l, icon: i, fn: () => go(k) })));
 }
 function newMenu(anchor) {
   menu(anchor, [
-    { label: "Neue Notiz", icon: "note", fn: () => newNote() }, { label: "Neue Zeichnung", icon: "brush", fn: () => go("draw/new") },
+    { label: "Neue Notiz", icon: "note", fn: () => newNote() }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() }, { label: "Neue Zeichnung", icon: "brush", fn: () => go("draw/new") },
     { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-",
     { label: "Karteikarten-Stapel", icon: "cards", fn: () => newDeck() }, { label: "Aufgabe / Prüfung", icon: "todo", fn: () => taskModal() },
-    { label: isUni() ? "Neues Modul" : "Neues Fach", icon: "folder", fn: newSubject },
+    { label: isUni() ? "Neues Modul" : "Neues Fach", icon: "star", fn: newSubject },
   ]);
 }
 async function newSubject() {
   const n = await ask(isUni() ? "Neues Modul" : "Neues Fach", { placeholder: "z. B. Biologie", ok: "Hinzufügen" }); if (!n || !n.trim()) return;
-  D.subjects.push({ id: uid(), name: n.trim(), color: COLORS[D.subjects.length % COLORS.length] }); save(); refreshNav(); renderView();
+  const sub = { id: uid(), name: n.trim(), color: COLORS[D.subjects.length % COLORS.length] }; D.subjects.push(sub); D.folders.push({ id: uid(), name: sub.name, parent: "", color: sub.color, subjectId: sub.id }); save(); refreshNav(); renderView();
 }
 function subjectSelect(id = "", cls = "") { return `<select class="field slim ${cls}">${`<option value="">Kein ${isUni() ? "Modul" : "Fach"}</option>`}${D.subjects.map(s => `<option value="${s.id}" ${s.id === id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>`; }
 
+/* ---------- folders ---------- */
+let docFolder = "";
+const folderOf = id => D.folders.find(f => f.id === id);
+function folderPath(id) { const p = []; let f = folderOf(id), guard = 0; while (f && guard++ < 20) { p.unshift(f); f = folderOf(f.parent); } return p; }
+function folderTree(parent = "", depth = 0, skip = "") { return D.folders.filter(f => (f.parent || "") === parent && f.id !== skip).sort((a, b) => a.name.localeCompare(b.name)).flatMap(f => [{ f, depth }, ...folderTree(f.id, depth + 1, skip)]); }
+const subjectOfFolder = id => folderPath(id).map(f => f.subjectId).filter(Boolean).pop() || "";
+const folderCount = id => D.docs.filter(d => d.folderId === id).length + D.folders.filter(f => f.parent === id).length;
+function migrateFolders() {
+  if (D.foldersInit) return; D.foldersInit = true;
+  D.subjects.forEach(s => { if (!D.folders.find(f => f.subjectId === s.id)) D.folders.push({ id: uid(), name: s.name, parent: "", color: s.color, subjectId: s.id }); });
+  D.docs.forEach(d => { if (d.subjectId && !d.folderId) d.folderId = D.folders.find(f => f.subjectId === d.subjectId)?.id || ""; }); save();
+}
+async function newFolder(parent = docFolder) {
+  const n = await ask("Neuer Ordner", { placeholder: "z. B. Mathe oder Deutsch", ok: "Erstellen" }); if (!n?.trim()) return;
+  const name = n.trim(), sub = !parent && D.subjects.find(s => s.name.toLowerCase() === name.toLowerCase());
+  D.folders.push({ id: uid(), name, parent: parent || "", color: sub?.color || COLORS[D.folders.length % COLORS.length], subjectId: sub?.id || "" }); save(); refreshNav(); if (curView === "docs") renderView();
+}
+function pickFolder(title, exclude = "") {
+  return new Promise(res => {
+    const rows = [{ f: { id: "", name: "Dokumente (oberste Ebene)", color: "#8a8a98" }, depth: 0 }, ...folderTree("", 0, exclude)];
+    const { el, close } = modal(`<h3>${esc(title)}</h3><div class="pick">${rows.map(({ f, depth }) => `<button class="pk" data-f="${f.id}" style="padding-left:${14 + depth * 20}px">${ic("folder")}<i style="background:${f.color}"></i>${esc(f.name)}</button>`).join("")}</div>`);
+    let d = false; $$("[data-f]", el).forEach(b => b.onclick = () => { d = true; close(); res(b.dataset.f); }); $(".x", el).addEventListener("click", () => { if (!d) res(null); });
+  });
+}
+function moveDoc(d, folderId) { d.folderId = folderId || ""; const sid = subjectOfFolder(folderId); if (sid) d.subjectId = sid; d.updated = Date.now(); save(); }
+function folderMenu(btn, f) {
+  menu(btn, [
+    { label: "Öffnen", icon: "folder", fn: () => go("docs/" + f.id) },
+    { label: "Umbenennen", icon: "pen", fn: async () => { const n = await ask("Ordner umbenennen", { value: f.name }); if (n?.trim()) { f.name = n.trim(); save(); refreshNav(); renderView(); } } },
+    { label: "Farbe ändern", icon: "brush", fn: () => { const { el, close } = modal(`<h3>Farbe</h3><div class="chips">${COLORS.map(c => `<button class="cdot" data-c="${c}" style="background:${c};width:38px;height:38px"></button>`).join("")}</div>`); $$("[data-c]", el).forEach(b => b.onclick = () => { f.color = b.dataset.c; save(); close(); refreshNav(); renderView(); }); } },
+    { label: "Verschieben…", icon: "upload", fn: async () => { const t = await pickFolder("Ordner verschieben nach…", f.id); if (t !== null && t !== f.parent) { f.parent = t; save(); refreshNav(); renderView(); } } },
+    "-", { label: "Ordner löschen", icon: "trash", danger: true, fn: async () => { if (!(await confirmBox(`Ordner „${f.name}“ löschen? Der Inhalt wandert eine Ebene nach oben.`))) return; D.docs.forEach(d => { if (d.folderId === f.id) d.folderId = f.parent || ""; }); D.folders.forEach(x => { if (x.parent === f.id) x.parent = f.parent || ""; }); D.folders = D.folders.filter(x => x !== f); save(); if (docFolder === f.id) docFolder = f.parent || ""; refreshNav(); go("docs/" + docFolder); } },
+  ]);
+}
+
 /* ---------- documents CRUD ---------- */
-async function newNote(subjectId = docFilter, html = "", title = "Unbenannte Notiz") {
-  const id = uid(); D.docs.unshift({ id, type: "note", title, subjectId, updated: Date.now(), created: Date.now(), text: htmlToText(html) });
+async function newNote(subjectId = "", html = "", title = "Unbenannte Notiz", folderId = docFolder) {
+  const id = uid(); D.docs.unshift({ id, type: "note", title, subjectId: subjectId || subjectOfFolder(folderId), folderId, paper: D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) });
   await KV.set("html:" + id, html || ""); save(); go("doc/" + id);
 }
 async function thumbOf(file) {
@@ -97,7 +132,7 @@ async function uploadFiles(files) {
   for (const f of files) {
     if (f.size > 60 * 1024 * 1024) { toast(f.name + " ist größer als 60 MB"); continue; }
     const id = uid(); await KV.set("blob:" + id, f);
-    D.docs.unshift({ id, type: "file", title: f.name, mime: f.type, size: f.size, subjectId: docFilter, updated: Date.now(), created: Date.now(), thumb: /^image\//.test(f.type) ? await thumbOf(f) : "" }); n++;
+    D.docs.unshift({ id, type: "file", title: f.name, mime: f.type, size: f.size, subjectId: subjectOfFolder(docFolder), folderId: docFolder, updated: Date.now(), created: Date.now(), thumb: /^image\//.test(f.type) ? await thumbOf(f) : "" }); n++;
   }
   save(); if (n) { toast(n + (n > 1 ? " Dateien" : " Datei") + " hochgeladen"); if (curView === "docs") renderView(); refreshNav(); }
 }
@@ -113,18 +148,20 @@ function docCard(d) {
   else if (d.type === "draw") thumb = `<div class="th" style="background:#fff center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.thumb) thumb = `<div class="th" style="background:#f3f3f5 center/cover url(${d.thumb})"></div>`;
   else { const [l, c] = fileIcon(d); thumb = `<div class="th file-th"><b style="background:${c}">${esc(l)}</b></div>`; }
-  return `<div class="doc" data-d="${d.id}">${thumb}<div class="dm"><div class="dt">${d.pinned ? `<span class="pin">${ic("star")}</span>` : ""}${esc(d.title)}</div><div class="ds">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)} · ` : ""}${fmtAgo(d.updated)}</div></div><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
+  return `<div class="doc" data-d="${d.id}" draggable="true">${thumb}<div class="dm"><div class="dt">${d.pinned ? `<span class="pin">${ic("star")}</span>` : ""}${esc(d.title)}</div><div class="ds">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)} · ` : ""}${fmtAgo(d.updated)}</div></div><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
 }
 function docMenu(btn, d) {
   menu(btn, [
     { label: "Öffnen", icon: "file", fn: () => openDoc(d) },
     { label: "Umbenennen", icon: "pen", fn: async () => { const n = await ask("Umbenennen", { value: d.title }); if (n?.trim()) { d.title = n.trim(); d.updated = Date.now(); save(); renderView(); } } },
     { label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); renderView(); } },
-    ...D.subjects.length ? [{ label: "Fach zuordnen…", icon: "folder", fn: () => { const { el, close } = modal(`<h3>Fach zuordnen</h3><div class="chips">${[{ id: "", name: "Kein Fach", color: "#999" }, ...D.subjects].map(s => `<button class="chip" data-s="${s.id}"><i class="sdot" style="background:${s.color}"></i>${esc(s.name)}</button>`).join("")}</div>`); $$("[data-s]", el).forEach(b => b.onclick = () => { d.subjectId = b.dataset.s; save(); close(); renderView(); refreshNav(); }); } }] : [],
+    { label: "Verschieben…", icon: "upload", fn: async () => { const t = await pickFolder("Verschieben nach…"); if (t !== null) { moveDoc(d, t); refreshNav(); renderView(); toast("Verschoben"); } } },
+    ...D.subjects.length ? [{ label: "Fach zuordnen…", icon: "folder", fn: () => { const { el, close } = modal(`<h3>Fach zuordnen</h3><div class="chips">${[{ id: "", name: "Kein Fach", color: "#999" }, ...D.subjects].map(s => `<button class="chip" data-s="${s.id}"><i class="sdot" style="background:${s.color}"></i>${esc(s.name)}</button>`).join("")}</div>`); $$("[data-s]", el).forEach(b => b.onclick = () => { d.subjectId = b.dataset.s; save(); close(); renderView(); }); } }] : [],
     "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); renderView(); } },
   ]);
 }
 const openDoc = d => go((d.type === "draw" ? "draw/" : "doc/") + d.id);
+const docPath = d => folderPath(d.folderId).map(f => f.name).join(" › ");
 
 /* ---------- views: today ---------- */
 const ringSvg = (p, color, val, label) => `<div class="rg"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48" class="rbg"/><circle cx="60" cy="60" r="48" class="rfg" style="stroke:${color};stroke-dasharray:${Math.max(0, Math.min(100, p)) * 3.016} 302"/></svg><b>${val}</b><small>${label}</small></div>`;
@@ -147,10 +184,10 @@ V.today = m => {
   const days7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); const k = iso(d); return { k, l: d.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", ""), n: d.getDate(), tasks: D.tasks.filter(x => !x.done && x.due === k), ev: msEventsOn(k) }; });
   const ms = D.ms?.account;
   const TILES = [["note", "Neue Notiz", "n", "linear-gradient(135deg,#6a4cff,#9a86ff)"], ["brush", "Zeichnen", "d", "linear-gradient(135deg,#ff7a3d,#ffb36b)"], ["upload", "Datei hochladen", "u", "linear-gradient(135deg,#2f7bff,#6cb3ff)"], ["cards", "Karteikarten", "c", "linear-gradient(135deg,#12b27a,#6fe0b0)"], ["help", "Quiz starten", "q", "linear-gradient(135deg,#ec4899,#ff8fc0)"], ["timer", "Fokus-Timer", "f", "linear-gradient(135deg,#f59e0b,#ffd166)"]];
-  m.innerHTML = `<div class="page home"><section class="hero-home"><div class="hh-txt"><p class="eyebrow">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1>${h < 11 ? "Guten Morgen" : h < 18 ? "Hallo" : "Guten Abend"}${D.profile.name ? ", " + esc(D.profile.name.split(" ")[0]) : ""}</h1>
+  m.innerHTML = `<div class="home-wrap"><div class="page home"><section class="hero-home"><div class="hh-txt"><p class="eyebrow">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1>${h < 11 ? "Guten Morgen" : h < 18 ? "Hallo" : "Guten Abend"}${D.profile.name ? ", " + esc(D.profile.name.split(" ")[0]) : ""}</h1>
     <p class="hh-sub">${todayTasks.length ? `Heute ${todayTasks.length === 1 ? "steht 1 Aufgabe" : "stehen " + todayTasks.length + " Aufgaben"} an` : "Heute ist nichts überfällig – perfekt zum Lernen"}${exams[0] ? ` · nächste Prüfung in ${daysUntil(exams[0].due)} ${daysUntil(exams[0].due) === 1 ? "Tag" : "Tagen"}` : ""}.</p>
     <div class="hh-chips"><span class="hchip">${ic("flame")}${streak()} Tage Serie</span><span class="hchip">${ic("timer")}${mins}/${goal} Min. heute</span>${due ? `<span class="hchip warn">${ic("cards")}${due} Karten fällig</span>` : ""}<button class="hchip plan" id="plan" type="button">${ic("spark")}KI-Tagesplan</button></div>
-    <form class="askbar" id="askf">${ic("spark")}<input placeholder="Frag die KI – z. B. „Erkläre mir die Photosynthese“" aria-label="KI fragen"><button class="send" aria-label="Senden">${ic("up")}</button></form></div><div class="hh-art" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></section>
+</div><div class="hh-art" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></section>
   <section><h2 class="sh2">Neu erstellen</h2><div class="create">${TILES.map(([i, l, k, g]) => `<button data-q="${k}" style="background:${g}"><span>${ic(i)}</span><b>${l}</b></button>`).join("")}</div></section>
   <div class="cols2"><section class="panel tint"><h2>Lernfortschritt</h2><div class="rings">${ringSvg(mins / goal * 100, "#5b3df5", mins + "′", "Tagesziel")}${ringSvg(cardPct, "#0e9f6e", Math.round(cardPct) + "%", "Karten gemeistert")}${ringSvg(allT ? doneT / allT * 100 : 0, "#ff6a3d", allT ? Math.round(doneT / allT * 100) + "%" : "–", "Aufgaben erledigt")}</div></section>
   <section class="panel"><h2>Diese Woche<small>${week.reduce((a, x) => a + x.v, 0)} Min./Karten</small></h2><div class="wbars">${week.map(x => `<div class="${x.today ? "today" : ""}"><i style="height:${Math.max(5, x.v / wmax * 100)}%"></i><small>${x.l}</small></div>`).join("")}</div></section></div>
@@ -160,12 +197,12 @@ V.today = m => {
   <section class="panel"><h2>Als Nächstes fällig<small>${open.length}</small></h2>${open.slice(0, 6).map(x => `<label class="li task"><input type="checkbox" data-t="${x.id}"><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#999"}"></span><b>${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${x.due ? (daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due)) : ""}</small></label>`).join("") || `<p class="empty">Alles erledigt<br><button class="link" id="addt">Aufgabe hinzufügen</button></p>`}</section></div>
   ${ms ? `<section class="panel msc ok"><div class="ms-logo">${msLogoSvg()}</div><div><b>Microsoft 365 verbunden</b><p class="note">${esc(D.ms.account)} · ${D.ms.lastSync ? "zuletzt synchronisiert " + fmtAgo(D.ms.lastSync) : "noch nicht synchronisiert"} · ${(D.ms.events || []).length} Termine</p></div><button class="btn ghost" id="msync">${ic("rot")}Jetzt synchronisieren</button></section>` : `<section class="panel msc"><div class="ms-logo">${msLogoSvg()}</div><div><b>Mit Microsoft 365 verbinden</b><p class="note">Outlook-Kalender, OneNote und Teams: Prüfungen, Hausaufgaben und Lernziele werden automatisch importiert – die KI kann alles lesen.</p></div><button class="btn accent" data-go="settings">Verbinden</button></section>`}
   <section><div class="sech"><h2 class="sh2">Zuletzt bearbeitet</h2><button class="link" data-go="docs">Alle Dokumente</button></div>${recent.length ? `<div class="docgrid">${recent.map(docCard).join("")}</div>` : `<p class="empty">Noch keine Dokumente.</p>`}</section>
-  ${D.subjects.length ? `<section><h2 class="sh2">${SUBJ()}</h2><div class="subjgrid">${D.subjects.map(s => { const nd = D.docs.filter(d => d.subjectId === s.id).length, dk = D.decks.filter(d => d.subjectId === s.id), dc = dk.reduce((n, d) => n + d.cards.filter(c => c.due <= t).length, 0), gl = D.grades.filter(g => g.subjectId === s.id), av = wavg(gl); return `<button class="subjc" data-sub="${s.id}" style="--c:${s.color}"><b>${esc(s.name)}</b><small>${nd} Dok. · ${dc ? dc + " Karten fällig" : dk.length + " Stapel"}</small>${av != null ? `<span class="gp" style="background:${gcol(av)}">Ø ${gfmt(av)}</span>` : ""}</button>`; }).join("")}</div></section>` : ""}</div>`;
+  ${D.subjects.length ? `<section><h2 class="sh2">${SUBJ()}</h2><div class="subjgrid">${D.subjects.map(s => { const nd = D.docs.filter(d => d.subjectId === s.id).length, dk = D.decks.filter(d => d.subjectId === s.id), dc = dk.reduce((n, d) => n + d.cards.filter(c => c.due <= t).length, 0), gl = D.grades.filter(g => g.subjectId === s.id), av = wavg(gl); return `<button class="subjc" data-sub="${s.id}" style="--c:${s.color}"><b>${esc(s.name)}</b><small>${nd} Dok. · ${dc ? dc + " Karten fällig" : dk.length + " Stapel"}</small>${av != null ? `<span class="gp" style="background:${gcol(av)}">Ø ${gfmt(av)}</span>` : ""}</button>`; }).join("")}</div></section>` : ""}</div><aside class="homeai"><div class="hai-h"><span class="ai-ic">${ic("spark")}</span><div><b>KI-Tutor</b><small>Frag alles zu deinen Unterlagen, Prüfungen und Terminen</small></div></div><div class="chatbox flat" id="hcb"></div></aside></div>`;
   bindCommon(m);
-  $$("[data-sub]", m).forEach(b => b.onclick = () => { docFilter = b.dataset.sub; go("docs"); });
+  $$("[data-sub]", m).forEach(b => b.onclick = () => { go("docs/" + (D.folders.find(f => f.subjectId === b.dataset.sub)?.id || "")); });
   $$("[data-q]", m).forEach(b => b.onclick = () => ({ n: () => newNote(), d: () => go("draw/new"), u: () => $("#upl").click(), c: () => go("cards"), q: () => go("quiz"), f: () => go("focus") }[b.dataset.q])());
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
-  $("#askf", m).onsubmit = e => { e.preventDefault(); const v = e.target.querySelector("input").value.trim(); if (v) { chatPrefill = v; go("ai"); } };
+  mountChat($("#hcb", m), false);
   $$("[data-t]", m).forEach(c => c.onchange = () => { const x = D.tasks.find(y => y.id === c.dataset.t); x.done = true; x.doneAt = Date.now(); save(); toast("Erledigt"); renderView(); });
   $("#addt", m) && ($("#addt", m).onclick = () => taskModal());
   $("#plan", m).onclick = async () => {
@@ -184,19 +221,27 @@ function bindCommon(m) {
   $$("[data-m]", m).forEach(b => b.onclick = e => { e.stopPropagation(); docMenu(b, D.docs.find(d => d.id === b.dataset.m)); });
 }
 
-/* ---------- views: documents ---------- */
+/* ---------- views: documents (folders) ---------- */
 let docSort = "recent", docQuery = "";
-V.docs = m => {
-  const s = subj(docFilter);
-  let list = D.docs.filter(d => (!docFilter || d.subjectId === docFilter) && (!docQuery || (d.title + " " + (d.text || "")).toLowerCase().includes(docQuery.toLowerCase())));
-  list.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (docSort === "name" ? a.title.localeCompare(b.title) : b.updated - a.updated));
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">${s ? "in " + esc(s.name) : "Alle " + SUBJ()}</p><h1>Dokumente</h1></div><div class="row"><button class="btn ghost" id="up">${ic("upload")}Hochladen</button><button class="btn ghost" id="nd">${ic("brush")}Zeichnung</button><button class="btn accent" id="nn">${ic("plus")}Notiz</button></div></div>
-  <div class="toolbar"><div class="searchbox">${ic("search")}<input id="dq" placeholder="Dokumente durchsuchen…" value="${esc(docQuery)}"></div><div class="chips scroll"><button class="chip ${!docFilter ? "on" : ""}" data-f="">Alle</button>${D.subjects.map(x => `<button class="chip ${docFilter === x.id ? "on" : ""}" data-f="${x.id}"><i class="sdot" style="background:${x.color}"></i>${esc(x.name)}</button>`).join("")}</div><select class="field slim" id="ds"><option value="recent" ${docSort === "recent" ? "selected" : ""}>Zuletzt</option><option value="name" ${docSort === "name" ? "selected" : ""}>Name</option></select></div>
-  ${list.length ? `<div class="docgrid">${list.map(docCard).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>Noch nichts hier</h3><p>Erstelle eine Notiz, zeichne eine Skizze oder ziehe PDFs, Bilder und Skripte hierher.</p><div class="row" style="justify-content:center"><button class="btn accent" id="nn2">Neue Notiz</button><button class="btn ghost" id="up2">Datei hochladen</button></div></div>`}<p class="note" style="margin-top:24px;text-align:center">Tipp: Dateien einfach per Drag & Drop auf diese Seite ziehen.</p></div>`;
+V.docs = (m, id) => {
+  if (id !== undefined) docFolder = id || ""; if (docFolder && !folderOf(docFolder)) docFolder = "";
+  const q = docQuery.trim().toLowerCase(), path = folderPath(docFolder);
+  const folders = (q ? D.folders.filter(f => f.name.toLowerCase().includes(q)) : D.folders.filter(f => (f.parent || "") === docFolder)).sort((a, b) => a.name.localeCompare(b.name));
+  const list = (q ? D.docs.filter(d => (d.title + " " + (d.text || "")).toLowerCase().includes(q)) : D.docs.filter(d => (d.folderId || "") === docFolder)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (docSort === "name" ? a.title.localeCompare(b.title) : b.updated - a.updated));
+  m.innerHTML = `<div class="page"><div class="hd docs-hd"><nav class="path" aria-label="Pfad"><button data-p="" class="${path.length ? "" : "cur"}">${ic("folder")}Dokumente</button>${path.map((f, i) => `<span>›</span><button data-p="${f.id}" class="${i === path.length - 1 ? "cur" : ""}">${esc(f.name)}</button>`).join("")}</nav>
+  <div class="row"><button class="btn ghost" id="nf">${ic("folder")}Ordner</button><button class="btn ghost" id="nd">${ic("brush")}Zeichnung</button><button class="btn ghost" id="up">${ic("upload")}Hochladen</button><button class="btn accent" id="nn">${ic("plus")}Notiz</button></div></div>
+  <div class="toolbar"><div class="searchbox">${ic("search")}<input id="dq" placeholder="${path.length ? "In „" + esc(path[path.length - 1].name) + "“ und überall suchen…" : "Alle Dokumente durchsuchen…"}" value="${esc(docQuery)}"></div><select class="field slim" id="ds"><option value="recent" ${docSort === "recent" ? "selected" : ""}>Zuletzt bearbeitet</option><option value="name" ${docSort === "name" ? "selected" : ""}>Name A–Z</option></select></div>
+  ${folders.length ? `<h2 class="sh2 sm">Ordner</h2><div class="foldgrid">${folders.map(f => `<div class="fold" data-f="${f.id}" style="--c:${f.color}"><span class="fi">${ic("folder")}</span><div class="fm"><b>${esc(f.name)}</b><small>${folderCount(f.id)} ${folderCount(f.id) === 1 ? "Eintrag" : "Einträge"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`).join("")}</div>` : ""}
+  ${list.length ? `<h2 class="sh2 sm">${q ? "Treffer" : "Dateien"}</h2><div class="docgrid">${list.map(docCard).join("")}</div>` : (!folders.length ? `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>${q ? "Nichts gefunden" : path.length ? "Dieser Ordner ist leer" : "Noch nichts hier"}</h3><p>${q ? "Versuche einen anderen Suchbegriff." : "Lege Ordner für deine Fächer an (z. B. Mathe, Deutsch) und erstelle Notizen, Zeichnungen oder lade PDFs hoch. Dateien kannst du auch einfach hierher ziehen."}</p>${q ? "" : `<div class="row" style="justify-content:center"><button class="btn accent" id="nf2">Ordner anlegen</button><button class="btn ghost" id="nn2">Neue Notiz</button></div>`}</div>` : "")}
+  <p class="note" style="margin-top:22px;text-align:center">Tipp: Notizen und Dateien per Drag & Drop auf einen Ordner oder in den Pfad oben ziehen.</p></div>`;
   bindCommon(m);
-  $("#up", m).onclick = () => $("#upl").click(); $("#up2", m) && ($("#up2", m).onclick = () => $("#upl").click());
-  $("#nn", m).onclick = () => newNote(); $("#nn2", m) && ($("#nn2", m).onclick = () => newNote()); $("#nd", m).onclick = () => go("draw/new");
-  $$("[data-f]", m).forEach(b => b.onclick = () => { docFilter = b.dataset.f; refreshNav(); V.docs(m); });
+  $$("[data-p]", m).forEach(b => { b.onclick = () => go("docs/" + b.dataset.p); b.ondragover = e => { e.preventDefault(); b.classList.add("drop"); }; b.ondragleave = () => b.classList.remove("drop"); b.ondrop = e => dropOn(e, b.dataset.p); });
+  $$("[data-f]", m).forEach(c => { c.onclick = e => { if (e.target.closest("[data-fm]")) return; go("docs/" + c.dataset.f); }; c.ondragover = e => { e.preventDefault(); c.classList.add("drop"); }; c.ondragleave = () => c.classList.remove("drop"); c.ondrop = e => dropOn(e, c.dataset.f); });
+  $$("[data-fm]", m).forEach(b => b.onclick = e => { e.stopPropagation(); folderMenu(b, folderOf(b.dataset.fm)); });
+  $$(".doc", m).forEach(c => c.ondragstart = e => { e.dataTransfer.setData("text/lumi-doc", c.dataset.d); e.dataTransfer.effectAllowed = "move"; });
+  function dropOn(e, fid) { const did = e.dataTransfer.getData("text/lumi-doc"); if (!did) return; e.preventDefault(); e.stopPropagation(); const d = D.docs.find(x => x.id === did); if (d) { moveDoc(d, fid); toast("Verschoben nach " + (folderOf(fid)?.name || "Dokumente")); refreshNav(); V.docs(m); } }
+  $("#up", m).onclick = () => $("#upl").click(); $("#nn", m).onclick = () => newNote(); $("#nn2", m) && ($("#nn2", m).onclick = () => newNote()); $("#nd", m).onclick = () => go("draw/new");
+  $("#nf", m).onclick = () => newFolder(); $("#nf2", m) && ($("#nf2", m).onclick = () => newFolder());
   $("#dq", m).oninput = debounce(e => { docQuery = e.target.value; const p = e.target.selectionStart; V.docs(m); const i = $("#dq", m); i.focus(); i.setSelectionRange(p, p); }, 200);
   $("#ds", m).onchange = e => { docSort = e.target.value; V.docs(m); };
 };
@@ -270,17 +315,19 @@ async function noteEditor(m, d) {
     [{ i: "undo", c: "undo", t: "Rückgängig" }, { i: "redo", c: "redo", t: "Wiederholen" }, { i: "rot", c: "clear", t: "Formatierung entfernen" }],
   ];
   const tbHtml = GROUPS.map(g => `<div class="tg">${g.map(b => b.sel ? `<select id="blk" title="Textformat"><option value="p">Text</option><option value="h1">Überschrift 1</option><option value="h2">Überschrift 2</option><option value="h3">Überschrift 3</option></select>` : b.color ? `<label class="tbtn" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #5b3df5;line-height:1">A</b><input type="color" id="cin" value="#5b3df5" hidden></label>` : `<button class="tbtn" data-c="${b.c}" title="${b.t}">${b.i ? ic(b.i) : `<b>${b.x}</b>`}</button>`).join("")}</div>`).join("");
-  m.innerHTML = `<div class="ned"><div class="ned-top"><div class="nt-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="crumbs"><button data-go="docs">Dokumente</button><span>›</span><b id="cr">${esc(d.title)}</b></div></div>
+  m.innerHTML = `<div class="ned"><div class="ned-top"><div class="nt-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="crumbs"><button data-p="">Dokumente</button>${folderPath(d.folderId).map(f => `<span>›</span><button data-p="${f.id}">${esc(f.name)}</button>`).join("")}<span>›</span><b id="cr">${esc(d.title)}</b></div></div>
   <div class="ned-tb tb" id="tb">${tbHtml}</div>
   <div class="nt-r"><span class="saved" id="sv">Gespeichert</span><button class="btn ghost" id="ai-m">${ic("spark")}<span class="hide-sm">KI</span></button><button class="btn ghost" id="ex-m">${ic("download")}<span class="hide-sm">Export</span></button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button></div></div>
-  <div class="ned-main"><article class="ned-paper"><div class="ned-in">
+  <div class="ned-main"><article class="ned-paper p-${d.paper || D.profile.paper || "white"}" id="paperc"><div class="ned-in">
     <input class="ned-title" id="et" value="${esc(d.title === "Unbenannte Notiz" ? "" : d.title)}" placeholder="Unbenannte Notiz" aria-label="Titel">
-    <div class="ned-meta">${subjectSelect(d.subjectId, "ed-sub")}<span class="mchip">${ic("cal")}${new Date(d.created || Date.now()).toLocaleDateString("de-DE")}</span><span class="mchip" id="wc"></span>${d.msLink ? `<a class="mchip ms" href="${esc(d.msLink)}" target="_blank" rel="noopener">OneNote</a>` : ""}</div>
+    <div class="ned-meta">${subjectSelect(d.subjectId, "ed-sub")}<span class="mchip">${ic("cal")}${new Date(d.created || Date.now()).toLocaleDateString("de-DE")}</span><span class="mchip" id="wc"></span>${d.msLink ? `<a class="mchip ms" href="${esc(d.msLink)}" target="_blank" rel="noopener">OneNote</a>` : ""}<div class="seg mini" id="paper" title="Papier">${[["white", "Weiß"], ["lines", "Liniert"], ["grid", "Kariert"], ["dots", "Punkte"]].map(([k, l]) => `<button data-pp="${k}" class="${(d.paper || D.profile.paper || "white") === k ? "on" : ""}">${l}</button>`).join("")}</div></div>
     <div class="body" id="body" contenteditable="true" spellcheck="true" data-ph="Schreibe etwas oder tippe „/“ für Überschriften, Listen, Tabellen und KI …">${html}</div></div></article>
   <aside class="ned-side"><div class="sidecard"><h4>Gliederung</h4><div id="outline" class="outline"></div></div>
   <div class="sidecard"><h4>KI-Assistent</h4><div class="aibtns">${[["summary", "list", "Zusammenfassen"], ["explain", "help", "Einfach erklären"], ["improve", "pen", "Verbessern"], ["cards", "cards", "Karteikarten"], ["quiz", "help", "Quiz erstellen"], ["goals", "star", "Lernziele"]].map(([k, i, l]) => `<button data-ai="${k}">${ic(i)}${l}</button>`).join("")}</div></div>
   <div class="sidecard"><h4>Info</h4><small id="info" class="note"></small></div></aside></div><input type="file" id="imgin" accept="image/*" hidden></div>`;
-  const paint = () => { const c = subj(d.subjectId)?.color; m.classList.add("tinted"); m.style.setProperty("--panel", c ? `color-mix(in srgb, ${c} 34%, #fff)` : "#dcf68a"); }; paint();
+  const paint = () => {};
+  $$("[data-p]", m).forEach(b => b.onclick = () => go("docs/" + b.dataset.p));
+  $$("[data-pp]", m).forEach(b => b.onclick = () => { const k = b.dataset.pp; d.paper = k; D.profile.paper = k; $("#paperc", m).className = "ned-paper p-" + k; $$("[data-pp]", m).forEach(x => x.classList.toggle("on", x === b)); save(); });
   const body = $("#body", m), svEl = $("#sv", m), titleIn = $("#et", m), wcEl = $("#wc", m), outEl = $("#outline", m); let saved = null;
   const onSel = () => { const s = getSelection(); if (s.rangeCount && body.contains(s.anchorNode)) saved = s.getRangeAt(0).cloneRange(); updBubble(); };
   document.addEventListener("selectionchange", onSel); LEAVE.push(() => document.removeEventListener("selectionchange", onSel));
@@ -315,7 +362,7 @@ async function noteEditor(m, d) {
   $("#blk", m).onchange = e => CMD[e.target.value]();
   $("#cin", m).oninput = e => { $("#cl", m).style.borderColor = e.target.value; exec("foreColor", e.target.value); }; $("#cin", m).onclick = e => e.stopPropagation(); $("#cl", m).parentElement.onclick = () => $("#cin", m).click();
   $(".ed-sub", m).onchange = e => { d.subjectId = e.target.value; paint(); save(); refreshNav(); };
-  $("#eb", m).onclick = () => go("docs");
+  $("#eb", m).onclick = () => go("docs/" + (d.folderId || ""));
   $$("[data-ai]", m).forEach(b => b.onclick = () => run(b.dataset.ai));
 
   /* floating selection menu */
@@ -346,7 +393,7 @@ async function noteEditor(m, d) {
   $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Zusammenfassen", icon: "list", fn: () => run("summary") }, { label: "Einfach erklären", icon: "help", fn: () => run("explain") }, { label: "Verbessern & korrigieren", icon: "pen", fn: () => run("improve") }, { label: "Weiterschreiben", icon: "spark", fn: () => run("continue") }, { label: "Übersetzen…", icon: "rot", fn: () => run("translate") }, { label: "Frage zum Text…", icon: "search", fn: () => run("ask") }, "-", { label: "Lernziele ermitteln", icon: "star", fn: () => run("goals") }, { label: "Karteikarten erstellen", icon: "cards", fn: () => run("cards") }, { label: "Quiz erstellen", icon: "help", fn: () => run("quiz") }]);
   const dl = (name, mime, data) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
   $("#ex-m", m).onclick = e => menu(e.currentTarget, [{ label: "Als PDF drucken / speichern", icon: "file", fn: () => { const w = open("", "_blank"); if (!w) return toast("Pop-up erlaubt?"); w.document.write(`<title>${esc(d.title)}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:760px;margin:30px auto;padding:0 20px}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:6px 10px}img{max-width:100%}pre{background:#f3f3f3;padding:12px;border-radius:8px}blockquote{border-left:4px solid #ccc;margin:0;padding-left:14px;color:#555}ul.chk{list-style:none;padding-left:4px}</style><h1>${esc(d.title)}</h1>${body.innerHTML}`); w.document.close(); setTimeout(() => w.print(), 400); } }, { label: "Textdatei (.txt)", icon: "note", fn: () => dl(d.title + ".txt", "text/plain", body.innerText) }, { label: "HTML-Datei", icon: "code", fn: () => dl(d.title + ".html", "text/html", `<meta charset="utf-8"><title>${esc(d.title)}</title>${body.innerHTML}`) }]);
-  $("#mo-m", m).onclick = e => menu(e.currentTarget, [{ label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); toast(d.pinned ? "Angeheftet" : "Gelöst"); } }, { label: "Duplizieren", icon: "copy", fn: async () => { const id = uid(); D.docs.unshift({ ...d, id, title: d.title + " (Kopie)", created: Date.now(), updated: Date.now(), msId: undefined, source: undefined, pinned: false }); await KV.set("html:" + id, body.innerHTML); save(); go("doc/" + id); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); go("docs"); } }]);
+  $("#mo-m", m).onclick = e => menu(e.currentTarget, [{ label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); toast(d.pinned ? "Angeheftet" : "Gelöst"); } }, { label: "Duplizieren", icon: "copy", fn: async () => { const id = uid(); D.docs.unshift({ ...d, id, title: d.title + " (Kopie)", created: Date.now(), updated: Date.now(), msId: undefined, source: undefined, pinned: false }); await KV.set("html:" + id, body.innerHTML); save(); go("doc/" + id); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); go("docs/" + (d.folderId || "")); } }]);
   try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch {}
   if (!body.innerHTML.trim()) body.innerHTML = "<p><br></p>";
   count(); outline(); if (!html) (titleIn.value ? body : titleIn).focus();
@@ -359,7 +406,7 @@ async function fileViewer(m, d) {
   m.innerHTML = `<div class="editor"><div class="ed-head"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><input class="ed-title" id="et" value="${esc(d.title)}">${subjectSelect(d.subjectId, "ed-sub")}<button class="btn ghost" id="ai-m">${ic("spark")}KI</button><a class="btn ghost" href="${url}" download="${esc(d.title)}">${ic("download")}<span class="hide-sm">Laden</span></a><button class="icon-btn" id="del" aria-label="Löschen">${ic("trash")}</button></div>
   <div class="viewer">${!blob ? `<p class="empty">Datei nicht gefunden.</p>` : isImg ? `<img src="${url}" alt="${esc(d.title)}">` : isPdf ? `<iframe src="${url}" title="${esc(d.title)}"></iframe>` : isTxt ? `<pre id="txtv">Lädt…</pre>` : `<div class="emptybox"><div class="big-ic">${ic("file")}</div><h3>${esc(d.title)}</h3><p>${(d.size / 1024).toFixed(0)} KB – für diesen Dateityp gibt es keine Vorschau. Lade die Datei herunter.</p></div>`}</div></div>`;
   if (isTxt && blob) blob.text().then(t => $("#txtv", m).textContent = t);
-  $("#eb", m).onclick = () => go("docs"); $("#del", m).onclick = async () => { await deleteDoc(d); go("docs"); };
+  $("#eb", m).onclick = () => go("docs/" + (d.folderId || "")); $("#del", m).onclick = async () => { await deleteDoc(d); go("docs/" + (d.folderId || "")); };
   $("#et", m).onchange = e => { d.title = e.target.value.trim() || d.title; d.updated = Date.now(); save(); };
   $(".ed-sub", m).onchange = e => { d.subjectId = e.target.value; save(); refreshNav(); };
   $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Zusammenfassen", icon: "list", fn: async () => aiTool("summary", await docText(d), { title: d.title, subjectId: d.subjectId }) }, { label: "Einfach erklären", icon: "help", fn: async () => aiTool("explain", await docText(d), { title: d.title, subjectId: d.subjectId }) }, { label: "Frage zum Dokument…", icon: "search", fn: async () => aiTool("ask", await docText(d), { title: d.title }) }, "-", { label: "Karteikarten erstellen", icon: "cards", fn: async () => aiTool("cards", await docText(d), { title: d.title, subjectId: d.subjectId }) }, { label: "Quiz erstellen", icon: "help", fn: async () => aiTool("quiz", await docText(d), { title: d.title, subjectId: d.subjectId }) }, ...(isImg ? [{ label: "Bild von der KI erklären lassen", icon: "camera", fn: async () => { const r = await explainImage(blob); if (r) modal(`<h3>KI-Erklärung</h3><div class="result">${esc(r)}</div>`, "wide"); } }] : [])]);

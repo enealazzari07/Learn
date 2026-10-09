@@ -125,7 +125,7 @@ const KV = {
     return new Promise(res => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").delete(k); t.oncomplete = () => res(); t.onerror = () => res(); });
   },
 };
-const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "de", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
+const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "de", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], folders: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
 let D = DEFAULT();
 let _st;
 function save() { clearTimeout(_st); _st = setTimeout(() => KV.set("data", D), 250); }

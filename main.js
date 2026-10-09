@@ -7,7 +7,7 @@ function renderView() {
   LEAVE.splice(0).forEach(f => { try { f(); } catch {} });
   const [, v = "today", x, y] = location.hash.replace(/^#\/?/, "").split("/");
   curView = V[v] ? v : "today";
-  buildShell(); refreshNav(); timerPaint();
+  buildShell(); $("#app").classList.toggle("has-dock", curView === "today"); refreshNav(); timerPaint();
   const m = $("#main"); m.className = "main"; m.removeAttribute("style"); window.scrollTo(0, 0);
   $("#cpanel") && curView === "ai" && ($("#cpanel").hidden = true);
   try { const r = V[curView](m, x, y); if (r?.catch) r.catch(e => console.error(e)); } catch (e) { console.error(e); m.innerHTML = `<div class="page"><div class="emptybox"><h3>Ups, da ist etwas schiefgelaufen</h3><p>${esc(e.message)}</p><button class="btn" data-go="today">Zur Startseite</button></div></div>`; bindCommon(m); }
@@ -71,7 +71,7 @@ function renderLanding() {
 
 /* ---------- boot ---------- */
 (async function () {
-  await loadData();
+  await loadData(); try { migrateFolders(); } catch {}
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   route();
   setTimeout(() => { try { msAuto(); } catch {} }, 1500);

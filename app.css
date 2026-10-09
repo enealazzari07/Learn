@@ -396,3 +396,51 @@ body{background:#fff}
   .ed-title{min-width:0;font-size:16px!important}
   .nt-r .btn{padding:9px 12px}
 }
+
+/* ======== v4: calm editor paper, folders, docked AI ======== */
+/* neutral panel for notes */
+.ned .ned-title{text-align:left;font-size:clamp(30px,3.6vw,44px);padding:6px 0 6px;letter-spacing:-.04em}
+.ned .ned-meta{justify-content:flex-start;margin-bottom:18px}
+.ned .mchip,.ned .ned-meta .field.slim{background:var(--soft)}
+.ned-paper{background:#fff!important;border-radius:36px;box-shadow:0 2px 4px rgba(0,0,0,.03),0 18px 44px rgba(30,20,90,.07)!important}
+.ned-in{padding:clamp(22px,3.4vw,44px) clamp(18px,4vw,56px) clamp(24px,4vw,48px)}
+.ned .body{max-width:none;margin:0;font-size:17px;line-height:32px;border-radius:14px;min-height:56vh}
+.ned .body p{margin:0}
+.ned .body h1{font-size:30px;line-height:64px;margin:0;letter-spacing:-.035em}.ned .body h2{font-size:24px;line-height:48px;margin:0}.ned .body h3{font-size:19px;line-height:32px;margin:0;color:#33334a}
+.ned .body li{margin:0;line-height:32px}.ned .body ul,.ned .body ol{margin:0 0 0 1.4em}
+.ned .body blockquote,.ned .body pre,.ned .body table,.ned .body hr{margin-top:16px;margin-bottom:16px}
+.ned .body table td{background:transparent;line-height:26px}
+.ned .p-lines .body{background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#dde2ee 31px,#dde2ee 32px);background-attachment:local}
+.ned .p-grid .body{background-image:linear-gradient(#e3e7f1 1px,transparent 1px),linear-gradient(90deg,#e3e7f1 1px,transparent 1px);background-size:32px 32px;background-attachment:local;background-position:0 31px}
+.ned .p-dots .body{background-image:radial-gradient(#b9c0d2 1.5px,transparent 1.7px);background-size:32px 32px;background-position:0 15px;background-attachment:local}
+.seg.mini{margin:0 0 0 auto;padding:3px}.seg.mini button{padding:5px 12px;font-size:12.5px}
+@media (max-width:700px){.seg.mini{margin-left:0}}
+/* breadcrumb path */
+.docs-hd{align-items:center}
+.path{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:clamp(22px,3vw,34px);font-weight:700;letter-spacing:-.04em}
+.path button{display:inline-flex;align-items:center;gap:10px;padding:4px 10px;border-radius:14px;color:#8a8a98}.path button.cur{color:#111}.path button:hover{background:var(--soft);color:#111}.path button.drop{background:#efeaff;color:var(--violet)}
+.path button svg{width:26px;height:26px}.path span{color:#c2c2cc;font-weight:400}
+.crumbs button.drop{color:var(--violet)}
+.sh2.sm{font-size:15px;color:#6b6b76;margin:20px 0 10px;font-weight:700}
+.foldgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.fold{position:relative;display:flex;align-items:center;gap:14px;background:#fff;border-radius:28px;padding:16px 18px;cursor:pointer;transition:transform .15s,box-shadow .15s,outline-color .15s;outline:2px solid transparent}
+.fold:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(30,20,90,.1)}.fold.drop{outline-color:var(--violet);background:#f6f3ff}
+.fi{width:50px;height:50px;border-radius:18px;background:color-mix(in srgb,var(--c) 16%,#fff);color:var(--c);display:grid;place-items:center;flex:none}.fi svg{width:26px;height:26px}
+.fm{display:flex;flex-direction:column;min-width:0;flex:1}.fm b{font-size:16px;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fm small{color:var(--muted);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fold .dmore{position:static;opacity:.55;background:transparent;box-shadow:none}.fold:hover .dmore{opacity:1;background:var(--soft)}
+.doc .th{height:130px}
+.pick .pk{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 14px;border-radius:14px;font-size:15px}.pick .pk:hover{background:var(--soft)}.pick .pk svg{width:18px;height:18px;color:#777}.pick .pk i{width:9px;height:9px;border-radius:50%}
+/* docked AI on the home page */
+.home-wrap{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:22px;align-items:start;max-width:1640px;margin:0 auto}
+.home-wrap .page.home{max-width:none;margin:0;min-width:0}
+.homeai{position:sticky;top:12px;height:calc(100dvh - 48px);display:flex;flex-direction:column;background:#fff;border-radius:34px;box-shadow:0 12px 40px rgba(30,20,90,.1);overflow:hidden}
+.hai-h{display:flex;gap:12px;align-items:center;padding:18px 20px 12px}.hai-h b{font-size:17px;letter-spacing:-.02em;display:block}.hai-h small{color:var(--muted);font-size:12.5px;line-height:1.35;display:block}
+.ai-ic{width:42px;height:42px;border-radius:15px;background:linear-gradient(135deg,#6a4cff,#b9a8ff);color:#fff;display:grid;place-items:center;flex:none}
+.chatbox.flat{flex:1;min-height:0;height:auto;border-radius:0;padding:0 14px 14px;background:transparent}
+.homeai .modes .chip{padding:6px 12px;font-size:13px}
+#app.has-dock .tfab{display:none}
+@media (max-width:1400px){.home-wrap{grid-template-columns:minmax(0,1fr) 360px}}
+@media (max-width:1180px){.home-wrap{grid-template-columns:1fr}.homeai{display:none}#app.has-dock .tfab{display:flex}}
+.path button{font-size:inherit;font-weight:inherit;letter-spacing:inherit;font-family:inherit}
+.create{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
+.create button{padding:16px;min-height:120px;gap:22px}.create b{font-size:15px}
