@@ -74,4 +74,5 @@ function renderLanding() {
   await loadData();
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   route();
+  setTimeout(() => { try { msAuto(); } catch {} }, 1500);
 })();

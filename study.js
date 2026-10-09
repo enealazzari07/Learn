@@ -123,37 +123,57 @@ function docMenu(btn, d) {
 const openDoc = d => go((d.type === "draw" ? "draw/" : "doc/") + d.id);
 
 /* ---------- views: today ---------- */
+const ringSvg = (p, color, val, label) => `<div class="rg"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="48" class="rbg"/><circle cx="60" cy="60" r="48" class="rfg" style="stroke:${color};stroke-dasharray:${Math.max(0, Math.min(100, p)) * 3.016} 302"/></svg><b>${val}</b><small>${label}</small></div>`;
+function weekData() { return Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return { l: d.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", ""), v: activity(iso(d)), today: i === 6 }; }); }
+function practiceExam(t) {
+  const doc = D.docs.find(x => x.id === t.docId);
+  if (doc) return docText(doc).then(txt => aiTool("quiz", txt, { title: t.title, subjectId: t.subjectId }));
+  quizPrefill = { topic: t.title }; go("quiz");
+}
 V.today = m => {
-  const t = iso(), wd = (new Date().getDay() + 6) % 7, h = new Date().getHours();
+  const t = iso(), wd = (new Date().getDay() + 6) % 7, h = new Date().getHours(), goal = D.profile.goalMin || 45;
   const lessons = D.tt.filter(e => e.day === wd).sort((a, b) => a.start.localeCompare(b.start));
   const open = D.tasks.filter(x => !x.done).sort((a, b) => (a.due || "9").localeCompare(b.due || "9"));
-  const exams = open.filter(x => x.type === "exam" && x.due && daysUntil(x.due) >= 0).slice(0, 3);
-  const mins = D.stats.days[t] || 0, due = dueCardCount();
-  const recent = [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 6);
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1>${h < 11 ? "Guten Morgen" : h < 18 ? "Hallo" : "Guten Abend"}${D.profile.name ? ", " + esc(D.profile.name.split(" ")[0]) : ""} 👋</h1></div>
-  <button class="btn accent" id="plan">${ic("spark")}KI-Tagesplan</button></div>
-  <div class="tiles"><div class="tile"><span class="ti" style="background:#fff0e6;color:#ff6a3d">${ic("flame")}</span><b>${streak()}</b><small>Tage Serie</small></div>
-  <div class="tile"><span class="ti" style="background:#ece8ff;color:#5b3df5">${ic("timer")}</span><b>${mins}</b><small>Min. gelernt heute</small></div>
-  <button class="tile" data-go="cards"><span class="ti" style="background:#e3f7ee;color:#0e9f6e">${ic("cards")}</span><b>${due}</b><small>Karten fällig</small></button>
-  <button class="tile" data-go="planner"><span class="ti" style="background:#e5eeff;color:#2563eb">${ic("todo")}</span><b>${open.length}</b><small>Offene Aufgaben</small></button></div>
-  <form class="askbar" id="askf">${ic("spark")}<input placeholder="Frag die KI etwas… z. B. „Erkläre mir die Photosynthese“" aria-label="KI fragen"><button class="send" aria-label="Senden">${ic("up")}</button></form>
-  <div class="cols"><section class="panel"><h2>Heute im Stundenplan</h2>${lessons.length ? lessons.map(e => `<div class="li"><span class="tm">${e.start}<br><small>${e.end}</small></span><span class="sdot lg" style="background:${subj(e.subjectId)?.color || "#999"}"></span><b>${esc(e.title || subj(e.subjectId)?.name || "Stunde")}</b><small>${esc(e.room || "")}</small></div>`).join("") : `<p class="empty">Keine Stunden eingetragen.<br><button class="link" data-go="planner">Stundenplan anlegen</button></p>`}</section>
-  <section class="panel"><h2>Als Nächstes fällig</h2>${open.slice(0, 5).map(x => `<label class="li task"><input type="checkbox" data-t="${x.id}"><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#999"}"></span><b>${x.type === "exam" ? "📝 " : ""}${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${x.due ? (daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due)) : ""}</small></label>`).join("") || `<p class="empty">Alles erledigt 🎉<br><button class="link" id="addt">Aufgabe hinzufügen</button></p>`}</section></div>
-  ${exams.length ? `<section class="panel"><h2>Prüfungen</h2><div class="exams">${exams.map(x => `<div class="exam"><b>${daysUntil(x.due)}</b><small>${daysUntil(x.due) === 1 ? "Tag" : "Tage"}</small><span>${esc(x.title)}</span></div>`).join("")}</div></section>` : ""}
-  <section><div class="sech"><h2>Zuletzt bearbeitet</h2><button class="link" data-go="docs">Alle Dokumente</button></div>${recent.length ? `<div class="docgrid">${recent.map(docCard).join("")}</div>` : `<p class="empty">Noch keine Dokumente.</p>`}</section>
-  <section><h2>Schnellstart</h2><div class="quick">${[["note", "Neue Notiz", "n"], ["brush", "Zeichnen", "d"], ["upload", "Datei hochladen", "u"], ["cards", "Karteikarten", "c"], ["help", "Quiz starten", "q"], ["timer", "Fokus-Timer", "f"]].map(([i, l, k]) => `<button data-q="${k}">${ic(i)}<span>${l}</span></button>`).join("")}</div></section></div>`;
+  const exams = open.filter(x => x.type === "exam" && x.due && daysUntil(x.due) >= 0).slice(0, 4);
+  const mins = D.stats.days[t] || 0, due = dueCardCount(), evToday = msEventsOn(t), todayTasks = open.filter(x => x.due && daysUntil(x.due) <= 0);
+  const recent = [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 8);
+  const cards = D.decks.flatMap(d => d.cards), mastered = cards.filter(c => c.box >= 4).length, cardPct = cards.length ? mastered / cards.length * 100 : 0;
+  const week = weekData(), wmax = Math.max(30, ...week.map(x => x.v)), allT = D.tasks.length, doneT = D.tasks.filter(x => x.done).length;
+  const timeline = [...lessons.map(e => ({ t: e.start, e: e.end, n: e.title || subj(e.subjectId)?.name || "Stunde", c: subj(e.subjectId)?.color || "#999", s: e.room || "Stundenplan" })), ...evToday.map(e => ({ t: e.time || "00:00", e: e.end, n: e.title, c: "#2563eb", s: e.loc || "Outlook" })), ...todayTasks.map(x => ({ t: "99:99", n: x.title, c: subj(x.subjectId)?.color || "#f59e0b", s: x.type === "exam" ? "Prüfung heute" : "Fällig", task: x }))].sort((a, b) => a.t.localeCompare(b.t));
+  const days7 = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); const k = iso(d); return { k, l: d.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", ""), n: d.getDate(), tasks: D.tasks.filter(x => !x.done && x.due === k), ev: msEventsOn(k) }; });
+  const ms = D.ms?.account;
+  const TILES = [["note", "Neue Notiz", "n", "linear-gradient(135deg,#6a4cff,#9a86ff)"], ["brush", "Zeichnen", "d", "linear-gradient(135deg,#ff7a3d,#ffb36b)"], ["upload", "Datei hochladen", "u", "linear-gradient(135deg,#2f7bff,#6cb3ff)"], ["cards", "Karteikarten", "c", "linear-gradient(135deg,#12b27a,#6fe0b0)"], ["help", "Quiz starten", "q", "linear-gradient(135deg,#ec4899,#ff8fc0)"], ["timer", "Fokus-Timer", "f", "linear-gradient(135deg,#f59e0b,#ffd166)"]];
+  m.innerHTML = `<div class="page home"><section class="hero-home"><div class="hh-txt"><p class="eyebrow">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1>${h < 11 ? "Guten Morgen" : h < 18 ? "Hallo" : "Guten Abend"}${D.profile.name ? ", " + esc(D.profile.name.split(" ")[0]) : ""} 👋</h1>
+    <p class="hh-sub">${todayTasks.length ? `Heute ${todayTasks.length === 1 ? "steht 1 Aufgabe" : "stehen " + todayTasks.length + " Aufgaben"} an` : "Heute ist nichts überfällig – perfekt zum Lernen"}${exams[0] ? ` · nächste Prüfung in ${daysUntil(exams[0].due)} ${daysUntil(exams[0].due) === 1 ? "Tag" : "Tagen"}` : ""}.</p>
+    <div class="hh-chips"><span class="hchip">🔥 ${streak()} Tage Serie</span><span class="hchip">⏱ ${mins}/${goal} Min. heute</span>${due ? `<span class="hchip warn">🃏 ${due} Karten fällig</span>` : ""}<button class="hchip plan" id="plan" type="button">✦ KI-Tagesplan</button></div>
+    <form class="askbar" id="askf">${ic("spark")}<input placeholder="Frag die KI – z. B. „Erkläre mir die Photosynthese“" aria-label="KI fragen"><button class="send" aria-label="Senden">${ic("up")}</button></form></div><div class="hh-art" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div></section>
+  <section><h2 class="sh2">Neu erstellen</h2><div class="create">${TILES.map(([i, l, k, g]) => `<button data-q="${k}" style="background:${g}"><span>${ic(i)}</span><b>${l}</b></button>`).join("")}</div></section>
+  <div class="cols2"><section class="panel tint"><h2>Lernfortschritt</h2><div class="rings">${ringSvg(mins / goal * 100, "#5b3df5", mins + "′", "Tagesziel")}${ringSvg(cardPct, "#0e9f6e", Math.round(cardPct) + "%", "Karten gemeistert")}${ringSvg(allT ? doneT / allT * 100 : 0, "#ff6a3d", allT ? Math.round(doneT / allT * 100) + "%" : "–", "Aufgaben erledigt")}</div></section>
+  <section class="panel"><h2>Diese Woche<small>${week.reduce((a, x) => a + x.v, 0)} Min./Karten</small></h2><div class="wbars">${week.map(x => `<div class="${x.today ? "today" : ""}"><i style="height:${Math.max(5, x.v / wmax * 100)}%"></i><small>${x.l}</small></div>`).join("")}</div></section></div>
+  ${exams.length ? `<section><div class="sech"><h2 class="sh2">Prüfungen & Tests</h2><button class="link" data-go="planner">Planer</button></div><div class="examrow">${exams.map((x, i) => { const dd = daysUntil(x.due), s = subj(x.subjectId); return `<div class="examc" style="--c:${s?.color || ["#5b3df5", "#ff6a3d", "#0e9f6e", "#ec4899"][i % 4]}"><div class="dd"><b>${dd}</b><small>${dd === 1 ? "Tag" : "Tage"}</small></div><div class="ex-b"><b>${esc(x.title)}</b><small>${esc(s?.name || "")} · ${fmtD(x.due)}${x.source === "outlook" ? " · Outlook" : ""}</small>${x.note ? `<p>${esc(x.note.split("\n").slice(0, 3).join(" · ").slice(0, 120))}</p>` : ""}</div><button class="btn small" data-ex="${x.id}">Üben</button></div>`; }).join("")}</div></section>` : ""}
+  <section><h2 class="sh2">Nächste 7 Tage</h2><div class="week7">${days7.map((d, i) => `<button data-go="planner" class="${i ? "" : "now"}"><small>${i ? d.l : "Heute"}</small><b>${d.n}</b><span>${[...d.tasks.slice(0, 3).map(x => `<i style="background:${x.type === "exam" ? "#e5484d" : subj(x.subjectId)?.color || "#888"}"></i>`), ...d.ev.slice(0, 2).map(() => `<i class="sq"></i>`)].join("")}</span></button>`).join("")}</div></section>
+  <div class="cols"><section class="panel"><h2>Heute<small>${timeline.length}</small></h2>${timeline.length ? timeline.map(x => `<div class="li tl"><span class="tm">${x.t === "99:99" ? "•" : x.t}${x.e ? `<br><small>${x.e}</small>` : ""}</span><span class="bar-c" style="background:${x.c}"></span><div class="tm2"><b>${esc(x.n)}</b><small>${esc(x.s)}</small></div></div>`).join("") : `<p class="empty">Nichts geplant.<br><button class="link" data-go="planner">Stundenplan anlegen</button></p>`}</section>
+  <section class="panel"><h2>Als Nächstes fällig<small>${open.length}</small></h2>${open.slice(0, 6).map(x => `<label class="li task"><input type="checkbox" data-t="${x.id}"><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#999"}"></span><b>${x.type === "exam" ? "📝 " : ""}${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${x.due ? (daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due)) : ""}</small></label>`).join("") || `<p class="empty">Alles erledigt 🎉<br><button class="link" id="addt">Aufgabe hinzufügen</button></p>`}</section></div>
+  ${ms ? `<section class="panel msc ok"><div class="ms-logo">${msLogoSvg()}</div><div><b>Microsoft 365 verbunden</b><p class="note">${esc(D.ms.account)} · ${D.ms.lastSync ? "zuletzt synchronisiert " + fmtAgo(D.ms.lastSync) : "noch nicht synchronisiert"} · ${(D.ms.events || []).length} Termine</p></div><button class="btn ghost" id="msync">${ic("rot")}Jetzt synchronisieren</button></section>` : `<section class="panel msc"><div class="ms-logo">${msLogoSvg()}</div><div><b>Mit Microsoft 365 verbinden</b><p class="note">Outlook-Kalender, OneNote und Teams: Prüfungen, Hausaufgaben und Lernziele werden automatisch importiert – die KI kann alles lesen.</p></div><button class="btn accent" data-go="settings">Verbinden</button></section>`}
+  <section><div class="sech"><h2 class="sh2">Zuletzt bearbeitet</h2><button class="link" data-go="docs">Alle Dokumente</button></div>${recent.length ? `<div class="docgrid">${recent.map(docCard).join("")}</div>` : `<p class="empty">Noch keine Dokumente.</p>`}</section>
+  ${D.subjects.length ? `<section><h2 class="sh2">${SUBJ()}</h2><div class="subjgrid">${D.subjects.map(s => { const nd = D.docs.filter(d => d.subjectId === s.id).length, dk = D.decks.filter(d => d.subjectId === s.id), dc = dk.reduce((n, d) => n + d.cards.filter(c => c.due <= t).length, 0), gl = D.grades.filter(g => g.subjectId === s.id), av = wavg(gl); return `<button class="subjc" data-sub="${s.id}" style="--c:${s.color}"><b>${esc(s.name)}</b><small>${nd} Dok. · ${dc ? dc + " Karten fällig" : dk.length + " Stapel"}</small>${av != null ? `<span class="gp" style="background:${gcol(av)}">Ø ${gfmt(av)}</span>` : ""}</button>`; }).join("")}</div></section>` : ""}</div>`;
   bindCommon(m);
+  $$("[data-sub]", m).forEach(b => b.onclick = () => { docFilter = b.dataset.sub; go("docs"); });
   $$("[data-q]", m).forEach(b => b.onclick = () => ({ n: () => newNote(), d: () => go("draw/new"), u: () => $("#upl").click(), c: () => go("cards"), q: () => go("quiz"), f: () => go("focus") }[b.dataset.q])());
+  $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
   $("#askf", m).onsubmit = e => { e.preventDefault(); const v = e.target.querySelector("input").value.trim(); if (v) { chatPrefill = v; go("ai"); } };
   $$("[data-t]", m).forEach(c => c.onchange = () => { const x = D.tasks.find(y => y.id === c.dataset.t); x.done = true; x.doneAt = Date.now(); save(); toast("Erledigt ✔"); renderView(); });
   $("#addt", m) && ($("#addt", m).onclick = () => taskModal());
   $("#plan", m).onclick = async () => {
-    const { el } = modal(`<h3>Dein Tagesplan</h3><div class="result" id="pr">Plane deinen Tag…</div>`);
-    const ctx = `Heute ist ${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}. Stunden heute: ${lessons.map(e => `${e.start}-${e.end} ${e.title || subj(e.subjectId)?.name}`).join(", ") || "keine"}. Offene Aufgaben: ${open.slice(0, 10).map(x => `${x.title}${x.due ? " (fällig " + x.due + ")" : ""}${x.type === "exam" ? " [Prüfung]" : ""}`).join("; ") || "keine"}. Fällige Karteikarten: ${due}.`;
+    const { el } = modal(`<h3>Dein Tagesplan</h3><div class="result" id="pr">Plane deinen Tag…</div>`, "wide");
+    const ctx = `Heute ist ${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}. Stunden heute: ${lessons.map(e => `${e.start}-${e.end} ${e.title || subj(e.subjectId)?.name}`).join(", ") || "keine"}. Termine heute (Outlook): ${evToday.map(e => `${e.time} ${e.title}`).join(", ") || "keine"}. Offene Aufgaben: ${open.slice(0, 10).map(x => `${x.title}${x.due ? " (fällig " + x.due + ")" : ""}${x.type === "exam" ? " [Prüfung]" : ""}`).join("; ") || "keine"}. Fällige Karteikarten: ${due}.`;
     const r = await ai(`Erstelle mir einen realistischen Lernplan für heute (Zeitblöcke, Pausen). ${ctx}`, { max: 700 });
-    $("#pr", el).textContent = r || `Vorschlag (offline):\n- 15 Min.: ${due} fällige Karteikarten wiederholen\n${open.slice(0, 3).map((x, i) => `- ${25} Min.: ${x.title}`).join("\n") || "- 25 Min.: Notizen des Tages durchgehen"}\n- 5 Min. Pause nach jedem Block\n\n(Für einen persönlichen KI-Plan trage einen API-Key in den Einstellungen ein.)`;
+    $("#pr", el).textContent = r || `Vorschlag (offline):\n- 15 Min.: ${due} fällige Karteikarten wiederholen\n${open.slice(0, 3).map(x => `- 25 Min.: ${x.title}`).join("\n") || "- 25 Min.: Notizen des Tages durchgehen"}\n- 5 Min. Pause nach jedem Block\n\n(Für einen persönlichen KI-Plan trage einen API-Key in den Einstellungen ein.)`;
   };
+  $("#msync", m) && ($("#msync", m).onclick = async e => { e.currentTarget.disabled = true; toast("Synchronisiere mit Microsoft…"); try { const r = await msSync(); toast(r.errors.length ? "Sync mit Hinweisen: " + r.errors[0] : `Synchronisiert: ${r.events} Termine, ${r.pages} Seiten, ${r.exams + r.tasks} neue Aufgaben`); } catch (er) { toast("Sync fehlgeschlagen: " + er.message); } renderView(); });
 };
+const msLogoSvg = () => `<svg viewBox="0 0 24 24" width="26" height="26"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="13" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="13" width="10" height="10" fill="#00a4ef"/><rect x="13" y="13" width="10" height="10" fill="#ffb900"/></svg>`;
+let quizPrefill = null;
 function bindCommon(m) {
   $$("[data-go]", m).forEach(b => b.onclick = () => go(b.dataset.go));
   $$("[data-d]", m).forEach(c => c.onclick = e => { if (e.target.closest(".dmore")) return; openDoc(D.docs.find(d => d.id === c.dataset.d)); });
@@ -210,9 +230,9 @@ async function aiTool(kind, text, ctx = {}) {
     translate: `Übersetze den Text ins ${lang}. Gib NUR die Übersetzung zurück.\nTEXT:\n${T}`,
     ask: `Beantworte die Frage anhand des Textes: ${q}\nTEXT:\n${T}`,
   };
-  const { el } = modal(`<h3>${{ summary: "Zusammenfassung", explain: "Einfach erklärt", improve: "Verbesserter Text", continue: "Fortsetzung", translate: "Übersetzung", ask: "Antwort" }[kind]}</h3><textarea class="field" id="ar" rows="12">KI arbeitet…</textarea><div class="row end" id="ab" hidden>${ctx.insert ? `<button class="btn ghost" id="a-ins">Unten einfügen</button>` : ""}${ctx.replace && kind !== "summary" && kind !== "ask" && kind !== "explain" ? `<button class="btn ghost" id="a-rep">Auswahl ersetzen</button>` : ""}<button class="btn ghost" id="a-note">Als Notiz speichern</button><button class="btn" id="a-cp">${ic("copy")}Kopieren</button></div>`, "wide");
+  const { el } = modal(`<h3>${{ summary: "Zusammenfassung", explain: "Einfach erklärt", improve: "Verbesserter Text", continue: "Fortsetzung", translate: "Übersetzung", ask: "Antwort", goals: "Lernziele" }[kind]}</h3><textarea class="field" id="ar" rows="12">KI arbeitet…</textarea><div class="row end" id="ab" hidden>${ctx.insert ? `<button class="btn ghost" id="a-ins">Unten einfügen</button>` : ""}${ctx.replace && kind !== "summary" && kind !== "ask" && kind !== "explain" ? `<button class="btn ghost" id="a-rep">Auswahl ersetzen</button>` : ""}<button class="btn ghost" id="a-note">Als Notiz speichern</button><button class="btn" id="a-cp">${ic("copy")}Kopieren</button></div>`, "wide");
   let r = await ai(prompts[kind], { max: 1800, quiet: true });
-  if (r == null) { r = kind === "summary" ? localSummary(T) : null; if (!r) { $("#ar", el).value = hasKey() ? "Die KI hat nicht geantwortet. Versuche es erneut." : "Diese Funktion braucht einen API-Key.\n\nTrage ihn unter Einstellungen → KI ein (Anthropic). Zusammenfassungen, Karteikarten und Quiz funktionieren auch ohne Key mit einfacher lokaler Auswertung."; return; } }
+  if (r == null) { r = kind === "summary" ? localSummary(T) : kind === "goals" ? localGoals(T) : null; if (!r) { $("#ar", el).value = hasKey() ? "Die KI hat nicht geantwortet. Versuche es erneut." : "Diese Funktion braucht einen API-Key.\n\nTrage ihn unter Einstellungen → KI ein (Anthropic). Zusammenfassungen, Karteikarten und Quiz funktionieren auch ohne Key mit einfacher lokaler Auswertung."; return; } }
   $("#ar", el).value = r.trim(); $("#ab", el).hidden = false;
   $("#a-cp", el).onclick = () => { navigator.clipboard?.writeText($("#ar", el).value); toast("Kopiert"); };
   $("#a-note", el).onclick = () => { newNote(ctx.subjectId || "", textToHtml($("#ar", el).value), (ctx.title || "Notiz") + " – KI"); el.closest(".mask").remove(); };
@@ -232,50 +252,99 @@ V.doc = async (m, id) => {
   const d = D.docs.find(x => x.id === id); if (!d) { m.innerHTML = `<div class="page"><div class="emptybox"><h3>Dokument nicht gefunden</h3><button class="btn" data-go="docs">Zu den Dokumenten</button></div></div>`; return bindCommon(m); }
   if (d.type === "draw") return go("draw/" + id);
   if (d.type === "file") return fileViewer(m, d);
-  const html = (await KV.get("html:" + d.id)) || "";
-  const TB = [{ i: "undo", c: "undo", t: "Rückgängig" }, { i: "redo", c: "redo", t: "Wiederholen" }, "|", { sel: 1 }, "|", { i: "bold", c: "bold", t: "Fett" }, { i: "italic", c: "italic", t: "Kursiv" }, { i: "underline", c: "underline", t: "Unterstrichen" }, { i: "strike", c: "strikeThrough", t: "Durchgestrichen" }, { i: "hl", c: "hilite", t: "Markieren" }, { color: 1 }, { x: "x₂", c: "subscript", t: "Tiefgestellt" }, { x: "x²", c: "superscript", t: "Hochgestellt" }, "|", { i: "list", c: "insertUnorderedList", t: "Liste" }, { i: "listnum", c: "insertOrderedList", t: "Nummerierte Liste" }, { i: "todo", c: "checklist", t: "Checkliste" }, { i: "quote", c: "quote", t: "Zitat" }, { i: "code", c: "code", t: "Code" }, { i: "hrule", c: "insertHorizontalRule", t: "Trennlinie" }, "|", { i: "alignl", c: "justifyLeft", t: "Linksbündig" }, { i: "alignc", c: "justifyCenter", t: "Zentriert" }, "|", { i: "link", c: "link", t: "Link" }, { i: "image", c: "image", t: "Bild" }, { i: "table", c: "table", t: "Tabelle" }, { x: "Ω", c: "formula", t: "Formeln & Symbole" }, { i: "rot", c: "removeFormat", t: "Formatierung entfernen" }];
-  m.innerHTML = `<div class="editor"><div class="ed-head"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><input class="ed-title" id="et" value="${esc(d.title)}" aria-label="Titel">${subjectSelect(d.subjectId, "ed-sub")}<span class="saved" id="sv">Gespeichert</span>
-  <button class="btn ghost" id="ai-m">${ic("spark")}KI</button><button class="btn ghost" id="ex-m">${ic("download")}<span class="hide-sm">Export</span></button><button class="icon-btn" id="del" aria-label="Löschen">${ic("trash")}</button></div>
-  <div class="tb" id="tb">${TB.map(b => b === "|" ? `<i class="sep"></i>` : b.sel ? `<select id="blk" title="Textformat"><option value="p">Text</option><option value="h1">Überschrift 1</option><option value="h2">Überschrift 2</option><option value="h3">Überschrift 3</option></select>` : b.color ? `<label class="tbtn" title="Textfarbe"><b style="border-bottom:3px solid #5b3df5;line-height:1" id="cl">A</b><input type="color" id="cin" value="#5b3df5" hidden></label>` : `<button class="tbtn" data-c="${b.c}" title="${b.t}">${b.i ? ic(b.i) : `<b>${b.x}</b>`}</button>`).join("")}</div>
-  <div class="paper"><div class="body" id="body" contenteditable="true" spellcheck="true" data-ph="Fang an zu schreiben… Mit der Werkzeugleiste formatierst du Text, mit „KI“ fasst du zusammen oder erstellst Karteikarten.">${html}</div></div><div class="ed-foot"><span id="wc"></span><input type="file" id="imgin" accept="image/*" hidden></div></div>`;
-  const body = $("#body", m), svEl = $("#sv", m), titleIn = $("#et", m); let saved = null;
+  return noteEditor(m, d);
+};
+async function noteEditor(m, d) {
+  const html = (await KV.get("html:" + d.id)) || "", sc = subj(d.subjectId)?.color || "#5b3df5";
+  const GROUPS = [
+    [{ sel: 1 }],
+    [{ i: "bold", c: "bold", t: "Fett (Strg+B)" }, { i: "italic", c: "italic", t: "Kursiv (Strg+I)" }, { i: "underline", c: "underline", t: "Unterstrichen" }, { i: "strike", c: "strike", t: "Durchgestrichen" }],
+    [{ i: "hl", c: "hilite", t: "Markieren" }, { color: 1 }, { x: "x₂", c: "sub", t: "Tiefgestellt" }, { x: "x²", c: "sup", t: "Hochgestellt" }],
+    [{ i: "list", c: "ul", t: "Aufzählung" }, { i: "listnum", c: "ol", t: "Nummerierung" }, { i: "todo", c: "todo", t: "Checkliste" }],
+    [{ i: "quote", c: "quote", t: "Zitat" }, { i: "code", c: "code", t: "Code" }, { i: "hrule", c: "hr", t: "Trennlinie" }, { i: "alignl", c: "left", t: "Links" }, { i: "alignc", c: "center", t: "Zentriert" }],
+    [{ i: "link", c: "link", t: "Link" }, { i: "image", c: "image", t: "Bild" }, { i: "table", c: "table", t: "Tabelle" }, { x: "Ω", c: "formula", t: "Formeln & Symbole" }],
+    [{ i: "undo", c: "undo", t: "Rückgängig" }, { i: "redo", c: "redo", t: "Wiederholen" }, { i: "rot", c: "clear", t: "Formatierung entfernen" }],
+  ];
+  const tbHtml = GROUPS.map(g => `<div class="tg">${g.map(b => b.sel ? `<select id="blk" title="Textformat"><option value="p">Text</option><option value="h1">Überschrift 1</option><option value="h2">Überschrift 2</option><option value="h3">Überschrift 3</option></select>` : b.color ? `<label class="tbtn" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #5b3df5;line-height:1">A</b><input type="color" id="cin" value="#5b3df5" hidden></label>` : `<button class="tbtn" data-c="${b.c}" title="${b.t}">${b.i ? ic(b.i) : `<b>${b.x}</b>`}</button>`).join("")}</div>`).join("");
+  m.innerHTML = `<div class="ned"><div class="ned-top"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="crumbs"><button data-go="docs">Dokumente</button><span>›</span><b id="cr">${esc(d.title)}</b></div><span class="saved" id="sv">Gespeichert</span><button class="btn ghost" id="ai-m">${ic("spark")}KI</button><button class="btn ghost" id="ex-m">${ic("download")}<span class="hide-sm">Export</span></button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button></div>
+  <div class="ned-main"><article class="ned-paper"><div class="ned-cover" id="cover" style="--c:${sc}"></div><div class="ned-in">
+    <input class="ned-title" id="et" value="${esc(d.title === "Unbenannte Notiz" ? "" : d.title)}" placeholder="Unbenannte Notiz" aria-label="Titel">
+    <div class="ned-meta">${subjectSelect(d.subjectId, "ed-sub")}<span class="mchip">${ic("cal")}${new Date(d.created || Date.now()).toLocaleDateString("de-DE")}</span><span class="mchip" id="wc"></span>${d.msLink ? `<a class="mchip ms" href="${esc(d.msLink)}" target="_blank" rel="noopener">OneNote ↗</a>` : ""}</div>
+    <div class="ned-tb tb" id="tb">${tbHtml}</div>
+    <div class="body" id="body" contenteditable="true" spellcheck="true" data-ph="Schreibe etwas oder tippe „/“ für Überschriften, Listen, Tabellen und KI …">${html}</div></div></article>
+  <aside class="ned-side"><div class="sidecard"><h4>Gliederung</h4><div id="outline" class="outline"></div></div>
+  <div class="sidecard"><h4>KI-Assistent</h4><div class="aibtns">${[["summary", "list", "Zusammenfassen"], ["explain", "help", "Einfach erklären"], ["improve", "pen", "Verbessern"], ["cards", "cards", "Karteikarten"], ["quiz", "help", "Quiz erstellen"], ["goals", "star", "Lernziele"]].map(([k, i, l]) => `<button data-ai="${k}">${ic(i)}${l}</button>`).join("")}</div></div>
+  <div class="sidecard"><h4>Info</h4><small id="info" class="note"></small></div></aside></div><input type="file" id="imgin" accept="image/*" hidden></div>`;
+  const body = $("#body", m), svEl = $("#sv", m), titleIn = $("#et", m), wcEl = $("#wc", m), outEl = $("#outline", m); let saved = null;
+  const onSel = () => { const s = getSelection(); if (s.rangeCount && body.contains(s.anchorNode)) saved = s.getRangeAt(0).cloneRange(); updBubble(); };
+  document.addEventListener("selectionchange", onSel); LEAVE.push(() => document.removeEventListener("selectionchange", onSel));
   const restore = () => { if (saved) { const s = getSelection(); s.removeAllRanges(); s.addRange(saved); } body.focus(); };
-  document.addEventListener("selectionchange", () => { const s = getSelection(); if (s.rangeCount && body.contains(s.anchorNode)) saved = s.getRangeAt(0).cloneRange(); }, { passive: true });
-  const wcEl = $("#wc", m); const count = () => { const t = body.innerText.trim(), w = t ? t.split(/\s+/).length : 0; wcEl.textContent = `${w} Wörter · ${Math.max(1, Math.round(w / 200))} Min. Lesezeit`; };
+  const count = () => { const t = body.innerText.trim(), w = t ? t.split(/\s+/).length : 0; wcEl.innerHTML = `${w} Wörter · ${Math.max(1, Math.round(w / 200))} Min.`; $("#info", m).textContent = `${t.length} Zeichen · zuletzt bearbeitet ${fmtAgo(d.updated)}`; };
+  const outline = () => { const hs = $$("h1,h2,h3", body); outEl.innerHTML = hs.length ? hs.map((h, i) => `<button class="o${h.tagName[1]}" data-o="${i}">${esc(h.textContent.trim() || "…")}</button>`).join("") : `<small class="note">Überschriften erscheinen hier. Tippe „/“ → Überschrift.</small>`; $$("[data-o]", outEl).forEach(b => b.onclick = () => hs[+b.dataset.o].scrollIntoView({ behavior: "smooth", block: "center" })); };
   const doSave = debounce(async () => { if (!D.docs.includes(d)) return; d.title = titleIn.value.trim() || "Unbenannte Notiz"; d.updated = Date.now(); d.text = body.innerText.slice(0, 60000); await KV.set("html:" + d.id, body.innerHTML); save(); svEl.textContent = "Gespeichert"; }, 500);
-  const dirty = () => { svEl.textContent = "Speichert…"; count(); doSave(); };
-  body.addEventListener("input", dirty); $("#et", m).addEventListener("input", dirty); count();
-  body.addEventListener("click", e => { if (e.target.matches('input[type=checkbox]')) { e.target.checked ? e.target.setAttribute("checked", "") : e.target.removeAttribute("checked"); dirty(); } });
-  body.addEventListener("paste", async e => { const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/")); if (f) { e.preventDefault(); insertImage(f); } });
+  const dirty = () => { svEl.textContent = "Speichert…"; count(); doSave(); $("#cr", m).textContent = titleIn.value.trim() || "Unbenannte Notiz"; };
+  const od = debounce(outline, 400);
+  body.addEventListener("input", () => { dirty(); od(); slashCheck(); }); titleIn.addEventListener("input", dirty);
+  titleIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); body.focus(); } });
+  body.addEventListener("click", e => { if (e.target.matches("input[type=checkbox]")) { e.target.checked ? e.target.setAttribute("checked", "") : e.target.removeAttribute("checked"); dirty(); } });
+  body.addEventListener("paste", e => { const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/")); if (f) { e.preventDefault(); insertImage(f); } });
   async function insertImage(f) { const bmp = await createImageBitmap(f), s = Math.min(1, 1100 / bmp.width), c = document.createElement("canvas"); c.width = bmp.width * s; c.height = bmp.height * s; c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); restore(); document.execCommand("insertImage", false, c.toDataURL("image/jpeg", .8)); dirty(); }
   $("#imgin", m).onchange = e => { if (e.target.files[0]) insertImage(e.target.files[0]); e.target.value = ""; };
-  const ex = (c, v) => { restore(); if (c === "insertHTML") { const sl = getSelection(); if (sl.rangeCount && !sl.isCollapsed) sl.collapseToEnd(); } document.execCommand(c, false, v); dirty(); };
-  $$(".tbtn[data-c]", m).forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = async () => {
-    const c = b.dataset.c;
-    if (c === "hilite") { const cur = document.queryCommandValue("hiliteColor"); restore(); document.execCommand("hiliteColor", false, /255, 241, 168|#fff1a8/i.test(cur) ? "transparent" : "#fff1a8"); dirty(); }
-    else if (c === "checklist") ex("insertHTML", '<ul class="chk"><li><input type="checkbox">&nbsp;</li></ul>');
-    else if (c === "quote") ex("formatBlock", document.queryCommandValue("formatBlock") === "blockquote" ? "p" : "blockquote");
-    else if (c === "code") ex("formatBlock", document.queryCommandValue("formatBlock") === "pre" ? "p" : "pre");
-    else if (c === "link") { const u = await ask("Link-Adresse", { value: "https://", ok: "Einfügen" }); if (u) ex("createLink", u); }
-    else if (c === "image") $("#imgin", m).click();
-    else if (c === "table") ex("insertHTML", `<table><tbody>${"<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>".repeat(3)}</tbody></table><p><br></p>`);
-    else if (c === "formula") { const { el, close } = modal(`<h3>Formeln & Symbole</h3><div class="syms">${SYMS.map(s => `<button>${s}</button>`).join("")}</div><p class="note">Tipp: „x²“ und „x₂“ in der Leiste setzen Exponenten und Indizes.</p>`); $$(".syms button", el).forEach(sb => sb.onclick = () => { restore(); document.execCommand("insertText", false, sb.textContent); dirty(); }); }
-    else ex(c);
-  }; });
-  $("#blk", m).onchange = e => ex("formatBlock", e.target.value);
-  $("#cin", m).oninput = e => { $("#cl", m).style.borderColor = e.target.value; ex("foreColor", e.target.value); };
-  $("#cin", m).onclick = e => e.stopPropagation();
-  $("#cl", m).parentElement.onclick = () => $("#cin", m).click();
-  $(".ed-sub", m).onchange = e => { d.subjectId = e.target.value; save(); refreshNav(); };
-  $("#eb", m).onclick = () => go("docs");
-  $("#del", m).onclick = async () => { await deleteDoc(d); go("docs"); };
+  const exec = (c, v) => { restore(); if (c === "insertHTML") { const sl = getSelection(); if (sl.rangeCount && !sl.isCollapsed) sl.collapseToEnd(); } document.execCommand(c, false, v); dirty(); od(); };
   const sel = () => (saved?.toString() || "").trim();
-  const run = k => aiTool(k, sel() || body.innerText, { title: d.title, subjectId: d.subjectId, insert: h => { body.insertAdjacentHTML("beforeend", h); dirty(); }, replace: t => { restore(); document.execCommand("insertText", false, t); dirty(); } });
-  $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Zusammenfassen", icon: "list", fn: () => run("summary") }, { label: "Einfach erklären", icon: "help", fn: () => run("explain") }, { label: "Verbessern & korrigieren", icon: "pen", fn: () => run("improve") }, { label: "Weiterschreiben", icon: "spark", fn: () => run("continue") }, { label: "Übersetzen…", icon: "rot", fn: () => run("translate") }, { label: "Frage zum Text…", icon: "search", fn: () => run("ask") }, "-", { label: "Karteikarten erstellen", icon: "cards", fn: () => run("cards") }, { label: "Quiz erstellen", icon: "help", fn: () => run("quiz") }]);
+  const run = k => aiTool(k, sel() || body.innerText, { title: d.title, subjectId: d.subjectId, insert: h => { body.insertAdjacentHTML("beforeend", h); dirty(); od(); }, replace: t => { restore(); document.execCommand("insertText", false, t); dirty(); } });
+  const CMD = {
+    p: () => exec("formatBlock", "p"), h1: () => exec("formatBlock", "h1"), h2: () => exec("formatBlock", "h2"), h3: () => exec("formatBlock", "h3"),
+    bold: () => exec("bold"), italic: () => exec("italic"), underline: () => exec("underline"), strike: () => exec("strikeThrough"), sub: () => exec("subscript"), sup: () => exec("superscript"),
+    hilite: () => { const cur = document.queryCommandValue("hiliteColor"); exec("hiliteColor", /255, 241, 168|#fff1a8/i.test(cur) ? "transparent" : "#fff1a8"); },
+    ul: () => exec("insertUnorderedList"), ol: () => exec("insertOrderedList"), todo: () => exec("insertHTML", '<ul class="chk"><li><input type="checkbox">&nbsp;</li></ul>'),
+    quote: () => exec("formatBlock", document.queryCommandValue("formatBlock") === "blockquote" ? "p" : "blockquote"), code: () => exec("formatBlock", document.queryCommandValue("formatBlock") === "pre" ? "p" : "pre"),
+    hr: () => exec("insertHorizontalRule"), left: () => exec("justifyLeft"), center: () => exec("justifyCenter"), clear: () => exec("removeFormat"), undo: () => exec("undo"), redo: () => exec("redo"),
+    link: async () => { const u = await ask("Link-Adresse", { value: "https://", ok: "Einfügen" }); if (u) exec("createLink", u); },
+    image: () => $("#imgin", m).click(), table: () => exec("insertHTML", `<table><tbody>${"<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>".repeat(3)}</tbody></table><p><br></p>`),
+    formula: () => { const { el } = modal(`<h3>Formeln & Symbole</h3><div class="syms">${SYMS.map(s => `<button>${s}</button>`).join("")}</div><p class="note">Tipp: „x²“ und „x₂“ in der Leiste setzen Exponenten und Indizes.</p>`); $$(".syms button", el).forEach(sb => sb.onclick = () => { restore(); document.execCommand("insertText", false, sb.textContent); dirty(); }); },
+    "ai-summary": () => run("summary"), "ai-cards": () => run("cards"), "ai-quiz": () => run("quiz"), "ai-goals": () => run("goals"),
+  };
+  $$(".tbtn[data-c]", m).forEach(b => { b.onmousedown = e => e.preventDefault(); b.onclick = () => CMD[b.dataset.c]?.(); });
+  $("#blk", m).onchange = e => CMD[e.target.value]();
+  $("#cin", m).oninput = e => { $("#cl", m).style.borderColor = e.target.value; exec("foreColor", e.target.value); }; $("#cin", m).onclick = e => e.stopPropagation(); $("#cl", m).parentElement.onclick = () => $("#cin", m).click();
+  $(".ed-sub", m).onchange = e => { d.subjectId = e.target.value; $("#cover", m).style.setProperty("--c", subj(d.subjectId)?.color || "#5b3df5"); save(); refreshNav(); };
+  $("#eb", m).onclick = () => go("docs");
+  $$("[data-ai]", m).forEach(b => b.onclick = () => run(b.dataset.ai));
+
+  /* floating selection menu */
+  const bub = document.createElement("div"); bub.className = "bubble"; bub.hidden = true; document.body.appendChild(bub); LEAVE.push(() => bub.remove());
+  bub.innerHTML = [["bold", "bold"], ["italic", "italic"], ["underline", "underline"], ["hilite", "hl"], ["link", "link"]].map(([c, i]) => `<button data-b="${c}">${ic(i)}</button>`).join("") + `<i class="sep"></i><button data-bai>${ic("spark")}<span>KI</span></button>`;
+  bub.onmousedown = e => e.preventDefault();
+  $$("[data-b]", bub).forEach(b => b.onclick = () => CMD[b.dataset.b]());
+  $("[data-bai]", bub).onclick = e => menu(e.currentTarget, [{ label: "Einfach erklären", icon: "help", fn: () => run("explain") }, { label: "Verbessern & korrigieren", icon: "pen", fn: () => run("improve") }, { label: "Zusammenfassen", icon: "list", fn: () => run("summary") }, { label: "Übersetzen…", icon: "rot", fn: () => run("translate") }, { label: "Karteikarten daraus", icon: "cards", fn: () => run("cards") }]);
+  function updBubble() { const s = getSelection(); if (!bub.isConnected) return; if (!s.rangeCount || s.isCollapsed || !body.contains(s.anchorNode) || !s.toString().trim()) { bub.hidden = true; return; } const r = s.getRangeAt(0).getBoundingClientRect(); bub.hidden = false; const w = bub.offsetWidth; bub.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px"; bub.style.top = Math.max(8, r.top - bub.offsetHeight - 10) + "px"; }
+
+  /* slash menu */
+  const SLASH = [["Text", "p", "text absatz"], ["Überschrift 1", "h1", "h1 titel ueberschrift"], ["Überschrift 2", "h2", "h2 ueberschrift"], ["Überschrift 3", "h3", "h3 ueberschrift"], ["Aufzählung", "ul", "liste bullet punkte"], ["Nummerierte Liste", "ol", "liste nummer"], ["Checkliste", "todo", "todo aufgaben check"], ["Tabelle", "table", "tabelle raster"], ["Zitat", "quote", "zitat"], ["Code", "code", "code"], ["Trennlinie", "hr", "linie trenner"], ["Bild", "image", "bild foto"], ["Formel / Symbol", "formula", "formel symbol mathe"], ["KI: Zusammenfassung", "ai-summary", "ki summary zusammenfassung"], ["KI: Karteikarten", "ai-cards", "ki karten lernkarten"], ["KI: Quiz", "ai-quiz", "ki quiz test"], ["KI: Lernziele", "ai-goals", "ki lernziele"]];
+  const sm = document.createElement("div"); sm.className = "slash"; sm.hidden = true; document.body.appendChild(sm); LEAVE.push(() => sm.remove()); let sIdx = 0, sItems = [], sCtx = null;
+  function slashCheck() {
+    const s = getSelection(); if (!s.rangeCount || !s.isCollapsed || s.anchorNode?.nodeType !== 3 || !body.contains(s.anchorNode)) return slashHide();
+    const before = s.anchorNode.textContent.slice(0, s.anchorOffset), mm = before.match(/(?:^|\s)\/([a-zäöüß0-9]*)$/i); if (!mm) return slashHide();
+    const q = mm[1].toLowerCase(); sItems = SLASH.filter(([n, , kw]) => !q || (n + " " + kw).toLowerCase().includes(q)); if (!sItems.length) return slashHide();
+    sCtx = { node: s.anchorNode, end: s.anchorOffset, len: q.length + 1 }; sIdx = 0; slashDraw();
+    const r = s.getRangeAt(0).cloneRange(); r.collapse(true); let rc = r.getBoundingClientRect(); if (!rc.height) rc = s.anchorNode.parentElement.getBoundingClientRect();
+    sm.hidden = false; sm.style.left = Math.min(innerWidth - sm.offsetWidth - 8, Math.max(8, rc.left)) + "px"; sm.style.top = (rc.bottom + 6 + sm.offsetHeight > innerHeight ? Math.max(8, rc.top - sm.offsetHeight - 6) : rc.bottom + 6) + "px";
+  }
+  const slashHide = () => { sm.hidden = true; sCtx = null; };
+  function slashDraw() { sm.innerHTML = `<small>Blöcke</small>` + sItems.map(([n, k], i) => `<button data-k="${k}" class="${i === sIdx ? "on" : ""}">${n}</button>`).join(""); $$("button", sm).forEach(b => { b.onmousedown = e => { e.preventDefault(); slashPick(b.dataset.k); }; }); sm.querySelector(".on")?.scrollIntoView({ block: "nearest" }); }
+  function slashPick(k) { if (!sCtx) return; const r = document.createRange(); r.setStart(sCtx.node, sCtx.end - sCtx.len); r.setEnd(sCtx.node, sCtx.end); r.deleteContents(); saved = r.cloneRange(); slashHide(); CMD[k]?.(); }
+  body.addEventListener("keydown", e => { if (sm.hidden) return; if (e.key === "ArrowDown") { e.preventDefault(); sIdx = (sIdx + 1) % sItems.length; slashDraw(); } else if (e.key === "ArrowUp") { e.preventDefault(); sIdx = (sIdx - 1 + sItems.length) % sItems.length; slashDraw(); } else if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); slashPick(sItems[sIdx][1]); } else if (e.key === "Escape") slashHide(); });
+  body.addEventListener("blur", () => setTimeout(slashHide, 150));
+
+  $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Zusammenfassen", icon: "list", fn: () => run("summary") }, { label: "Einfach erklären", icon: "help", fn: () => run("explain") }, { label: "Verbessern & korrigieren", icon: "pen", fn: () => run("improve") }, { label: "Weiterschreiben", icon: "spark", fn: () => run("continue") }, { label: "Übersetzen…", icon: "rot", fn: () => run("translate") }, { label: "Frage zum Text…", icon: "search", fn: () => run("ask") }, "-", { label: "Lernziele ermitteln", icon: "star", fn: () => run("goals") }, { label: "Karteikarten erstellen", icon: "cards", fn: () => run("cards") }, { label: "Quiz erstellen", icon: "help", fn: () => run("quiz") }]);
   const dl = (name, mime, data) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
   $("#ex-m", m).onclick = e => menu(e.currentTarget, [{ label: "Als PDF drucken / speichern", icon: "file", fn: () => { const w = open("", "_blank"); if (!w) return toast("Pop-up erlaubt?"); w.document.write(`<title>${esc(d.title)}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:760px;margin:30px auto;padding:0 20px}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:6px 10px}img{max-width:100%}pre{background:#f3f3f3;padding:12px;border-radius:8px}blockquote{border-left:4px solid #ccc;margin:0;padding-left:14px;color:#555}ul.chk{list-style:none;padding-left:4px}</style><h1>${esc(d.title)}</h1>${body.innerHTML}`); w.document.close(); setTimeout(() => w.print(), 400); } }, { label: "Textdatei (.txt)", icon: "note", fn: () => dl(d.title + ".txt", "text/plain", body.innerText) }, { label: "HTML-Datei", icon: "code", fn: () => dl(d.title + ".html", "text/html", `<meta charset="utf-8"><title>${esc(d.title)}</title>${body.innerHTML}`) }]);
-  if (!html) body.focus();
-};
+  $("#mo-m", m).onclick = e => menu(e.currentTarget, [{ label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); toast(d.pinned ? "Angeheftet" : "Gelöst"); } }, { label: "Duplizieren", icon: "copy", fn: async () => { const id = uid(); D.docs.unshift({ ...d, id, title: d.title + " (Kopie)", created: Date.now(), updated: Date.now(), msId: undefined, source: undefined, pinned: false }); await KV.set("html:" + id, body.innerHTML); save(); go("doc/" + id); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); go("docs"); } }]);
+  try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch {}
+  if (!body.innerHTML.trim()) body.innerHTML = "<p><br></p>";
+  count(); outline(); if (!html) (titleIn.value ? body : titleIn).focus();
+}
 
 /* ---------- file viewer ---------- */
 async function fileViewer(m, d) {
