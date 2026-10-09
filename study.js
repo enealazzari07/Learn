@@ -219,7 +219,7 @@ function dailyLocal({ lessons, evToday, open, exams, due, mins, goal }) {
   if (t.length) parts.push(`${t.length} ${t.length === 1 ? "Aufgabe ist" : "Aufgaben sind"} heute fällig – fang mit „${t[0].title}“ an.`); else if (open.length) parts.push(`${open.length} ${open.length === 1 ? "Aufgabe ist" : "Aufgaben sind"} offen, nichts davon ist dringend.`);
   if (due) parts.push(`${due} Karteikarten warten auf dich.`);
   if (mins < goal) parts.push(`Bis zu deinem Tagesziel fehlen noch ${goal - mins} Minuten.`); else parts.push("Dein Tagesziel hast du schon erreicht.");
-  return parts.join(" ") || "Nichts Dringendes – ein guter Moment zum Lernen.";
+  return parts.slice(0, 2).join(" ") || "Nichts Dringendes – ein guter Moment zum Lernen.";
 }
 V.today = m => {
   const t = iso(), wd = (new Date().getDay() + 6) % 7, h = new Date().getHours(), goal = D.profile.goalMin || 45;
@@ -247,13 +247,10 @@ V.today = m => {
         <div class="ha-card ha-focus"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18"/><circle class="pg" cx="22" cy="22" r="18"/></svg><div><small>Fokus-Timer</small><b>25:00</b></div></div></div>
     </div>
     <h1 class="greet-h">${words}</h1>
-    <p class="hh-sub rise" style="--i:3">${sub}</p>
     <form class="hsearch rise" style="--i:4" id="hs">${ic("search")}<input id="hq" placeholder="Suchen oder die KI etwas fragen …" autocomplete="off" aria-label="Suchen oder KI fragen"><button type="button" class="hs-ai" id="hs-ai">${ic("spark")}<span>KI fragen</span></button></form>
-  <div class="today-flat rise" style="--i:5"><div class="sumh"><h2>Heute im Überblick</h2><button class="icon-btn sm" id="sum-r" title="Zusammenfassung neu erstellen" aria-label="Zusammenfassung neu erstellen">${ic("rot")}</button></div>
-    <div class="sumbox"><span class="sum-ic">${ic("spark")}</span><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open, exams, due, mins, goal }))}</p></div>
-    ${timeline.length ? `<div class="sub-h">Termine</div>${timeline.slice(0, 4).map(x => `<div class="li tl"><span class="tm">${x.t}${x.e ? `<br><small>${x.e}</small>` : ""}</span><span class="bar-c" style="background:${x.c}"></span><div class="tm2"><b>${esc(x.n)}</b><small>${esc(x.s)}</small></div></div>`).join("")}` : ""}
-    <div class="sub-h">Aufgaben</div><div id="todos"></div>
-    <form class="todo-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Neue Aufgabe für heute …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum / Prüfung</button></form></div>
+  <div class="hero-body rise" style="--i:5"><div class="hb-l"><div class="sumbox"><span class="sum-ic">${ic("spark")}</span><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open, exams, due, mins, goal }))}</p><button class="sum-r" id="sum-r" title="Neu erstellen" aria-label="Zusammenfassung neu erstellen">${ic("rot")}</button></div>${timeline.length ? `<div class="mini-tl">${timeline.slice(0, 2).map(x => `<span><i style="background:${x.c}"></i>${x.t} ${esc(x.n)}</span>`).join("")}</div>` : ""}</div>
+    <div class="hb-r"><div class="sub-h">Aufgaben</div><div id="todos"></div>
+    <form class="todo-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Neue Aufgabe …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Datum / Prüfung</button></form></div></div>
   </section>
   <section class="rise" style="--i:6"><div class="tiles2">${TILES.map(([i, l, s, k, c]) => `<button data-q="${k}" style="--c:${c}"><span>${ic(i)}</span><b>${l}</b><small>${s}</small></button>`).join("")}</div></section>
   ${exams.length ? `<section class="rise" style="--i:7"><div class="examrow">${exams.map((x, i) => { const dd = daysUntil(x.due), s = subj(x.subjectId); return `<div class="examc" style="--c:${s?.color || ["#5b3df5", "#ff6a3d"][i % 2]}"><div class="dd"><b>${dd}</b><small>${dd === 1 ? "Tag" : "Tage"}</small></div><div class="ex-b"><b>${esc(x.title)}</b><small>${esc(s?.name || "")} · ${fmtD(x.due)}</small></div><button class="btn small" data-ex="${x.id}">Üben</button></div>`; }).join("")}</div></section>` : ""}
@@ -266,7 +263,7 @@ V.today = m => {
   bindCommon(m);
   $$("[data-q]", m).forEach(b => b.onclick = () => ({ n: () => docDialog("note"), u: () => $("#upl").click(), c: () => go("cards"), q: () => go("quiz"), f: () => go("focus") }[b.dataset.q])());
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
-  const todoRows = () => D.tasks.filter(x => !x.done).sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 8);
+  const todoRows = () => D.tasks.filter(x => !x.done).sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 5);
   const dueLbl = x => !x.due ? "" : daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due);
   const drawTodos = () => {
     const box = $("#todos", m), rows = todoRows();
@@ -278,7 +275,7 @@ V.today = m => {
   (async () => {
     const el = $("#sum-t", m), run = async force => {
       const cache = D.daily && D.daily.date === iso() ? D.daily : null; if (cache && cache.ai && !force) { el.textContent = cache.text; return; } if (!hasKey()) return;
-      el.classList.add("busy"); const ctx = dailyCtx({ lessons, evToday, exams, due, mins, goal }); const r = await ai(`Schreibe eine kurze, motivierende Tageszusammenfassung (maximal 3 Sätze, Du-Form) für heute. Nenne die wichtigsten Dinge und was zuerst angehen. Daten:\n${ctx}`, { system: sysBase(), max: 220, quiet: true });
+      el.classList.add("busy"); const ctx = dailyCtx({ lessons, evToday, exams, due, mins, goal }); const r = await ai(`Schreibe eine kurze, motivierende Tageszusammenfassung (höchstens 2 kurze Sätze, zusammen unter 30 Wörter, Du-Form) für heute. Nenne die wichtigsten Dinge und was zuerst angehen. Daten:\n${ctx}`, { system: sysBase(), max: 120, quiet: true });
       el.classList.remove("busy"); if (r && r.trim()) { D.daily = { date: iso(), text: r.trim(), ai: true }; save(); el.textContent = D.daily.text; } else if (force) toast("KI nicht erreichbar – lokale Zusammenfassung bleibt.");
     };
     $("#sum-r", m).onclick = () => { $("#sum-r", m).classList.add("spin"); setTimeout(() => $("#sum-r", m)?.classList.remove("spin"), 900); if (!hasKey()) return toast("Für KI-Zusammenfassungen die KI einrichten (Einstellungen → KI)."); run(true); };
