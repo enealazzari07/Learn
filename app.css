@@ -608,3 +608,6 @@ body{background:#fff}
 .calm section{margin-bottom:6px}.calm .sech{margin-top:26px}
 @media (max-width:700px){.greet-h{font-size:clamp(34px,11vw,52px)}.tiles2{grid-template-columns:1fr 1fr}.welcome .hh-sub{font-size:17px}}
 .main:has(.welcome){overflow:clip}
+.ic{stroke-width:1.6}
+.sortl{display:inline-flex;align-items:center;gap:8px;color:#777}.sortl .ic{width:18px;height:18px}
+.nav-i .ic,.tt .ic{transition:transform .2s}
