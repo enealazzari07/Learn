@@ -853,3 +853,15 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
 @media (prefers-reduced-motion:reduce){.ha-card,.ha-note .tl,.ha-draw path,.ha-draw circle,.ha-quiz .ok,.ha-note .car{animation:none}.ha-note .tl{width:var(--w)}.ha-draw path,.ha-draw circle{stroke-dashoffset:0}.ha-quiz .ok{opacity:1}}
 .welcome>.hero-art{position:absolute;z-index:1}
 .ha-card .ha-h svg{width:15px;height:15px}
+
+/* edge scrollbar */
+.rbar{display:none}
+@media (min-width:901px){
+  .main:not(.doc-full),.main.doc-full .ned-paper,.main.doc-full .dpanel{scrollbar-width:none!important}
+  .main:not(.doc-full)::-webkit-scrollbar,.main.doc-full .ned-paper::-webkit-scrollbar,.main.doc-full .dpanel::-webkit-scrollbar{display:none}
+  .rbar{position:fixed;right:2px;top:14px;bottom:14px;width:10px;z-index:90;display:block;opacity:0;pointer-events:none;transition:opacity .25s}
+  .rbar.on{opacity:1;pointer-events:auto}
+  .rbar i{position:absolute;left:2px;right:2px;top:0;border-radius:99px;background:#c9c9d6;transition:background .2s,left .15s,right .15s;cursor:grab;will-change:transform}
+  .rbar:hover i,.rbar.drag i{background:#9d9db2;left:0;right:0}
+  .rbar.drag i{cursor:grabbing}
+}

@@ -21,7 +21,7 @@ async function pdfEditor(m, d, blob) {
     <div class="ned-tools" id="tb"><span class="tt-lbl">Klicke auf die Seite, um Text zu schreiben</span><i class="sep"></i><button class="tbtn" id="fsm" title="Schrift kleiner" aria-label="Schrift kleiner"><b style="font-size:12px">A</b></button><button class="tbtn" id="fsp" title="Schrift größer" aria-label="Schrift größer"><b style="font-size:17px">A</b></button><label class="tbtn" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #1c1c22;line-height:1">A</b><input type="color" id="cin" value="#1c1c22" hidden></label></div>
     <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><div class="modesw" id="msw" role="tablist"><i class="knob"></i><button role="tab" data-m="write" class="on">Schreiben</button><button role="tab" data-m="draw">Zeichnen</button></div><button class="btn ghost small" id="ai-m">${ic("spark")}<span class="hide-sm">KI</span></button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button></div></div>
   <div class="pdfwrap"><article class="ned-paper pdfpaper" id="paperc"><div class="pdfpages" id="pages"><p class="empty pdfload">PDF wird geladen …</p></div></article></div></div>`;
-  const paper = $("#paperc", m), pages = $("#pages", m), svEl = $("#sv", m);
+  const paper = $("#paperc", m); setScroller(paper); const pages = $("#pages", m), svEl = $("#sv", m);
   $$("[data-p]", m).forEach(b => b.onclick = () => go("docs/" + b.dataset.p));
   $("#eb", m).onclick = () => go("docs/" + (d.folderId || ""));
 

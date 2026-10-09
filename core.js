@@ -301,3 +301,24 @@ async function docText(d) {
   }
   d.text = t.slice(0, 60000); save(); return d.text;
 }
+
+/* ---------- edge scrollbar: a slim thumb at the very right edge of the window, driving the box that scrolls ---------- */
+const EDGE = { el: null, bar: null, thumb: null, off: null, tick: 0 };
+function setScroller(el) {
+  if (!EDGE.bar) {
+    EDGE.bar = document.createElement("div"); EDGE.bar.className = "rbar"; EDGE.bar.innerHTML = "<i></i>"; document.body.appendChild(EDGE.bar); EDGE.thumb = EDGE.bar.firstChild;
+    let drag = null;
+    EDGE.thumb.addEventListener("pointerdown", e => { e.preventDefault(); EDGE.thumb.setPointerCapture(e.pointerId); const el = EDGE.el; drag = { y: e.clientY, top: el.scrollTop }; EDGE.bar.classList.add("drag"); });
+    EDGE.thumb.addEventListener("pointermove", e => { if (!drag) return; const el = EDGE.el, tr = EDGE.bar.clientHeight - EDGE.thumb.offsetHeight; if (tr > 0) el.scrollTop = drag.top + (e.clientY - drag.y) * (el.scrollHeight - el.clientHeight) / tr; });
+    const end = () => { drag = null; EDGE.bar.classList.remove("drag"); }; EDGE.thumb.addEventListener("pointerup", end); EDGE.thumb.addEventListener("pointercancel", end);
+    EDGE.bar.addEventListener("pointerdown", e => { if (e.target !== EDGE.bar || !EDGE.el) return; const r = EDGE.thumb.getBoundingClientRect(); EDGE.el.scrollBy({ top: (e.clientY < r.top ? -1 : 1) * EDGE.el.clientHeight * .85, behavior: "smooth" }); });
+  }
+  if (EDGE.off) EDGE.off(); EDGE.el = el;
+  const upd = () => {
+    const el = EDGE.el; if (!el || !el.isConnected) { EDGE.bar.classList.remove("on"); return; }
+    const vh = el.clientHeight, sh = el.scrollHeight, show = sh > vh + 2; EDGE.bar.classList.toggle("on", show); if (!show) return;
+    const tr = EDGE.bar.clientHeight, th = Math.max(36, tr * vh / sh); EDGE.thumb.style.height = th + "px"; EDGE.thumb.style.transform = `translateY(${(tr - th) * el.scrollTop / (sh - vh)}px)`;
+  };
+  el.addEventListener("scroll", upd, { passive: true }); addEventListener("resize", upd); const iv = setInterval(upd, 350); upd();
+  EDGE.off = () => { el.removeEventListener("scroll", upd); removeEventListener("resize", upd); clearInterval(iv); };
+}
