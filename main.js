@@ -72,6 +72,7 @@ function renderLanding() {
 /* ---------- boot ---------- */
 (async function () {
   await loadData(); try { migrateFolders(); } catch {}
+  await Promise.race([probeServerAI(), new Promise(r => setTimeout(r, 1800))]);
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   route();
   setTimeout(() => { try { msAuto(); } catch {} }, 1500);

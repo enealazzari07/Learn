@@ -9,6 +9,9 @@ const MS_SVC = {
   chat: { n: "Teams-Chats & Teams-Liste", s: ["Chat.Read", "Team.ReadBasic.All"] },
 };
 const EXAM_RE = /klausur|prüfung|pruefung|klassenarbeit|schulaufgabe|schularbeit|leistungskontrolle|lernkontrolle|vokabeltest|\btest\b|\bexam\b|\bquiz\b|\barbeit\b|abitur|\bkl\.\s?\d|\bLK\b|testat|kolloquium|abgabe/i;
+const msId = () => ((D.ms?.clientId || "").trim() || (window.LUMI_CONFIG?.msClientId || "").trim());
+const msTenant = () => ((D.ms?.tenant || "").trim() || window.LUMI_CONFIG?.msTenant || "common");
+const msReady = () => !!msId();
 function msCfg() { return D.ms || (D.ms = { clientId: "", tenant: "common", services: { cal: true, note: true, edu: true, chat: false }, autoExams: true, autoNotes: true, events: [], chats: [], teams: [], lastSync: 0, account: "", report: null }); }
 const msRedirect = () => location.origin + location.pathname.replace(/index\.html$/, "");
 const msScopes = () => ["User.Read", ...Object.entries(msCfg().services).filter(([, v]) => v).flatMap(([k]) => MS_SVC[k].s)];
@@ -16,16 +19,21 @@ const msConnected = () => !!msCfg().account;
 let msalApp = null;
 
 async function msInit() {
-  const c = msCfg(); if (!c.clientId) throw new Error("Bitte zuerst die Anwendungs-(Client-)ID eintragen.");
+  if (!msId()) throw new Error("Die Microsoft-Anbindung ist noch nicht eingerichtet (Client-ID fehlt).");
   if (msalApp) return;
   await loadScript("https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js");
-  msalApp = new msal.PublicClientApplication({ auth: { clientId: c.clientId.trim(), authority: "https://login.microsoftonline.com/" + (c.tenant.trim() || "common"), redirectUri: msRedirect() }, cache: { cacheLocation: "localStorage" } });
+  msalApp = new msal.PublicClientApplication({ auth: { clientId: msId(), authority: "https://login.microsoftonline.com/" + msTenant(), redirectUri: msRedirect() }, cache: { cacheLocation: "localStorage" } });
   if (msalApp.initialize) await msalApp.initialize();
 }
 async function msLogin() {
   msalApp = null; await msInit();
   const r = await msalApp.loginPopup({ scopes: msScopes(), prompt: "select_account" });
   msalApp.setActiveAccount(r.account); msCfg().account = r.account.username || r.account.name || "verbunden"; save();
+}
+async function msQuickLogin() {
+  if (!msReady()) { toast("Microsoft ist noch nicht eingerichtet – siehe Einstellungen."); go("settings"); return false; }
+  try { toast("Microsoft-Anmeldung wird geöffnet …"); await msLogin(); toast("Angemeldet – Daten werden geladen …"); const r = await msSync(); toast(r.errors.length ? "Verbunden – mit Hinweisen (siehe Einstellungen)" : `Verbunden: ${r.events} Termine, ${r.pages} OneNote-Seiten, ${r.exams + r.tasks} neue Einträge`); refreshNav(); if (curView === "today" || curView === "settings" || curView === "planner" || curView === "docs") renderView(); return true; }
+  catch (e) { const t = String(e.errorCode || e.message || e); toast(/popup/i.test(t) ? "Pop-up wurde blockiert – bitte Pop-ups für diese Seite erlauben." : /user_cancelled|cancel/i.test(t) ? "Anmeldung abgebrochen." : "Anmeldung fehlgeschlagen: " + (e.errorMessage || e.message || t).slice(0, 120)); return false; }
 }
 async function msLogout() {
   try { await msInit(); const a = msalApp.getActiveAccount() || msalApp.getAllAccounts()[0]; if (a) await msalApp.logoutPopup({ account: a, postLogoutRedirectUri: msRedirect() }); } catch {}
@@ -74,17 +82,19 @@ async function msSync() {
   } catch (e) { fail("Kalender", e); }
   if (c.services.note) try {
     const nb = await graph("/me/onenote/notebooks?$expand=sections($select=id,displayName)&$select=id,displayName"); let budget = 40;
+    const ensureF = (name, parent) => { let f = D.folders.find(x => x.name === name && (x.parent || "") === (parent || "")); if (!f) { f = { id: uid(), name, parent: parent || "", color: COLORS[D.folders.length % COLORS.length], subjectId: parent ? "" : guessSubject(name) }; D.folders.push(f); } return f.id; };
     for (const n of nb.value || []) for (const sec of n.sections || []) {
       if (budget <= 0) break;
       const pg = await graph(`/me/onenote/sections/${sec.id}/pages?$top=15&$orderby=lastModifiedDateTime desc&$select=id,title,lastModifiedDateTime,links`);
       for (const p of pg.value || []) {
-        const ex = D.docs.find(d => d.msId === p.id);
+        const ex = D.docs.find(d => d.msId === p.id), fid = ensureF(sec.displayName || "Abschnitt", ensureF(n.displayName || "OneNote", ""));
+        if (ex && !ex.folderId) ex.folderId = fid;
         if (ex && ex.msMod === p.lastModifiedDateTime) continue;
         if (ex && ex.updated > (ex.msImported || 0) + 2000) continue;          // locally edited – keep local version
         if (budget-- <= 0) break;
         const html = cleanOneNote(await graph(`/me/onenote/pages/${p.id}/content`, { text: true })), now = Date.now(), txt = htmlToText(html).slice(0, 60000);
         const rec = { title: p.title || "OneNote-Seite", text: txt, msId: p.id, msMod: p.lastModifiedDateTime, msImported: now, msLink: p.links?.oneNoteWebUrl?.href || "", source: "onenote" };
-        if (ex) Object.assign(ex, rec, { updated: now }); else D.docs.unshift({ id: uid(), type: "note", subjectId: guessSubject(`${n.displayName} ${sec.displayName} ${p.title}`), created: now, updated: now, ...rec });
+        if (ex) Object.assign(ex, rec, { updated: now }); else D.docs.unshift({ id: uid(), type: "note", subjectId: guessSubject(`${n.displayName} ${sec.displayName} ${p.title}`) || subjectOfFolder(fid), folderId: fid, paper: D.profile.paper || "white", created: now, updated: now, ...rec });
         await KV.set("html:" + (ex ? ex.id : D.docs[0].id), html); rep.pages++;
       }
     }
@@ -106,7 +116,7 @@ async function msSync() {
     c.chats = (ch.value || []).filter(x => x.lastMessagePreview?.body?.content).map(x => ({ topic: x.topic || (x.chatType === "oneOnOne" ? "Direktnachricht" : "Chat"), from: x.lastMessagePreview.from?.user?.displayName || "", text: htmlToText(x.lastMessagePreview.body.content).slice(0, 300), date: (x.lastMessagePreview.createdDateTime || "").slice(0, 10) }));
     rep.chats = c.chats.length;
   } catch (e) { fail("Teams-Chats", e); }
-  c.lastSync = Date.now(); c.report = rep; save(); return rep;
+  c.lastSync = Date.now(); c.report = rep; save(); try { refreshNav(); } catch {} return rep;
 }
 async function msAuto() { const c = D.ms; if (!c?.account || Date.now() - (c.lastSync || 0) < 30 * 6e4) return; try { await msSync(); if (curView === "today" || curView === "planner") renderView(); } catch {} }
 

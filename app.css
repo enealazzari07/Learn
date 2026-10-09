@@ -611,3 +611,10 @@ body{background:#fff}
 .ic{stroke-width:1.6}
 .sortl{display:inline-flex;align-items:center;gap:8px;color:#777}.sortl .ic{width:18px;height:18px}
 .nav-i .ic,.tt .ic{transition:transform .2s}
+
+/* ---------- Microsoft one-click button ---------- */
+.ms-btn{display:inline-flex;align-items:center;gap:12px;background:#fff;color:#1f1f1f;border:1.5px solid #d9d9e0;border-radius:999px;padding:11px 20px;font-weight:600;font-size:15px;transition:box-shadow .2s,transform .2s,border-color .2s}
+.ms-btn:hover:not(:disabled){box-shadow:0 8px 24px rgba(30,20,90,.14);transform:translateY(-1px);border-color:#bbb}
+.ms-btn:disabled{opacity:.45;cursor:not-allowed}.ms-btn svg{width:20px;height:20px}
+.msline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;text-align:left}
+.ob-ms{display:flex;flex-direction:column;gap:6px;align-items:flex-start;margin-top:18px}.ob-ms small{color:var(--muted)}

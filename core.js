@@ -167,13 +167,23 @@ const isUni = () => D.profile.level === "uni";
 const SUBJ = () => isUni() ? "Module" : "Fächer";
 
 /* ---------- AI ---------- */
-const hasKey = () => !!D.profile.apiKey;
+let serverAI = false, serverInfo = null;
+async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; } catch {} }
+const hasKey = () => serverAI || !!D.profile.apiKey;
 function sysBase(extra = "") {
   const p = D.profile;
   return `You are Lumi, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${extra ? "\n" + extra : ""}`;
 }
 async function ai(prompt, { system = "", history = [], max = 1500, image = null, quiet = false } = {}) {
-  if (!hasKey()) { if (!quiet) toast("KI braucht einen API-Key (Einstellungen). Lokale Hilfe wird verwendet."); return null; }
+  if (!hasKey()) { if (!quiet) toast("Die KI ist noch nicht eingerichtet (Einstellungen → KI). Lokale Hilfe wird verwendet."); return null; }
+  if (serverAI) {
+    try {
+      const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(r.status === 429 ? "Das kostenlose KI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
+      return j.text || "";
+    } catch (e) { if (!quiet) toast("KI-Fehler: " + e.message); return null; }
+  }
   const content = image ? [{ type: "image", source: { type: "base64", media_type: image.type || "image/jpeg", data: image.data } }, { type: "text", text: prompt }] : prompt;
   const messages = [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content }];
   try {
