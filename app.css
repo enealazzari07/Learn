@@ -736,27 +736,21 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
   .ned-bar .inkpal{gap:6px}.ned-bar .inkpal .tbtn{width:32px;height:32px}.ned-bar .inkpal .ip-cols{gap:4px}.ned-bar .inkpal .cdot{width:20px;height:20px}.ned-bar .inkpal input[type=range]{width:56px}
 }
 
-/* ======== v14: soft blue-violet scene behind the app, glass main panel ======== */
-#app{position:relative;isolation:isolate;background:linear-gradient(135deg,#dbe5ff 0%,#e4e0ff 45%,#efe0ff 100%)}
-#app::before,#app::after{content:"";position:fixed;z-index:-1;pointer-events:none}
-#app::before{left:-8vw;bottom:-16vh;width:62vw;height:78vh;background:
-  linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,0) 60%),
-  repeating-linear-gradient(115deg,rgba(120,140,255,.0) 0 26px,rgba(110,130,255,.34) 26px 74px,rgba(120,140,255,.0) 74px 96px);
-  border-radius:44% 56% 40% 60%/50% 40% 60% 50%;filter:blur(22px);transform:rotate(-8deg);opacity:.9}
-#app::after{right:-10vw;top:-18vh;width:58vw;height:70vh;background:
-  radial-gradient(60% 60% at 40% 45%,rgba(176,140,255,.62),rgba(176,140,255,0) 70%),
-  repeating-linear-gradient(-70deg,rgba(190,150,255,0) 0 30px,rgba(170,130,250,.28) 30px 80px,rgba(190,150,255,0) 80px 104px);
-  border-radius:60% 40% 55% 45%/45% 55% 45% 55%;filter:blur(26px);opacity:.95}
-.shell{background:transparent!important}
-.side{background:transparent!important}
-.main{--panel:rgba(255,255,255,.76);background:rgba(255,255,255,.76);-webkit-backdrop-filter:blur(26px) saturate(1.2);backdrop-filter:blur(26px) saturate(1.2);border:1px solid rgba(255,255,255,.85);box-shadow:0 24px 70px rgba(70,60,170,.14)}
-.main.doc-full{background:#fff;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
-.main:has(.welcome){overflow:clip}
-@media (max-width:900px){.side{background:rgba(255,255,255,.85)!important;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}}
-.main:has(.welcome){background:rgba(255,255,255,.38);--panel:rgba(255,255,255,.38)}
-#app::before{opacity:1;background:
+/* ======== v14: soft blue-violet scene only INSIDE the main panel; outer frame stays white ======== */
+.main:not(.doc-full){position:relative;isolation:isolate;background:#fff;clip-path:inset(0 round 40px);border:0;box-shadow:none;--panel:#fff}
+.main:not(.doc-full)::before,.main:not(.doc-full)::after{content:"";position:absolute;z-index:-1;pointer-events:none}
+.main:not(.doc-full)::before{left:-12%;bottom:-22%;width:70%;height:80%;background:
   linear-gradient(115deg,rgba(255,255,255,.4),rgba(255,255,255,0) 55%),
-  repeating-linear-gradient(115deg,rgba(90,120,255,0) 0 26px,rgba(80,110,255,.5) 26px 74px,rgba(90,120,255,0) 74px 96px)}
-#app::after{background:
-  radial-gradient(60% 60% at 40% 45%,rgba(160,110,255,.8),rgba(160,110,255,0) 70%),
-  repeating-linear-gradient(-70deg,rgba(190,150,255,0) 0 30px,rgba(160,110,250,.4) 30px 80px,rgba(190,150,255,0) 80px 104px)}
+  repeating-linear-gradient(115deg,rgba(90,120,255,0) 0 26px,rgba(80,110,255,.42) 26px 74px,rgba(90,120,255,0) 74px 96px);
+  border-radius:44% 56% 40% 60%/50% 40% 60% 50%;filter:blur(22px);transform:rotate(-8deg)}
+.main:not(.doc-full)::after{right:-14%;top:-24%;width:66%;height:72%;background:
+  radial-gradient(60% 60% at 40% 45%,rgba(160,110,255,.7),rgba(160,110,255,0) 70%),
+  repeating-linear-gradient(-70deg,rgba(190,150,255,0) 0 30px,rgba(160,110,250,.34) 30px 80px,rgba(190,150,255,0) 80px 104px);
+  border-radius:60% 40% 55% 45%/45% 55% 45% 55%;filter:blur(26px)}
+.main:not(.doc-full):not(:has(.welcome))::before,.main:not(.doc-full):not(:has(.welcome))::after{opacity:.4}
+.main.doc-full{background:#fff;border:0;box-shadow:none}
+.main:has(.welcome){overflow:clip}
+@media (max-width:900px){.main:not(.doc-full){clip-path:inset(0 round 30px)}}
+.main:not(.doc-full){background:linear-gradient(135deg,#eaf0ff 0%,#efe9ff 55%,#f5eaff 100%)}
+.main:not(.doc-full)::before{opacity:.6}.main:not(.doc-full)::after{opacity:.8}
+.tiles2 button,.panel.soft,.rrow{box-shadow:0 1px 3px rgba(40,30,120,.05),0 10px 30px rgba(70,60,170,.08)}
