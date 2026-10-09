@@ -794,3 +794,17 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
 .main:has(.welcome){padding-top:16px}
 .hgrid{margin-top:16px}.tiles2{margin-top:16px}
 @media (max-width:700px){.welcome{border-radius:28px}}
+
+/* v17: hero banner flush with the panel edges and corners */
+.main:has(.welcome){--mx:clamp(16px,3.6vw,56px);--mr:40px}
+@media (max-width:900px){.main:has(.welcome){--mx:14px;--mr:30px}}
+.page.home.calm{max-width:none;padding-inline:0}
+.page.home.calm>*:not(.welcome){max-width:1000px;margin-inline:auto}
+.page.home.calm>.welcome{margin:-16px calc(-1*var(--mx)) 0;border-radius:var(--mr) var(--mr) 36px 36px;box-shadow:none;padding-inline:max(28px,calc(50% - 500px))!important;padding-top:clamp(34px,4.4vw,56px)!important;padding-bottom:clamp(30px,4vw,48px)!important}
+.page.home.calm>.welcome .hsearch{max-width:700px}
+.page.home.calm>*:not(.welcome):first-of-type{margin-top:0}
+.tiles2{margin-top:20px}
+@media (max-width:700px){.page.home.calm>.welcome{border-radius:var(--mr) var(--mr) 28px 28px}}
+.main:has(.welcome){padding-top:0!important}
+.page.home.calm>.welcome{margin-top:0;padding-inline:max(28px,calc(50% + var(--mx) - 500px))!important}
+.page.home.calm{padding-top:0!important}
