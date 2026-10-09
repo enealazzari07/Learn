@@ -195,13 +195,19 @@ function renderLanding() {
     <h1>Shipped.<br>Adopted.<br>Loved.</h1>
   </section>
 
-  <section class="sec" id="create"><div class="yellow-sec"><div style="text-align:center"><h2 style="margin:0 auto">Create courses together, with AI at your side.</h2></div>
-    <div class="laptop"><div class="screen"><div class="bar"><i></i><i></i><i></i><span>sana.learn.ai</span></div>
-      <div class="mini-editor"><aside>${ic("play")}${ic("search")}${ic("book")}${ic("note")}${ic("edit")}${ic("note")}</aside>
-        <div class="cv"><span class="cur" style="left:12%;top:14%;background:#16a34a">Christine</span><span class="cur" style="right:8%;top:40%;background:#2563eb;animation-delay:-3s">Stephen</span><span class="cur" style="left:4%;top:60%;background:#8b5cf6;animation-delay:-5s">Michael</span>
-          <small>The future of selling</small><h3>Rethinking sales for a new generation of buyers</h3>
-          <div class="eb"><span>What would you like to edit?</span><b>B</b><i>I</i><span>Aa</span></div>
-          <p>Today's buyers are informed, skeptical, and short on time — which means old sales tactics no longer work.</p><div class="art"></div></div></div></div><div class="base"></div></div></div></section>
+  <section class="scene-sec" id="create"><h2 class="scene-h">Create courses together, with AI at your side.</h2>
+    <div class="scene"><div class="chair"></div>
+      <div class="lap"><div class="lap-screen"><div class="lap-cam"></div><div class="lap-in">
+        <div class="lap-bar"><i></i><i></i><i></i><span>sana.learn.ai</span></div>
+        <div class="lap-app"><aside>${ic("play")}${ic("search")}${ic("book")}<b class="sel">${ic("note")}</b>${ic("note")}<b style="color:#e6b800">${ic("edit")}</b><b style="color:#d6431f">${ic("note")}</b><em>+</em></aside>
+          <div class="lap-main"><div class="lap-top"><div><b>New course</b><small>My drafts</small></div><span class="av-s"><i style="background:#18a957"></i><i style="background:#3b82f6"></i><i style="background:#ec4899"></i></span><span class="pub">Publish</span></div>
+            <div class="lap-cv"><span class="cur" style="left:20%;top:12%;background:#18a957">Christine</span><span class="cur" style="right:8%;top:30%;background:#2563eb;animation-delay:-3s">Stephen</span><span class="cur" style="left:4%;top:56%;background:#8b5cf6;animation-delay:-5s">Michael</span>
+              <small>The future of selling</small><h3>Rethinking sales for a new generation of buy<span class="ghost">ers</span><u>Mark</u></h3>
+              <div class="eb">${ic("spark")}<span>What would you like to edit?</span><b>B</b><i>I</i><span>Aa</span><span>···</span></div>
+              <p>Today's buyers are informed, skeptical, and short on time — which means old sales tactics no longer work. This course shows you how to adapt your approach, respond in the moment, and build credibility that turns conversations into lasting value.</p><div class="art"></div></div></div></div></div></div>
+        <div class="lap-base"></div></div>
+      <div class="bk b1"></div><div class="bk b2"></div><div class="bk b3"></div><div class="bk b4"></div><div class="bk b5"></div><div class="bk b6"></div><div class="binder"><i></i></div>
+      <div class="cup"><b></b><u></u></div><div class="pen"></div></div></section>
 
   <section class="tablet-sec"><div><h2 style="font-size:clamp(36px,5.2vw,64px);letter-spacing:-.045em;line-height:.98;font-weight:600">Learning that works where your people work.</h2><p class="lead" style="font-size:20px;color:#444;margin-top:20px;max-width:520px">iPad, phone or desktop — Sana Learn adapts to every screen, with an AI tutor for every learner.</p><div class="hero-cta" style="justify-content:flex-start"><a class="btn" ${go}>See what's new in Sana Learn</a></div></div>
     <div class="tablet-art"><div class="tablet"><small style="color:#888">Workday · Job requisition</small><h4>Senior Data Analyst</h4><div class="ln" style="width:60%"></div><div class="ln"></div><div class="ai-line"></div><div class="ln" style="width:85%"></div><div class="ln"></div><div class="ln" style="width:70%"></div></div></div>
