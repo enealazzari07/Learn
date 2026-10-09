@@ -1,6 +1,6 @@
 {
-  "name": "Lumi Learn",
-  "short_name": "Learn",
+  "name": "Lumi",
+  "short_name": "Lumi",
   "start_url": "./#/app",
   "display": "standalone",
   "background_color": "#ffffff",
