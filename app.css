@@ -540,3 +540,19 @@ body{background:#fff}
 .ned .p-grid .body{background-image:linear-gradient(#dcdfea 1px,transparent 1px),linear-gradient(90deg,#dcdfea 1px,transparent 1px)}
 .ned .p-dots .body{background-image:radial-gradient(#b4bacb 1.5px,transparent 1.7px)}
 .ned .body table td{background:rgba(255,255,255,.6)}
+
+/* ======== v7: info + tools live in the white area; only the document sits in the grey rounded panel ======== */
+.main.doc-full{--docbg:#f3f3f7;--panel:#fff;margin:0;border-radius:0;background:#fff;min-height:100dvh;padding:0;overflow-x:clip}
+.ned-bar{background:#fff;border-radius:0;border-bottom:0;padding-bottom:2px}
+.ned-paper{background:var(--docbg)!important;border-radius:38px!important;margin:0 12px 12px 0;min-height:calc(100dvh - 76px);overflow:hidden;padding-bottom:140px}
+.dhead{position:sticky;top:0;z-index:50;background:#fff}
+.dhead .ned-bar{position:static}
+.editor.board.dfull .opts.flat{padding:2px 24px 12px}
+.dpanel{background:var(--docbg);border-radius:38px;margin:0 12px 12px 0;padding:22px 0 22px;min-height:calc(100dvh - 130px)}
+.editor.board.dfull .cvwrap{margin:0 22px}
+@media (max-width:900px){
+  .main.doc-full{margin:0;border-radius:0}
+  .ned-bar{border-radius:0}
+  .ned-paper,.dpanel{margin:0 8px 8px;border-radius:30px!important}
+  .editor.board.dfull .cvwrap{margin:0 10px}
+}
