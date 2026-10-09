@@ -865,3 +865,10 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
   .rbar:hover i,.rbar.drag i{background:#9d9db2;left:0;right:0}
   .rbar.drag i{cursor:grabbing}
 }
+
+/* v20: banner reaches further down and melts into the grey background */
+.page.home.calm>.welcome{border-radius:var(--mr) var(--mr) 0 0;padding-bottom:clamp(110px,12vw,150px)!important;box-shadow:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 120px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 120px),transparent 100%)}
+.page.home.calm>.welcome+*{margin-top:-46px!important;position:relative;z-index:2}
+.hero-art{top:calc(50% - 40px)}
+.welcome .hsearch{box-shadow:0 10px 34px rgba(60,50,170,.14)}
