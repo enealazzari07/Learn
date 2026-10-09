@@ -294,13 +294,14 @@ V.search = async m => {
 
 /* ---------- settings ---------- */
 async function exportAll() {
-  toast("Export wird vorbereitet…"); const out = { app: "lumi", v: 1, data: D, html: {}, draw: {}, ink: {}, blobs: {} };
+  toast("Export wird vorbereitet…"); const out = { app: "lumi", v: 1, data: D, html: {}, draw: {}, ink: {}, ann: {}, blobs: {} };
   for (const d of D.docs) { if (d.type === "note") { out.html[d.id] = await KV.get("html:" + d.id); const ik = await KV.get("ink:" + d.id); if (ik?.length) out.ink[d.id] = ik; } else if (d.type === "draw") out.draw[d.id] = await KV.get("draw:" + d.id); else { const b = await KV.get("blob:" + d.id); if (b) out.blobs[d.id] = await blobToDataURL(b); } }
+  for (const d of D.docs) { const ik = await KV.get("ink:" + d.id); if (ik?.length) out.ink[d.id] = ik; const an = await KV.get("ann:" + d.id); if (an?.length) out.ann[d.id] = an; }
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(out)], { type: "application/json" })); a.download = `lumi-backup-${iso()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
 }
 async function importAll(file) {
   try { const j = JSON.parse(await file.text()); if (j.app !== "lumi") throw 0; if (!(await confirmBox("Aktuelle Daten durch das Backup ersetzen?", "Ersetzen"))) return;
-    D = Object.assign(DEFAULT(), j.data); for (const [k, v] of Object.entries(j.html || {})) await KV.set("html:" + k, v); for (const [k, v] of Object.entries(j.draw || {})) await KV.set("draw:" + k, v); for (const [k, v] of Object.entries(j.ink || {})) await KV.set("ink:" + k, v); for (const [k, v] of Object.entries(j.blobs || {})) await KV.set("blob:" + k, await (await fetch(v)).blob()); await KV.set("data", D); toast("Backup geladen"); location.reload();
+    D = Object.assign(DEFAULT(), j.data); for (const [k, v] of Object.entries(j.html || {})) await KV.set("html:" + k, v); for (const [k, v] of Object.entries(j.draw || {})) await KV.set("draw:" + k, v); for (const [k, v] of Object.entries(j.ink || {})) await KV.set("ink:" + k, v); for (const [k, v] of Object.entries(j.ann || {})) await KV.set("ann:" + k, v); for (const [k, v] of Object.entries(j.blobs || {})) await KV.set("blob:" + k, await (await fetch(v)).blob()); await KV.set("data", D); toast("Backup geladen"); location.reload();
   } catch { toast("Ungültige Backup-Datei"); }
 }
 V.settings = m => {

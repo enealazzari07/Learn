@@ -174,7 +174,7 @@ async function uploadFiles(files) {
 }
 async function deleteDoc(d) {
   if (!(await confirmBox(`„${d.title}“ wirklich löschen?`))) return;
-  D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
+  D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
 }
 const fileIcon = d => { const e = (d.title.split(".").pop() || "").toLowerCase(); return /pdf/.test(e) ? ["PDF", "#e5484d"] : /docx?/.test(e) ? ["DOC", "#2563eb"] : /pptx?/.test(e) ? ["PPT", "#f97316"] : /xlsx?|csv/.test(e) ? ["XLS", "#16a34a"] : /txt|md/.test(e) ? ["TXT", "#64748b"] : [e.slice(0, 4).toUpperCase() || "FILE", "#64748b"]; };
 function docCard(d) {
@@ -509,6 +509,7 @@ async function noteEditor(m, d) {
 async function fileViewer(m, d) {
   const blob = await KV.get("blob:" + d.id); const url = blob ? URL.createObjectURL(blob) : "";
   const isImg = /^image\//.test(d.mime), isPdf = d.mime === "application/pdf" || /\.pdf$/i.test(d.title), isTxt = /^text\//.test(d.mime) || /\.(txt|md|csv)$/i.test(d.title);
+  if (isPdf && blob) return pdfEditor(m, d, blob);
   m.innerHTML = `<div class="editor"><div class="ed-head"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><input class="ed-title" id="et" value="${esc(d.title)}">${subjectSelect(d.subjectId, "ed-sub")}<button class="btn ghost" id="ai-m">${ic("spark")}KI</button><a class="btn ghost" href="${url}" download="${esc(d.title)}">${ic("download")}<span class="hide-sm">Laden</span></a><button class="icon-btn" id="del" aria-label="Löschen">${ic("trash")}</button></div>
   <div class="viewer">${!blob ? `<p class="empty">Datei nicht gefunden.</p>` : isImg ? `<img src="${url}" alt="${esc(d.title)}">` : isPdf ? `<iframe src="${url}" title="${esc(d.title)}"></iframe>` : isTxt ? `<pre id="txtv">Lädt…</pre>` : `<div class="emptybox"><div class="big-ic">${ic("file")}</div><h3>${esc(d.title)}</h3><p>${(d.size / 1024).toFixed(0)} KB – für diesen Dateityp gibt es keine Vorschau. Lade die Datei herunter.</p></div>`}</div></div>`;
   if (isTxt && blob) blob.text().then(t => $("#txtv", m).textContent = t);

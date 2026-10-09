@@ -676,3 +676,25 @@ body{background:#fff}
 .hgrid .panel.soft{margin-top:0}.hgrid .rec{margin-top:0}
 @media (max-width:860px){.hgrid{grid-template-columns:1fr}.aipane{right:12px;bottom:calc(80px + env(safe-area-inset-bottom))}.hs-ai span{display:none}}
 .page.home.calm{padding-bottom:140px}
+
+/* ======== v11: PDF editor ======== */
+.pdfwrap{display:grid;grid-template-columns:64px minmax(0,1fr);gap:0;align-items:start}
+.pgrail{position:sticky;top:78px;display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 0 14px;padding:8px 6px;background:#fff;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.04),0 10px 30px rgba(30,20,90,.1);max-height:calc(100dvh - 110px);overflow:auto;scrollbar-width:none;width:44px}
+.pgrail::-webkit-scrollbar{display:none}
+.pgrail button{width:32px;height:32px;border-radius:50%;font-size:13px;font-weight:600;color:#6b6b78;flex:none;cursor:pointer;transition:background .2s,color .2s,transform .2s}
+.pgrail button:hover{background:var(--soft)}
+.pgrail button.on{background:var(--violet);color:#fff;transform:scale(1.06)}
+.pdfpaper{padding:28px 0 140px!important;background-image:none!important}
+.pdfpages{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;width:100%}
+.pdfpg{position:relative;width:min(860px,calc(100% - 28px));background:#fff;border-radius:14px;box-shadow:0 2px 4px rgba(0,0,0,.04),0 12px 34px rgba(30,20,90,.1);overflow:hidden;cursor:text}
+.pdfpg canvas{display:block;width:100%;height:100%}
+.pdfpages.inking .pdfpg{cursor:crosshair}
+.pdftx{position:absolute;z-index:2;min-width:40px;min-height:1.2em;line-height:1.3;white-space:pre-wrap;outline:0;padding:2px 6px;border-radius:8px;font-family:inherit;transform:translateY(0);background:transparent;cursor:text}
+.pdftx:focus{background:rgba(255,255,255,.75);box-shadow:0 0 0 2px #cfc4ff}
+.pdfpages.inking .pdftx{pointer-events:none}
+.pdfload{margin:40px auto}
+.pdffallback{width:min(900px,calc(100% - 28px));height:80dvh;border:0;border-radius:14px;background:#fff}
+.tt-lbl{font-size:13px;color:#8a8a98;padding:0 8px;white-space:nowrap}
+.pdfed .ned-tools{gap:4px}
+@media (max-width:900px){.pdfwrap{grid-template-columns:1fr}.pgrail{position:fixed;left:10px;top:auto;bottom:12px;flex-direction:row;max-height:none;max-width:calc(100vw - 20px);width:auto;overflow-x:auto;overflow-y:hidden;margin:0;z-index:60;border-radius:999px;padding:6px 8px}.tt-lbl{display:none}}
+.pdfpg{scroll-margin-top:84px}
