@@ -42,7 +42,7 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
-let S = Object.assign({ name: "Emma Sundqvist", progress: {}, done: {}, custom: [], apiKey: "", model: "claude-sonnet-5-5" }, store.get("lumi-state", {}));
+let S = Object.assign({ name: "Alex Morgan", progress: {}, done: {}, custom: [], apiKey: "", model: "claude-sonnet-5-5" }, store.get("lumi-state", {}));
 const save = () => store.set("lumi-state", S);
 
 const G = {
@@ -88,14 +88,14 @@ const COURSES = [
   { id: "negotiation", title: "Negotiation skills for SaaS & Tech sales", desc: "Win-win deals without discounting.", cat: "Sales", g: G.violet, mins: 30, sub: "30 min",
     lessons: [{ t: "Know your BATNA", b: "Your best alternative to a negotiated agreement defines your walk-away point. Prepare it before every call." }, { t: "Trade, don't give", b: "Never concede without getting something back. Trade term length for price, or volume for onboarding support." }],
     quiz: [{ q: "What does BATNA stand for?", o: ["Best alternative to a negotiated agreement", "Basic agreed terms and numbers", "Buyer approval to near-final acceptance"], a: 0 }] },
-  { id: "careers", title: "Career paths at Acme", desc: "Explore how careers grow at Acme.", cat: "Culture", g: G.yellow, mins: 20, sub: "20 min",
-    lessons: [{ t: "Two ladders", b: "Acme offers a manager track and an individual-contributor track with equal pay bands at every level." }],
+  { id: "careers", title: "Career paths at Northwind", desc: "Explore how careers grow here.", cat: "Culture", g: G.yellow, mins: 20, sub: "20 min",
+    lessons: [{ t: "Two ladders", b: "Northwind offers a manager track and an individual-contributor track with equal pay bands at every level." }],
     quiz: [{ q: "Are IC and manager tracks paid equally?", o: ["Yes, equal bands", "No", "Only in sales"], a: 0 }] },
 ];
 const ASSIGN = [
   { id: "consumer-law", due: "Due Aug 8", pri: "High priority", note: "Understand the legal responsibilities…" },
   { id: "soc2", due: "Due Aug 9", pri: "High priority" },
-  { id: "careers", due: "Due Aug 17", pri: "Mandatory", note: "Explore how careers grow at Acme. Learn about available ro…" },
+  { id: "careers", due: "Due Aug 17", pri: "Mandatory", note: "Explore how careers grow here. Learn about available ro…" },
   { id: "dei", due: "Due Aug 30", pri: "Mandatory" },
   { id: "negotiation", due: "Due Sep 12", pri: "Mandatory" },
 ];
@@ -163,73 +163,73 @@ window.addEventListener("hashchange", route);
 function renderLanding() {
   landingEl.dataset.r = 1;
   const go = 'href="#/app"';
+  const TABS = [
+    ["Author", "Courses in minutes, not weeks", "Drop in a PDF, a deck or rough notes. Lumi drafts the structure, lessons and quiz — you polish with plain-language edits while teammates co-write live.", "edit", ["Generate from file", "Rewrite shorter", "Translate to 40 languages"]],
+    ["Learn", "A tutor for every learner", "Learners ask questions, get summaries and practise with adaptive quizzes — grounded in your own content, available around the clock on any device.", "spark", ["Summarise this lesson", "Quiz me on chapter 2", "Build my study plan"]],
+    ["Automate", "Admin on autopilot", "Describe a task in a sentence. Enrolments, reminders, certificates and reports run themselves, and you stay in control with approvals.", "bolt", ["Enrol new hires in onboarding", "Remind overdue learners", "Issue certificates monthly"]],
+    ["Insights", "Answers, not dashboards", "Ask a question about your learning data and get a chart and a written explanation back instantly.", "chart", ["Which courses stall at lesson 3?", "Completion by team", "Who needs a nudge this week?"]],
+  ];
   landingEl.innerHTML = `
-  <header class="nav" id="nav"><a class="logo" href="#/">Lumi<sup>™</sup></a>
-    <nav class="nav-links">${["Products", "Capabilities", "Solutions", "Resources", "Customer stories"].map(x => `<a href="#" onclick="return false">${x}${ic("chev")}</a>`).join("")}<a href="#pricing">Pricing</a></nav>
-    <div class="nav-right"><a href="#">Mission</a><a href="#">Careers</a><a class="btn" ${go}>Book an intro</a><button class="burger" aria-label="Menu" onclick="document.getElementById('nav').classList.toggle('open')">${ic("menu")}</button></div>
+  <header class="nav" id="nav"><a class="logo" href="#/"><i class="mark"></i>Lumi</a>
+    <nav class="nav-links"><a href="#how">Product</a><a href="#create">Studio</a><a href="#devices">Devices</a><a href="#ai">AI</a><a href="#pricing">Pricing</a></nav>
+    <div class="nav-right"><a href="#/app/settings">Sign in</a><a class="btn accent" ${go}>Get started</a><button class="burger" aria-label="Menu" onclick="document.getElementById('nav').classList.toggle('open')">${ic("menu")}</button></div>
   </header>
-  <section class="hero">
-    <div class="fc hide-md" style="left:3%;top:12%;--r0:-4deg;width:108px;flex-direction:column;align-items:flex-start;white-space:normal;font-size:10px;padding:14px"><div style="display:flex;gap:4px"><b style="background:#e83a2e;color:#fff;border-radius:3px;padding:1px 3px;font-size:7px">PDF</b></div><b style="margin-top:22px;font-size:11px;line-height:1.1">Run effective discovery calls</b></div>
-    <div class="fc sq hide-sm" style="left:8%;top:22%;--r0:-2deg;background:#e9e1ff"><span style="color:#7c3aed">${ic("book", "ic")}</span></div>
-    <div class="tag hide-sm" style="left:14%;top:25%;--c:#ff1f3d;background:#ff1f3d">Christine</div>
-    <div class="fc input hide-md" style="left:21%;top:9%;--r0:-6deg"><span style="font-size:11px;background:#f2f2f2;padding:4px 8px;border-radius:8px;color:#333">Onboarding to…</span><span style="font-size:11px;background:#f2f2f2;padding:4px 8px;border-radius:8px;color:#333">design-o…ng.pdf</span><span style="font-size:15px">+ Ask anything</span><span class="go">${ic("up")}</span></div>
-    <div class="fc flat hide-sm" style="left:12%;top:36%;--r0:2deg">${ic("note")} Convert notes</div>
-    <div class="fc org hide-sm" style="left:6%;top:48%;--r0:-8deg"><span style="margin-bottom:auto;opacity:.8">${ic("book")}</span>Want to dig deeper on this topic?<small>Personalized plan</small></div>
-    <div class="fc sq hide-md" style="left:25%;top:66%;--r0:0;width:60px;height:68px;border-radius:12px"><span style="color:#16a34a">${ic("check")}</span></div>
-    <div class="fc hide-sm" style="left:5%;top:74%;--r0:-3deg;padding:12px 18px;font-size:14px"><span class="dot">${ic("check")}</span>Translation completed</div>
-    <div class="fc input q" style="left:12%;top:84%;--r0:-4deg;min-width:min(420px,76vw)"><span style="color:#999">+</span><span>Query platform data and visualise results</span><span class="go blue">${ic("up")}</span></div>
-    <div class="fc hide-sm" style="left:44%;top:81%;--r0:0;width:64px;height:84px;padding:0;overflow:hidden;background:linear-gradient(#a58,#345)"><span style="font-size:8px;color:#fff;padding:4px;align-self:flex-end;line-height:1">Ways of Working</span></div>
-    <div class="tag hide-sm" style="left:41%;top:90%;--c:#1a5cff;background:#1a5cff;font-size:17px;border-radius:8px;padding:6px 10px">Ways-of-working-updated.pdf</div>
-    <div class="fc grn hide-md" style="left:58%;top:84%;--r0:3deg">▶ Three redesigned cards</div>
-    <div class="fc hide-sm" style="left:61%;top:10%;--r0:0;font-size:17px;padding:16px 22px">${ic("spark")} Edit Mode</div>
-    <div class="fc flat hide-md" style="left:78%;top:9%;--r0:3deg;font-size:17px">${ic("cloud")} Generate from file</div>
-    <div class="fc sq hide-md" style="left:70%;top:23%;--r0:2deg;width:58px;height:56px;border-radius:12px"><span style="color:#1a5cff">${ic("chart")}</span></div>
-    <div class="fc sugg hide-sm" style="left:76%;top:26%;--r0:4deg"><small style="color:#888">Suggestion</small><div class="img">How we request, purchase, and pay for goods and services</div><div class="row"><span>Accept all</span><span>Reject</span></div><div class="ask">Ask anything</div></div>
-    <div class="fc hide-sm" style="left:77%;top:56%;--r0:0;padding:6px;width:48px;height:46px;border-radius:12px;font-size:16px">👥</div>
-    <div class="fc hide-sm" style="left:69%;top:58%;--r0:0;padding:14px 20px">${ic("spark")} AI Tutor</div>
-    <div class="tag hide-sm" style="left:80%;top:64%;--c:#8b5cf6;background:#8b5cf6">Michael</div>
-    <div class="fc input hide-md" style="left:69%;top:70%;--r0:3deg;min-width:340px"><span>+ Perform any admin action</span><span class="go">${ic("up")}</span></div>
-    <div class="fc cal hide-sm" style="left:82%;top:82%;--r0:0"><i>MAR</i><b>20</b></div>
 
-    <div class="badge-row"><span>Lumi Learn</span><span class="pill-y">Summer 2026</span></div>
-    <h1>Shipped.<br>Adopted.<br>Loved.</h1>
+  <section class="hero2">
+    <div class="orb o1"></div><div class="orb o2"></div>
+    <span class="pill-l"><b>New</b> AI course studio is live</span>
+    <h1>Learning that people actually finish.</h1>
+    <p class="sub">Lumi is the learning platform with an AI tutor for every learner and an AI co-author for every team. Create, teach and measure — on iPad, phone and desktop.</p>
+    <div class="hero-cta"><a class="btn accent big" ${go}>Open the app</a><a class="btn light big" href="#how">See how it works</a></div>
+    <div class="stage"><div class="shot">${appShot()}</div>
+      <div class="chip-f c1"><span class="dot">${ic("check")}</span>Course generated</div>
+      <div class="chip-f c2">${ic("spark")}AI tutor is online</div>
+      <div class="chip-f c3"><b>92%</b> completion</div>
+      <div class="chip-f c4">${ic("cal")}Live session · 13:00</div></div>
   </section>
 
-  <section class="scene-sec" id="create"><h2 class="scene-h">Create courses together, with AI at your side.</h2>
+  <section class="sec" id="how"><h2>One platform. Four ways to make teams better.</h2>
+    <div class="tabs" role="tablist">${TABS.map((t, i) => `<button class="tab ${i ? "" : "on"}" data-t="${i}" role="tab">${t[0]}</button>`).join("")}</div>
+    <div class="tabpane" id="tabpane"></div></section>
+
+  <section class="scene-sec" id="create"><h2 class="scene-h">Co-write courses with your team and an AI that keeps up.</h2>
     <div class="scene"><div class="chair"></div>
       <div class="lap"><div class="lap-screen"><div class="lap-cam"></div><div class="lap-in">
-        <div class="lap-bar"><i></i><i></i><i></i><span>lumi.learn</span></div>
-        <div class="lap-app"><aside>${ic("play")}${ic("search")}${ic("book")}<b class="sel">${ic("note")}</b>${ic("note")}<b style="color:#e6b800">${ic("edit")}</b><b style="color:#d6431f">${ic("note")}</b><em>+</em></aside>
-          <div class="lap-main"><div class="lap-top"><div><b>New course</b><small>My drafts</small></div><span class="av-s"><i style="background:#18a957"></i><i style="background:#3b82f6"></i><i style="background:#ec4899"></i></span><span class="pub">Publish</span></div>
-            <div class="lap-cv"><span class="cur" style="left:20%;top:12%;background:#18a957">Christine</span><span class="cur" style="right:8%;top:30%;background:#2563eb;animation-delay:-3s">Stephen</span><span class="cur" style="left:4%;top:56%;background:#8b5cf6;animation-delay:-5s">Michael</span>
-              <small>The future of selling</small><h3>Rethinking sales for a new generation of buy<span class="ghost">ers</span><u>Mark</u></h3>
-              <div class="eb">${ic("spark")}<span>What would you like to edit?</span><b>B</b><i>I</i><span>Aa</span><span>···</span></div>
-              <p>Today's buyers are informed, skeptical, and short on time — which means old sales tactics no longer work. This course shows you how to adapt your approach, respond in the moment, and build credibility that turns conversations into lasting value.</p><div class="art"></div></div></div></div></div></div>
+        <div class="lap-bar"><i></i><i></i><i></i><span>app.lumi.learn</span></div>
+        <div class="lap-app"><aside>${ic("play")}${ic("search")}${ic("book")}<b class="sel">${ic("note")}</b>${ic("note")}<b style="color:#7c5cff">${ic("edit")}</b><b style="color:#d6431f">${ic("note")}</b><em>+</em></aside>
+          <div class="lap-main"><div class="lap-top"><div><b>Untitled course</b><small>My drafts</small></div><span class="av-s"><i style="background:#18a957"></i><i style="background:#3b82f6"></i><i style="background:#ec4899"></i></span><span class="pub">Publish</span></div>
+            <div class="lap-cv"><span class="cur" style="left:20%;top:12%;background:#18a957">Ava</span><span class="cur" style="right:8%;top:30%;background:#2563eb;animation-delay:-3s">Noah</span><span class="cur" style="left:4%;top:56%;background:#8b5cf6;animation-delay:-5s">Mia</span>
+              <small>The craft of teaching</small><h3>Teaching in an age of intelligent tools<u>Leo</u></h3>
+              <div class="eb">${ic("spark")}<span>Tell the AI what to change…</span><b>B</b><i>I</i><span>Aa</span><span>···</span></div>
+              <p>Great teachers adapt to every learner. This course shows you how to blend your expertise with AI assistance to explain faster, personalise deeper and keep people curious.</p><div class="art"></div></div></div></div></div></div>
         <div class="lap-base"></div></div>
       <div class="bk b1"></div><div class="bk b2"></div><div class="bk b3"></div><div class="bk b4"></div><div class="bk b5"></div><div class="bk b6"></div><div class="binder"><i></i></div>
       <div class="cup"><b></b><u></u></div><div class="pen"></div></div></section>
 
-  <section class="tablet-sec"><div><h2 style="font-size:clamp(36px,5.2vw,64px);letter-spacing:-.045em;line-height:.98;font-weight:600">Learning that works where your people work.</h2><p class="lead" style="font-size:20px;color:#444;margin-top:20px;max-width:520px">iPad, phone or desktop — Lumi Learn adapts to every screen, with an AI tutor for every learner.</p><div class="hero-cta" style="justify-content:flex-start"><a class="btn" ${go}>See what's new in Lumi Learn</a></div></div>
-    <div class="tablet-art"><div class="tablet"><small style="color:#888">Lumi · Job requisition</small><h4>Senior Data Analyst</h4><div class="ln" style="width:60%"></div><div class="ln"></div><div class="ai-line"></div><div class="ln" style="width:85%"></div><div class="ln"></div><div class="ln" style="width:70%"></div></div></div>
-    <div class="workday">Lumi is now available on every device.</div></section>
+  <section class="tablet-sec" id="devices"><div><h2 style="font-size:clamp(36px,5.2vw,64px);letter-spacing:-.045em;line-height:.98;font-weight:600">Made for the screen in your hand.</h2><p class="lead" style="font-size:20px;color:#444;margin-top:20px;max-width:520px">Lumi adapts to iPad, phone and desktop with touch-first lessons, offline-friendly progress and the same AI tutor everywhere.</p><div class="hero-cta" style="justify-content:flex-start"><a class="btn" ${go}>Try it on your device</a></div></div>
+    <div class="tablet-art"><div class="tablet"><small style="color:#888">Lumi · Lesson 2</small><h4>Explaining with analogies</h4><div class="ln" style="width:60%"></div><div class="ln"></div><div class="ai-line"></div><div class="ln" style="width:85%"></div><div class="ln"></div><div class="ln" style="width:70%"></div></div></div>
+    <div class="workday">Works on iPad, phone and desktop.</div></section>
 
-  <section class="sec" id="demo"><h2>One home for everything people need to learn.</h2><p class="lead">Assignments, recommendations and live sessions in a calm, white interface.</p>
-    <div class="preview" onclick="location.hash='#/app'">${appShot()}<div class="play">${ic("play", "ic")}</div></div></section>
-
-  <section class="sec"><h2>Everything in one AI-first platform.</h2>
+  <section class="sec" id="ai"><div class="dark-card"><div><span class="pill-l dk"><b>AI</b> built in</span><h2>Ask for anything. Watch it get done.</h2><p class="lead">Summaries, quizzes, translations, enrolments and reports — one prompt away.</p><a class="btn accent" ${go} style="margin-top:26px">Talk to the tutor</a></div>
+    <div class="chat-demo"><div class="m u">Make a 10-minute onboarding course from our handbook.</div><div class="m a">Done. I created 4 lessons and a 5-question quiz. Want it translated to German and Spanish?</div><div class="m u">Yes, and enrol the new hires.</div><div class="m a">Translated. 12 learners enrolled, reminders scheduled for Friday.</div></div></div>
     <div class="grid3">${[
-      ["spark", "#111", "AI Tutor", "A personal tutor for every learner that answers, quizzes and explains using your own content."],
-      ["edit", "#ff6a00", "AI course creation", "Generate courses from files, edit with natural language and co-author in real time."],
-      ["cal", "#1a5cff", "Live learning", "Native live sessions with polls, chat and automatic attendance."],
-      ["chart", "#18a957", "AI analytics", "Ask questions about your learning data and get charts and answers instantly."],
-      ["shield", "#8b5cf6", "Compliance automation", "Auto-enroll, remind and track mandatory training across every team."],
-      ["bolt", "#ff2d2d", "Workflows", "Describe any admin task in plain language and let Lumi do it."]
+      ["spark", "#5b3df5", "AI tutor", "Answers, quizzes and plans grounded in your content."],
+      ["edit", "#ff6a3d", "Co-authoring", "Edit with plain language while teammates write live."],
+      ["cal", "#0e9f6e", "Live sessions", "Polls, chat and automatic attendance."],
+      ["chart", "#2563eb", "Insights", "Ask your data a question, get a chart back."],
+      ["shield", "#8b5cf6", "Compliance", "Auto-enrol, remind and certify mandatory training."],
+      ["bolt", "#111", "Workflows", "Describe an admin task and let Lumi run it."]
     ].map(([i, c, t, d]) => `<div class="card"><div class="ico" style="background:${c}">${ic(i)}</div><h3>${t}</h3><p>${d}</p></div>`).join("")}</div>
-    <div class="stats"><div><b>5×</b><span>faster course creation</span></div><div><b>92%</b><span>completion rate</span></div><div><b>40+</b><span>languages</span></div><div><b>24/7</b><span>AI tutor</span></div></div></section>
+    <div class="stats"><div><b>5×</b><span>faster course creation</span></div><div><b>92%</b><span>average completion</span></div><div><b>40+</b><span>languages</span></div><div><b>24/7</b><span>AI tutor</span></div></div></section>
 
-  <section class="cta-final" id="pricing"><h2>Shipped.<br>Adopted.<br>Loved.</h2><a class="btn" ${go}>Open Lumi Learn</a></section>
-  <footer><div><a class="logo" href="#/">Lumi<sup>™</sup></a><p style="margin-top:12px;max-width:260px">The AI-first platform for modern learning.</p></div>
-    ${[["Products", "Lumi Learn", "Lumi Agents", "Integrations"], ["Capabilities", "AI Tutor", "Authoring", "Analytics"], ["Solutions", "Onboarding", "Compliance", "Sales enablement"], ["Company", "Mission", "Careers", "Contact"]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => `<a href="#">${x}</a>`).join("")}</div>`).join("")}</footer>`;
+  <section class="cta-final" id="pricing"><h2>Start teaching smarter today.</h2><p style="opacity:.7;margin-top:18px;font-size:19px">Free to try. No credit card needed.</p><a class="btn" ${go}>Open Lumi</a></section>
+  <footer><div><a class="logo" href="#/"><i class="mark"></i>Lumi</a><p style="margin-top:12px;max-width:260px">The AI-first learning platform.</p></div>
+    ${[["Product", "Studio", "AI tutor", "Workflows", "Insights"], ["Solutions", "Onboarding", "Compliance", "Sales enablement", "Leadership"], ["Resources", "Help center", "Changelog", "Pricing"], ["Company", "About", "Careers", "Contact"]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => `<a href="#">${x}</a>`).join("")}</div>`).join("")}</footer>
+  <div class="copy">© ${new Date().getFullYear()} Lumi. Demo project.</div>`;
+  const pane = $("#tabpane", landingEl);
+  const showTab = i => { const t = TABS[i]; $$(".tab", landingEl).forEach((b, k) => b.classList.toggle("on", k === i));
+    pane.innerHTML = `<div><span class="ico2">${ic(t[3])}</span><h3>${t[1]}</h3><p>${t[2]}</p><a class="btn" ${go}>Explore ${t[0].toLowerCase()}</a></div><div class="mock">${t[4].map((x, k) => `<div class="mk" style="animation-delay:${k * .12}s">${ic(t[3])}<span>${x}</span><i>↗</i></div>`).join("")}</div>`; };
+  $$(".tab", landingEl).forEach(b => b.onclick = () => showTab(+b.dataset.t)); showTab(0);
 }
 function appShot() {
   const rows = ASSIGN.slice(0, 4).map(a => { const c = byId(a.id); return `<div style="display:grid;grid-template-columns:3fr 1fr 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #eee;font-size:12px"><b>${esc(c.title)}</b><span style="color:#888">${a.due}</span><span>${a.pri}</span></div>`; }).join("");
@@ -243,7 +243,7 @@ const SPACES = [["General", "#18a957", "G"], ["Engineering", "#ff6a00", "E"], ["
 function renderApp() {
   const n = view.name;
   appEl.innerHTML = `<div class="shell"><aside class="side">
-    <div class="org"><i>${ic("spark")}</i>Acme ${ic("chev", "ic chev")}</div>
+    <div class="org"><i>${ic("spark")}</i>Northwind ${ic("chev", "ic chev")}</div>
     ${NAV.map(([k, l, i]) => `<button class="nav-i ${n === k || (n === "course" && k === "home") ? "on" : ""} ${["workflows", "settings"].includes(k) ? "" : ""}" data-go="${k}">${ic(i)}<span>${l}</span></button>`).join("")}
     <div class="sp"></div>
     ${SPACES.map(([l, c, x]) => `<button class="space" data-go="discover:${l}"><i style="background:${c}">${x}</i>${l}${ic("chev", "ic chev")}</button>`).join("")}
@@ -316,14 +316,14 @@ function vCourse(m) {
 const lessonCtx = (c, i) => `Course: ${c.title}\nLESSON:\n${c.lessons[i].t}\n${c.lessons[i].b}`;
 
 /* ---------- editor ---------- */
-let draft = { kick: "The future of selling", title: "Rethinking sales for a new generation of buyers", body: "Today's buyers are informed, skeptical, and short on time — which means old sales tactics no longer work. This course shows you how to adapt your approach, respond in the moment, and build credibility that turns conversations into lasting value.", lessons: null, bg: "#fff000" };
+let draft = { kick: "The craft of teaching", title: "Teaching in an age of intelligent tools", body: "Great teachers adapt to every learner. This course shows you how to blend your expertise with AI assistance to explain faster, personalise deeper and keep people curious.", lessons: null, bg: "#cdf56b" };
 function vCreate(m) {
-  m.innerHTML = `<div class="ed-top"><div class="t">New course<small>My drafts</small></div><div style="margin-left:auto;display:flex;gap:12px;align-items:center"><div class="theme-dots">${["#fff000", "#ffb4c4", "#bde8ff", "#c8f7c5", "#e9e1ff"].map(c => `<button style="background:${c}" data-bg="${c}" aria-label="Theme"></button>`).join("")}</div>
+  m.innerHTML = `<div class="ed-top"><div class="t">Untitled course<small>My drafts</small></div><div style="margin-left:auto;display:flex;gap:12px;align-items:center"><div class="theme-dots">${["#cdf56b", "#ffb4c4", "#bde8ff", "#c8f7c5", "#e9e1ff"].map(c => `<button style="background:${c}" data-bg="${c}" aria-label="Theme"></button>`).join("")}</div>
   <div class="stack">${[["C", "#18a957"], ["S", "#3b82f6"], ["M", "#ec4899"]].map(([a, c]) => `<i style="background:${c}">${a}</i>`).join("")}</div>
   <button class="btn ghost" id="gen">${ic("cloud")}Generate from file</button><input type="file" id="file" hidden accept=".txt,.md,.csv,.json,.pdf,.docx"><button class="btn" style="background:var(--blue)" id="pub">Publish</button></div></div>
-  <div class="canvas" id="cv" style="background:${draft.bg}"><span class="cur" style="left:12%;top:7%;background:#18a957">Christine</span><span class="cur" style="right:10%;top:34%;background:#3b82f6;animation-delay:-3s">Stephen</span><span class="cur" style="left:5%;top:64%;background:#8b5cf6;animation-delay:-5s">Michael</span>
+  <div class="canvas" id="cv" style="background:${draft.bg}"><span class="cur" style="left:12%;top:7%;background:#18a957">Ava</span><span class="cur" style="right:10%;top:34%;background:#3b82f6;animation-delay:-3s">Noah</span><span class="cur" style="left:5%;top:64%;background:#8b5cf6;animation-delay:-5s">Mia</span>
   <div class="kick" contenteditable data-k="kick">${esc(draft.kick)}</div><h1 contenteditable data-k="title">${esc(draft.title)}</h1>
-  <div class="editbar">${ic("spark")}<input id="eprompt" placeholder="What would you like to edit?" aria-label="Edit with AI"><b>B</b><i>I</i><span>Aa</span><button id="ego" aria-label="Apply">${ic("up")}</button></div>
+  <div class="editbar">${ic("spark")}<input id="eprompt" placeholder="Tell the AI what to change…" aria-label="Edit with AI"><b>B</b><i>I</i><span>Aa</span><button id="ego" aria-label="Apply">${ic("up")}</button></div>
   <div class="body" contenteditable data-k="body">${esc(draft.body)}</div><div class="art"></div></div>
   <p class="note" style="margin-top:12px">Tip: click a block, then describe the change in Edit Mode – e.g. “make it shorter” or “more formal”. ${hasKey() ? "" : "Demo mode – add an API key in Settings for real AI."}</p>`;
   let cur = $('[data-k="body"]', m);
@@ -354,7 +354,7 @@ function vCreate(m) {
 function vManage(m) {
   const done = Object.keys(S.done).length, active = Object.keys(S.progress).length;
   const data = [["Mon", 42], ["Tue", 65], ["Wed", 58], ["Thu", 81], ["Fri", 74], ["Sat", 22], ["Sun", 18]];
-  m.innerHTML = topbar() + `<h1 class="greet">Manage<span>Learning analytics for Acme</span></h1>
+  m.innerHTML = topbar() + `<h1 class="greet">Manage<span>Learning analytics for Northwind</span></h1>
   <div class="kpis"><div class="kpi"><b>1,284</b><span>Active learners</span></div><div class="kpi"><b>92%</b><span>Completion rate</span></div><div class="kpi"><b>${all().length}</b><span>Courses</span></div><div class="kpi"><b>${done}/${active || 0}</b><span>Your completed / started</span></div></div>
   <div class="chart"><b>Daily active learners</b><div class="bars">${data.map(([d, v]) => `<div style="height:${v}%"><span>${d}</span></div>`).join("")}</div><div style="height:22px"></div></div>
   <form class="hint-bar" id="aq" style="max-width:none">${ic("plus")}<input placeholder="Query platform data and visualise results" aria-label="Query"><button class="send" aria-label="Ask">${ic("up")}</button></form><div id="aans"></div>`;
@@ -362,17 +362,17 @@ function vManage(m) {
 }
 
 /* ---------- workflows ---------- */
-const WF = [["Draft email replies", "Reviews if incoming emails need an answer from you and drafts a reply", "mail", "#ffd24a"], ["Morning digest", "Summarizing today's agenda and what you should know from yesterday", "sun", "#ff9f43"], ["Meeting prep", "Tells you everything you need to know about your upcoming meeting", "users", "#6c8cff"], ["Time off Planner", "Plans and requests time off based on your PTO balance and availability", "glasses", "#4bc0c8"]];
+const WF = [["Weekly digest", "Summarises what changed in your courses and learners this week", "mail", "#ffd24a"], ["Onboarding buddy", "Enrols new hires and sends a friendly first-week plan", "sun", "#ff9f43"], ["Quiz builder", "Turns any lesson into a quiz with answers and explanations", "users", "#6c8cff"], ["Compliance nudge", "Finds overdue mandatory training and reminds the right people", "glasses", "#4bc0c8"]];
 function vWorkflows(m) {
   m.innerHTML = topbar(`<button class="btn" id="cw">${ic("plus")}Create Workflow</button>`) + `<h1 class="greet">Workflows</h1><div class="cats"><button class="cat on">Browse</button><button class="cat">My Workflows</button></div>
-  <h2 class="sh" style="margin-top:10px;font-size:16px">Featured</h2><div class="wf-feat"><div data-w="0" style="background:linear-gradient(135deg,#f6a233,#f08a24)"><b>Prep Me for Meetings</b><span>Before each meeting you are attending you will receive a concise pre-read for the meeting.</span></div><div data-w="2" style="background:linear-gradient(135deg,#3ac1f0,#0f6bd7)"><b>Weekly Planner</b><span>Before each meeting you are attending you will receive a concise pre-read.</span></div></div>
+  <h2 class="sh" style="margin-top:10px;font-size:16px">Featured</h2><div class="wf-feat"><div data-w="0" style="background:linear-gradient(135deg,#f6a233,#f08a24)"><b>Weekly digest</b><span>A short summary of learners, courses and anything that needs attention.</span></div><div data-w="2" style="background:linear-gradient(135deg,#3ac1f0,#0f6bd7)"><b>Onboarding buddy</b><span>New hires are enrolled and get a friendly first-week plan.</span></div></div>
   <h2 class="sh" style="font-size:16px">All Workflows</h2><div class="wf-list">${WF.concat(WF).map((w, i) => `<button data-w="${i % 4}"><i style="background:${w[3]}"></i><div><b>${w[0]}</b><span>${w[1]}</span></div></button>`).join("")}</div>`;
   $("#cw").onclick = () => wfModal(); $$("[data-w]", m).forEach(b => b.onclick = () => wfModal(WF[+b.dataset.w]));
 }
 function wfModal(pre) {
   const r = $("#modal-root");
   r.innerHTML = `<div class="mask"><div class="modal"><button class="x" aria-label="Close">${ic("x")}</button><h3>What task do you want to complete?</h3>
-  <form class="prompt" id="wf">${ic("spark")}<input value="${pre ? esc(pre[0] + ": " + pre[1]) : ""}" placeholder="When a new meeting is created, review its details and participants…"><button aria-label="Run">${ic("send")}</button></form>
+  <form class="prompt" id="wf">${ic("spark")}<input value="${pre ? esc(pre[0] + ": " + pre[1]) : ""}" placeholder="When a new hire joins, enrol them in onboarding and send a welcome…"><button aria-label="Run">${ic("send")}</button></form>
   <button class="btn ghost" id="scr" style="margin:0 auto">Start from scratch →</button><div id="wres"></div>
   <p style="text-align:left;font-size:12px;margin-top:30px;color:#444">Start from an example</p><div class="ex" style="margin-top:12px">${WF.map((w, i) => `<button data-e="${i}"><i>${ic(w[2])}</i><div><b>${w[0]}</b><span>${w[1]}</span></div></button>`).join("")}</div></div></div>`;
   const close = () => r.innerHTML = ""; $(".x", r).onclick = close; $(".mask", r).onclick = e => e.target.classList.contains("mask") && close();
