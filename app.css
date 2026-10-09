@@ -991,3 +991,24 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .todo-add input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:15.5px;padding:8px 0}
 .todo-add .link{font-size:13px;white-space:nowrap}
 .empty.sm{margin:8px 0;font-size:14px}
+
+/* v25: "Heute im Überblick" sits directly on the banner, no box */
+.today-flat{margin-top:26px;max-width:min(720px,100%)}
+.today-flat .sumh{margin-bottom:10px}.today-flat h2{font-size:15px;letter-spacing:.02em;text-transform:uppercase;color:#4b4b6e;font-weight:700}
+.today-flat .sumbox{background:none;border-radius:0;padding:0;margin:0 0 14px;gap:12px}
+.today-flat .sumbox p{font-size:clamp(17px,1.5vw,21px);line-height:1.45;color:#1c1c2e;font-weight:500}
+.today-flat .sum-ic{background:rgba(255,255,255,.85)}
+.today-flat .sub-h{color:#4b4b6e;margin-top:14px}
+.today-flat .li.tl{background:none}
+.today-flat .todo:hover{background:rgba(255,255,255,.55)}
+.today-flat .tc{background:rgba(255,255,255,.9)}
+.today-flat .todo-add{border-top:1px solid rgba(80,70,170,.14)}
+.today-flat .empty.sm{color:#4b4b6e}
+.page.home.calm>.welcome{padding-bottom:clamp(120px,12vw,160px)!important}
+.hero-art{top:36px!important;transform:none!important}
+@media (min-width:1500px){.hero-art{transform:scale(1.15)!important;transform-origin:right top}}
+.hgrid{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)}
+.hgrid .rec{grid-column:auto!important}
+@media (max-width:1100px){.hgrid{grid-template-columns:1fr}}
+.page.home.calm>.welcome{padding-bottom:clamp(64px,6vw,90px)!important;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 80px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 80px),transparent 100%)}
+.page.home.calm>.welcome+*{margin-top:-8px!important}
