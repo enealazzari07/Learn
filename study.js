@@ -224,10 +224,14 @@ V.today = m => {
   m.innerHTML = `<div class="home-wrap ${first ? "first" : "again"}"><div class="page home calm">
   <section class="welcome">
     <p class="eyebrow rise" style="--i:0">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p>
-    <div class="hero-art" aria-hidden="true">
-      <div class="ha-card ha-note"><div class="ha-h">${ic("note")}<span>Zellatmung</span></div><i class="tl t1"></i><i class="tl t2"></i><i class="tl t3"></i><i class="tl t4"></i><b class="car"></b></div>
-      <div class="ha-card ha-draw"><div class="ha-h">${ic("brush")}<span>Skizze</span></div><svg viewBox="0 0 180 100"><path class="p1" d="M14 70 C34 20 54 20 74 62 S112 96 128 38"/><circle class="p2" cx="140" cy="62" r="22"/><path class="p3" d="M20 88 L96 88 M86 82 L96 88 L86 94"/></svg><span class="dots"><u style="background:#5b3df5"></u><u style="background:#ec4899"></u><u style="background:#16a34a"></u></span></div>
-      <div class="ha-card ha-quiz"><small>Karteikarte</small><b>Wo entsteht ATP?</b><span class="ok">${ic("check")}<em>Mitochondrium</em></span></div>
+    <div class="hero-art" aria-hidden="true" id="hart">
+      <div class="ha-scene on"><div class="ha-card ha-note"><div class="ha-h">${ic("note")}<span>Zellatmung</span></div><i class="tl t1"></i><i class="tl t2"></i><i class="tl t3"></i><i class="tl t4"></i><b class="car"></b></div><div class="ha-card ha-draw"><div class="ha-h">${ic("brush")}<span>Skizze</span></div><svg viewBox="0 0 180 100"><path class="p1" d="M14 70 C34 20 54 20 74 62 S112 96 128 38"/><circle class="p2" cx="140" cy="62" r="22"/><path class="p3" d="M20 88 L96 88 M86 82 L96 88 L86 94"/></svg><span class="dots"><u style="background:#5b3df5"></u><u style="background:#ec4899"></u><u style="background:#16a34a"></u></span></div><div class="ha-card ha-quiz"><small>Karteikarte</small><b>Wo entsteht ATP?</b><span class="ok">${ic("check")}<em>Mitochondrium</em></span></div></div>
+      <div class="ha-scene"><div class="ha-card ha-table"><div class="ha-h">${ic("table")}<span>Tabelle</span></div><div class="tb"><u class="th">Phase</u><u class="th">Ort</u><u class="th">ATP</u><u>Glykolyse</u><u>Zytosol</u><u>2</u><u>Citratzyklus</u><u>Matrix</u><u>2</u></div></div>
+        <div class="ha-card ha-pdf"><div class="ha-h">${ic("file")}<span>skript.pdf</span><em>S. 3 / 12</em></div><i class="pl l1"></i><i class="pl l2"></i><i class="pl l3"></i><i class="hl"></i><span class="pen"></span></div>
+        <div class="ha-card ha-sum"><div class="ha-h">${ic("spark")}<span>KI-Zusammenfassung</span></div><p><i></i>Glukose wird zu Pyruvat abgebaut</p><p><i></i>Atmungskette liefert den meisten ATP</p></div></div>
+      <div class="ha-scene"><div class="ha-card ha-exam"><small>Biologie-Test</small><b>in <span class="num">6</span> Tagen</b><div class="bar"><i></i></div></div>
+        <div class="ha-card ha-grade"><div class="ha-h">${ic("award")}<span>Noten</span><em>Ø 1,7</em></div><div class="bars"><u style="--h:46%"></u><u style="--h:72%"></u><u style="--h:58%"></u><u style="--h:88%"></u><u style="--h:78%"></u></div></div>
+        <div class="ha-card ha-focus"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18"/><circle class="pg" cx="22" cy="22" r="18"/></svg><div><small>Fokus-Timer</small><b>25:00</b></div></div></div>
     </div>
     <h1 class="greet-h">${words}</h1>
     <p class="hh-sub rise" style="--i:3">${sub}</p>
@@ -251,6 +255,7 @@ V.today = m => {
   $("#addt", m) && ($("#addt", m).onclick = () => taskModal());
   $("#hs", m).onsubmit = e => { e.preventDefault(); searchPrefill = $("#hq", m).value.trim(); go("search"); };
   $("#hs-ai", m).onclick = () => { const v = $("#hq", m).value.trim(), di = $("#aipane .tin"); $("#aipane")?.classList.add("open"); if (v && di) { di.value = v; $("#hq", m).value = ""; $("#aipane .t-in").requestSubmit(); } else di?.focus(); };
+  { const art = $("#hart", m), sc = art ? $$(".ha-scene", art) : []; if (sc.length > 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) { let k = 0; const iv = setInterval(() => { if (!art.isConnected) return clearInterval(iv); sc[k].classList.remove("on"); k = (k + 1) % sc.length; sc[k].classList.add("on"); }, 7500); LEAVE.push(() => clearInterval(iv)); } }
   $$("[data-n]", m).forEach(e => countUp(e, +e.dataset.n, first ? 1100 : 500));
   $("#plan", m).onclick = async () => {
     const { el } = modal(`<h3>Dein Tagesplan</h3><div class="result" id="pr">Plane deinen Tag…</div>`, "wide");
