@@ -444,3 +444,26 @@ body{background:#fff}
 .path button{font-size:inherit;font-weight:inherit;letter-spacing:inherit;font-family:inherit}
 .create{grid-template-columns:repeat(auto-fit,minmax(118px,1fr))}
 .create button{padding:16px;min-height:120px;gap:22px}.create b{font-size:15px}
+
+/* ======== v5: path under title, AI pane as its own white panel ======== */
+.docs-hd{align-items:flex-end}
+.docs-hd h1{margin-bottom:8px}
+.path{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:15px;font-weight:600;letter-spacing:0}
+.path button{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;color:#777;font-size:inherit;font-weight:600;background:transparent}
+.path button:hover{background:#fff;color:#111}.path button.here{background:#fff;color:#111;box-shadow:0 2px 8px rgba(30,20,90,.08)}.path button.drop{background:#efeaff;color:var(--violet)}
+.path span{color:#c0c0cc;font-weight:400}
+.fold.add{justify-content:center;border:2px dashed #cfcfdb;background:transparent;color:#777;font-weight:600;min-height:84px;box-shadow:none;gap:10px}.fold.add:hover{border-color:var(--violet);color:var(--violet);background:#fff}.fold.add svg{width:20px;height:20px}
+.home-wrap{display:block;max-width:none}
+.shell.with-ai{grid-template-columns:262px minmax(0,1fr) clamp(400px,30vw,540px)}
+.shell.collapsed.with-ai{grid-template-columns:84px minmax(0,1fr) clamp(400px,30vw,540px)}
+.aipane{margin:12px 12px 12px 0;height:calc(100dvh - 24px);position:sticky;top:12px;display:flex;flex-direction:column;background:#fff;border-radius:40px;border:1px solid #ececf1;box-shadow:0 12px 44px rgba(30,20,90,.1);overflow:hidden}
+.aipane[hidden]{display:none}
+.aipane .hai-h{padding:22px 24px 12px}
+.aipane .chatbox.flat{padding:0 18px 18px}
+.aipane .m{font-size:15.5px;max-width:92%}
+.aipane .tin{padding:13px 20px}
+.shell:not(.with-ai) .aipane{display:none}
+@media (max-width:1180px){.shell.with-ai,.shell.collapsed.with-ai{grid-template-columns:262px minmax(0,1fr)}.shell.collapsed.with-ai{grid-template-columns:84px minmax(0,1fr)}.aipane{display:none!important}}
+@media (max-width:900px){.shell.with-ai,.shell.collapsed.with-ai{grid-template-columns:1fr!important}}
+.create{grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px}
+.create button{padding:14px;min-height:112px;border-radius:24px}.create b{font-size:14px;line-height:1.2}

@@ -267,6 +267,11 @@ function mountChat(box, compact) {
   if (chatPrefill) { const p = chatPrefill; chatPrefill = ""; send(p); }
 }
 V.ai = m => { m.innerHTML = `<div class="page narrow"><div class="hd"><div><p class="eyebrow">Persönlicher Lernbegleiter</p><h1>KI-Tutor</h1></div></div><div class="chatbox" id="cbox"></div></div>`; $("#cpanel").hidden = true; mountChat($("#cbox", m), false); };
+function mountDock() {
+  const p = $("#aipane"); if (!p) return;
+  p.innerHTML = `<div class="hai-h"><span class="ai-ic">${ic("spark")}</span><div><b>KI-Tutor</b><small>Frag alles zu deinen Unterlagen, Prüfungen und Terminen</small></div></div><div class="chatbox flat" id="hcb"></div>`;
+  mountChat($("#hcb", p), false);
+}
 function toggleChatPanel() { const p = $("#cpanel"); if (p.hidden) { p.hidden = false; mountChat(p, true); } else p.hidden = true; }
 
 /* ---------- search ---------- */
