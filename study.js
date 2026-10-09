@@ -330,6 +330,12 @@ function cardsModal(cards, title, subjectId) {
 }
 
 /* ---------- note editor ---------- */
+function localEdit(instr, t) {
+  if (!t) return null;
+  if (/kürz|kurz|zusammen/i.test(instr)) return sentences(t).slice(0, 2).join(" ") || t.slice(0, 160);
+  if (/liste|aufzähl/i.test(instr)) { const ss = sentences(t); return ss.length ? ss.map(x => "- " + x).join("\n") : null; }
+  return null;
+}
 const SYMS = "α β γ δ ε θ λ μ π ρ σ τ φ ω Δ Σ Ω ∫ ∂ √ ∞ ≈ ≠ ≤ ≥ ± × ÷ · → ⇒ ⇔ ∈ ∉ ⊂ ∪ ∩ ∀ ∃ ∅ ℝ ℕ ℤ ℚ ° ² ³ ⁿ ½ ¼ ‰ € § ✓ ✗".split(" ");
 V.doc = async (m, id) => {
   const d = D.docs.find(x => x.id === id); if (!d) { m.innerHTML = `<div class="page"><div class="emptybox"><h3>Dokument nicht gefunden</h3><button class="btn" data-go="docs">Zu den Dokumenten</button></div></div>`; return bindCommon(m); }
@@ -348,7 +354,7 @@ async function noteEditor(m, d) {
     <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><button class="btn ghost small" id="ai-m">${ic("spark")}<span class="hide-sm">KI</span></button><button class="btn accent small" id="done">Fertig</button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button></div></div>
   <article class="ned-paper p-${paperOf()}" id="paperc"><div class="ned-col"><input class="ned-title" id="et" value="${esc(d.title === "Unbenannte Notiz" ? "" : d.title)}" placeholder="Unbenannte Notiz" aria-label="Titel">
     <div class="ned-meta">${subjectSelect(d.subjectId, "ed-sub")}<span class="mchip">${ic("cal")}${new Date(d.created || Date.now()).toLocaleDateString("de-DE")}</span><span class="mchip" id="wc"></span>${d.msLink ? `<a class="mchip ms" href="${esc(d.msLink)}" target="_blank" rel="noopener">OneNote</a>` : ""}</div></div>
-    <div class="body" id="body" contenteditable="true" spellcheck="true" data-ph="Schreibe etwas oder tippe „/“ für Überschriften, Listen, Tabellen und KI …">${html}</div></article><input type="file" id="imgin" accept="image/*" hidden></div>`;
+    <div class="body" id="body" contenteditable="true" spellcheck="true" data-ph="Schreibe etwas, tippe „/“ für Blöcke oder drücke Leertaste für die KI …">${html}</div></article><input type="file" id="imgin" accept="image/*" hidden></div>`;
   const body = $("#body", m), svEl = $("#sv", m), titleIn = $("#et", m), wcEl = $("#wc", m); let saved = null;
   const onSel = () => { const s = getSelection(); if (s.rangeCount && body.contains(s.anchorNode)) saved = s.getRangeAt(0).cloneRange(); updBubble(); };
   document.addEventListener("selectionchange", onSel); LEAVE.push(() => document.removeEventListener("selectionchange", onSel));
@@ -375,7 +381,7 @@ async function noteEditor(m, d) {
     link: async () => { const u = await ask("Link-Adresse", { value: "https://", ok: "Einfügen" }); if (u) exec("createLink", u); },
     image: () => $("#imgin", m).click(), table: () => exec("insertHTML", `<table><tbody>${"<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>".repeat(3)}</tbody></table><p><br></p>`),
     formula: () => { const { el } = modal(`<h3>Formeln & Symbole</h3><div class="syms">${SYMS.map(s => `<button>${s}</button>`).join("")}</div><p class="note">Tipp: „x²“ und „x₂“ findest du unter Einfügen.</p>`); $$(".syms button", el).forEach(sb => sb.onclick = () => { restore(); document.execCommand("insertText", false, sb.textContent); dirty(); }); },
-    "ai-summary": () => run("summary"), "ai-cards": () => run("cards"), "ai-quiz": () => run("quiz"), "ai-goals": () => run("goals"),
+    "ai-edit": () => openAiBar(), "ai-summary": () => run("summary"), "ai-cards": () => run("cards"), "ai-quiz": () => run("quiz"), "ai-goals": () => run("goals"),
   };
   const noFocus = e => e.preventDefault();
   $$(".tbtn[data-c], .tt", m).forEach(b => b.onmousedown = noFocus);
@@ -394,11 +400,61 @@ async function noteEditor(m, d) {
   bub.innerHTML = [["bold", "bold"], ["italic", "italic"], ["underline", "underline"], ["hilite", "hl"], ["link", "link"]].map(([c, i]) => `<button data-b="${c}">${ic(i)}</button>`).join("") + `<i class="sep"></i><button data-bai>${ic("spark")}<span>KI</span></button>`;
   bub.onmousedown = e => e.preventDefault();
   $$("[data-b]", bub).forEach(b => b.onclick = () => CMD[b.dataset.b]());
-  $("[data-bai]", bub).onclick = e => menu(e.currentTarget, [{ label: "Einfach erklären", icon: "help", fn: () => run("explain") }, { label: "Verbessern & korrigieren", icon: "pen", fn: () => run("improve") }, { label: "Zusammenfassen", icon: "list", fn: () => run("summary") }, { label: "Übersetzen…", icon: "rot", fn: () => run("translate") }, { label: "Karteikarten daraus", icon: "cards", fn: () => run("cards") }]);
+  $("[data-bai]", bub).onclick = () => openAiBar();
   function updBubble() { const s = getSelection(); if (!bub.isConnected) return; if (!s.rangeCount || s.isCollapsed || !body.contains(s.anchorNode) || !s.toString().trim()) { bub.hidden = true; return; } const r = s.getRangeAt(0).getBoundingClientRect(); bub.hidden = false; const w = bub.offsetWidth; bub.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px"; bub.style.top = Math.max(8, r.top - bub.offsetHeight - 10) + "px"; }
 
+  /* inline AI edit bar (right-click, selection, Ctrl+J, space on an empty line) */
+  const HLS = window.CSS && CSS.highlights && window.Highlight ? new Highlight() : null; if (HLS) CSS.highlights.set("lumi-ai", HLS);
+  LEAVE.push(() => { try { CSS.highlights?.delete("lumi-ai"); } catch {} });
+  const QA = [["Kürzer", "Kürze den Text auf das Wesentliche."], ["Ausführlicher", "Formuliere den Text ausführlicher, mit einem kurzen Beispiel."], ["Einfacher", "Formuliere den Text einfacher, so dass ihn ein Vierzehnjähriger versteht."], ["Verbessern", "Korrigiere Rechtschreibung und Grammatik und verbessere den Stil."], ["Formeller", "Formuliere den Text formeller, im Schul- bzw. Uni-Stil."], ["Auf Englisch", "Übersetze den Text ins Englische."], ["Als Liste", "Wandle den Text in eine übersichtliche Aufzählung um."]];
+  const bar = document.createElement("div"); bar.className = "aibar"; bar.hidden = true; document.body.appendChild(bar); LEAVE.push(() => bar.remove());
+  bar.innerHTML = `<div class="ab-in">${ic("spark")}<input aria-label="KI-Anweisung" autocomplete="off"><button class="send" aria-label="Senden">${ic("up")}</button></div><div class="ab-chips">${QA.map(([l]) => `<button type="button">${l}</button>`).join("")}</div><div class="ab-busy" hidden><span class="dots"><span></span><span></span><span></span></span><b>KI überarbeitet den Text …</b></div><div class="ab-done" hidden><b>Text aktualisiert</b><button type="button" data-k>Behalten</button><button type="button" data-u>Rückgängig</button></div>`;
+  const barIn = $("input", bar); let aiR = null, aiPrev = "", aiState = "idle";
+  const blockOf = node => { const el = node?.nodeType === 3 ? node.parentElement : node; const b = el?.closest?.("p,h1,h2,h3,li,blockquote,pre,td,th"); return b && body.contains(b) ? b : null; };
+  const setTarget = r => { aiR = r; if (HLS) { HLS.clear(); if (r && !r.collapsed) HLS.add(r); } };
+  const closeAi = () => { bar.hidden = true; aiState = "idle"; HLS?.clear(); };
+  const panel = w => { $(".ab-in", bar).hidden = w !== "idle"; $(".ab-chips", bar).hidden = w !== "idle" || !aiR || aiR.collapsed; $(".ab-busy", bar).hidden = w !== "busy"; $(".ab-done", bar).hidden = w !== "done"; };
+  function openAiBar(pt) {
+    const s = getSelection(); let r = null;
+    if (s.rangeCount && !s.isCollapsed && body.contains(s.anchorNode)) r = s.getRangeAt(0).cloneRange();
+    else if (saved && !saved.collapsed && !pt) r = saved.cloneRange();
+    else { let node = null; if (pt && document.caretRangeFromPoint) node = document.caretRangeFromPoint(pt.x, pt.y)?.startContainer; if (!node) node = s.rangeCount && body.contains(s.anchorNode) ? s.anchorNode : saved?.startContainer; const blk = blockOf(node); if (blk) { r = document.createRange(); r.selectNodeContents(blk); } else if (saved) r = saved.cloneRange(); }
+    if (!r) { r = document.createRange(); r.selectNodeContents(body.lastElementChild || body); r.collapse(false); }
+    setTarget(r); aiState = "idle"; panel("idle"); barIn.value = ""; barIn.placeholder = r.collapsed || !r.toString().trim() ? "Was soll die KI schreiben? z. B. „Definition von Photosynthese“" : "Was soll die KI ändern? z. B. „kürzer“, „mit Beispiel“, „auf Englisch“";
+    let rects = [...r.getClientRects()].filter(x => x.height > 0); if (!rects.length) { const bl = blockOf(r.startContainer); if (bl) rects = [bl.getBoundingClientRect()]; }
+    const last = rects[rects.length - 1] || (pt ? { left: pt.x, top: pt.y, bottom: pt.y } : body.getBoundingClientRect());
+    bar.hidden = false; const w = bar.offsetWidth, h = bar.offsetHeight;
+    bar.style.left = Math.max(8, Math.min(innerWidth - w - 8, (rects[0]?.left ?? last.left))) + "px";
+    bar.style.top = (last.bottom + 12 + h > innerHeight ? Math.max(8, (rects[0]?.top ?? last.top) - h - 12) : last.bottom + 12) + "px";
+    setTimeout(() => barIn.focus(), 20);
+  }
+  async function sendAi(instr) {
+    instr = (instr || "").trim(); if (!instr || aiState === "busy" || !aiR) return; aiState = "busy"; panel("busy");
+    const text = aiR.toString().trim();
+    const prompt = text ? `Anweisung: ${instr}\n\nBearbeite den folgenden Text entsprechend. Gib NUR den neuen Text zurück (ohne Kommentar, ohne Anführungszeichen), in derselben Sprache wie der Text (außer die Anweisung verlangt eine Übersetzung) und behalte Fachbegriffe bei. Dokumenttitel: ${d.title}.\n\nTEXT:\n${text}` : `Schreibe (kurz und prägnant, auf Deutsch) passend zum Dokument „${d.title}“: ${instr}\nGib NUR den Text zurück, ohne Einleitung.\n\nBISHERIGER INHALT (Auszug):\n${body.innerText.slice(0, 1500)}`;
+    let res = await ai(prompt, { system: sysBase("You are an inline writing assistant inside a note editor."), max: 1200, quiet: true });
+    if (res == null) res = localEdit(instr, text);
+    if (res == null) { toast(hasKey() ? "Die KI hat nicht geantwortet." : "Für diese KI-Änderung brauchst du einen API-Key (Einstellungen)."); aiState = "idle"; panel("idle"); return; }
+    res = res.trim().replace(/^["„“]|["“”]$/g, ""); aiPrev = body.innerHTML;
+    const s = getSelection(); s.removeAllRanges(); s.addRange(aiR); body.focus();
+    const blk = blockOf(aiR.startContainer), simple = /^(H[1-3]|LI|TD|TH)$/.test(blk?.tagName || "");
+    if (res.includes("\n") && !simple) document.execCommand("insertHTML", false, textToHtml(res)); else document.execCommand("insertText", false, res.replace(/\s*\n\s*/g, " "));
+    dirty(); HLS?.clear(); aiState = "done"; panel("done");
+    const sr = getSelection(), nb = sr.rangeCount ? blockOf(sr.anchorNode) : null; if (nb) { const rc = nb.getBoundingClientRect(), bh = bar.offsetHeight; bar.style.top = (rc.bottom + 12 + bh > innerHeight ? Math.max(8, rc.top - bh - 12) : rc.bottom + 12) + "px"; }
+  }
+  $(".send", bar).onclick = () => sendAi(barIn.value); barIn.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); sendAi(barIn.value); } else if (e.key === "Escape") closeAi(); };
+  $$(".ab-chips button", bar).forEach((b, i) => b.onclick = () => sendAi(QA[i][1]));
+  $("[data-k]", bar).onclick = closeAi; $("[data-u]", bar).onclick = () => { body.innerHTML = aiPrev; dirty(); closeAi(); };
+  const outside = e => { if (!bar.hidden && aiState !== "busy" && !bar.contains(e.target)) closeAi(); };
+  document.addEventListener("mousedown", outside, true); LEAVE.push(() => document.removeEventListener("mousedown", outside, true));
+  body.addEventListener("contextmenu", e => { e.preventDefault(); openAiBar({ x: e.clientX, y: e.clientY }); });
+  body.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "j") { e.preventDefault(); openAiBar(); return; }
+    if (e.key === " " && !e.ctrlKey && !e.metaKey && sm.hidden) { const s = getSelection(), blk = blockOf(s.anchorNode); if (blk && s.isCollapsed && !blk.textContent.trim() && blk.tagName === "P" && !blk.querySelector("img,table,input")) { e.preventDefault(); openAiBar(); } }
+  });
+
   /* slash menu */
-  const SLASH = [["Text", "p", "text absatz"], ["Überschrift 1", "h1", "h1 titel ueberschrift"], ["Überschrift 2", "h2", "h2 ueberschrift"], ["Überschrift 3", "h3", "h3 ueberschrift"], ["Aufzählung", "ul", "liste bullet punkte"], ["Nummerierte Liste", "ol", "liste nummer"], ["Checkliste", "todo", "todo aufgaben check"], ["Tabelle", "table", "tabelle raster"], ["Zitat", "quote", "zitat"], ["Code", "code", "code"], ["Trennlinie", "hr", "linie trenner"], ["Bild", "image", "bild foto"], ["Formel / Symbol", "formula", "formel symbol mathe"], ["KI: Zusammenfassung", "ai-summary", "ki summary zusammenfassung"], ["KI: Karteikarten", "ai-cards", "ki karten lernkarten"], ["KI: Quiz", "ai-quiz", "ki quiz test"], ["KI: Lernziele", "ai-goals", "ki lernziele"]];
+  const SLASH = [["Text", "p", "text absatz"], ["Überschrift 1", "h1", "h1 titel ueberschrift"], ["Überschrift 2", "h2", "h2 ueberschrift"], ["Überschrift 3", "h3", "h3 ueberschrift"], ["Aufzählung", "ul", "liste bullet punkte"], ["Nummerierte Liste", "ol", "liste nummer"], ["Checkliste", "todo", "todo aufgaben check"], ["Tabelle", "table", "tabelle raster"], ["Zitat", "quote", "zitat"], ["Code", "code", "code"], ["Trennlinie", "hr", "linie trenner"], ["Bild", "image", "bild foto"], ["Formel / Symbol", "formula", "formel symbol mathe"], ["KI: Schreiben / ändern…", "ai-edit", "ki schreiben aendern bearbeiten"], ["KI: Zusammenfassung", "ai-summary", "ki summary zusammenfassung"], ["KI: Karteikarten", "ai-cards", "ki karten lernkarten"], ["KI: Quiz", "ai-quiz", "ki quiz test"], ["KI: Lernziele", "ai-goals", "ki lernziele"]];
   const sm = document.createElement("div"); sm.className = "slash"; sm.hidden = true; document.body.appendChild(sm); LEAVE.push(() => sm.remove()); let sIdx = 0, sItems = [], sCtx = null;
   function slashCheck() {
     const s = getSelection(); if (!s.rangeCount || !s.isCollapsed || s.anchorNode?.nodeType !== 3 || !body.contains(s.anchorNode)) return slashHide();
@@ -414,7 +470,7 @@ async function noteEditor(m, d) {
   body.addEventListener("keydown", e => { if (sm.hidden) return; if (e.key === "ArrowDown") { e.preventDefault(); sIdx = (sIdx + 1) % sItems.length; slashDraw(); } else if (e.key === "ArrowUp") { e.preventDefault(); sIdx = (sIdx - 1 + sItems.length) % sItems.length; slashDraw(); } else if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); slashPick(sItems[sIdx][1]); } else if (e.key === "Escape") slashHide(); });
   body.addEventListener("blur", () => setTimeout(slashHide, 150));
 
-  $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Zusammenfassen", icon: "list", fn: () => run("summary") }, { label: "Einfach erklären", icon: "help", fn: () => run("explain") }, { label: "Verbessern & korrigieren", icon: "pen", fn: () => run("improve") }, { label: "Weiterschreiben", icon: "spark", fn: () => run("continue") }, { label: "Übersetzen…", icon: "rot", fn: () => run("translate") }, { label: "Frage zum Text…", icon: "search", fn: () => run("ask") }, "-", { label: "Lernziele ermitteln", icon: "star", fn: () => run("goals") }, { label: "Karteikarten erstellen", icon: "cards", fn: () => run("cards") }, { label: "Quiz erstellen", icon: "help", fn: () => run("quiz") }]);
+  $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Text mit KI schreiben / ändern…", icon: "spark", fn: () => openAiBar() }, "-", { label: "Zusammenfassen", icon: "list", fn: () => run("summary") }, { label: "Einfach erklären", icon: "help", fn: () => run("explain") }, { label: "Verbessern & korrigieren", icon: "pen", fn: () => run("improve") }, { label: "Weiterschreiben", icon: "spark", fn: () => run("continue") }, { label: "Übersetzen…", icon: "rot", fn: () => run("translate") }, { label: "Frage zum Text…", icon: "search", fn: () => run("ask") }, "-", { label: "Lernziele ermitteln", icon: "star", fn: () => run("goals") }, { label: "Karteikarten erstellen", icon: "cards", fn: () => run("cards") }, { label: "Quiz erstellen", icon: "help", fn: () => run("quiz") }]);
   const dl = (name, mime, data) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
   const printIt = () => { const w = open("", "_blank"); if (!w) return toast("Pop-up erlaubt?"); w.document.write(`<title>${esc(d.title)}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:760px;margin:30px auto;padding:0 20px}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:6px 10px}img{max-width:100%}pre{background:#f3f3f3;padding:12px;border-radius:8px}blockquote{border-left:4px solid #ccc;margin:0;padding-left:14px;color:#555}ul.chk{list-style:none;padding-left:4px}</style><h1>${esc(d.title)}</h1>${body.innerHTML}`); w.document.close(); setTimeout(() => w.print(), 400); };
   const outlineModal = () => { const hs = $$("h1,h2,h3", body); const { el, close } = modal(`<h3>Gliederung</h3><div class="outline">${hs.length ? hs.map((h, i) => `<button class="o${h.tagName[1]}" data-o="${i}">${esc(h.textContent.trim() || "…")}</button>`).join("") : `<p class="note">Noch keine Überschriften. Tippe „/“ → Überschrift.</p>`}</div>`); $$("[data-o]", el).forEach(b => b.onclick = () => { close(); hs[+b.dataset.o].scrollIntoView({ behavior: "smooth", block: "center" }); }); };
