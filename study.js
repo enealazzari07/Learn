@@ -208,6 +208,19 @@ function practiceExam(t) {
   quizPrefill = { topic: t.title }; go("quiz");
 }
 function countUp(el, to, ms = 900) { if (!el) return; const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / ms); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
+function dailyCtx({ lessons, evToday, exams, due, mins, goal }) {
+  const t = iso(), open = D.tasks.filter(x => !x.done);
+  return [`Datum: ${t}`, `Stunden heute: ${lessons.map(e => `${e.start} ${e.title || subj(e.subjectId)?.name || "Stunde"}`).join(", ") || "keine"}`, `Termine (Outlook): ${evToday.map(e => `${e.time || ""} ${e.title}`).join(", ") || "keine"}`, `Offene Aufgaben: ${open.slice(0, 10).map(x => `${x.title}${x.due ? " (bis " + x.due + ")" : ""}`).join("; ") || "keine"}`, `Prüfungen: ${exams.map(x => `${x.title} in ${daysUntil(x.due)} Tagen`).join("; ") || "keine anstehend"}`, `Fällige Karteikarten: ${due}`, `Gelernt heute: ${mins} von ${goal} Minuten`].join("\n");
+}
+function dailyLocal({ lessons, evToday, open, exams, due, mins, goal }) {
+  const parts = [], t = open.filter(x => x.due && daysUntil(x.due) <= 0);
+  if (exams[0]) parts.push(`${exams[0].title} steht in ${daysUntil(exams[0].due)} ${daysUntil(exams[0].due) === 1 ? "Tag" : "Tagen"} an.`);
+  const n = lessons.length + evToday.length; if (n) parts.push(`Heute hast du ${n} ${n === 1 ? "Termin" : "Termine"}.`);
+  if (t.length) parts.push(`${t.length} ${t.length === 1 ? "Aufgabe ist" : "Aufgaben sind"} heute fällig – fang mit „${t[0].title}“ an.`); else if (open.length) parts.push(`${open.length} ${open.length === 1 ? "Aufgabe ist" : "Aufgaben sind"} offen, nichts davon ist dringend.`);
+  if (due) parts.push(`${due} Karteikarten warten auf dich.`);
+  if (mins < goal) parts.push(`Bis zu deinem Tagesziel fehlen noch ${goal - mins} Minuten.`); else parts.push("Dein Tagesziel hast du schon erreicht.");
+  return parts.join(" ") || "Nichts Dringendes – ein guter Moment zum Lernen.";
+}
 V.today = m => {
   const t = iso(), wd = (new Date().getDay() + 6) % 7, h = new Date().getHours(), goal = D.profile.goalMin || 45;
   const lessons = D.tt.filter(e => e.day === wd).sort((a, b) => a.start.localeCompare(b.start));
@@ -240,10 +253,11 @@ V.today = m => {
   <section class="rise" style="--i:6"><div class="tiles2">${TILES.map(([i, l, s, k, c]) => `<button data-q="${k}" style="--c:${c}"><span>${ic(i)}</span><b>${l}</b><small>${s}</small></button>`).join("")}</div></section>
   ${exams.length ? `<section class="rise" style="--i:7"><div class="examrow">${exams.map((x, i) => { const dd = daysUntil(x.due), s = subj(x.subjectId); return `<div class="examc" style="--c:${s?.color || ["#5b3df5", "#ff6a3d"][i % 2]}"><div class="dd"><b>${dd}</b><small>${dd === 1 ? "Tag" : "Tage"}</small></div><div class="ex-b"><b>${esc(x.title)}</b><small>${esc(s?.name || "")} · ${fmtD(x.due)}</small></div><button class="btn small" data-ex="${x.id}">Üben</button></div>`; }).join("")}</div></section>` : ""}
   <div class="hgrid">
-  <section class="panel soft rise" style="--i:8"><h2>Heute</h2>
-    ${timeline.length ? `<div class="sub-h">Termine</div>${timeline.slice(0, 5).map(x => `<div class="li tl"><span class="tm">${x.t}${x.e ? `<br><small>${x.e}</small>` : ""}</span><span class="bar-c" style="background:${x.c}"></span><div class="tm2"><b>${esc(x.n)}</b><small>${esc(x.s)}</small></div></div>`).join("")}` : ""}
-    ${open.length ? `<div class="sub-h">Aufgaben</div>${open.slice(0, 5).map(x => `<label class="li task"><input type="checkbox" data-t="${x.id}"><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#999"}"></span><b>${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${x.due ? (daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due)) : ""}</small></label>`).join("")}` : ""}
-    ${!timeline.length && !open.length ? `<p class="empty">Nichts geplant – genieß den freien Kopf.<br><button class="link" id="addt">Aufgabe oder Prüfung hinzufügen</button></p>` : `<div class="row end" style="margin-top:10px"><button class="link" id="addt">+ Aufgabe hinzufügen</button><button class="link" data-go="planner">Zum Planer</button></div>`}</section>
+  <section class="panel soft today rise" style="--i:8"><div class="sumh"><h2>Heute im Überblick</h2><button class="icon-btn sm" id="sum-r" title="Zusammenfassung neu erstellen" aria-label="Zusammenfassung neu erstellen">${ic("rot")}</button></div>
+    <div class="sumbox"><span class="sum-ic">${ic("spark")}</span><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open, exams, due, mins, goal }))}</p></div>
+    ${timeline.length ? `<div class="sub-h">Termine</div>${timeline.slice(0, 4).map(x => `<div class="li tl"><span class="tm">${x.t}${x.e ? `<br><small>${x.e}</small>` : ""}</span><span class="bar-c" style="background:${x.c}"></span><div class="tm2"><b>${esc(x.n)}</b><small>${esc(x.s)}</small></div></div>`).join("")}` : ""}
+    <div class="sub-h">Aufgaben</div><div id="todos"></div>
+    <form class="todo-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Neue Aufgabe für heute …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum / Prüfung</button></form></section>
   <div class="hcol"><section class="panel soft prog rise" style="--i:9"><h2>Dein Tag</h2><div class="pstats"><div><b data-n="${streak()}">0</b><small>Tage in Folge</small></div><div><b data-n="${mins}">0</b><small>von ${goal} Min. gelernt</small></div><div><b>${due}</b><small>Karten fällig</small></div></div><div class="pbar"><i style="width:${Math.min(100, Math.round(mins / goal * 100))}%"></i></div><div class="wact"><button class="btn accent" id="plan">${ic("spark")}KI-Tagesplan</button>${due ? `<button class="btn ghost" data-go="cards">${ic("cards")}Karten lernen</button>` : `<button class="btn ghost" data-q="q">${ic("help")}Quiz starten</button>`}</div></section>  </div>
   ${recent.length ? `<section class="rise rec" style="--i:10"><div class="sech"><h2 class="sh2">Weiterarbeiten</h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="rlist">${recent.map(d => `<button class="rrow" data-d="${d.id}"><span class="ri">${ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note")}</span><div class="tm2"><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></div></button>`).join("")}</div></section>` : ""}
   </div>
@@ -251,7 +265,24 @@ V.today = m => {
   bindCommon(m);
   $$("[data-q]", m).forEach(b => b.onclick = () => ({ n: () => docDialog("note"), u: () => $("#upl").click(), c: () => go("cards"), q: () => go("quiz"), f: () => go("focus") }[b.dataset.q])());
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
-  $$("[data-t]", m).forEach(c => c.onchange = () => { const x = D.tasks.find(y => y.id === c.dataset.t); x.done = true; x.doneAt = Date.now(); save(); toast("Erledigt"); renderView(); });
+  const todoRows = () => D.tasks.filter(x => !x.done).sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 8);
+  const dueLbl = x => !x.due ? "" : daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due);
+  const drawTodos = () => {
+    const box = $("#todos", m), rows = todoRows();
+    box.innerHTML = rows.length ? rows.map(x => `<div class="todo" data-id="${x.id}"><button class="tc" role="checkbox" aria-checked="false" aria-label="${esc(x.title)} erledigt"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></button><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#c9c9d6"}"></span><b>${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${dueLbl(x)}</small></div>`).join("") : `<p class="empty sm">Alles erledigt – nichts offen.</p>`;
+    $$(".todo .tc", box).forEach(b => b.onclick = () => { const row = b.closest(".todo"), x = D.tasks.find(y => y.id === row.dataset.id); if (!x || row.classList.contains("done")) return; x.done = true; x.doneAt = Date.now(); save(); b.setAttribute("aria-checked", "true"); row.classList.add("done"); setTimeout(() => { row.style.maxHeight = row.offsetHeight + "px"; requestAnimationFrame(() => row.classList.add("gone")); setTimeout(() => { drawTodos(); refreshNav(); }, 380); }, 520); });
+  };
+  drawTodos();
+  $("#todo-f", m).onsubmit = e => { e.preventDefault(); const i = $("#todo-i", m), v = i.value.trim(); if (!v) return; D.tasks.push({ id: uid(), title: v, type: "task", due: iso(), subjectId: "", note: "", done: false }); save(); i.value = ""; drawTodos(); };
+  (async () => {
+    const el = $("#sum-t", m), run = async force => {
+      const cache = D.daily && D.daily.date === iso() ? D.daily : null; if (cache && cache.ai && !force) { el.textContent = cache.text; return; } if (!hasKey()) return;
+      el.classList.add("busy"); const ctx = dailyCtx({ lessons, evToday, exams, due, mins, goal }); const r = await ai(`Schreibe eine kurze, motivierende Tageszusammenfassung (maximal 3 Sätze, Du-Form) für heute. Nenne die wichtigsten Dinge und was zuerst angehen. Daten:\n${ctx}`, { system: sysBase(), max: 220, quiet: true });
+      el.classList.remove("busy"); if (r && r.trim()) { D.daily = { date: iso(), text: r.trim(), ai: true }; save(); el.textContent = D.daily.text; } else if (force) toast("KI nicht erreichbar – lokale Zusammenfassung bleibt.");
+    };
+    $("#sum-r", m).onclick = () => { $("#sum-r", m).classList.add("spin"); setTimeout(() => $("#sum-r", m)?.classList.remove("spin"), 900); if (!hasKey()) return toast("Für KI-Zusammenfassungen die KI einrichten (Einstellungen → KI)."); run(true); };
+    run(false);
+  })();
   $("#addt", m) && ($("#addt", m).onclick = () => taskModal());
   $("#hs", m).onsubmit = e => { e.preventDefault(); searchPrefill = $("#hq", m).value.trim(); go("search"); };
   $("#hs-ai", m).onclick = () => { const v = $("#hq", m).value.trim(), di = $("#aipane .tin"); $("#aipane")?.classList.add("open"); if (v && di) { di.value = v; $("#hq", m).value = ""; $("#aipane .t-in").requestSubmit(); } else di?.focus(); };
