@@ -718,3 +718,20 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
 .prog .wact{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
 .page.home.calm .greet-h{font-size:clamp(38px,5.4vw,66px)}
 @media (max-width:860px){.hgrid{grid-template-columns:1fr}}
+
+/* v13: draw tools live in the top bar, exactly where the text tools are */
+.ned-bar .ned-tools,.ned-bar .inkpal{grid-column:2;grid-row:1}
+.ned-bar .inkpal{position:static;transform:none;box-shadow:none;background:transparent;border-radius:0;padding:0;gap:8px;max-width:none;overflow:visible;opacity:0;pointer-events:none;justify-self:center;transition:opacity .3s,transform .3s;transform:translateY(6px);z-index:2}
+.ned-bar .inkpal.show{opacity:1;pointer-events:auto;transform:none}
+.ned-bar .inkpal .tbtn{width:34px;height:34px}.ned-bar .inkpal .tbtn svg{width:18px;height:18px}
+.ned-bar .inkpal .cdot{width:22px;height:22px}
+.ned-bar .inkpal input[type=range]{width:68px}
+@media (max-width:900px){
+  .ned-bar .ned-tools,.ned-bar .inkpal{grid-column:1/-1;grid-row:2}
+  .ned-bar .inkpal{justify-self:stretch;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}
+}
+@media (min-width:901px){
+  .main.drawing .ned-bar{grid-template-columns:minmax(120px,1fr) auto auto}
+  .main.drawing .ned-bar .nb-r{grid-column:3}.main.drawing .ned-bar .nb-r .saved{display:none}
+  .ned-bar .inkpal{gap:6px}.ned-bar .inkpal .tbtn{width:32px;height:32px}.ned-bar .inkpal .ip-cols{gap:4px}.ned-bar .inkpal .cdot{width:20px;height:20px}.ned-bar .inkpal input[type=range]{width:56px}
+}

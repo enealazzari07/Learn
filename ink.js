@@ -81,12 +81,12 @@ function createInk(paper, d, opts = {}) {
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
 
   /* floating palette (foreground) */
-  const pal = document.createElement("div"); pal.className = "inkpal"; pal.hidden = true;
+  const pal = document.createElement("div"); pal.className = "inkpal";
   pal.innerHTML = `<div class="ip-row">${INK_TOOLS.map(([k, t, i]) => `<button class="tbtn" data-t="${k}" title="${t}" aria-label="${t}">${ic(i)}</button>`).join("")}</div>
   <i class="ip-sep"></i><div class="ip-cols">${INK_COL.map(c => `<button class="cdot" data-c="${c}" style="background:${c}" aria-label="Farbe"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="ip-cc" value="#2563eb"></label></div>
   <i class="ip-sep"></i><input type="range" id="ip-sz" min="2" max="18" value="4" aria-label="Strichstärke">
   <i class="ip-sep"></i><div class="ip-row"><button class="tbtn" id="ip-un" title="Rückgängig" aria-label="Rückgängig">${ic("undo")}</button><button class="tbtn" id="ip-re" title="Wiederholen" aria-label="Wiederholen">${ic("redo")}</button><button class="tbtn" id="ip-cl" title="Zeichnung leeren" aria-label="Zeichnung leeren">${ic("trash")}</button></div>`;
-  document.body.appendChild(pal);
+  (opts.bar || document.body).appendChild(pal);
   const $p = s => pal.querySelector(s), $$p = s => [...pal.querySelectorAll(s)];
   function setTool(t) { st.tool = t; $$p("[data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t)); cv.style.touchAction = t === "hand" ? "auto" : "none"; cv.style.pointerEvents = st.on && t !== "hand" ? "auto" : "none"; cv.style.cursor = t === "eraser" ? "cell" : "crosshair"; }
   function setColor(c) { st.color = c; $$p("[data-c]").forEach(b => b.classList.toggle("on", b.dataset.c === c)); if (st.tool === "eraser" || st.tool === "hand") setTool("pen"); }
@@ -111,7 +111,7 @@ function createInk(paper, d, opts = {}) {
   return {
     st, canvas: cv,
     load(strokes) { st.strokes = Array.isArray(strokes) ? strokes : []; size(); render(); updUI(); },
-    mode(on) { st.on = !!on; pal.hidden = !on; paper.classList.toggle("inking", !!on); setTool(st.tool); if (on) requestAnimationFrame(() => pal.classList.add("show")); else pal.classList.remove("show"); },
+    mode(on) { st.on = !!on; paper.classList.toggle("inking", !!on); setTool(st.tool); pal.classList.toggle("show", !!on); },
     /* white image of the sketch (+ text) for the AI */
     snapshot() { const t = document.createElement("canvas"), s = Math.min(1, 1400 / W); t.width = W * s; t.height = H * s; const c = t.getContext("2d"); c.fillStyle = "#fff"; c.fillRect(0, 0, t.width, t.height); c.drawImage(cv, 0, 0, t.width, t.height); return t.toDataURL("image/jpeg", .85).split(",")[1]; },
     destroy() { document.removeEventListener("keydown", key); ro.disconnect(); pal.remove(); },

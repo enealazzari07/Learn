@@ -35,7 +35,7 @@ async function pdfEditor(m, d, blob) {
 
   const dirtyInk = debounce(async () => { if (!D.docs.includes(d)) return; d.hasInk = ink.st.strokes.length > 0; d.updated = Date.now(); await KV.set("ink:" + d.id, ink.st.strokes); save(); svEl.textContent = "Gespeichert"; }, 600);
   const dirtyTx = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); await KV.set("ann:" + d.id, texts); save(); svEl.textContent = "Gespeichert"; }, 600);
-  const ink = createInk(pages, d, { onChange: () => { svEl.textContent = "Speichert…"; dirtyInk(); } });
+  const ink = createInk(pages, d, { bar: $(".ned-bar", m), onChange: () => { svEl.textContent = "Speichert…"; dirtyInk(); } });
   LEAVE.push(() => ink.destroy());
   let texts = (await KV.get("ann:" + d.id)) || [], size = 18, color = "#1c1c22", focusTx = null;
 
