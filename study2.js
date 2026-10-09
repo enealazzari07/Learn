@@ -206,7 +206,7 @@ const T = { mode: "focus", total: 25 * 60, left: 25 * 60, running: false, end: 0
 function beep() { try { const c = new (window.AudioContext || window.webkitAudioContext)(); [0, .25, .5].forEach((t, i) => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = 660 + i * 110; g.gain.setValueAtTime(.2, c.currentTime + t); g.gain.exponentialRampToValueAtTime(.001, c.currentTime + t + .22); o.connect(g); g.connect(c.destination); o.start(c.currentTime + t); o.stop(c.currentTime + t + .25); }); } catch {} }
 const fmtT = s => `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
 function timerPaint() {
-  const pill = $("#tpill"); if (pill) { const show = T.running || T.left < T.total; pill.hidden = !show; pill.innerHTML = `${ic(T.mode === "focus" ? "timer" : "pause")}<b>${fmtT(T.left)}</b>`; pill.onclick = () => go("focus"); }
+  const pill = $("#tpill"); if (pill) { const show = T.running || T.left < T.total; pill.hidden = false; pill.classList.toggle("show", !!show); pill.classList.toggle("run", !!T.running); if (!pill.firstChild) { pill.innerHTML = `<i class="pd"></i><b></b>`; pill.onclick = () => go("focus"); } pill.querySelector("b").textContent = fmtT(T.left); pill.title = T.mode === "focus" ? "Fokus-Timer" : "Pause"; }
   const r = $("#tring"); if (r) { r.style.setProperty("--p", (1 - T.left / T.total) * 100); $("#tt-time").textContent = fmtT(T.left); $("#tt-mode").textContent = T.mode === "focus" ? "Fokus" : "Pause"; $("#tt-go").innerHTML = T.running ? ic("pause") + "Pause" : ic("play") + (T.left < T.total ? "Weiter" : "Start"); }
 }
 function timerTick() {

@@ -911,3 +911,15 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
 .ha-exam .num{font-size:inherit;font-weight:inherit}
 .page.home.calm>.welcome .hsearch{max-width:min(600px,100%)}
 .hero-art{right:clamp(16px,3vw,56px)}
+
+/* v22: timer pill – white like the bars, glides in/out */
+.timer-pill{background:#fff!important;color:var(--ink)!important;top:18px;right:30px;padding:9px 16px 9px 14px;box-shadow:0 2px 6px rgba(30,20,90,.06),0 12px 32px rgba(30,20,90,.14)!important;border:1px solid #ececf1;gap:9px;font-weight:700;font-size:15px;letter-spacing:-.01em;
+  opacity:0;transform:translateY(-14px) scale(.92);pointer-events:none;transition:opacity .35s ease,transform .45s cubic-bezier(.2,.9,.3,1.15)}
+.timer-pill[hidden]{display:flex!important}
+.timer-pill.show{opacity:1;transform:none;pointer-events:auto}
+.timer-pill:hover{box-shadow:0 2px 6px rgba(30,20,90,.08),0 16px 38px rgba(30,20,90,.2)!important}
+.timer-pill .pd{width:9px;height:9px;border-radius:50%;background:#c9c9d6;flex:none;transition:background .3s}
+.timer-pill.run .pd{background:var(--violet);animation:tpPulse 1.8s ease-in-out infinite}
+@keyframes tpPulse{0%,100%{box-shadow:0 0 0 0 rgba(91,61,245,.45)}50%{box-shadow:0 0 0 6px rgba(91,61,245,0)}}
+.timer-pill b{font-variant-numeric:tabular-nums}
+@media (max-width:900px){.timer-pill{top:10px;right:12px}}
