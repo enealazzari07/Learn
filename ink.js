@@ -15,7 +15,7 @@ function createInk(paper, d, opts = {}) {
   function size() {
     const w = paper.clientWidth, h = Math.max(paper.scrollHeight, paper.clientHeight);
     if (w === W && h === H) return; W = w; H = h; dpr = Math.min(2, devicePixelRatio || 1);
-    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); render();
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.width = W + "px"; cv.style.height = H + "px"; render();
   }
   function stroke(s) {
     const c = ctx, p = s.pts, X = q => q[0] + cx();
