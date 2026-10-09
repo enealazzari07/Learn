@@ -678,7 +678,7 @@ body{background:#fff}
 .page.home.calm{padding-bottom:140px}
 
 /* ======== v11: PDF editor ======== */
-.pdfwrap{display:grid;grid-template-columns:64px minmax(0,1fr);gap:0;align-items:start}
+.pdfwrap{display:grid;grid-template-columns:minmax(0,1fr);gap:0;align-items:start}
 .pgrail{position:sticky;top:78px;display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 0 14px;padding:8px 6px;background:#fff;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.04),0 10px 30px rgba(30,20,90,.1);max-height:calc(100dvh - 110px);overflow:auto;scrollbar-width:none;width:44px}
 .pgrail::-webkit-scrollbar{display:none}
 .pgrail button{width:32px;height:32px;border-radius:50%;font-size:13px;font-weight:600;color:#6b6b78;flex:none;cursor:pointer;transition:background .2s,color .2s,transform .2s}
