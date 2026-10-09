@@ -826,3 +826,30 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
 .inkcv{max-width:none}
 .main.doc-full .pdfwrap{align-items:stretch}
 @media (max-width:1560px){.ned-bar .nb-r .saved{display:none}}
+
+/* ======== v19: animated hero art (note typing, sketch drawing, flashcard) ======== */
+.hero-art{position:absolute;right:clamp(20px,5vw,90px);top:50%;width:430px;height:240px;transform:translateY(-50%);pointer-events:none;z-index:1}
+.ha-card{position:absolute;background:rgba(255,255,255,.92);border-radius:22px;box-shadow:0 18px 44px rgba(60,50,170,.2);padding:14px 16px;animation:haFloat 6s ease-in-out infinite}
+.ha-h{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#3b3b4f;margin-bottom:10px}.ha-h svg{width:15px;height:15px;color:var(--violet)}
+.ha-note{left:0;top:6px;width:210px;height:150px;transform:rotate(-4deg);--r:-4deg}
+.ha-draw{right:0;top:0;width:200px;height:150px;transform:rotate(3deg);--r:3deg;animation-delay:-2s}
+.ha-quiz{left:128px;bottom:0;width:210px;transform:rotate(-1.5deg);--r:-1.5deg;animation-delay:-4s;display:flex;flex-direction:column;gap:4px}
+@keyframes haFloat{0%,100%{transform:translateY(0) rotate(var(--r))}50%{transform:translateY(-9px) rotate(var(--r))}}
+.ha-note .tl{display:block;height:7px;border-radius:99px;background:#dcdcec;margin:9px 0;width:0;animation:haType 7s ease-in-out infinite}
+.ha-note .t1{--w:86%;background:#c7bcff}.ha-note .t2{--w:100%;animation-delay:.9s}.ha-note .t3{--w:72%;animation-delay:1.8s}.ha-note .t4{--w:48%;animation-delay:2.7s}
+@keyframes haType{0%{width:0}22%,82%{width:var(--w)}100%{width:0}}
+.ha-note .car{position:absolute;right:20px;bottom:18px;width:2px;height:16px;background:var(--violet);animation:haBlink 1s steps(2) infinite}
+@keyframes haBlink{50%{opacity:0}}
+.ha-draw>svg{width:100%;height:92px;display:block;fill:none;stroke:#5b3df5;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.ha-draw .p1,.ha-draw .p2,.ha-draw .p3{stroke-dasharray:200;stroke-dashoffset:200;animation:haDraw 7s ease-in-out infinite}
+.ha-draw .p2{stroke:#ec4899;stroke-dasharray:140;stroke-dashoffset:140;animation-delay:1.3s}.ha-draw .p3{stroke:#16a34a;animation-delay:2.4s;stroke-width:2.6}
+@keyframes haDraw{0%{stroke-dashoffset:var(--d,200)}25%,80%{stroke-dashoffset:0}100%{stroke-dashoffset:var(--d,200)}}
+.ha-draw .p2{--d:140}
+.ha-draw .dots{position:absolute;right:14px;bottom:10px;display:flex;gap:5px}.ha-draw .dots u{width:11px;height:11px;border-radius:50%;display:block}
+.ha-quiz small{font-size:11px;color:#8a8a98;font-weight:600}.ha-quiz b{font-size:15px;letter-spacing:-.02em}
+.ha-quiz .ok{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:13px;color:#16a34a;font-weight:600;opacity:0;animation:haPop 7s ease-in-out infinite}.ha-quiz .ok svg{width:15px;height:15px}.ha-quiz .ok em{font-style:normal;color:#3b3b4f}
+@keyframes haPop{0%,35%{opacity:0;transform:translateY(6px)}45%,85%{opacity:1;transform:none}100%{opacity:0}}
+@media (max-width:1100px){.hero-art{display:none}}
+@media (prefers-reduced-motion:reduce){.ha-card,.ha-note .tl,.ha-draw path,.ha-draw circle,.ha-quiz .ok,.ha-note .car{animation:none}.ha-note .tl{width:var(--w)}.ha-draw path,.ha-draw circle{stroke-dashoffset:0}.ha-quiz .ok{opacity:1}}
+.welcome>.hero-art{position:absolute;z-index:1}
+.ha-card .ha-h svg{width:15px;height:15px}

@@ -224,6 +224,11 @@ V.today = m => {
   m.innerHTML = `<div class="home-wrap ${first ? "first" : "again"}"><div class="page home calm">
   <section class="welcome">
     <p class="eyebrow rise" style="--i:0">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p>
+    <div class="hero-art" aria-hidden="true">
+      <div class="ha-card ha-note"><div class="ha-h">${ic("note")}<span>Zellatmung</span></div><i class="tl t1"></i><i class="tl t2"></i><i class="tl t3"></i><i class="tl t4"></i><b class="car"></b></div>
+      <div class="ha-card ha-draw"><div class="ha-h">${ic("brush")}<span>Skizze</span></div><svg viewBox="0 0 180 100"><path class="p1" d="M14 70 C34 20 54 20 74 62 S112 96 128 38"/><circle class="p2" cx="140" cy="62" r="22"/><path class="p3" d="M20 88 L96 88 M86 82 L96 88 L86 94"/></svg><span class="dots"><u style="background:#5b3df5"></u><u style="background:#ec4899"></u><u style="background:#16a34a"></u></span></div>
+      <div class="ha-card ha-quiz"><small>Karteikarte</small><b>Wo entsteht ATP?</b><span class="ok">${ic("check")}<em>Mitochondrium</em></span></div>
+    </div>
     <h1 class="greet-h">${words}</h1>
     <p class="hh-sub rise" style="--i:3">${sub}</p>
     <form class="hsearch rise" style="--i:4" id="hs">${ic("search")}<input id="hq" placeholder="Suchen oder die KI etwas fragen …" autocomplete="off" aria-label="Suchen oder KI fragen"><button type="button" class="hs-ai" id="hs-ai">${ic("spark")}<span>KI fragen</span></button></form>
