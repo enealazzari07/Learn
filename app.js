@@ -1,5 +1,5 @@
 "use strict";
-/* Sana Learn – static web app (no build step). Landing + learning app + AI. */
+/* Lumi Learn – static web app (no build step). Landing + learning app + AI. */
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -42,8 +42,8 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
-let S = Object.assign({ name: "Emma Sundqvist", progress: {}, done: {}, custom: [], apiKey: "", model: "claude-sonnet-5-5" }, store.get("sana-state", {}));
-const save = () => store.set("sana-state", S);
+let S = Object.assign({ name: "Emma Sundqvist", progress: {}, done: {}, custom: [], apiKey: "", model: "claude-sonnet-5-5" }, store.get("lumi-state", {}));
+const save = () => store.set("lumi-state", S);
 
 const G = {
   green: "linear-gradient(135deg,#8fcf6e,#f3e9a6)", red: "linear-gradient(135deg,#7a1020,#e8505b)", blue: "linear-gradient(135deg,#3b82f6,#9fd4ff)",
@@ -151,7 +151,7 @@ let view = { name: "home" };
 function route() {
   const h = location.hash.replace(/^#\/?/, "");
   const [a, b] = h.split("/");
-  if (a !== "app") { landingEl.hidden = false; appEl.hidden = true; $("#tutor").hidden = true; document.title = "Sana Learn"; if (!landingEl.dataset.r) renderLanding(); return; }
+  if (a !== "app") { landingEl.hidden = false; appEl.hidden = true; $("#tutor").hidden = true; document.title = "Lumi Learn"; if (!landingEl.dataset.r) renderLanding(); return; }
   landingEl.hidden = true; appEl.hidden = false; window.scrollTo(0, 0);
   const [n, id] = [b || "home", h.split("/")[2]];
   view = { name: n, id };
@@ -164,7 +164,7 @@ function renderLanding() {
   landingEl.dataset.r = 1;
   const go = 'href="#/app"';
   landingEl.innerHTML = `
-  <header class="nav" id="nav"><a class="logo" href="#/">Sana<sup>™</sup></a>
+  <header class="nav" id="nav"><a class="logo" href="#/">Lumi<sup>™</sup></a>
     <nav class="nav-links">${["Products", "Capabilities", "Solutions", "Resources", "Customer stories"].map(x => `<a href="#" onclick="return false">${x}${ic("chev")}</a>`).join("")}<a href="#pricing">Pricing</a></nav>
     <div class="nav-right"><a href="#">Mission</a><a href="#">Careers</a><a class="btn" ${go}>Book an intro</a><button class="burger" aria-label="Menu" onclick="document.getElementById('nav').classList.toggle('open')">${ic("menu")}</button></div>
   </header>
@@ -191,14 +191,14 @@ function renderLanding() {
     <div class="fc input hide-md" style="left:69%;top:70%;--r0:3deg;min-width:340px"><span>+ Perform any admin action</span><span class="go">${ic("up")}</span></div>
     <div class="fc cal hide-sm" style="left:82%;top:82%;--r0:0"><i>MAR</i><b>20</b></div>
 
-    <div class="badge-row"><span>Sana Learn</span><span class="pill-y">Summer 2026</span></div>
+    <div class="badge-row"><span>Lumi Learn</span><span class="pill-y">Summer 2026</span></div>
     <h1>Shipped.<br>Adopted.<br>Loved.</h1>
   </section>
 
   <section class="scene-sec" id="create"><h2 class="scene-h">Create courses together, with AI at your side.</h2>
     <div class="scene"><div class="chair"></div>
       <div class="lap"><div class="lap-screen"><div class="lap-cam"></div><div class="lap-in">
-        <div class="lap-bar"><i></i><i></i><i></i><span>sana.learn.ai</span></div>
+        <div class="lap-bar"><i></i><i></i><i></i><span>lumi.learn</span></div>
         <div class="lap-app"><aside>${ic("play")}${ic("search")}${ic("book")}<b class="sel">${ic("note")}</b>${ic("note")}<b style="color:#e6b800">${ic("edit")}</b><b style="color:#d6431f">${ic("note")}</b><em>+</em></aside>
           <div class="lap-main"><div class="lap-top"><div><b>New course</b><small>My drafts</small></div><span class="av-s"><i style="background:#18a957"></i><i style="background:#3b82f6"></i><i style="background:#ec4899"></i></span><span class="pub">Publish</span></div>
             <div class="lap-cv"><span class="cur" style="left:20%;top:12%;background:#18a957">Christine</span><span class="cur" style="right:8%;top:30%;background:#2563eb;animation-delay:-3s">Stephen</span><span class="cur" style="left:4%;top:56%;background:#8b5cf6;animation-delay:-5s">Michael</span>
@@ -209,9 +209,9 @@ function renderLanding() {
       <div class="bk b1"></div><div class="bk b2"></div><div class="bk b3"></div><div class="bk b4"></div><div class="bk b5"></div><div class="bk b6"></div><div class="binder"><i></i></div>
       <div class="cup"><b></b><u></u></div><div class="pen"></div></div></section>
 
-  <section class="tablet-sec"><div><h2 style="font-size:clamp(36px,5.2vw,64px);letter-spacing:-.045em;line-height:.98;font-weight:600">Learning that works where your people work.</h2><p class="lead" style="font-size:20px;color:#444;margin-top:20px;max-width:520px">iPad, phone or desktop — Sana Learn adapts to every screen, with an AI tutor for every learner.</p><div class="hero-cta" style="justify-content:flex-start"><a class="btn" ${go}>See what's new in Sana Learn</a></div></div>
-    <div class="tablet-art"><div class="tablet"><small style="color:#888">Workday · Job requisition</small><h4>Senior Data Analyst</h4><div class="ln" style="width:60%"></div><div class="ln"></div><div class="ai-line"></div><div class="ln" style="width:85%"></div><div class="ln"></div><div class="ln" style="width:70%"></div></div></div>
-    <div class="workday">Sana is now part of Workday.</div></section>
+  <section class="tablet-sec"><div><h2 style="font-size:clamp(36px,5.2vw,64px);letter-spacing:-.045em;line-height:.98;font-weight:600">Learning that works where your people work.</h2><p class="lead" style="font-size:20px;color:#444;margin-top:20px;max-width:520px">iPad, phone or desktop — Lumi Learn adapts to every screen, with an AI tutor for every learner.</p><div class="hero-cta" style="justify-content:flex-start"><a class="btn" ${go}>See what's new in Lumi Learn</a></div></div>
+    <div class="tablet-art"><div class="tablet"><small style="color:#888">Lumi · Job requisition</small><h4>Senior Data Analyst</h4><div class="ln" style="width:60%"></div><div class="ln"></div><div class="ai-line"></div><div class="ln" style="width:85%"></div><div class="ln"></div><div class="ln" style="width:70%"></div></div></div>
+    <div class="workday">Lumi is now available on every device.</div></section>
 
   <section class="sec" id="demo"><h2>One home for everything people need to learn.</h2><p class="lead">Assignments, recommendations and live sessions in a calm, white interface.</p>
     <div class="preview" onclick="location.hash='#/app'">${appShot()}<div class="play">${ic("play", "ic")}</div></div></section>
@@ -223,13 +223,13 @@ function renderLanding() {
       ["cal", "#1a5cff", "Live learning", "Native live sessions with polls, chat and automatic attendance."],
       ["chart", "#18a957", "AI analytics", "Ask questions about your learning data and get charts and answers instantly."],
       ["shield", "#8b5cf6", "Compliance automation", "Auto-enroll, remind and track mandatory training across every team."],
-      ["bolt", "#ff2d2d", "Workflows", "Describe any admin task in plain language and let Sana do it."]
+      ["bolt", "#ff2d2d", "Workflows", "Describe any admin task in plain language and let Lumi do it."]
     ].map(([i, c, t, d]) => `<div class="card"><div class="ico" style="background:${c}">${ic(i)}</div><h3>${t}</h3><p>${d}</p></div>`).join("")}</div>
     <div class="stats"><div><b>5×</b><span>faster course creation</span></div><div><b>92%</b><span>completion rate</span></div><div><b>40+</b><span>languages</span></div><div><b>24/7</b><span>AI tutor</span></div></div></section>
 
-  <section class="cta-final" id="pricing"><h2>Shipped.<br>Adopted.<br>Loved.</h2><a class="btn" ${go}>Open Sana Learn</a></section>
-  <footer><div><a class="logo" href="#/">Sana<sup>™</sup></a><p style="margin-top:12px;max-width:260px">The AI-first platform for modern learning.</p></div>
-    ${[["Products", "Sana Learn", "Sana Agents", "Integrations"], ["Capabilities", "AI Tutor", "Authoring", "Analytics"], ["Solutions", "Onboarding", "Compliance", "Sales enablement"], ["Company", "Mission", "Careers", "Contact"]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => `<a href="#">${x}</a>`).join("")}</div>`).join("")}</footer>`;
+  <section class="cta-final" id="pricing"><h2>Shipped.<br>Adopted.<br>Loved.</h2><a class="btn" ${go}>Open Lumi Learn</a></section>
+  <footer><div><a class="logo" href="#/">Lumi<sup>™</sup></a><p style="margin-top:12px;max-width:260px">The AI-first platform for modern learning.</p></div>
+    ${[["Products", "Lumi Learn", "Lumi Agents", "Integrations"], ["Capabilities", "AI Tutor", "Authoring", "Analytics"], ["Solutions", "Onboarding", "Compliance", "Sales enablement"], ["Company", "Mission", "Careers", "Contact"]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => `<a href="#">${x}</a>`).join("")}</div>`).join("")}</footer>`;
 }
 function appShot() {
   const rows = ASSIGN.slice(0, 4).map(a => { const c = byId(a.id); return `<div style="display:grid;grid-template-columns:3fr 1fr 1fr;gap:10px;padding:10px 0;border-bottom:1px solid #eee;font-size:12px"><b>${esc(c.title)}</b><span style="color:#888">${a.due}</span><span>${a.pri}</span></div>`; }).join("");
@@ -253,7 +253,7 @@ function renderApp() {
     <button class="tfab" id="tfab">${ic("spark")}AI Tutor</button>`;
   $$("[data-go]", appEl).forEach(b => b.onclick = () => { const [k, f] = b.dataset.go.split(":"); if (f) cat = f; location.hash = "#/app/" + k; });
   $("#tfab").onclick = () => openTutor();
-  document.title = "Sana Learn – " + (NAV.find(x => x[0] === n)?.[1] || "Course");
+  document.title = "Lumi Learn – " + (NAV.find(x => x[0] === n)?.[1] || "Course");
   const m = $("#main");
   ({ home: vHome, search: vSearch, discover: vDiscover, create: vCreate, manage: vManage, workflows: vWorkflows, settings: vSettings, course: vCourse }[n] || vHome)(m);
 }
@@ -284,7 +284,7 @@ function vSearch(m) {
   m.innerHTML = topbar() + `<h1 class="greet">Search</h1><div class="hint-bar" style="margin-bottom:24px">${ic("search")}<input id="q" placeholder="Search courses, topics, skills…" autofocus></div><div id="res" class="grid-c"></div><div id="aians"></div>`;
   const draw = () => { const q = $("#q").value.toLowerCase(); const r = all().filter(c => !q || (c.title + c.desc + c.cat).toLowerCase().includes(q)); $("#res").innerHTML = r.map(cardHTML).join("") || `<p class="note">No results. Try asking the AI tutor.</p>`; bindCourseClicks($("#res")); };
   $("#q").oninput = draw; draw();
-  $("#q").onkeydown = async e => { if (e.key === "Enter" && e.target.value.trim()) { const a = $("#aians"); a.innerHTML = `<div class="answer">Thinking…</div>`; const t = await ai(`The learner searched: "${e.target.value}". Recommend which of these courses to take and why: ${all().map(c => c.title).join("; ")}.`, { system: "You are Sana's AI tutor." }); a.innerHTML = `<div class="answer">${esc(t)}</div>`; } };
+  $("#q").onkeydown = async e => { if (e.key === "Enter" && e.target.value.trim()) { const a = $("#aians"); a.innerHTML = `<div class="answer">Thinking…</div>`; const t = await ai(`The learner searched: "${e.target.value}". Recommend which of these courses to take and why: ${all().map(c => c.title).join("; ")}.`, { system: "You are Lumi's AI tutor." }); a.innerHTML = `<div class="answer">${esc(t)}</div>`; } };
 }
 function vDiscover(m) {
   const cats = ["All", ...new Set(all().map(c => c.cat))];
@@ -358,7 +358,7 @@ function vManage(m) {
   <div class="kpis"><div class="kpi"><b>1,284</b><span>Active learners</span></div><div class="kpi"><b>92%</b><span>Completion rate</span></div><div class="kpi"><b>${all().length}</b><span>Courses</span></div><div class="kpi"><b>${done}/${active || 0}</b><span>Your completed / started</span></div></div>
   <div class="chart"><b>Daily active learners</b><div class="bars">${data.map(([d, v]) => `<div style="height:${v}%"><span>${d}</span></div>`).join("")}</div><div style="height:22px"></div></div>
   <form class="hint-bar" id="aq" style="max-width:none">${ic("plus")}<input placeholder="Query platform data and visualise results" aria-label="Query"><button class="send" aria-label="Ask">${ic("up")}</button></form><div id="aans"></div>`;
-  $("#aq").onsubmit = async e => { e.preventDefault(); const v = e.target.querySelector("input").value.trim(); if (!v) return; $("#aans").innerHTML = `<div class="answer">Analysing…</div>`; const t = await ai(v, { system: "You are Sana's analytics agent. Data – daily active learners Mon–Sun: " + data.map(d => d.join("=")).join(", ") + "; 1,284 active learners; 92% completion; courses: " + all().map(c => c.title).join("; ") + ". Answer with insights; use simple text bars like ████ when visualising." }); $("#aans").innerHTML = `<div class="answer">${esc(t || "Demo mode: Thursday is the busiest day (81 learners), weekends are quiet. Add an API key in Settings for real analysis.")}</div>`; };
+  $("#aq").onsubmit = async e => { e.preventDefault(); const v = e.target.querySelector("input").value.trim(); if (!v) return; $("#aans").innerHTML = `<div class="answer">Analysing…</div>`; const t = await ai(v, { system: "You are Lumi's analytics agent. Data – daily active learners Mon–Sun: " + data.map(d => d.join("=")).join(", ") + "; 1,284 active learners; 92% completion; courses: " + all().map(c => c.title).join("; ") + ". Answer with insights; use simple text bars like ████ when visualising." }); $("#aans").innerHTML = `<div class="answer">${esc(t || "Demo mode: Thursday is the busiest day (81 learners), weekends are quiet. Add an API key in Settings for real analysis.")}</div>`; };
 }
 
 /* ---------- workflows ---------- */
@@ -376,7 +376,7 @@ function wfModal(pre) {
   <button class="btn ghost" id="scr" style="margin:0 auto">Start from scratch →</button><div id="wres"></div>
   <p style="text-align:left;font-size:12px;margin-top:30px;color:#444">Start from an example</p><div class="ex" style="margin-top:12px">${WF.map((w, i) => `<button data-e="${i}"><i>${ic(w[2])}</i><div><b>${w[0]}</b><span>${w[1]}</span></div></button>`).join("")}</div></div></div>`;
   const close = () => r.innerHTML = ""; $(".x", r).onclick = close; $(".mask", r).onclick = e => e.target.classList.contains("mask") && close();
-  const run = async () => { const v = $("#wf input").value.trim(); if (!v) return; $("#wres").innerHTML = `<div class="result">Running workflow…</div>`; const t = await ai(v, { system: "You are Sana's workflow agent. Describe step by step what the workflow does for this learning-platform admin and produce a realistic example result." }); $("#wres").innerHTML = `<div class="result">${esc(t)}</div>`; };
+  const run = async () => { const v = $("#wf input").value.trim(); if (!v) return; $("#wres").innerHTML = `<div class="result">Running workflow…</div>`; const t = await ai(v, { system: "You are Lumi's workflow agent. Describe step by step what the workflow does for this learning-platform admin and produce a realistic example result." }); $("#wres").innerHTML = `<div class="result">${esc(t)}</div>`; };
   $("#wf").onsubmit = e => { e.preventDefault(); run(); }; $("#scr").onclick = () => { $("#wf input").focus(); };
   $$("[data-e]", r).forEach(b => b.onclick = () => { const w = WF[+b.dataset.e]; $("#wf input").value = w[0] + ": " + w[1]; run(); });
   setTimeout(() => $("#wf input").focus(), 50);
@@ -405,7 +405,7 @@ function openTutor(first = "", ctx) {
   $("#tx").onclick = () => el.hidden = true;
   const msgs = $("#msgs"), paint = () => { msgs.innerHTML = (chat.length ? chat : [{ role: "assistant", text: "Hi! I'm your AI tutor. Ask me to summarise a lesson, quiz you or build a learning plan." }]).map(x => `<div class="m ${x.role === "user" ? "u" : "a"}">${esc(x.text)}</div>`).join(""); msgs.scrollTop = 1e9; };
   paint();
-  const send = async t => { if (!t.trim()) return; const h = chat.slice(-8); chat.push({ role: "user", text: t }); paint(); msgs.insertAdjacentHTML("beforeend", `<div class="m a dots"><span></span><span></span><span></span></div>`); msgs.scrollTop = 1e9; const a = await ai(t, { system: "You are Sana Learn's AI tutor. Help the learner understand the material, quiz them when asked, and be encouraging.\n" + (tctx ? tctx : ""), history: h }); chat.push({ role: "assistant", text: a }); paint(); };
+  const send = async t => { if (!t.trim()) return; const h = chat.slice(-8); chat.push({ role: "user", text: t }); paint(); msgs.insertAdjacentHTML("beforeend", `<div class="m a dots"><span></span><span></span><span></span></div>`); msgs.scrollTop = 1e9; const a = await ai(t, { system: "You are Lumi Learn's AI tutor. Help the learner understand the material, quiz them when asked, and be encouraging.\n" + (tctx ? tctx : ""), history: h }); chat.push({ role: "assistant", text: a }); paint(); };
   $("#tf").onsubmit = e => { e.preventDefault(); const i = e.target.querySelector("input"); const v = i.value; i.value = ""; send(v); };
   $$(".sugs button", el).forEach(b => b.onclick = () => send(b.textContent));
   if (first) send(first); else $("#tf input").focus();
