@@ -226,16 +226,19 @@ V.today = m => {
     <p class="eyebrow rise" style="--i:0">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p>
     <h1 class="greet-h">${words}</h1>
     <p class="hh-sub rise" style="--i:3">${sub}</p>
-    <div class="wchips rise" style="--i:4"><span class="hchip">${ic("flame")}<b data-n="${streak()}">0</b> Tage in Folge</span><span class="hchip">${ic("timer")}<b data-n="${mins}">0</b> / ${goal} Min. heute</span></div>
-    <div class="wact rise" style="--i:5"><button class="btn accent" id="plan">${ic("spark")}KI-Tagesplan</button>${due ? `<button class="btn ghost" data-go="cards">${ic("cards")}${due} Karten lernen</button>` : `<button class="btn ghost" data-q="q">${ic("help")}Quiz starten</button>`}</div>
+    <form class="hsearch rise" style="--i:4" id="hs">${ic("search")}<input id="hq" placeholder="Suchen oder die KI etwas fragen …" autocomplete="off" aria-label="Suchen oder KI fragen"><button type="button" class="hs-ai" id="hs-ai">${ic("spark")}<span>KI fragen</span></button></form>
+    <div class="wchips rise" style="--i:5"><span class="hchip">${ic("flame")}<b data-n="${streak()}">0</b> Tage in Folge</span><span class="hchip">${ic("timer")}<b data-n="${mins}">0</b> / ${goal} Min. heute</span></div>
+    <div class="wact rise" style="--i:6"><button class="btn accent" id="plan">${ic("spark")}KI-Tagesplan</button>${due ? `<button class="btn ghost" data-go="cards">${ic("cards")}${due} Karten lernen</button>` : `<button class="btn ghost" data-q="q">${ic("help")}Quiz starten</button>`}</div>
   </section>
   <section class="rise" style="--i:6"><div class="tiles2">${TILES.map(([i, l, s, k, c]) => `<button data-q="${k}" style="--c:${c}"><span>${ic(i)}</span><b>${l}</b><small>${s}</small></button>`).join("")}</div></section>
-  <section class="panel soft rise" style="--i:7"><h2>Heute</h2>
+  ${exams.length ? `<section class="rise" style="--i:7"><div class="examrow">${exams.map((x, i) => { const dd = daysUntil(x.due), s = subj(x.subjectId); return `<div class="examc" style="--c:${s?.color || ["#5b3df5", "#ff6a3d"][i % 2]}"><div class="dd"><b>${dd}</b><small>${dd === 1 ? "Tag" : "Tage"}</small></div><div class="ex-b"><b>${esc(x.title)}</b><small>${esc(s?.name || "")} · ${fmtD(x.due)}</small></div><button class="btn small" data-ex="${x.id}">Üben</button></div>`; }).join("")}</div></section>` : ""}
+  <div class="hgrid">
+  <section class="panel soft rise" style="--i:8"><h2>Heute</h2>
     ${timeline.length ? `<div class="sub-h">Termine</div>${timeline.slice(0, 5).map(x => `<div class="li tl"><span class="tm">${x.t}${x.e ? `<br><small>${x.e}</small>` : ""}</span><span class="bar-c" style="background:${x.c}"></span><div class="tm2"><b>${esc(x.n)}</b><small>${esc(x.s)}</small></div></div>`).join("")}` : ""}
     ${open.length ? `<div class="sub-h">Aufgaben</div>${open.slice(0, 5).map(x => `<label class="li task"><input type="checkbox" data-t="${x.id}"><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#999"}"></span><b>${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${x.due ? (daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due)) : ""}</small></label>`).join("")}` : ""}
     ${!timeline.length && !open.length ? `<p class="empty">Nichts geplant – genieß den freien Kopf.<br><button class="link" id="addt">Aufgabe oder Prüfung hinzufügen</button></p>` : `<div class="row end" style="margin-top:10px"><button class="link" id="addt">+ Aufgabe hinzufügen</button><button class="link" data-go="planner">Zum Planer</button></div>`}</section>
-  ${exams.length ? `<section class="rise" style="--i:8"><div class="examrow">${exams.map((x, i) => { const dd = daysUntil(x.due), s = subj(x.subjectId); return `<div class="examc" style="--c:${s?.color || ["#5b3df5", "#ff6a3d"][i % 2]}"><div class="dd"><b>${dd}</b><small>${dd === 1 ? "Tag" : "Tage"}</small></div><div class="ex-b"><b>${esc(x.title)}</b><small>${esc(s?.name || "")} · ${fmtD(x.due)}</small></div><button class="btn small" data-ex="${x.id}">Üben</button></div>`; }).join("")}</div></section>` : ""}
-  ${recent.length ? `<section class="rise" style="--i:9"><div class="sech"><h2 class="sh2">Weiterarbeiten</h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="rlist">${recent.map(d => `<button class="rrow" data-d="${d.id}"><span class="ri">${ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note")}</span><div class="tm2"><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></div></button>`).join("")}</div></section>` : ""}
+  ${recent.length ? `<section class="rise rec" style="--i:9"><div class="sech"><h2 class="sh2">Weiterarbeiten</h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="rlist">${recent.map(d => `<button class="rrow" data-d="${d.id}"><span class="ri">${ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note")}</span><div class="tm2"><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></div></button>`).join("")}</div></section>` : ""}
+  </div>
   ${D.ms?.account ? "" : `<div class="msline rise" style="--i:10"><button class="ms-btn" id="mslogin">${msLogoSvg()}<span>Mit Microsoft anmelden</span></button><p class="note">Outlook-Kalender, OneNote und Teams – Prüfungen und Notizen kommen automatisch.</p></div>`}
   </div></div>`;
   bindCommon(m);
@@ -243,6 +246,8 @@ V.today = m => {
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
   $$("[data-t]", m).forEach(c => c.onchange = () => { const x = D.tasks.find(y => y.id === c.dataset.t); x.done = true; x.doneAt = Date.now(); save(); toast("Erledigt"); renderView(); });
   $("#addt", m) && ($("#addt", m).onclick = () => taskModal());
+  $("#hs", m).onsubmit = e => { e.preventDefault(); searchPrefill = $("#hq", m).value.trim(); go("search"); };
+  $("#hs-ai", m).onclick = () => { const v = $("#hq", m).value.trim(), di = $("#aipane .tin"); $("#aipane")?.classList.add("open"); if (v && di) { di.value = v; $("#hq", m).value = ""; $("#aipane .t-in").requestSubmit(); } else di?.focus(); };
   $("#mslogin", m) && ($("#mslogin", m).onclick = () => msQuickLogin());
   $$("[data-n]", m).forEach(e => countUp(e, +e.dataset.n, first ? 1100 : 500));
   $("#plan", m).onclick = async () => {

@@ -2,7 +2,7 @@
 /* Lumi study app – flashcards, quiz, planner, grades, focus timer, AI chat, search, settings */
 
 var LEAVE = [];          // cleanup callbacks run when the view changes
-let chatPrefill = "";
+let chatPrefill = "", searchPrefill = "";
 
 /* ---------- flashcards ---------- */
 const INTERVALS = [0, 1, 3, 7, 16, 35];
@@ -269,8 +269,12 @@ function mountChat(box, compact) {
 V.ai = m => { m.innerHTML = `<div class="page narrow"><div class="hd"><div><p class="eyebrow">Persönlicher Lernbegleiter</p><h1>KI-Tutor</h1></div></div><div class="chatbox" id="cbox"></div></div>`; $("#cpanel").hidden = true; mountChat($("#cbox", m), false); };
 function mountDock() {
   const p = $("#aipane"); if (!p) return;
-  p.innerHTML = `<div class="hai-h"><span class="ai-ic">${ic("spark")}</span><div><b>KI-Tutor</b><small>Frag alles zu deinen Unterlagen, Prüfungen und Terminen</small></div></div><div class="chatbox flat" id="hcb"></div>`;
+  const wasOpen = p.classList.contains("open");
+  p.innerHTML = `<button class="hai-h" id="hai-t" aria-expanded="${wasOpen}"><span class="ai-ic">${ic("spark")}</span><div><b>KI-Tutor</b><small>Frag etwas zu deinen Unterlagen</small></div><i class="hai-chev">${ic("chev")}</i></button><div class="chatbox flat" id="hcb"></div>`;
   mountChat($("#hcb", p), false);
+  const tog = o => { p.classList.toggle("open", o); $("#hai-t", p).setAttribute("aria-expanded", o); };
+  $("#hai-t", p).onclick = () => tog(!p.classList.contains("open"));
+  $(".t-in", p).addEventListener("submit", () => tog(true), true); $(".tin", p).addEventListener("focus", () => tog(true));
 }
 function toggleChatPanel() { const p = $("#cpanel"); if (p.hidden) { p.hidden = false; mountChat(p, true); } else p.hidden = true; }
 
@@ -284,6 +288,7 @@ V.search = async m => {
     sr.innerHTML = `${docs.length ? `<section class="panel"><h2>Dokumente<small>${docs.length}</small></h2>${docs.slice(0, 15).map(d => `<button class="li hit" data-d2="${d.id}">${ic(d.type === "note" ? "note" : d.type === "draw" ? "brush" : "file")}<div class="tm2"><b>${esc(d.title)}</b><small>${snip(d)}</small></div></button>`).join("")}</section>` : ""}${tasks.length ? `<section class="panel"><h2>Aufgaben<small>${tasks.length}</small></h2>${tasks.map(t => `<button class="li hit" data-go="planner">${ic("todo")}<b>${esc(t.title)}</b><small>${t.due ? fmtD(t.due) : ""}</small></button>`).join("")}</section>` : ""}${cards.length ? `<section class="panel"><h2>Karteikarten<small>${cards.length}</small></h2>${cards.map(c => `<button class="li hit" data-k2="${c.d.id}">${ic("cards")}<div class="tm2"><b>${esc(c.q)}</b><small>${esc(c.a)}</small></div></button>`).join("")}</section>` : ""}${docs.length + tasks.length + cards.length ? "" : `<p class="empty">Nichts gefunden.</p>`}`;
     $$("[data-d2]", sr).forEach(b => b.onclick = () => openDoc(D.docs.find(d => d.id === b.dataset.d2))); $$("[data-k2]", sr).forEach(b => b.onclick = () => go("cards/" + b.dataset.k2)); $$("[data-go]", sr).forEach(b => b.onclick = () => go("planner"));
   };
+  if (searchPrefill) { $("#sq", m).value = searchPrefill; searchPrefill = ""; }
   $("#sq", m).oninput = debounce(draw, 150); draw(); setTimeout(() => $("#sq", m)?.focus(), 30);
 };
 
