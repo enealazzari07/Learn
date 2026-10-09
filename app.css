@@ -1063,3 +1063,9 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 @media (min-width:901px){
   .page.home.calm>.welcome{justify-content:flex-start!important;padding-top:clamp(22px,2.4vw,34px)!important}
 }
+/* v28: banner keeps its natural height, the tiles sit right below it */
+@media (min-width:901px){
+  .page.home.calm>.welcome{flex:0 0 auto!important;padding-bottom:clamp(44px,4vw,60px)!important;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 56px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 56px),transparent 100%)}
+  .page.home.calm>.welcome+*{margin-top:-18px!important}
+  .page.home.calm{padding-bottom:104px!important}
+}
