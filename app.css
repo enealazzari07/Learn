@@ -643,3 +643,9 @@ body{background:#fff}
 .inkpal .cdot input{position:absolute;inset:-6px;opacity:0;cursor:pointer}
 .inkpal input[type=range]{width:84px;accent-color:var(--violet);flex:none}
 @media (max-width:900px){.modesw button{padding:7px 10px}.inkpal{bottom:12px;padding:6px 10px;gap:8px}}
+
+/* v9.1: draw palette stays at the top, no floating KI button */
+.tfab{display:none!important}
+.inkpal{bottom:auto;top:74px;transform:translate(-50%,-18px)}
+.inkpal.show{transform:translate(-50%,0)}
+@media (max-width:900px){.inkpal{top:112px;bottom:auto}}
