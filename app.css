@@ -618,3 +618,28 @@ body{background:#fff}
 .ms-btn:disabled{opacity:.45;cursor:not-allowed}.ms-btn svg{width:20px;height:20px}
 .msline{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;text-align:left}
 .ob-ms{display:flex;flex-direction:column;gap:6px;align-items:flex-start;margin-top:18px}.ob-ms small{color:var(--muted)}
+
+/* ======== v9: write + draw in one document ======== */
+.ned-paper{position:relative}
+.inkcv{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:3;border-radius:inherit}
+.ned-paper.inking{cursor:crosshair}
+.modesw{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;background:#f1f1f6;border-radius:999px;padding:3px;flex:none}
+.modesw button{position:relative;z-index:1;border:0;background:none;font:600 13px/1 inherit;font-family:inherit;padding:8px 14px;border-radius:999px;color:#6b6b78;cursor:pointer;transition:color .25s}
+.modesw button.on{color:#1c1c22}
+.modesw .knob{position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);background:#fff;border-radius:999px;box-shadow:0 1px 4px rgba(30,20,90,.14);transition:transform .35s cubic-bezier(.3,.9,.3,1)}
+.modesw[data-m=draw] .knob{transform:translateX(100%)}
+.ned-tools{transition:opacity .3s,transform .3s}
+.main.drawing .ned-tools{opacity:0;pointer-events:none;transform:translateY(-6px)}
+.inkpal{position:fixed;left:50%;bottom:22px;z-index:120;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 20px);background:#fff;border-radius:999px;padding:8px 14px;box-shadow:0 2px 6px rgba(0,0,0,.06),0 18px 50px rgba(30,20,90,.2);transform:translate(-50%,24px);opacity:0;transition:transform .4s cubic-bezier(.3,.9,.3,1),opacity .3s;overflow-x:auto;scrollbar-width:none}
+.inkpal.show{transform:translate(-50%,0);opacity:1}
+.inkpal::-webkit-scrollbar{display:none}
+.inkpal[hidden]{display:none}
+.inkpal .ip-row,.inkpal .ip-cols{display:flex;align-items:center;gap:2px;flex:none}
+.inkpal .ip-cols{gap:6px}
+.inkpal .ip-sep{width:1px;height:24px;background:#e6e6ee;flex:none}
+.inkpal .tbtn{width:38px;height:38px;border-radius:50%}.inkpal .tbtn svg{width:19px;height:19px}
+.inkpal .tbtn:disabled{opacity:.3;pointer-events:none}
+.inkpal .cdot{width:24px;height:24px;cursor:pointer;padding:0;position:relative;overflow:hidden}
+.inkpal .cdot input{position:absolute;inset:-6px;opacity:0;cursor:pointer}
+.inkpal input[type=range]{width:84px;accent-color:var(--violet);flex:none}
+@media (max-width:900px){.modesw button{padding:7px 10px}.inkpal{bottom:12px;padding:6px 10px;gap:8px}}

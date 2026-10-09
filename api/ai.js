@@ -1,9 +1,11 @@
 /* Lumi AI proxy (Vercel serverless function) – talks to Google Gemini.
    Configure in Vercel → Project Settings → Environment Variables:
      GEMINI_API_KEY  (required, free key from https://aistudio.google.com/apikey)
-     GEMINI_MODEL    (optional, default: gemini-2.5-flash-lite = cheapest model with a free tier)
+     GEMINI_MODEL    (optional, default: gemini-flash-lite-latest = cheapest model with a free tier; falls back to other aliases if a model is retired)
    The key never reaches the browser. */
-const MODEL = () => process.env.GEMINI_MODEL || "gemini-2.5-flash-lite";
+/* Model chain: GEMINI_MODEL first, then Google's self-updating aliases – used when a model was retired (404). */
+const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean))];
+const MODEL = () => CHAIN()[0];
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
 
 module.exports = async function handler(req, res) {
@@ -25,11 +27,13 @@ module.exports = async function handler(req, res) {
   while (contents.length && contents[0].role !== "user") contents.shift();
   const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 28000);
   try {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(MODEL())}:generateContent`, {
-      method: "POST", signal: ctl.signal, headers: { "content-type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, +max || 1024)), temperature: 0.6 } }),
-    });
-    const j = await r.json().catch(() => ({}));
+    const payload = JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, +max || 1024)), temperature: 0.6 } });
+    let r, j;
+    for (const model of CHAIN()) {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: "POST", signal: ctl.signal, headers: { "content-type": "application/json", "x-goog-api-key": key }, body: payload });
+      j = await r.json().catch(() => ({}));
+      if (r.status !== 404) break;
+    }
     if (!r.ok) return res.status(r.status === 429 ? 429 : 502).json({ error: j.error?.message || `Gemini ${r.status}` });
     const text = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
     if (!text) return res.status(422).json({ error: j.promptFeedback?.blockReason ? "Die Anfrage wurde von der KI blockiert." : "Leere Antwort der KI." });

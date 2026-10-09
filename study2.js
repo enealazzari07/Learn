@@ -289,13 +289,13 @@ V.search = async m => {
 
 /* ---------- settings ---------- */
 async function exportAll() {
-  toast("Export wird vorbereitet…"); const out = { app: "lumi", v: 1, data: D, html: {}, draw: {}, blobs: {} };
-  for (const d of D.docs) { if (d.type === "note") out.html[d.id] = await KV.get("html:" + d.id); else if (d.type === "draw") out.draw[d.id] = await KV.get("draw:" + d.id); else { const b = await KV.get("blob:" + d.id); if (b) out.blobs[d.id] = await blobToDataURL(b); } }
+  toast("Export wird vorbereitet…"); const out = { app: "lumi", v: 1, data: D, html: {}, draw: {}, ink: {}, blobs: {} };
+  for (const d of D.docs) { if (d.type === "note") { out.html[d.id] = await KV.get("html:" + d.id); const ik = await KV.get("ink:" + d.id); if (ik?.length) out.ink[d.id] = ik; } else if (d.type === "draw") out.draw[d.id] = await KV.get("draw:" + d.id); else { const b = await KV.get("blob:" + d.id); if (b) out.blobs[d.id] = await blobToDataURL(b); } }
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(out)], { type: "application/json" })); a.download = `lumi-backup-${iso()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
 }
 async function importAll(file) {
   try { const j = JSON.parse(await file.text()); if (j.app !== "lumi") throw 0; if (!(await confirmBox("Aktuelle Daten durch das Backup ersetzen?", "Ersetzen"))) return;
-    D = Object.assign(DEFAULT(), j.data); for (const [k, v] of Object.entries(j.html || {})) await KV.set("html:" + k, v); for (const [k, v] of Object.entries(j.draw || {})) await KV.set("draw:" + k, v); for (const [k, v] of Object.entries(j.blobs || {})) await KV.set("blob:" + k, await (await fetch(v)).blob()); await KV.set("data", D); toast("Backup geladen"); location.reload();
+    D = Object.assign(DEFAULT(), j.data); for (const [k, v] of Object.entries(j.html || {})) await KV.set("html:" + k, v); for (const [k, v] of Object.entries(j.draw || {})) await KV.set("draw:" + k, v); for (const [k, v] of Object.entries(j.ink || {})) await KV.set("ink:" + k, v); for (const [k, v] of Object.entries(j.blobs || {})) await KV.set("blob:" + k, await (await fetch(v)).blob()); await KV.set("data", D); toast("Backup geladen"); location.reload();
   } catch { toast("Ungültige Backup-Datei"); }
 }
 V.settings = m => {
@@ -308,7 +308,7 @@ V.settings = m => {
   <details class="msh" ${serverAI ? "" : "open"}><summary>Einrichtung: kostenlose KI mit Google Gemini</summary><ol>
     <li>Auf <b>aistudio.google.com/apikey</b> einen API-Key erstellen (kostenloser Tarif).</li>
     <li>In Vercel: Projekt → <b>Settings → Environment Variables</b> → Name <code>GEMINI_API_KEY</code>, Wert = dein Key (Environment: Production).</li>
-    <li>Optional <code>GEMINI_MODEL</code> setzen. Standard ist <code>gemini-2.5-flash-lite</code> (günstigstes Modell mit kostenlosem Kontingent).</li>
+    <li>Optional <code>GEMINI_MODEL</code> setzen. Standard ist <code>gemini-flash-lite-latest</code> (Google-Alias, fällt bei abgeschalteten Modellen automatisch auf Ersatz zurück) (günstigstes Modell mit kostenlosem Kontingent).</li>
     <li>Danach <b>Deployments → Redeploy</b>. Der Key bleibt auf dem Server und gelangt nie in den Browser.</li></ol></details>
   <details class="msh"><summary>Erweitert: eigenen Anthropic-API-Key nutzen</summary><p class="note">Nur nötig, wenn die Server-KI nicht aktiv ist. Der Key wird nur in diesem Browser gespeichert.</p><label class="lbl">API-Key</label><input class="field" id="sk" type="password" placeholder="sk-ant-…" value="${esc(p.apiKey)}" autocomplete="off"><label class="lbl">Modell</label><input class="field" id="sm" value="${esc(p.model)}"></details></div>
   ${msPanelHtml()}
