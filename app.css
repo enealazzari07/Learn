@@ -923,3 +923,36 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
 @keyframes tpPulse{0%,100%{box-shadow:0 0 0 0 rgba(91,61,245,.45)}50%{box-shadow:0 0 0 6px rgba(91,61,245,0)}}
 .timer-pill b{font-variant-numeric:tabular-nums}
 @media (max-width:900px){.timer-pill{top:10px;right:12px}}
+
+/* v23: timer box bottom-left (aligned with the panel's bottom corner), full-screen "time is up" */
+.timer-pill{top:auto!important;right:auto!important;left:12px;bottom:12px;width:238px;border-radius:30px;padding:16px 18px 14px;flex-direction:column;align-items:stretch;gap:8px;cursor:pointer;z-index:95;
+  transform:translateY(24px) scale(.94);transform-origin:left bottom}
+.timer-pill.show{transform:none}
+.timer-pill .tb-top{display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:#6b6b78}
+.timer-pill .tb-l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timer-pill .tb-t{font-size:38px;line-height:1;letter-spacing:-.04em;font-weight:700}
+.timer-pill .tb-bar{height:6px;border-radius:99px;background:#eeeef4;overflow:hidden}.timer-pill .tb-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--violet);transition:width .6s linear}
+.timer-pill .tb-act{display:flex;gap:8px;margin-top:2px}
+.timer-pill .tb-act button{flex:1;height:36px;border-radius:999px;background:#f3f3f7;display:grid;place-items:center;cursor:pointer;transition:background .2s}
+.timer-pill .tb-act button:first-child{background:var(--violet);color:#fff}.timer-pill .tb-act button:hover{filter:brightness(.96)}
+.timer-pill .tb-act svg{width:17px;height:17px}
+body:has(.shell.collapsed) .timer-pill{width:62px;padding:12px 6px;border-radius:24px;align-items:center}
+body:has(.shell.collapsed) .timer-pill .tb-l,body:has(.shell.collapsed) .timer-pill .tb-bar,body:has(.shell.collapsed) .timer-pill .tb-act button:last-child{display:none}
+body:has(.shell.collapsed) .timer-pill .tb-t{font-size:17px;letter-spacing:-.02em}
+body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
+@media (max-width:900px){.timer-pill{left:10px;bottom:calc(84px + env(safe-area-inset-bottom));top:auto!important;width:200px;padding:12px 14px}.timer-pill .tb-t{font-size:30px}}
+
+#tup{position:fixed;inset:0;z-index:300;display:grid;place-items:center;text-align:center;padding:24px;overflow:hidden;background:linear-gradient(135deg,#dfe8ff 0%,#e7e0ff 50%,#f3e3ff 100%);opacity:0;transition:opacity .45s ease}
+#tup.show{opacity:1}
+#tup .tu-in{position:relative;z-index:2;max-width:620px;transform:translateY(24px) scale(.96);transition:transform .7s cubic-bezier(.2,.9,.3,1.1)}#tup.show .tu-in{transform:none}
+#tup h1{font-size:clamp(48px,9vw,110px);letter-spacing:-.05em;line-height:.95;margin:6px 0 14px}
+#tup .tu-sub{font-size:clamp(17px,2.2vw,22px);color:#4b4b5e;margin:0 0 28px}
+#tup .tu-ring{width:112px;height:112px;margin:0 auto 22px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--violet);box-shadow:0 20px 60px rgba(70,60,190,.25);position:relative}
+#tup .tu-ring::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid rgba(91,61,245,.35);animation:tuPulse 2s ease-out infinite}
+#tup .tu-ring span svg{width:48px;height:48px;stroke-width:2}
+@keyframes tuPulse{0%{transform:scale(.9);opacity:1}100%{transform:scale(1.5);opacity:0}}
+#tup .tu-b{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none}
+#tup .b1{width:60vw;height:60vw;left:-15vw;bottom:-25vw;background:rgba(80,110,255,.4);animation:drift 14s ease-in-out infinite}
+#tup .b2{width:55vw;height:55vw;right:-15vw;top:-25vw;background:rgba(170,110,255,.5);animation:drift 16s ease-in-out infinite reverse}
+@media (prefers-reduced-motion:reduce){#tup .tu-ring::after,#tup .tu-b{animation:none}}
+.toast{z-index:400!important}

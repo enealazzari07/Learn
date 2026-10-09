@@ -206,13 +206,27 @@ const T = { mode: "focus", total: 25 * 60, left: 25 * 60, running: false, end: 0
 function beep() { try { const c = new (window.AudioContext || window.webkitAudioContext)(); [0, .25, .5].forEach((t, i) => { const o = c.createOscillator(), g = c.createGain(); o.frequency.value = 660 + i * 110; g.gain.setValueAtTime(.2, c.currentTime + t); g.gain.exponentialRampToValueAtTime(.001, c.currentTime + t + .22); o.connect(g); g.connect(c.destination); o.start(c.currentTime + t); o.stop(c.currentTime + t + .25); }); } catch {} }
 const fmtT = s => `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
 function timerPaint() {
-  const pill = $("#tpill"); if (pill) { const show = T.running || T.left < T.total; pill.hidden = false; pill.classList.toggle("show", !!show); pill.classList.toggle("run", !!T.running); if (!pill.firstChild) { pill.innerHTML = `<i class="pd"></i><b></b>`; pill.onclick = () => go("focus"); } pill.querySelector("b").textContent = fmtT(T.left); pill.title = T.mode === "focus" ? "Fokus-Timer" : "Pause"; }
+  const pill = $("#tpill"); if (pill) {
+    const show = T.running || T.left < T.total; pill.hidden = false; pill.classList.toggle("show", !!show); pill.classList.toggle("run", !!T.running);
+    if (!pill.firstChild) { pill.innerHTML = `<div class="tb-top"><i class="pd"></i><span class="tb-l"></span></div><b class="tb-t"></b><div class="tb-bar"><i></i></div><div class="tb-act"><button data-a="t" aria-label="Start oder Pause"></button><button data-a="x" aria-label="Zurücksetzen">${ic("x")}</button></div>`; pill.onclick = e => { const a = e.target.closest("button")?.dataset.a; if (a === "t") timerToggle(); else if (a === "x") timerReset(); else go("focus"); }; }
+    $(".tb-l", pill).textContent = T.mode === "focus" ? "Fokus" + (T.subjectId && subj(T.subjectId) ? " · " + subj(T.subjectId).name : "") : "Pause"; $(".tb-t", pill).textContent = fmtT(T.left); $(".tb-bar i", pill).style.width = (1 - T.left / T.total) * 100 + "%";
+    const tg = $('[data-a="t"]', pill), want = T.running ? "pause" : "play"; if (tg.dataset.i !== want) { tg.dataset.i = want; tg.innerHTML = ic(want); }
+  }
   const r = $("#tring"); if (r) { r.style.setProperty("--p", (1 - T.left / T.total) * 100); $("#tt-time").textContent = fmtT(T.left); $("#tt-mode").textContent = T.mode === "focus" ? "Fokus" : "Pause"; $("#tt-go").innerHTML = T.running ? ic("pause") + "Pause" : ic("play") + (T.left < T.total ? "Weiter" : "Start"); }
 }
 function timerTick() {
   T.left = Math.max(0, Math.round((T.end - Date.now()) / 1000));
-  if (T.left <= 0) { clearInterval(T.iv); T.running = false; beep(); if (T.mode === "focus") { addMin(Math.round(T.total / 60)); toast(`${Math.round(T.total / 60)} Min. Fokus geschafft!`); } else toast("Pause vorbei – weiter geht's!"); T.mode = T.mode === "focus" ? "break" : "focus"; T.total = T.left = (T.mode === "focus" ? T.focusLen : T.breakLen) * 60; if (curView === "focus") renderView(); }
+  if (T.left <= 0) { clearInterval(T.iv); T.running = false; beep(); if (T.mode === "focus") { addMin(Math.round(T.total / 60)); toast(`${Math.round(T.total / 60)} Min. Fokus geschafft!`); } else toast("Pause vorbei – weiter geht's!"); const was = T.mode, doneMin = Math.round(T.total / 60); T.mode = T.mode === "focus" ? "break" : "focus"; T.total = T.left = (T.mode === "focus" ? T.focusLen : T.breakLen) * 60; timeUp(was, doneMin); if (curView === "focus") renderView(); }
   timerPaint(); if (curView === "focus" && T.left === T.total) timerPaint();
+}
+function timeUp(was, min) {
+  $("#tup")?.remove(); const el = document.createElement("div"); el.id = "tup"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
+  const nextLbl = T.mode === "break" ? `Pause starten · ${T.breakLen} Min.` : `Nächste Runde · ${T.focusLen} Min.`;
+  el.innerHTML = `<i class="tu-b b1"></i><i class="tu-b b2"></i><div class="tu-in"><div class="tu-ring"><span>${ic(was === "focus" ? "check" : "timer")}</span></div><p class="eyebrow">${was === "focus" ? "Fokuszeit geschafft" : "Pause vorbei"}</p><h1>${was === "focus" ? "Zeit abgelaufen" : "Weiter geht’s"}</h1><p class="tu-sub">${was === "focus" ? `${min} Minuten konzentriert gelernt – gönn dir jetzt eine kurze Pause.` : "Bereit für die nächste Runde?"}</p><div class="row" style="justify-content:center"><button class="btn big accent" id="tu-go">${nextLbl}</button><button class="btn big ghost" id="tu-x">Schließen</button></div></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("show"));
+  const close = go2 => { el.classList.remove("show"); setTimeout(() => el.remove(), 450); document.removeEventListener("keydown", kd); if (go2 && !T.running) timerToggle(); };
+  const kd = e => { if (e.key === "Escape") close(false); }; document.addEventListener("keydown", kd);
+  $("#tu-go", el).onclick = () => close(true); $("#tu-x", el).onclick = () => close(false); setTimeout(() => $("#tu-go", el)?.focus(), 400);
 }
 function timerToggle() { if (T.running) { clearInterval(T.iv); T.running = false; } else { T.running = true; T.end = Date.now() + T.left * 1000; if (T.left === T.total && T.mode === "focus") T.started = Date.now(); T.iv = setInterval(timerTick, 500); } timerPaint(); }
 function timerReset() { const el = T.total - T.left; if (T.mode === "focus" && el >= 60) { addMin(Math.floor(el / 60)); toast(`${Math.floor(el / 60)} Min. gespeichert`); } clearInterval(T.iv); T.running = false; T.left = T.total; timerPaint(); }
