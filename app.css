@@ -1056,3 +1056,10 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 }
 @media (min-width:901px){.main:has(.welcome) .home-wrap{width:100%;margin:0;max-width:none}}
 @media (min-width:901px) and (max-height:820px){.page.home.calm{padding-bottom:64px!important}.page.home.calm>.welcome{padding-bottom:40px!important}}
+
+/* v27: art without numbers; text block flush to the top of the banner */
+.ha-sum p s{display:block;height:7px;border-radius:99px;background:#dcdcec;width:150px}.ha-sum p s.w2{width:110px}
+.ha-table u{min-height:22px}
+@media (min-width:901px){
+  .page.home.calm>.welcome{justify-content:flex-start!important;padding-top:clamp(22px,2.4vw,34px)!important}
+}
