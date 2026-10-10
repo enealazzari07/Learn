@@ -2238,3 +2238,11 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .ip-pen{position:relative}.ip-pen i{position:absolute;left:50%;bottom:4px;width:14px;height:3px;margin-left:-7px;border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.7)}
 .blk-del{position:fixed;z-index:280;width:30px;height:30px;border-radius:50%;border:0;background:#fff;color:#0f0f12;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18);animation:inkPop .18s ease}
 .blk-del svg{width:15px;height:15px}.blk-del:hover{background:#0f0f12;color:#fff}.blk-del[hidden]{display:none}
+
+/* Live-Mauszeiger (Zusammenarbeit) */
+.co-curs{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}
+.co-cur{position:absolute;left:0;top:0;transition:transform .12s linear,opacity .3s;will-change:transform}
+.co-cur.off{opacity:0}
+.co-cur svg{width:18px;height:22px;fill:var(--c);stroke:#fff;stroke-width:1.6;stroke-linejoin:round;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25))}
+.co-cur span{position:absolute;left:14px;top:16px;background:var(--c);color:#fff;font:700 11.5px/1 inherit;font-family:inherit;padding:4px 8px;border-radius:999px 999px 999px 4px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.co-cur{left:50%!important}

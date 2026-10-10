@@ -249,8 +249,9 @@ let chatMode = "tutor", chatCtx = new Set(), chatImg = null, recog = null;
 async function ctxText() { let out = ""; for (const id of chatCtx) { const d = D.docs.find(x => x.id === id); if (d) out += `\n--- ${d.title} ---\n${(await docText(d)).slice(0, 12000)}\n`; } return out.slice(0, 30000); }
 function chatState() {
   D.chats = D.chats || []; D.cprojects = D.cprojects || [];
-  if (!D.chats.length) { D.chats.push({ id: uid(), title: "Neuer Chat", projectId: "", instr: "", msgs: Array.isArray(D.chat) ? D.chat : [], updated: Date.now() }); D.chat = []; }
-  let c = D.chats.find(x => x.id === D.curChat); if (!c) { c = D.chats[0]; D.curChat = c.id; } return c;
+  if (window.__docChat) { const dc = D.chats.find(x => x.id === window.__docChat); if (dc) return dc; }          // Chat der Seitenleiste gehört nur zum geöffneten Dokument
+  if (!D.chats.some(x => !x.docId)) { D.chats.push({ id: uid(), title: "Neuer Chat", projectId: "", instr: "", msgs: Array.isArray(D.chat) ? D.chat : [], updated: Date.now() }); D.chat = []; }
+  let c = D.chats.find(x => x.id === D.curChat && !x.docId); if (!c) { c = D.chats.find(x => !x.docId); D.curChat = c.id; } return c;
 }
 const chatMsgs = () => chatState().msgs;
 function chatInstr() { const c = chatState(), p = D.cprojects.find(x => x.id === c.projectId); return [p && p.instr ? `Projekt „${p.name}“ – Anweisungen: ${p.instr}` : "", c.instr ? `Anweisungen für diesen Chat: ${c.instr}` : ""].filter(Boolean).join("\n"); }
@@ -339,7 +340,7 @@ V.ai = m => {
   const hdr = () => { const c = chatState(), p = D.cprojects.find(x => x.id === c.projectId); const e = $("#cpj", m); if (e) e.textContent = p ? p.name : ""; };
   const aside = () => {
     const box = $("#aipl", m); if (!box) return; const cur = chatState();
-    const list = D.chats.filter(c => !filter || c.projectId === filter).sort((a, b) => b.updated - a.updated);
+    const list = D.chats.filter(c => !c.docId && (!filter || c.projectId === filter)).sort((a, b) => b.updated - a.updated);
     box.innerHTML = `<button class="aip-new" id="cn">${ic("plus")}<span>Neuer Chat</span></button>
       <div class="aip-h"><span>Projekte</span><button class="icon-btn sm" id="pn" aria-label="Neues Projekt">${ic("plus")}</button></div>
       <div class="aip-list">${D.cprojects.map(p => `<div class="aip-i ${filter === p.id ? "on" : ""}" data-p="${p.id}" tabindex="0">${ic("folder")}<span>${esc(p.name)}</span><button class="aip-m" data-pm="${p.id}" aria-label="Projekt-Menü">${ic("more")}</button></div>`).join("") || `<p class="aip-e">Gruppiere Chats mit gemeinsamen Anweisungen.</p>`}</div>

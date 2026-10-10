@@ -147,15 +147,15 @@ function aiSide(open, trigger) {
   if (trigger) aiSideTools = trigger;
   $$("#ai-m,#aicb").forEach(b => { b.classList.toggle("on", open); const sv = b.querySelector("svg"); if (sv && b.id === "ai-m") { sv.outerHTML = ic(open ? "aipanelOn" : "aipanel"); b.querySelector("svg").classList.add("ic-flip"); } });
   if (open) {
-    const d = aiSideDoc(); chatCtx.clear(); if (d && d.type !== "draw" && d.type !== "db") chatCtx.add(d.id);
+    const d = aiSideDoc(); if (d) { let dc = D.chats.find(x => x.docId === d.id); if (!dc) { dc = { id: uid(), title: "Chat – " + d.title, docId: d.id, projectId: "", instr: "", msgs: [], updated: Date.now() }; D.chats.push(dc); save(); } window.__docChat = dc.id; } else window.__docChat = null; chatCtx.clear(); if (d && d.type !== "draw" && d.type !== "db") chatCtx.add(d.id);
     mountChat($("#as-box", el), false);
     el.classList.add("on"); document.body.classList.add("aiside-open");
     setTimeout(() => $(".tin", el)?.focus(), 350);
-  } else { el.classList.remove("on"); document.body.classList.remove("aiside-open"); }
+  } else { el.classList.remove("on"); document.body.classList.remove("aiside-open"); window.__docChat = null; }
 }
 /* Klick auf den AI-Knopf in Editoren/Dokumenten klappt die Seitenleiste aus (die alten Werkzeuge liegen hinter „…“) */
 document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("#ai-m,#aicb"); if (!b || !document.getElementById("app") || document.getElementById("app").hidden) return;
   e.stopPropagation(); e.preventDefault(); aiSide(undefined, b);
 }, true);
-addEventListener("hashchange", () => { if (!/^#\/app\/(doc|docs|draw|board)(\/|$)/.test(location.hash)) aiSide(false); });
+addEventListener("hashchange", () => { if (!/^#\/app\/(doc|docs|draw|board)(\/|$)/.test(location.hash)) aiSide(false); else { const el = document.getElementById("aiside"), d = aiSideDoc(); if (el && el.classList.contains("on")) { const cur = D.chats.find(x => x.id === window.__docChat); if (!d || !cur || cur.docId !== d.id) aiSide(true); } } });

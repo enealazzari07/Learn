@@ -31,28 +31,57 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   };
   const caretOff = () => { const s = getSelection(); if (document.activeElement !== body || !s.rangeCount || !body.contains(s.anchorNode)) return -1; const r = document.createRange(); r.selectNodeContents(body); r.setEnd(s.anchorNode, s.anchorOffset); return r.toString().length; };
   const setCaret = o => { if (o < 0) return; const w = document.createTreeWalker(body, NodeFilter.SHOW_TEXT); let n, acc = 0; while ((n = w.nextNode())) { if (acc + n.length >= o) { const r = document.createRange(); r.setStart(n, o - acc); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r); return; } acc += n.length; } };
+  /* Absatzweise zusammenführen: nur Blöcke, die lokal unverändert sind, werden ersetzt – dein Absatz mit Cursor bleibt unberührt */
+  let base = [];
+  const blocksNow = () => [...body.children].map(e => e.outerHTML);
+  function mergeHtml(html) {
+    const tmp = document.createElement("div"); tmp.innerHTML = html; const rem = [...tmp.children], remH = rem.map(e => e.outerHTML);
+    const loc = [...body.children], n = Math.max(rem.length, loc.length);
+    for (let i = n - 1; i >= 0; i--) {
+      const r = remH[i], l = loc[i] ? loc[i].outerHTML : undefined, b = base[i];
+      if (r === l) continue;
+      if (l !== undefined && l !== b) continue;                         // lokal geändert → behalten (wird beim nächsten Senden verteilt)
+      if (r === undefined) { loc[i].remove(); continue; }
+      const nn = rem[i].cloneNode(true);
+      if (l === undefined) { body.appendChild(nn); continue; }
+      const o = loc[i].contains(getSelection().anchorNode) ? (() => { const rg = document.createRange(); rg.selectNodeContents(loc[i]); rg.setEnd(getSelection().anchorNode, getSelection().anchorOffset); return rg.toString().length; })() : -1;
+      loc[i].replaceWith(nn);
+      if (o >= 0 && document.activeElement === body) { const w = document.createTreeWalker(nn, NodeFilter.SHOW_TEXT); let t, acc = 0; while ((t = w.nextNode())) { if (acc + t.length >= o) { const r2 = document.createRange(); r2.setStart(t, o - acc); r2.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(r2); break; } acc += t.length; } }
+    }
+    base = remH;
+  }
   function apply(p) {
     if (dead || !p) return;
-    if (p.html != null && p.html !== body.innerHTML) {
-      if (Date.now() - lastType < 1400) { pend = p; return setTimeout(() => { if (pend === p) { pend = null; apply(p); } }, 1500); }
-      const o = caretOff(); body.innerHTML = p.html; setCaret(o); dirty();
-    }
+    if (p.html != null && p.html !== body.innerHTML) { mergeHtml(p.html); dirty(); }
     if (p.tb && JSON.stringify(p.tb) !== JSON.stringify(TBX.get()) && !document.activeElement?.closest?.(".tbx")) { TBX.load(p.tb); KV.set("tb:" + d.id, p.tb); }
     if (p.ink && JSON.stringify(p.ink) !== JSON.stringify(ink.st.strokes)) { ink.load(p.ink); KV.set("ink:" + d.id, p.ink); }
     if (p.rev) d.shareRev = p.rev; svEl.textContent = "Gespeichert";
   }
   async function pull() { const { data } = await CLOUD.sb.rpc("lumi_share_get", { p_id: d.share }); const r = data && data[0]; if (r && r.rev < 0) { stop(); delete d.share; delete d.shareOwner; save(); paint(); toast("Die Zusammenarbeit wurde beendet"); return; } if (r && r.rev > (d.shareRev || 0)) apply({ html: r.html, tb: r.tb, ink: r.ink, rev: r.rev }); }
   async function persist() { const s = state(); const { data, error } = await CLOUD.sb.rpc("lumi_share_put", { p_id: d.share, p_title: d.title, p_html: s.html, p_tb: s.tb, p_ink: s.ink, p_who: me.name }); if (!error && data) d.shareRev = data; return s; }
+  let tPersist = 0;
   function touch() {
-    if (!d.share || !ch) return; lastType = Date.now(); clearTimeout(tPush);
-    tPush = setTimeout(async () => { const s = await persist(); const small = JSON.stringify(s).length < 180000; ch.send({ type: "broadcast", event: "doc", payload: small ? { ...s, from: me.key, rev: d.shareRev } : { pull: true, from: me.key } }); }, 650);
+    if (!d.share || !ch) return; lastType = Date.now(); clearTimeout(tPush); clearTimeout(tPersist);
+    tPush = setTimeout(() => { const s = state(), small = JSON.stringify(s).length < 180000; base = blocksNow(); if (small) ch.send({ type: "broadcast", event: "doc", payload: { ...s, from: me.key } }); tPersist = setTimeout(async () => { await persist(); if (!small) ch.send({ type: "broadcast", event: "doc", payload: { pull: true, from: me.key } }); }, small ? 1800 : 100); }, 90);
   }
+  /* Live-Mauszeiger der anderen: farbiger Pfeil mit Namensschild, gleitet weich */
+  const paper = body.closest(".ned-paper") || body.parentElement, curLayer = document.createElement("div"); curLayer.className = "co-curs"; paper.appendChild(curLayer);
+  const curEls = new Map(); let lastCur = 0;
+  const showCur = c => {
+    let e = curEls.get(c.k); if (!e) { e = document.createElement("div"); e.className = "co-cur"; e.innerHTML = `<svg viewBox="0 0 20 24"><path d="M2 2l15 8.5-6.5 1.8L8 19z"/></svg><span></span>`; curLayer.appendChild(e); curEls.set(c.k, e); e.style.transform = `translate(${c.x}px, ${c.y}px)`; }
+    e.style.setProperty("--c", c.color || "#2563eb"); e.querySelector("span").textContent = c.name || "Gast"; e.classList.toggle("off", !!c.off); e.style.transform = `translate(${c.x}px, ${c.y}px)`;
+    clearTimeout(e._t); e._t = setTimeout(() => e.classList.add("off"), 6000);
+  };
+  const sendCur = (e, off) => { if (!ch || !d.share) return; const t = Date.now(); if (!off && t - lastCur < 45) return; lastCur = t; const r = paper.getBoundingClientRect(); ch.send({ type: "broadcast", event: "cur", payload: { k: me.key, name: me.name, color: me.color, x: Math.round(e.clientX - r.left - r.width / 2), y: Math.round(e.clientY - r.top), off: !!off } }); };
+  const onMove = e => sendCur(e), onLeave = e => sendCur(e, true);
+  paper.addEventListener("pointermove", onMove); paper.addEventListener("pointerleave", onLeave);
   function start() {
     if (!d.share || ch || !CLOUD.sb || !CLOUD.user) return paint();
     ch = CLOUD.sb.channel("lumi-share-" + d.share, { config: { presence: { key: me.key }, broadcast: { self: false } } });
-    ch.on("presence", { event: "sync" }, () => { peers = ch.presenceState(); delete peers[me.key]; paint(); })
+    ch.on("presence", { event: "sync" }, () => { peers = ch.presenceState(); delete peers[me.key]; paint(); curEls.forEach((e, k) => { if (!peers[k]) { e.remove(); curEls.delete(k); } }); })
       .on("broadcast", { event: "doc" }, ({ payload }) => { if (payload?.pull) pull(); else apply(payload); })
-      .subscribe(async st => { if (st === "SUBSCRIBED") { await ch.track({ name: me.name, color: me.color }); pull(); } });
+      .on("broadcast", { event: "cur" }, ({ payload }) => { if (payload && payload.k !== me.key) showCur(payload); })
+      .subscribe(async st => { if (st === "SUBSCRIBED") { await ch.track({ name: me.name, color: me.color }); base = blocksNow(); pull(); } });
     paint();
   }
   const stop = () => { if (ch) { try { ch.untrack(); CLOUD.sb.removeChannel(ch); } catch {} ch = null; } peers = {}; paint(); };
@@ -75,5 +104,5 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   };
   window.__co = { touch };
   start(); paint();
-  return { touch, destroy() { dead = true; clearTimeout(tPush); if (d.share && ch) persist().catch(() => {}); stop(); if (window.__co && window.__co.touch === touch) window.__co = null; } };
+  return { touch, destroy() { dead = true; clearTimeout(tPush); clearTimeout(tPersist); paper.removeEventListener("pointermove", onMove); paper.removeEventListener("pointerleave", onLeave); curLayer.remove(); if (d.share && ch) persist().catch(() => {}); stop(); if (window.__co && window.__co.touch === touch) window.__co = null; } };
 }
