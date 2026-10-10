@@ -16,6 +16,7 @@ function route() {
   const h = location.hash.replace(/^#\/?/, "");
   if (!h.startsWith("app")) { landingEl.hidden = false; appEl.hidden = true; document.title = "Lumi – Lernen, das funktioniert"; if (!landingEl.dataset.r) renderLanding(); window.scrollTo(0, 0); return; }
   landingEl.hidden = true; appEl.hidden = false; document.title = "Lumi";
+  if (cloudGate()) return authScreen();
   if (!D.profile.onboarded && !onboardShown) { onboardShown = true; buildShell(); renderView(); onboarding(); return; }
   renderView();
 }

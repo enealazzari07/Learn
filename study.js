@@ -62,9 +62,11 @@ function refreshNav() {
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
   <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
-  <div class="sp hide-mob"></div>`;
+  <div class="sp hide-mob"></div>
+  <button class="nav-i prof hide-mob" id="profbtn" title="Profil"><span class="av">${esc((D.profile.name || (CLOUD.user?.email) || "L").trim()[0].toUpperCase())}</span><span class="nl pn"><b>${esc(D.profile.name || "Profil")}</b><small>${esc(CLOUD.user?.email || "Nicht angemeldet")}</small></span></button>`;
   $$("[data-go]", s).forEach(b => b.onclick = () => { if (b.dataset.go === "docs") docFolder = ""; go(b.dataset.go); });
   $("#newbtn", s).onclick = e => newMenu(e.currentTarget);
+  $("#profbtn", s).onclick = e => menu(e.currentTarget, [{ label: "Einstellungen", icon: "gear", fn: () => go("settings") }, ...(CLOUD.user ? [{ label: "Abmelden", icon: "x", fn: cloudLogout }] : cloudOn() ? [{ label: "Anmelden", icon: "adduser", fn: cloudLoginModal }] : [])]);
   $("#sidetgl", s).onclick = () => { sideOpen = !sideOpen; try { localStorage.setItem("lumi-side", sideOpen ? "1" : "0"); } catch {} applyRail(); };
   $("#morebtn", s).onclick = e => menu(e.currentTarget, NAVS.filter(n => !mob.find(m => m[0] === n[0])).map(([k, l, i]) => ({ label: l, icon: i, fn: () => go(k) })));
 }
@@ -240,7 +242,7 @@ V.today = m => {
   m.classList.add("homew");
   m.innerHTML = `<div class="home-wrap ${first ? "first" : "again"}"><div class="page home sana">
   <header class="hh rise" style="--i:0"><div><h1 class="greet-h">${words}</h1><p class="hsub">${open.length ? `Du hast ${todayN} ${todayN === 1 ? "Ding" : "Dinge"} heute zu erledigen.` : "Heute ist nichts offen – ein guter Moment zum Lernen."}</p></div>
-    <button class="s-acct" id="acct"></button></header>
+    </header>
   <section class="s-ai rise" style="--i:1"><div class="s-aih"><span class="s-aik">${ic("spark")} Lumi KI</span><span class="s-aid">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</span></div>
     <form class="s-aif" id="hs"><input id="hq" placeholder="Frag mich etwas, lass mich etwas erstellen oder suche …" autocomplete="off" aria-label="KI fragen"><button class="send" id="hs-ai" aria-label="Senden">${ic("up")}</button></form>
     <div class="s-aia" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
@@ -274,7 +276,6 @@ V.today = m => {
     run(false);
   })();
   $("#addt", m).onclick = () => taskModal();
-  { const a = $("#acct", m), paint = () => { a.textContent = !cloudOn() ? "" : CLOUD.user ? CLOUD.user.email : "Anmelden"; a.hidden = !cloudOn(); }; paint(); a.onclick = () => CLOUD.user ? go("settings") : cloudLoginModal(); }
   $("#hs", m).onsubmit = async e => {
     e.preventDefault(); const q = $("#hq", m).value.trim(), out = $("#ai-out", m); if (!q) return;
     if (!hasKey()) { out.innerHTML = `<p class="note">Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.</p>`; return; }

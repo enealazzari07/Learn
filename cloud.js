@@ -56,27 +56,39 @@ async function cloudInit() {
   CLOUD.sb = window.supabase.createClient(window.LUMI_CONFIG.supabaseUrl, window.LUMI_CONFIG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true } });
   const { data } = await CLOUD.sb.auth.getSession(); CLOUD.user = data.session?.user || null;
   if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
-  CLOUD.sb.auth.onAuthStateChange((ev, s) => { const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { LS.set("lumi-sync", "0"); } });
+  CLOUD.sb.auth.onAuthStateChange((ev, s) => { const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
   addEventListener("online", cloudPush);
 }
 async function cloudAfterLogin() {
   try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); }
-  toast("Angemeldet – Daten werden synchronisiert"); renderView();
+  toast("Angemeldet – Daten werden synchronisiert"); $("#app").innerHTML = ""; route();
 }
 function cloudStatus() { const e = document.getElementById("cl-st"); if (e) e.textContent = CLOUD.user ? (CLOUD.dirty.size ? "Wird synchronisiert …" : "Synchronisiert") : ""; }
-function cloudLoginModal() {
-  if (!cloudOn()) return toast("Cloud ist noch nicht eingerichtet.");
-  const { el, close } = modal(`<h3>Konto</h3><p class="note">Melde dich an, damit deine Notizen, Aufgaben und Karteikarten auf allen Geräten da sind.</p>
-    <label class="lbl">E-Mail</label><input class="field" id="cl-e" type="email" autocomplete="email"><label class="lbl">Passwort</label><input class="field" id="cl-p" type="password" autocomplete="current-password" minlength="6">
-    <p class="note" id="cl-m" style="min-height:20px"></p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" id="cl-in">Anmelden</button><button class="btn" id="cl-up">Registrieren</button><button class="link" id="cl-fp" type="button">Passwort vergessen</button></div>`);
+function cloudAuthHtml() {
+  return `<label class="lbl">E-Mail</label><input class="field" id="cl-e" type="email" autocomplete="email"><label class="lbl">Passwort</label><input class="field" id="cl-p" type="password" autocomplete="current-password" minlength="6">
+    <p class="note" id="cl-m" style="min-height:20px"></p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" id="cl-in">Anmelden</button><button class="btn" id="cl-up">Registrieren</button><button class="link" id="cl-fp" type="button">Passwort vergessen</button></div>`;
+}
+function cloudAuthBind(el, done) {
   const msg = t => { $("#cl-m", el).textContent = t; }, val = () => [$("#cl-e", el).value.trim(), $("#cl-p", el).value];
   const need = () => { const [e, p] = val(); if (!e || p.length < 6) { msg("E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben."); return null; } return [e, p]; };
-  $("#cl-in", el).onclick = async () => { const v = need(); if (!v) return; msg("Anmelden …"); const { error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) msg(/confirm/i.test(error.message) ? "Bitte bestätige zuerst deine E-Mail." : "Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); else close(); };
-  $("#cl-up", el).onclick = async () => { const v = need(); if (!v) return; msg("Konto wird erstellt …"); const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { emailRedirectTo: location.origin + "/" } }); if (error) msg(error.message); else if (!data.session) msg("Fast geschafft – wir haben dir eine Bestätigungs-E-Mail geschickt."); else close(); };
+  $("#cl-in", el).onclick = async () => { const v = need(); if (!v) return; msg("Anmelden …"); const { error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) msg(/confirm/i.test(error.message) ? "Bitte bestätige zuerst deine E-Mail." : "Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); else done(); };
+  $("#cl-up", el).onclick = async () => { const v = need(); if (!v) return; msg("Konto wird erstellt …"); const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { emailRedirectTo: location.origin + "/" } }); if (error) msg(error.message); else if (!data.session) msg("Fast geschafft – wir haben dir eine Bestätigungs-E-Mail geschickt."); else done(); };
   $("#cl-fp", el).onclick = async () => { const [e] = val(); if (!e) return msg("Gib oben deine E-Mail ein."); const { error } = await CLOUD.sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + "/" }); msg(error ? error.message : "E-Mail zum Zurücksetzen ist unterwegs."); };
+  $$("input", el).forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") $("#cl-in", el).click(); }));
   setTimeout(() => $("#cl-e", el).focus(), 50);
 }
-async function cloudLogout() { await cloudPush(); await CLOUD.sb.auth.signOut(); CLOUD.user = null; toast("Abgemeldet"); renderView(); }
+const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
+function authScreen() {
+  const app = $("#app"); document.title = "Lumi – Anmelden";
+  app.innerHTML = `<div class="authwrap"><form class="authcard" onsubmit="return false"><a class="logo" href="#/"><i class="mark"></i>Lumi</a><h1>Willkommen zurück</h1><p class="note">Melde dich an, um dein Dashboard zu öffnen. Deine Daten sind auf allen Geräten gleich.</p>${cloudAuthHtml()}<a class="link" href="#/">Zurück zur Startseite</a></form></div>`;
+  cloudAuthBind($(".authcard", app), () => {});
+}
+function cloudLoginModal() {
+  if (!cloudOn()) return toast("Cloud ist noch nicht eingerichtet.");
+  const { el, close } = modal(`<h3>Konto</h3><p class="note">Melde dich an, damit deine Notizen, Aufgaben und Karteikarten auf allen Geräten da sind.</p>${cloudAuthHtml()}`);
+  cloudAuthBind(el, close);
+}
+async function cloudLogout() { await cloudPush(); await CLOUD.sb.auth.signOut(); CLOUD.user = null; toast("Abgemeldet"); }
 function cloudPanelHtml() {
   if (!cloudOn()) return `<div class="panel"><h2>${ic("adduser")}Konto &amp; Cloud</h2><p class="note">Die Cloud ist nicht eingerichtet.</p></div>`;
   return CLOUD.user
