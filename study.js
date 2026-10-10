@@ -245,8 +245,7 @@ V.today = m => {
   const pct = Math.round(Math.min(100, mins / goal * 100)), exDays = nextEx ? daysUntil(nextEx.due) : null;
   m.innerHTML = `<div class="home-wrap again"><div class="page home zen bento">
   <header class="b-head rise" style="--i:0"><div class="b-hl"><p class="z-date">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1 class="greet-h z-h">${words}</h1></div>
-    <div class="b-hr"><form class="z-ask" id="hs"><span class="z-sp">${ic("spark")}</span><input id="hq" placeholder="Die KI fragen oder etwas erstellen lassen …" autocomplete="off" aria-label="KI fragen"><button class="send" id="hs-ai" aria-label="Senden">${ic("up")}</button></form>
-    <div class="z-chips">${SUGG.map(x => `<button type="button">${x}</button>`).join("")}</div></div></header>
+</header>
   <div class="z-ans" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
   <div class="b-grid">
     <section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
@@ -256,7 +255,6 @@ V.today = m => {
     <button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>
     <section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 4).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>
     <button class="wg w-ex rise" style="--i:7" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><h2>${nextEx ? "Nächste Prüfung" : "Prüfungen"}</h2>${nextEx ? `<b class="w-big">${exDays}</b><p>${exDays === 1 ? "Tag" : "Tage"} bis ${esc(nextEx.title)}</p><span class="w-go">Übungsquiz ${ic("back")}</span>` : `<p>Keine Prüfung eingetragen.</p><span class="w-go">Eintragen ${ic("back")}</span>`}</button>
-    <section class="wg w-quick rise" style="--i:8"><h2>Schnell</h2><div class="w-q"><button data-q="n">${ic("note")}<span>Notiz</span></button><button data-go="quiz">${ic("help")}<span>Quiz</span></button><button data-go="planner">${ic("cal")}<span>Planer</span></button><button data-go="grades">${ic("award")}<span>Noten</span></button></div></section>
   </div></div></div>`;
   bindCommon(m);
   $$("[data-q]", m).forEach(b => b.onclick = () => docDialog("note"));
@@ -298,17 +296,6 @@ V.today = m => {
     $("#cal-n", m).onclick = () => { cm++; if (cm > 11) { cm = 0; cy++; } drawCal(); };
     drawCal();
   }
-  $("#hs", m).onsubmit = async e => {
-    e.preventDefault(); const q = $("#hq", m).value.trim(), out = $("#ai-out", m); if (!q) return;
-    if (!hasKey()) { out.innerHTML = `<p class="note">Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.</p>`; return; }
-    $("#hq", m).value = ""; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>KI schreibt …</span></div>`;
-    const r = await agentAsk(q);
-    if (!out.isConnected) return;
-    if (!r) { out.innerHTML = `<p class="note">Das hat leider nicht geklappt. Versuche es bitte noch einmal.</p>`; return; }
-    out.innerHTML = `<p>${streamHtml(r.text)}</p>${r.acts.length ? `<div class="acts" style="--base:${Math.min(2600, r.text.split(/\s+/).length * 30 + 200)}ms">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
-    $$("[data-ag]", out).forEach(b => b.onclick = () => go(b.dataset.ag));
-  };
-  $$(".z-chips button", m).forEach(b => b.onclick = () => { $("#hq", m).value = b.textContent; $("#hs", m).requestSubmit(); });
 };
 const msLogoSvg = () => `<svg viewBox="0 0 24 24" width="26" height="26"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="13" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="13" width="10" height="10" fill="#00a4ef"/><rect x="13" y="13" width="10" height="10" fill="#ffb900"/></svg>`;
 let quizPrefill = null;

@@ -1534,7 +1534,6 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .sana .s-side .s-fc{min-height:0;flex:1;padding:18px 20px}
 @media (max-width:1000px){.sana .s-two{grid-template-columns:1fr}.sana .s-side{flex-direction:row}.sana .s-side .s-fc{min-height:120px}}
 @media (max-width:700px){.sana .s-ai{padding:16px;border-radius:26px}.sana .s-side{flex-direction:column}}
-@media (min-width:901px){body:has(.main.homew) #aipane{display:none}}
 
 /* v46: schwarz statt blau */
 .sana .s-ai{background:#0f0f12;color:#fff}
@@ -1686,3 +1685,23 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .bento button.wg{height:100%;width:100%;align-self:stretch;justify-self:stretch}.bento .b-grid>*{min-height:0}
 .bento .wg,.bento button.wg{box-sizing:border-box}
 @media (max-width:900px){.bento .b-grid>.wg{width:100%;max-width:100%}.bento .z-add .link{white-space:nowrap;flex:none}.bento .z-add input{min-width:0}}
+
+/* v52: gleich große weiße Widgets (3x2), KI-Dock unten rechts bündig im Weiß */
+.bento .b-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
+.bento .w-tasks{grid-column:1;grid-row:1}.bento .w-cal{grid-column:2;grid-row:1}.bento .w-goal{grid-column:3;grid-row:1}
+.bento .w-cards{grid-column:1;grid-row:2;background:#fff;color:#0f0f12}.bento .w-rec{grid-column:2;grid-row:2}.bento .w-ex{grid-column:3;grid-row:2;background:#fff}
+.bento .w-cards h2{color:#8a8a98}.bento .wg p,.bento .w-cards p{color:#55555f}
+.bento .w-goal{align-items:stretch}.bento .w-goal .w-ring{max-height:none;flex:1}
+.bento .z-ans{max-height:none;overflow:visible}.bento .b-head{align-items:flex-start}
+@media (min-width:901px){.page.home.bento{padding-bottom:112px!important}
+  .aipane{right:0!important;bottom:0!important;border-radius:28px 0 0 0!important;box-shadow:-8px -8px 30px rgba(0,0,0,.05)!important;width:min(400px,100vw)}
+  .aipane.open{width:min(440px,100vw)}}
+@media (min-width:901px) and (max-height:820px){.bento .z-ans{display:block}}
+.bento button.wg{height:auto;align-self:stretch}
+.bento .w-goal .w-ring{display:flex;justify-content:center;align-items:center;aspect-ratio:auto;min-height:0;overflow:hidden}
+.bento .w-goal .w-ring .rg{height:100%;width:auto;aspect-ratio:1;max-height:100%}
+.bento .w-goal .w-ring svg{position:absolute;inset:0}
+.bento .w-goal p{text-align:center;margin:8px 0 0}.bento .w-goal .link{align-self:center;margin-top:4px}
+.bento .wg,.bento section.wg{margin:0!important}
+.bento .w-cal .cal-g{overflow:hidden}
+@media (min-width:901px) and (max-height:820px){.bento .w-cd{display:none}.bento .w-cal .cd{font-size:12px}.bento .w-cal .cd.today span{width:20px;height:20px}}
