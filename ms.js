@@ -30,11 +30,42 @@ async function msLogin() {
   const r = await msalApp.loginPopup({ scopes: msScopes(), prompt: "select_account" });
   msalApp.setActiveAccount(r.account); msCfg().account = r.account.username || r.account.name || "verbunden"; save();
 }
-async function msQuickLogin() {
-  if (!msReady()) { toast("Microsoft ist noch nicht eingerichtet – siehe Einstellungen."); go("settings"); return false; }
-  try { toast("Microsoft-Anmeldung wird geöffnet …"); await msLogin(); toast("Angemeldet – Daten werden geladen …"); const r = await msSync(); toast(r.errors.length ? "Verbunden – mit Hinweisen (siehe Einstellungen)" : `Verbunden: ${r.events} Termine, ${r.pages} OneNote-Seiten, ${r.exams + r.tasks} neue Einträge`); refreshNav(); if (curView === "today" || curView === "settings" || curView === "planner" || curView === "docs") renderView(); return true; }
-  catch (e) { const t = String(e.errorCode || e.message || e); toast(/popup/i.test(t) ? "Pop-up wurde blockiert – bitte Pop-ups für diese Seite erlauben." : /user_cancelled|cancel/i.test(t) ? "Anmeldung abgebrochen." : "Anmeldung fehlgeschlagen: " + (e.errorMessage || e.message || t).slice(0, 120)); return false; }
+/* Anmelde-Fenster: Dienste wählen, bei Microsoft anmelden (Popup), sofort synchronisieren */
+const MS_LOGO = `<svg viewBox="0 0 23 23" class="ms-logo" aria-hidden="true"><path fill="#f25022" d="M1 1h10v10H1z"/><path fill="#7fba00" d="M12 1h10v10H12z"/><path fill="#00a4ef" d="M1 12h10v10H1z"/><path fill="#ffb900" d="M12 12h10v10H12z"/></svg>`;
+function msLoginModal() {
+  return new Promise(resolve => {
+    const c = msCfg(); let done = false;
+    const SV = [["cal", "Outlook-Kalender", "Termine und Prüfungen", "cal"], ["note", "OneNote", "Seiten und Notizbücher", "note"], ["edu", "Teams-Aufgaben", "Abgaben und Aufgaben", "list"], ["chat", "Teams-Chats", "Nachrichten und Teams-Liste (optional)", "quote"]];
+    const { el, close } = modal(`<div class="msl"><div class="msl-top">${MS_LOGO}<h3>Mit Microsoft verbinden</h3><p>Hole Kalender, OneNote und Teams in Lumi. Lumi liest nur – es schreibt nichts zurück.</p></div>
+      <div class="msl-sv">${SV.map(([k, n, d, i]) => `<label class="msl-r"><span class="msl-i">${ic(i)}</span><span class="msl-t"><b>${n}</b><small>${d}</small></span><input type="checkbox" data-sv="${k}" ${c.services[k] ? "checked" : ""}><i class="msl-sw"></i></label>`).join("")}</div>
+      <div id="msl-act"></div><p class="msl-m" id="msl-m"></p><p class="msl-fine">Die Anmeldung öffnet ein Fenster direkt bei Microsoft. Dein Passwort sieht Lumi nie.</p></div>`);
+    const act = $("#msl-act", el), msg = (t, bad) => { const m = $("#msl-m", el); m.textContent = t; m.classList.toggle("bad", !!bad); };
+    const readSv = () => $$("[data-sv]", el).forEach(i => c.services[i.dataset.sv] = i.checked);
+    const paint = () => {
+      if (c.account) { act.innerHTML = `<div class="msl-ok"><i class="ldot on"></i><b>Verbunden als ${esc(c.account)}</b></div><div class="row"><button class="btn primary" id="msl-sync">Jetzt synchronisieren</button><button class="btn ghost" id="msl-out">Abmelden</button></div>`; return; }
+      if (!msReady()) { act.innerHTML = `<div class="msl-warn"><b>Client-ID fehlt</b><p>Trage sie dauerhaft in Vercel ein (<code>MS_CLIENT_ID</code>) oder füge sie hier für dieses Gerät ein.</p><input class="field" id="msl-id" placeholder="Anwendungs-(Client-)ID, z. B. 1a2b3c4d-…" autocomplete="off"><button class="btn primary" id="msl-save">Speichern &amp; weiter</button></div>`; return; }
+      act.innerHTML = `<button class="btn primary big msl-go" id="msl-go">${MS_LOGO}Mit Microsoft anmelden</button>`;
+    };
+    const run = async (login) => {
+      readSv(); save(); const b = $("#msl-go", el) || $("#msl-sync", el); if (b) b.disabled = true;
+      try {
+        if (login) { msg("Das Microsoft-Fenster öffnet sich … (Pop-ups erlauben)"); await msLogin(); }
+        msg("Daten werden geladen …"); const r = await msSync();
+        msg(r.errors.length ? "Verbunden – mit Hinweisen (siehe Einstellungen)." : `Fertig: ${r.events} Termine, ${r.pages} OneNote-Seiten, ${r.exams + r.tasks} neue Einträge.`);
+        done = true; refreshNav(); if (["today", "settings", "planner", "docs", "exams"].includes(curView)) renderView(); setTimeout(() => { close(); resolve(true); }, 1400);
+      } catch (e) { const t = String(e.errorCode || e.message || e); msg(e instanceof Event ? "Die Microsoft-Anmeldung konnte nicht geladen werden – bitte Internetverbindung prüfen." : /popup/i.test(t) ? "Das Pop-up wurde blockiert – bitte Pop-ups für diese Seite erlauben." : /user_cancelled|cancel/i.test(t) ? "Anmeldung abgebrochen." : /AADSTS50011|redirect/i.test(t) ? "Die Umleitungs-URI in Azure passt nicht (muss als „Single-Page-Anwendung“ eingetragen sein)." : "Anmeldung fehlgeschlagen: " + (e.errorMessage || e.message || t).slice(0, 140), true); paint(); bind(); }
+    };
+    const bind = () => {
+      $("#msl-go", el)?.addEventListener("click", () => run(true));
+      $("#msl-sync", el)?.addEventListener("click", () => run(false));
+      $("#msl-out", el)?.addEventListener("click", async () => { await msLogout(); msg("Abgemeldet."); paint(); bind(); });
+      $("#msl-save", el)?.addEventListener("click", () => { const v = $("#msl-id", el).value.trim(); if (!/^[0-9a-f-]{36}$/i.test(v)) return msg("Das sieht nicht wie eine Client-ID aus (36 Zeichen mit Bindestrichen).", true); c.clientId = v; save(); msg(""); paint(); bind(); });
+      $$("[data-sv]", el).forEach(i => i.onchange = () => { readSv(); save(); });
+    };
+    paint(); bind(); const mask = el.closest(".mask"); if (mask) new MutationObserver(() => { if (!mask.isConnected && !done) resolve(false); }).observe(document.body, { childList: true });
+  });
 }
+const msQuickLogin = () => msLoginModal();
 async function msLogout() {
   try { await msInit(); const a = msalApp.getActiveAccount() || msalApp.getAllAccounts()[0]; if (a) await msalApp.logoutPopup({ account: a, postLogoutRedirectUri: msRedirect() }); } catch {}
   const c = msCfg(); c.account = ""; c.events = []; c.chats = []; c.teams = []; c.lastSync = 0; save();
