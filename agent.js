@@ -145,7 +145,7 @@ function aiSide(open, trigger) {
     document.addEventListener("keydown", e => { if (e.key === "Escape" && el.classList.contains("on") && !document.querySelector(".mask,#aicmd")) aiSide(false); });
   }
   if (trigger) aiSideTools = trigger;
-  $$("#ai-m,#aicb").forEach(b => b.classList.toggle("on", open));
+  $$("#ai-m,#aicb").forEach(b => { b.classList.toggle("on", open); const sv = b.querySelector("svg"); if (sv && b.id === "ai-m") { sv.outerHTML = ic(open ? "aipanelOn" : "aipanel"); b.querySelector("svg").classList.add("ic-flip"); } });
   if (open) {
     const d = aiSideDoc(); chatCtx.clear(); if (d && d.type !== "draw" && d.type !== "db") chatCtx.add(d.id);
     mountChat($("#as-box", el), false);

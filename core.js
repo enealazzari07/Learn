@@ -364,3 +364,4 @@ menu = function (anchor, items) {
   }
   return _menu(anchor, items);
 };
+P.aipanelOn = '<rect x="3" y="4.5" width="18" height="15" rx="4.5"/><path d="M15.5 4.5h1a4.5 4.5 0 0 1 4.5 4.5v6a4.5 4.5 0 0 1-4.5 4.5h-1z" fill="currentColor" stroke="none"/><path d="M15.5 4.5v15"/><path d="M8.4 9.4L11 12l-2.6 2.6"/>';

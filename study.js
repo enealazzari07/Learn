@@ -659,6 +659,13 @@ async function noteEditor(m, d) {
   $("[data-k]", bar).onclick = closeAi; $("[data-u]", bar).onclick = () => { body.innerHTML = aiPrev; dirty(); closeAi(); };
   const outside = e => { if (!bar.hidden && aiState !== "busy" && !bar.contains(e.target)) closeAi(); };
   document.addEventListener("mousedown", outside, true); LEAVE.push(() => document.removeEventListener("mousedown", outside, true));
+  /* Hinweis-Blöcke lassen sich mit Rück- oder Entfernen-Taste auflösen bzw. löschen */
+  body.addEventListener("keydown", e => {
+    if (e.key !== "Backspace" && e.key !== "Delete") return; const sel = getSelection(); if (!sel.rangeCount || !sel.isCollapsed) return;
+    const el = sel.anchorNode?.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode, co = el?.closest?.("blockquote.callout"); if (!co || !body.contains(co)) return;
+    const txt = co.textContent.replace(/\u00a0/g, " ").trim(), r0 = document.createRange(); r0.setStart(co, 0); r0.setEnd(sel.anchorNode, sel.anchorOffset); const atStart = !r0.toString().replace(/^Hinweis:\s*/, "").replace(/\u00a0/g, "").length;
+    if (txt === "" || txt === "Hinweis:" || (e.key === "Backspace" && atStart)) { e.preventDefault(); const p = document.createElement("p"); const rest = co.textContent.replace(/^Hinweis:\s*/, "").trim(); if (rest) p.textContent = rest; else p.innerHTML = "<br>"; co.replaceWith(p); const r = document.createRange(); r.selectNodeContents(p); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); dirty(); }
+  });
   body.addEventListener("contextmenu", e => { e.preventDefault(); openAiBar({ x: e.clientX, y: e.clientY }); });
   body.addEventListener("keydown", e => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "j") { e.preventDefault(); openAiBar(); return; }

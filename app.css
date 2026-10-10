@@ -2172,3 +2172,6 @@ a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{w
 .aibar .ab-chips button svg{width:13px;height:13px;flex:none}
 .cmp-b.src.on{color:#0f0f12;background:#ececf1!important}
 .cmp-b.src{color:#9a9aa6}
+.ned .body blockquote.callout{background:#f1f1f5}.ned .body blockquote.callout b{color:#0f0f12}
+.aitog svg.ic-flip{animation:aiFlip .35s cubic-bezier(.3,.9,.3,1)}
+@keyframes aiFlip{from{transform:scale(.6) rotate(-12deg);opacity:.3}}
