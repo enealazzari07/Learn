@@ -27,7 +27,7 @@ const P = {
   cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   award: '<circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>',
-  spark: '<circle cx="12" cy="5" r="2.6" fill="currentColor"/><circle cx="12" cy="19" r="2.6" fill="currentColor"/><circle cx="5" cy="12" r="2.6" fill="currentColor"/><circle cx="19" cy="12" r="2.6" fill="currentColor"/>',
+  spark: '<circle class="ld" cx="12" cy="12" r="3" fill="currentColor"/><circle class="ld" cx="12" cy="4.4" r="2.1" fill="currentColor"/><circle class="ld" cx="19.6" cy="12" r="2.1" fill="currentColor"/><circle class="ld" cx="12" cy="19.6" r="2.1" fill="currentColor"/><circle class="ld" cx="4.4" cy="12" r="2.1" fill="currentColor"/><circle class="ld" cx="6.6" cy="6.6" r="1.25" fill="currentColor"/><circle class="ld" cx="17.4" cy="6.6" r="1.25" fill="currentColor"/><circle class="ld" cx="17.4" cy="17.4" r="1.25" fill="currentColor"/><circle class="ld" cx="6.6" cy="17.4" r="1.25" fill="currentColor"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
   plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M18 6L6 18M6 6l12 12"/>',
   up: '<path d="M12 19V5M5 12l7-7 7 7"/>', check: '<path d="M5 12l5 5 9-10"/>',
