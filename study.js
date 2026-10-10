@@ -240,7 +240,7 @@ V.today = m => {
   m.classList.add("homew");
   m.innerHTML = `<div class="home-wrap ${first ? "first" : "again"}"><div class="page home sana">
   <header class="hh rise" style="--i:0"><div><h1 class="greet-h">${words}</h1><p class="hsub">${open.length ? `Du hast ${todayN} ${todayN === 1 ? "Ding" : "Dinge"} heute zu erledigen.` : "Heute ist nichts offen – ein guter Moment zum Lernen."}</p></div>
-    </header>
+    <button class="s-acct" id="acct"></button></header>
   <section class="s-ai rise" style="--i:1"><div class="s-aih"><span class="s-aik">${ic("spark")} Lumi KI</span><span class="s-aid">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</span></div>
     <form class="s-aif" id="hs"><input id="hq" placeholder="Frag mich etwas, lass mich etwas erstellen oder suche …" autocomplete="off" aria-label="KI fragen"><button class="send" id="hs-ai" aria-label="Senden">${ic("up")}</button></form>
     <div class="s-aia" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
@@ -251,7 +251,7 @@ V.today = m => {
   
   <aside class="s-side rise" style="--i:3"><button class="s-fc s-fc-c" data-go="cards"><span class="s-fk">Karteikarten</span><b>${due}</b><small>${due === 1 ? "Karte ist" : "Karten sind"} fällig</small></button>
     <button class="s-fc s-fc-e" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><span class="s-fk">${nextEx ? "Nächste Prüfung" : "Lernziel"}</span><b>${nextEx ? esc(nextEx.title) : mins + " / " + goal + " Min."}</b><small>${nextEx ? `in ${daysUntil(nextEx.due)} ${daysUntil(nextEx.due) === 1 ? "Tag" : "Tagen"} – Übungsquiz starten` : "Heute gelernt"}</small></button></aside></div>
-  ${recent.length ? `<section class="rise s-sec" style="--i:3"><div class="sech"><h2 class="sh2">Zuletzt <em>${D.docs.length}</em></h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="s-cards4">${recent.map(d => `<button class="s-rc" data-d="${d.id}">${thumb(d)}<b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></button>`).join("")}</div></section>` : ""}
+  ${recent.length ? `<section class="rise s-sec s-rec" style="--i:3"><div class="sech"><h2 class="sh2">Zuletzt <em>${D.docs.length}</em></h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="s-cards4">${recent.map(d => `<button class="s-rc" data-d="${d.id}">${thumb(d)}<b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></button>`).join("")}</div></section>` : ""}
   </div></div>`;
   bindCommon(m);
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
@@ -274,6 +274,7 @@ V.today = m => {
     run(false);
   })();
   $("#addt", m).onclick = () => taskModal();
+  { const a = $("#acct", m), paint = () => { a.textContent = !cloudOn() ? "" : CLOUD.user ? CLOUD.user.email : "Anmelden"; a.hidden = !cloudOn(); }; paint(); a.onclick = () => CLOUD.user ? go("settings") : cloudLoginModal(); }
   $("#hs", m).onsubmit = async e => {
     e.preventDefault(); const q = $("#hq", m).value.trim(), out = $("#ai-out", m); if (!q) return;
     if (!hasKey()) { out.innerHTML = `<p class="note">Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.</p>`; return; }

@@ -333,6 +333,7 @@ V.settings = m => {
     <li>Optional <code>GEMINI_MODEL</code> setzen. Standard ist <code>gemini-flash-lite-latest</code> (Google-Alias, fällt bei abgeschalteten Modellen automatisch auf Ersatz zurück) (günstigstes Modell mit kostenlosem Kontingent).</li>
     <li>Danach <b>Deployments → Redeploy</b>. Der Key bleibt auf dem Server und gelangt nie in den Browser.</li></ol></details>
   <details class="msh"><summary>Erweitert: eigenen Anthropic-API-Key nutzen</summary><p class="note">Nur nötig, wenn die Server-KI nicht aktiv ist. Der Key wird nur in diesem Browser gespeichert.</p><label class="lbl">API-Key</label><input class="field" id="sk" type="password" placeholder="sk-ant-…" value="${esc(p.apiKey)}" autocomplete="off"><label class="lbl">Modell</label><input class="field" id="sm" value="${esc(p.model)}"></details></div>
+  ${cloudPanelHtml()}
   ${msPanelHtml()}
   <div class="panel"><h2>Daten</h2><p class="note">Alles liegt lokal auf diesem Gerät (IndexedDB) und funktioniert offline. Erstelle regelmäßig ein Backup – z. B. um auf Handy, iPad und PC dieselben Daten zu nutzen.</p><div class="row"><button class="btn ghost" id="ex">${ic("download")}Backup exportieren</button><button class="btn ghost" id="im">${ic("upload")}Backup importieren</button><input type="file" id="imf" accept="application/json" hidden><button class="btn ghost danger" id="rs">${ic("trash")}Alles löschen</button></div></div>
   <div class="row end"><button class="btn accent big" id="sv">Speichern</button></div></div>`;
@@ -342,7 +343,7 @@ V.settings = m => {
   $$("[data-c]", m).forEach(i => i.oninput = () => { subj(i.dataset.c).color = i.value; save(); }); $$("[data-n]", m).forEach(i => i.onchange = () => { subj(i.dataset.n).name = i.value.trim() || subj(i.dataset.n).name; save(); });
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
   $("#rs", m).onclick = async () => { if (await confirmBox("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.", "Alles löschen")) { indexedDB.deleteDatabase("lumi"); localStorage.clear(); setTimeout(() => location.hash = "#/", 100); setTimeout(() => location.reload(), 300); } };
-  bindMsPanel(m);
+  bindMsPanel(m); cloudBindPanel(m);
   $("#sv", m).onclick = () => { p.goalMin = Math.max(5, parseInt($("#sg", m).value) || 45); p.name = $("#sn", m).value.trim(); p.level = $("#sl .on", m)?.dataset.l || p.level; p.scale = $("#ss", m).value; p.apiKey = $("#sk", m).value.trim(); p.model = $("#sm", m).value.trim() || "claude-sonnet-5-5"; save(); refreshNav(); toast("Gespeichert"); };
 };
 

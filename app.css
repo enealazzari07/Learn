@@ -1549,3 +1549,23 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .sana .s-fc-e{background:#fff;color:#0f0f12}.sana .s-fc-e .s-fk,.sana .s-fc-e small{color:#0f0f12}
 .sana .s-pg i,.sana .s-pg i{background:#0f0f12}
 .sana .hs-ai,.sana .link{color:#0f0f12}
+
+/* v47: Home scrollt nicht (Desktop) – Inhalt passt sich der Höhe an */
+@media (min-width:901px){
+  .main.homew,.main.homew:not(.doc-full){height:calc(100dvh - 24px);min-height:0;overflow:hidden!important;display:flex;flex-direction:column;padding-bottom:22px}
+  .main.homew .home-wrap{flex:1;min-height:0;display:flex}
+  .page.home.sana{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;padding-bottom:0;width:100%}
+  .sana .s-two{flex:0 1 auto;min-height:0;margin-bottom:16px}
+  .sana .s-rec{flex:1 1 0;min-height:0;overflow:hidden;margin-bottom:0}
+  .sana .s-cards4{grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);grid-template-columns:none;overflow:hidden}
+  .sana .s-rc .s-th{aspect-ratio:16/8}
+  .main.homew #hq~*{}
+}
+@media (min-width:901px) and (max-height:900px){.sana .s-rec{display:none}.sana .s-two{margin-bottom:0}}
+@media (min-width:901px) and (max-height:760px){.sana .s-aic{display:none}.sana .s-ai{margin-bottom:14px}}
+@media (min-width:901px) and (max-height:680px){.sana .s-aia{display:none}.sana .s-side .s-fc{padding:12px 16px}}
+.sana .s-aia{max-height:30vh;overflow:auto}
+@media (min-width:901px){.main.homew .home-wrap{display:block;width:100%;max-width:none;margin:0;flex:1;min-height:0}.page.home.sana{height:100%;max-width:none;margin:0}}
+@media (min-width:901px){.sana .s-cards4{grid-auto-columns:230px;align-content:start;grid-template-rows:auto}.sana .s-rc .s-th{aspect-ratio:16/9}}
+.sana .s-acct{background:#fff;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sana .s-acct:hover{background:#ededf0}
