@@ -85,7 +85,9 @@ function renderLanding() {
 (async function () {
   await loadData(); try { migrateFolders(); } catch {}
   try { await cloudInit(); } catch {}
-  await Promise.race([probeServerAI(), new Promise(r => setTimeout(r, 1800))]);
+  /* Microsoft-Client-ID kann in Vercel (MS_CLIENT_ID) statt in config.js stehen */
+  const cfgP = location.protocol.startsWith("http") ? fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.msClientId && !(window.LUMI_CONFIG.msClientId || "").trim()) { window.LUMI_CONFIG.msClientId = j.msClientId; if (j.msTenant) window.LUMI_CONFIG.msTenant = j.msTenant; } }).catch(() => {}) : Promise.resolve();
+  await Promise.race([Promise.all([probeServerAI(), cfgP]), new Promise(r => setTimeout(r, 1800))]);
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   route();
   setTimeout(() => { try { msAuto(); } catch {} }, 1500);
