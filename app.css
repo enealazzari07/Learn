@@ -1868,3 +1868,5 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 #aiside .m.u{background:#0f0f12;color:#fff}#aiside .m.a{background:transparent;padding-left:0}
 #ai-m.on,#aicb.on{background:#0f0f12!important;color:#fff!important}#ai-m.on svg,#aicb.on svg{filter:invert(1)}
 @media (max-width:900px){#aiside{top:auto;left:8px;right:8px;bottom:8px;height:78dvh;width:auto}body.aiside-open #main{margin-right:0!important}}
+/* v65: Logo im Kopf der KI-Boxen steht still */
+.hai-h .ld,.ai-ic .ld,.aipane header .ld,#aiside header .ld,.aip-logo .ld{animation:none!important;transform:none!important;opacity:1!important}
