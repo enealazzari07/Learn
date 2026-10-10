@@ -114,9 +114,9 @@ const Suggest = (() => {
       if (!opt.quiet) { const t = body.querySelector(`[data-sg="${id}"]:not(.sg-ctl)`); t && t.scrollIntoView({ block: "center", behavior: "smooth" }); }
       return id;
     }
-    function suggestAppend(text) {
+    function suggestAppend(text, srcs) {
       if (!String(text || "").trim()) return 0; const id = ++seq, ctl = widget(id), blk = document.createElement("div");
-      blk.className = "sg-ins-blk"; blk.dataset.sg = id; blk.innerHTML = toHtml(/\n/.test(text) ? text : text); (blk.lastElementChild || blk).appendChild(ctl); body.appendChild(blk);
+      blk.className = "sg-ins-blk"; blk.dataset.sg = id; blk.innerHTML = toHtml(/\n/.test(text) ? text : text); if (srcs && srcs.length) blk.insertAdjacentHTML("beforeend", `<p class="sg-src">Quellen: ${srcs.filter(s => /^https?:/i.test(s.url)).map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">[${s.n}] ${esc(s.title)}</a>`).join(" · ")}</p>`); (blk.lastElementChild || blk).appendChild(ctl); body.appendChild(blk);
       dirty && dirty(); refresh(); blk.scrollIntoView({ block: "center", behavior: "smooth" }); return id;
     }
     function suggest(edits) {

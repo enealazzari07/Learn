@@ -2060,3 +2060,34 @@ ins.sg-ins{background:rgba(18,178,122,.16)!important;box-shadow:none}
 #ai-m.on svg,#aicb.on svg{filter:none!important}
 @media (min-width:901px){body.aiside-open .ned-bar{grid-template-columns:minmax(120px,.45fr) minmax(0,1.55fr) auto!important}}
 @media (min-width:901px){body.aiside-open .ned-bar .nb-r{gap:6px;padding-left:6px}body.aiside-open .ned-bar .modesw{transform:scale(.92);transform-origin:right center}}
+
+/* ======== v72: Word-ähnliche Formatierungsleiste + Dokumentdesign ======== */
+.fmtbar{position:sticky;top:62px;z-index:48;display:flex;align-items:center;gap:2px;padding:4px 14px 6px;background:#fff;overflow-x:auto;scrollbar-width:none;min-height:42px}
+.fmtbar::-webkit-scrollbar{display:none}
+.fb{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-width:32px;height:32px;padding:0 6px;border-radius:10px;cursor:pointer;color:#2a2a33;font-size:13px;font-weight:600;white-space:nowrap;flex:none;transition:background .15s}
+.fb:hover{background:#f1f1f5}.fb.on{background:#0f0f12;color:#fff}.fb .ic{width:17px;height:17px}.fb.wide{min-width:96px;justify-content:space-between;background:#f6f6fa;padding:0 8px 0 11px}.fb.wide:hover{background:#ececf2}.fb.wide .ic:last-child{width:14px;height:14px;opacity:.6}
+.fb.fd span{max-width:104px;overflow:hidden;text-overflow:ellipsis}
+.fsz{display:inline-flex;align-items:center;background:#f6f6fa;border-radius:11px;margin:0 4px;flex:none}.fsz .fb{min-width:28px;padding:0 4px}.fsz .fb.fd{min-width:36px;background:none;justify-content:center}
+.fsep{width:1px;height:20px;background:#e6e6ee;margin:0 6px;flex:none}.fsp{flex:1;min-width:10px}
+.fpop.fonts,.fpop.sizes{max-height:360px;overflow:auto}.fpop{width:auto;min-width:170px;max-width:300px}.fpop.sizes{min-width:74px}
+.fpop .mp-i{padding:7px 12px}.fpop .mp-i.on{background:#f1f1f6}.fpop .pv-h1{font-size:19px}.fpop .pv-h2{font-size:17px}.fpop .pv-h3{font-size:15.5px}.fpop .pv-blockquote{font-style:italic;font-weight:500}.fpop .pv-pre{font-family:ui-monospace,Menlo,monospace;font-weight:500}
+.fpop.sizes .mp-i{justify-content:center}
+/* Dokumentdesign über Variablen */
+.ned .body[data-ds]{font-family:var(--ed-ff,inherit);font-size:var(--ed-fs,18px);line-height:var(--ed-lh,1.8);text-align:var(--ed-ta,left)}
+.ned .body{zoom:var(--ed-z,1)}
+.ned .body[data-ds="classic"] h1,.ned .body[data-ds="classic"] h2,.ned .body[data-ds="classic"] h3,.ned .body[data-ds="thesis"] h1,.ned .body[data-ds="thesis"] h2,.ned .body[data-ds="thesis"] h3{font-family:inherit;letter-spacing:-.01em}
+.ned .body[data-ds="thesis"] p{text-indent:0;margin-bottom:.5em}
+.ned .body[data-ds="compact"] p{margin-bottom:.5em}
+.ned .body[data-ds="mono"] h1,.ned .body[data-ds="mono"] h2,.ned .body[data-ds="mono"] h3{font-family:inherit}
+@media (max-width:900px){.fmtbar{top:auto;position:static;padding:4px 10px}.fb.wide{min-width:84px}}
+
+/* Quellen */
+a.cite{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;margin:0 1px 0 2px;vertical-align:2px;border-radius:999px;background:#eceef3;color:#0f0f12!important;font-size:10.5px;font-weight:700;text-decoration:none!important;transition:background .15s,color .15s}
+a.cite:hover{background:#0f0f12;color:#fff!important}
+.srcs{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0 2px}
+.srcs-t{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#8a8a98;margin-right:2px}.srcs-t svg{width:14px;height:14px}
+a.src{display:inline-flex;align-items:center;gap:6px;max-width:210px;padding:4px 8px 4px 5px;border-radius:999px;background:#f3f3f7;color:#2a2a33!important;font-size:12px;font-weight:600;text-decoration:none!important;transition:background .15s}
+a.src:hover{background:#e6e6ee}a.src i{font-style:normal;width:17px;height:17px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:10px;font-weight:800;flex:none}
+a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{width:11px;height:11px;opacity:.55;flex:none}
+.sg-src{font-size:.82em;color:#55555f;margin:.5em 0 0}.sg-src a{color:#0f0f12;text-decoration:underline;text-underline-offset:2px}
+#body a[href^="http"]{cursor:pointer}

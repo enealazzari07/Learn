@@ -533,6 +533,7 @@ async function noteEditor(m, d) {
     formula: () => { const { el } = modal(`<h3>Formeln & Symbole</h3><div class="syms">${SYMS.map(s => `<button>${s}</button>`).join("")}</div><p class="note">Tipp: „x²“ und „x₂“ findest du unter Einfügen.</p>`); $$(".syms button", el).forEach(sb => sb.onclick = () => { restore(); document.execCommand("insertText", false, sb.textContent); dirty(); }); },
     "ai-edit": () => openAiBar(), "ai-summary": () => run("summary"), "ai-cards": () => run("cards"), "ai-quiz": () => run("quiz"), "ai-goals": () => run("goals"),
   };
+  const FM = Format.attach({ m, body, exec, restore, dirty, d, save }); LEAVE.push(() => FM.destroy());
   const noFocus = e => e.preventDefault();
   $$(".tbtn[data-c], .tt", m).forEach(b => b.onmousedown = noFocus);
   $$(".tbtn[data-c]", m).forEach(b => b.onclick = () => CMD[b.dataset.c]?.());

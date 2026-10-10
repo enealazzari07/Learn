@@ -27,6 +27,8 @@ const P = {
   cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   award: '<circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/>',
   timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
+  ext: '<path d="M14 5h5v5M19 5l-8 8M10 6H6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-4"/>',
   eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
   bulb: '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>',
   clip: '<path d="M20.5 11.5l-8.2 8.2a5.2 5.2 0 0 1-7.4-7.4l8.4-8.4a3.5 3.5 0 0 1 5 5l-8.4 8.4a1.8 1.8 0 0 1-2.5-2.5l7.6-7.6"/>',
@@ -238,6 +240,7 @@ function sysBase(extra = "") {
   const p = D.profile;
   return `You are Lumi, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural." : ""}${extra ? "\n" + extra : ""}`;
 }
+const sourcesOn = () => D.profile.sources !== false && !!(serverInfo && serverInfo.gemini);
 const swissOn = () => D.profile.swiss !== false;
 const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
@@ -251,14 +254,16 @@ const aiModelId = () => { const L = aiModelList(); return (L.find(m => m[0] === 
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
 /* schnelles Modell für Hintergrundaufgaben (Auto-Korrektur): bevorzugt Groq */
 const autoModelId = () => { const L = aiModelList(), pick = D.profile.autoModel && L.find(m => m[0] === D.profile.autoModel); return (pick || L.find(m => m[0] === "groq:llama-3.1-8b-instant") || L.find(m => m[0] === "gemini-flash-lite-latest") || L[0] || AI_MODELS[0])[0]; };
-async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature } = {}) {
+async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature, sources = false } = {}) {
+  window.lastAiSources = [];
   if (!hasKey()) { if (!quiet) toast("Lumi AI ist noch nicht eingerichtet (Einstellungen → Lumi AI). Lokale Hilfe wird verwendet."); return null; }
   if (serverAI) {
     try {
-      const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
+      const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(r.status === 429 ? "Das kostenlose Lumi-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
       if (j.model && j.model !== (model || aiModelId()) && !quiet) toast(`${aiModelName(model || aiModelId())} ist gerade ausgelastet – ${aiModelName(j.model)} hat geantwortet.`);
+      window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
     } catch (e) { if (!quiet) toast("Lumi-AI-Fehler: " + e.message); return null; }
   }

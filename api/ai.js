@@ -19,7 +19,17 @@ const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.
 const available = () => { const h = have(); return MODELS.filter(x => h[x.p]); };
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
 
-async function callGemini(model, key, { system, messages, max, image, signal }) {
+/* Quellen: Gemini „Grounding mit Google Suche“ liefert Fundstellen; wir hängen [n]-Marker an die belegten Sätze */
+function withCitations(text, meta) {
+  const chunks = meta?.groundingChunks || [], sup = meta?.groundingSupports || [], srcs = [], idx = new Map();
+  chunks.forEach((c, i) => { const u = c.web?.uri; if (!u || !/^https?:/.test(u)) return; srcs.push({ n: srcs.length + 1, title: String(c.web.title || "Quelle").slice(0, 80), url: u }); idx.set(i, srcs.length); });
+  if (!srcs.length) return { text, sources: [] };
+  let buf = Buffer.from(text, "utf8"); const cut = buf.indexOf("<lumi-actions>"), limit = cut < 0 ? buf.length : cut, ins = new Map();
+  for (const s of sup) { const end = s.segment?.endIndex, ns = [...new Set((s.groundingChunkIndices || []).map(i => idx.get(i)).filter(Boolean))].slice(0, 3); if (end != null && end <= limit && ns.length) ins.set(end, (ins.get(end) || "") + ns.map(n => `[${n}]`).join("")); }
+  [...ins.entries()].sort((x, y) => y[0] - x[0]).forEach(([pos, m]) => { buf = Buffer.concat([buf.subarray(0, pos), Buffer.from(" " + m), buf.subarray(pos)]); });
+  return { text: buf.toString("utf8"), sources: srcs };
+}
+async function callGemini(model, key, { system, messages, max, image, signal, sources }) {
   const contents = messages.slice(-24).map((m, i, arr) => {
     const role = m.role === "assistant" ? "model" : "user", parts = [{ text: String(m.content ?? "").slice(0, 80000) || " " }];
     if (image?.data && i === arr.length - 1 && role === "user") parts.unshift({ inlineData: { mimeType: image.type || "image/jpeg", data: String(image.data) } });
@@ -28,11 +38,12 @@ async function callGemini(model, key, { system, messages, max, image, signal }) 
   while (contents.length && contents[0].role !== "user") contents.shift();
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST", signal, headers: { "content-type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, +max || 1024)), temperature: 0.6 } }),
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, +max || 1024)), temperature: 0.6 }, ...(sources ? { tools: [{ google_search: {} }] } : {}) }),
   });
   const j = await r.json().catch(() => ({}));
-  const text = r.ok ? (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("") : "";
-  return { status: r.status, ok: r.ok, text, error: j.error?.message, blocked: j.promptFeedback?.blockReason };
+  let text = r.ok ? (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("") : "", src = [];
+  if (text && sources) { const c = withCitations(text, j.candidates?.[0]?.groundingMetadata); text = c.text; src = c.sources; }
+  return { status: r.status, ok: r.ok, text, sources: src, error: j.error?.message, blocked: j.promptFeedback?.blockReason };
 }
 async function callGroq(model, key, { system, messages, max, temperature = 0.4, signal }) {
   const msgs = [{ role: "system", content: String(system).slice(0, 30000) || "You are a helpful study assistant." }, ...messages.slice(-24).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content ?? "").slice(0, 60000) || " " }))];
@@ -54,7 +65,7 @@ module.exports = async function handler(req, res) {
   if (!h.gemini && !h.groq) return res.status(503).json({ error: "Weder GEMINI_API_KEY noch GROQ_API_KEY ist in Vercel gesetzt." });
   if (!sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
-  const { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature } = body || {};
+  const { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false } = body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "Keine Nachricht" });
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
 
@@ -63,7 +74,7 @@ module.exports = async function handler(req, res) {
   const geminiList = h.gemini ? CHAIN().map(m => ({ id: m, p: "gemini", m })) : [];
   const groqList = h.groq ? MODELS.filter(x => x.p === "groq") : [];
   let cands = [want, ...(want?.p === "groq" ? [...groqList, ...geminiList] : [...geminiList, ...groqList])].filter(Boolean);
-  if (image) cands = cands.filter(c => c.p === "gemini");            // Bilder nur mit Gemini
+  if (image || (sources && h.gemini)) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
   const seen = new Set(); cands = cands.filter(c => !seen.has(c.id) && seen.add(c.id));
   if (!cands.length) return res.status(422).json({ error: "Für Bilder wird GEMINI_API_KEY benötigt." });
 
@@ -71,10 +82,10 @@ module.exports = async function handler(req, res) {
   try {
     let last = null;
     for (const c of cands) {
-      const args = { system, messages, max, image, signal: ctl.signal, temperature: typeof temperature === "number" ? Math.max(0, Math.min(1, temperature)) : undefined };
+      const args = { system, messages, max, image, sources: !!sources, signal: ctl.signal, temperature: typeof temperature === "number" ? Math.max(0, Math.min(1, temperature)) : undefined };
       const out = c.p === "gemini" ? await callGemini(c.m, process.env.GEMINI_API_KEY, args) : await callGroq(c.m, process.env.GROQ_API_KEY, args);
       last = { ...out, c };
-      if (out.ok && out.text) return res.status(200).json({ text: out.text, model: c.id });
+      if (out.ok && out.text) return res.status(200).json({ text: out.text, model: c.id, sources: out.sources || [] });
       if (out.ok && !out.text) continue;                                // leere Antwort → nächstes Modell
       if (![404, 429, 500, 502, 503].includes(out.status)) break;      // echter Fehler (z. B. 400/401) → abbrechen
     }
