@@ -73,7 +73,7 @@ function refreshNav() {
 }
 function newMenu(anchor) {
   menu(anchor, [
-    { label: "Neue Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
+    { label: "Neue Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
     { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-",
     { label: "Karteikarten-Stapel", icon: "cards", fn: () => newDeck() }, { label: "Aufgabe / Prüfung", icon: "todo", fn: () => taskModal() },
     { label: isUni() ? "Neues Modul" : "Neues Fach", icon: "star", fn: newSubject },
@@ -174,13 +174,14 @@ async function uploadFiles(files) {
 }
 async function deleteDoc(d) {
   if (!(await confirmBox(`„${d.title}“ wirklich löschen?`))) return;
-  D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
+  D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:", "db:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
 }
 const fileIcon = d => { const e = (d.title.split(".").pop() || "").toLowerCase(); return /pdf/.test(e) ? ["PDF", "#e5484d"] : /docx?/.test(e) ? ["DOC", "#2563eb"] : /pptx?/.test(e) ? ["PPT", "#f97316"] : /xlsx?|csv/.test(e) ? ["XLS", "#16a34a"] : /txt|md/.test(e) ? ["TXT", "#64748b"] : [e.slice(0, 4).toUpperCase() || "FILE", "#64748b"]; };
 function docCard(d) {
   const s = subj(d.subjectId);
   let thumb;
   if (d.type === "note") thumb = `<div class="th note-th">${esc((d.text || "").slice(0, 150)) || "<i>Leer</i>"}</div>`;
+  else if (d.type === "db") thumb = `<div class="th file-th"><b style="background:#5b3df5">${ic("table")}</b></div>`;
   else if (d.type === "draw") thumb = `<div class="th" style="background:#fff center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.thumb) thumb = `<div class="th" style="background:#f3f3f5 center/cover url(${d.thumb})"></div>`;
   else { const [l, c] = fileIcon(d); thumb = `<div class="th file-th"><b style="background:${c}">${esc(l)}</b></div>`; }
@@ -335,7 +336,7 @@ V.docs = (m, id) => {
   const folders = (q ? D.folders.filter(f => f.name.toLowerCase().includes(q)) : D.folders.filter(f => (f.parent || "") === docFolder)).sort((a, b) => a.name.localeCompare(b.name));
   const list = (q ? D.docs.filter(d => (d.title + " " + (d.text || "")).toLowerCase().includes(q)) : D.docs.filter(d => (d.folderId || "") === docFolder)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (docSort === "name" ? a.title.localeCompare(b.title) : b.updated - a.updated));
   m.innerHTML = `<div class="page"><div class="hd docs-hd"><div><h1>Dokumente</h1><nav class="path" aria-label="Pfad"><button data-p="" class="${path.length ? "" : "here"}">Home</button>${path.map((f, i) => `<span>/</span><button data-p="${f.id}" class="${i === path.length - 1 ? "here" : ""}">${esc(f.name)}</button>`).join("")}</nav></div>
-  <div class="row"><button class="btn ghost" id="up">${ic("upload")}Hochladen</button><button class="btn ghost" id="nn">${ic("newnote")}Notiz</button><button class="btn accent" id="nf">${ic("plus")}Ordner</button></div></div>
+  <div class="row"><button class="btn ghost" id="up">${ic("upload")}Hochladen</button><button class="btn ghost" id="nn">${ic("newnote")}Notiz</button><button class="btn ghost" id="ndb">${ic("table")}Datenbank</button><button class="btn accent" id="nf">${ic("plus")}Ordner</button></div></div>
   <div class="toolbar"><div class="searchbox">${ic("search")}<input id="dq" placeholder="${path.length ? "In „" + esc(path[path.length - 1].name) + "“ und überall suchen…" : "Alle Dokumente durchsuchen…"}" value="${esc(docQuery)}"></div><label class="sortl">${ic("filter")}<select class="field slim" id="ds"><option value="recent" ${docSort === "recent" ? "selected" : ""}>Zuletzt bearbeitet</option><option value="name" ${docSort === "name" ? "selected" : ""}>Name A–Z</option></select></label></div>
   ${folders.length || !q ? `<h2 class="sh2 sm">Ordner</h2><div class="foldgrid">${folders.map(f => `<div class="fold" data-f="${f.id}" style="--c:${f.color}"><span class="fi">${ic("folder")}</span><div class="fm"><b>${esc(f.name)}</b><small>${folderCount(f.id)} ${folderCount(f.id) === 1 ? "Eintrag" : "Einträge"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`).join("")}${q ? "" : `<button class="fold add" id="nf3">${ic("plus")}<b>Neuer Ordner</b></button>`}</div>` : ""}
   ${list.length ? `<h2 class="sh2 sm">${q ? "Treffer" : "Dateien"}</h2><div class="docgrid">${list.map(docCard).join("")}</div>` : (!folders.length && q ? `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>${q ? "Nichts gefunden" : path.length ? "Dieser Ordner ist leer" : "Noch nichts hier"}</h3><p>${q ? "Versuche einen anderen Suchbegriff." : "Lege Ordner für deine Fächer an (z. B. Mathe, Deutsch) und erstelle Notizen, Zeichnungen oder lade PDFs hoch. Dateien kannst du auch einfach hierher ziehen."}</p>${q ? "" : `<div class="row" style="justify-content:center"><button class="btn accent" id="nf2">Ordner anlegen</button><button class="btn ghost" id="nn2">Neue Notiz</button></div>`}</div>` : "")}
@@ -346,7 +347,7 @@ V.docs = (m, id) => {
   $$("[data-fm]", m).forEach(b => b.onclick = e => { e.stopPropagation(); folderMenu(b, folderOf(b.dataset.fm)); });
   $$(".doc", m).forEach(c => c.ondragstart = e => { e.dataTransfer.setData("text/lumi-doc", c.dataset.d); e.dataTransfer.effectAllowed = "move"; });
   function dropOn(e, fid) { const did = e.dataTransfer.getData("text/lumi-doc"); if (!did) return; e.preventDefault(); e.stopPropagation(); const d = D.docs.find(x => x.id === did); if (d) { moveDoc(d, fid); toast("Verschoben nach " + (folderOf(fid)?.name || "Dokumente")); refreshNav(); V.docs(m); } }
-  $("#up", m).onclick = () => $("#upl").click(); $("#nn", m).onclick = () => docDialog("note"); $("#nn2", m) && ($("#nn2", m).onclick = () => docDialog("note"));
+  $("#up", m).onclick = () => $("#upl").click(); $("#nn", m).onclick = () => docDialog("note"); $("#ndb", m) && ($("#ndb", m).onclick = e => newDatabaseMenu(e.currentTarget)); $("#nn2", m) && ($("#nn2", m).onclick = () => docDialog("note"));
   $("#nf", m).onclick = () => newFolder(); $("#nf3", m) && ($("#nf3", m).onclick = () => newFolder());
   $("#dq", m).oninput = debounce(e => { docQuery = e.target.value; const p = e.target.selectionStart; V.docs(m); const i = $("#dq", m); i.focus(); i.setSelectionRange(p, p); }, 200);
   $("#ds", m).onchange = e => { docSort = e.target.value; V.docs(m); };
@@ -413,6 +414,7 @@ V.doc = async (m, id) => {
   const d = D.docs.find(x => x.id === id); if (!d) { m.innerHTML = `<div class="page"><div class="emptybox"><h3>Dokument nicht gefunden</h3><button class="btn" data-go="docs">Zu den Dokumenten</button></div></div>`; return bindCommon(m); }
   if (d.type === "draw") return go("draw/" + id);
   if (d.type === "file") return fileViewer(m, d);
+  if (d.type === "db") return dbEditor(m, d);
   return noteEditor(m, d);
 };
 async function noteEditor(m, d) {
