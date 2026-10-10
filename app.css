@@ -1816,3 +1816,13 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 /* v59: Logo aus 3 Teilen – Animation pro Teil */
 .ld:nth-child(n){--k:0}
 g>.ld{transform-box:fill-box;transform-origin:center}
+
+/* ======== v60: Logo 1:1 nach Vorlage (goldene Kachel + weiße, halbtransparente Schleife) ======== */
+.ai-ic,.aipane .ai-ic,.hai-h .ai-ic,.mark{background:url(logo-mark.png) center/84% no-repeat,linear-gradient(135deg,#f7d765 0%,#e8aa3a 100%)!important;color:transparent!important;box-shadow:none!important}
+.ai-ic svg{display:none}
+.aipane .ai-ic{width:58px;height:58px;border-radius:19px}
+.mark{width:34px;height:34px;border-radius:11px!important;vertical-align:-9px;margin-right:8px}
+.logo .mark{background-size:86%}
+.aipane .hai-h b{font-size:16px}
+@media (max-width:900px){.aipane .ai-ic{width:48px;height:48px}}
+.aip-logo{width:52px;height:52px;border-radius:17px;flex:none;display:block}@media (max-width:900px){.aip-logo{width:40px;height:40px;border-radius:13px}}

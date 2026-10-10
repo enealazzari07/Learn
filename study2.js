@@ -295,7 +295,7 @@ V.ai = m => {
   let filter = "";
   const page = () => {
     const cur = chatState();
-    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span><button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
+    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><span class="ai-ic aip-logo"></span><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span><button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
     aside(); mountChat($("#cbox", m), false); hdr();
     $("#ct", m).onchange = e => { chatState().title = e.target.value.trim() || "Neuer Chat"; save(); aside(); };
     $("#ci", m).onclick = instrModal; $("#cmob", m).onclick = e => menu(e.currentTarget, [{ label: "Neuer Chat", icon: "plus", fn: () => { newChat(filter); page(); } }, ...D.chats.slice(0, 12).map(c => ({ label: c.title, icon: "note", fn: () => { D.curChat = c.id; page(); } }))]);
