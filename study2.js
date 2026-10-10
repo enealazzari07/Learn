@@ -207,7 +207,7 @@ function beep() { try { const c = new (window.AudioContext || window.webkitAudio
 const fmtT = s => `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
 function timerPaint() {
   const pill = $("#tpill"); if (pill) {
-    const show = T.running || T.left < T.total; pill.hidden = false; pill.classList.toggle("show", !!show); pill.classList.toggle("run", !!T.running);
+    const show = (T.running || T.left < T.total) && curView !== "today"; pill.style.setProperty("--p", ((1 - T.left / T.total) * 100).toFixed(1)); pill.hidden = false; pill.classList.toggle("show", !!show); pill.classList.toggle("run", !!T.running);
     if (!pill.firstChild) { pill.innerHTML = `<div class="tb-top"><i class="pd"></i><span class="tb-l"></span></div><b class="tb-t"></b><div class="tb-bar"><i></i></div><div class="tb-act"><button data-a="t" aria-label="Start oder Pause"></button><button data-a="x" aria-label="Zurücksetzen">${ic("x")}</button></div>`; pill.onclick = e => { const a = e.target.closest("button")?.dataset.a; if (a === "t") timerToggle(); else if (a === "x") timerReset(); else go("focus"); }; }
     $(".tb-l", pill).textContent = T.mode === "focus" ? "Fokus" + (T.subjectId && subj(T.subjectId) ? " · " + subj(T.subjectId).name : "") : "Pause"; $(".tb-t", pill).textContent = fmtT(T.left); $(".tb-bar i", pill).style.width = (1 - T.left / T.total) * 100 + "%";
     const tg = $('[data-a="t"]', pill), want = T.running ? "pause" : "play"; if (tg.dataset.i !== want) { tg.dataset.i = want; tg.innerHTML = ic(want); }

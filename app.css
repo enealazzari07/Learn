@@ -1806,3 +1806,10 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .ctxbar{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#4a4a56;padding:4px 6px}.ctxbar[hidden]{display:none}.ctxbar button{color:#0f0f12;font-weight:600;cursor:pointer;background:none}
 @media (max-width:900px){.main.aipg,.main.aipg:not(.doc-full){height:calc(100dvh - 80px)}.aip{grid-template-columns:1fr}.aip-l{display:none}.aip-mob{display:grid}.aip-t{padding:14px 16px 6px}.aip .chatbox.flat{padding:0 14px 14px}.aip-pj{display:none}}
 .aip-ta .btn{color:#0f0f12!important}.aip .link{color:#0f0f12!important;font-weight:600}
+
+/* v58: Timer-Pill = schwarzer Fortschrittskreis mit Zeit, nur außerhalb von Home */
+.timer-pill,body:has(.shell.collapsed) .timer-pill{width:96px!important;height:96px;padding:0!important;border-radius:50%!important;left:14px;bottom:14px;display:grid!important;place-items:center;border:0!important;background:conic-gradient(#0f0f12 calc(var(--p,0) * 1%),#e9e9ee 0)!important;box-shadow:0 8px 28px rgba(0,0,0,.14)!important;color:#0f0f12!important}
+.timer-pill::before{content:"";position:absolute;inset:7px;border-radius:50%;background:#fff}
+.timer-pill .tb-t{position:relative;font-size:21px!important;letter-spacing:-.03em;font-variant-numeric:tabular-nums;z-index:1}
+.timer-pill .tb-top,.timer-pill .tb-bar,.timer-pill .tb-act,.timer-pill .pd{display:none!important}
+@media (max-width:900px){.timer-pill{width:76px!important;height:76px;left:10px;bottom:calc(84px + env(safe-area-inset-bottom))}.timer-pill .tb-t{font-size:17px!important}}
