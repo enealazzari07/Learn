@@ -2014,3 +2014,6 @@ ins.sg-ins{text-decoration:none;color:inherit;background:linear-gradient(transpa
 .m.think .tk-ok svg{width:11px!important;height:11px!important;animation:none!important;-webkit-mask-image:none!important;mask-image:none!important;filter:none!important;color:#0f0f12}
 .m.think svg.tk-sp{width:18px!important;height:18px!important;animation:none!important;-webkit-mask-image:none!important;mask-image:none!important;filter:none!important}
 .m.think.tkb .tk-row:not(:first-child) svg:not(.tk-sp){animation:none}
+.tk-ok svg{width:12px!important;height:12px!important}
+.m.think .tk-ok svg{width:12px!important;height:12px!important;stroke-width:2.2}
+.tk-ok{width:22px!important;height:22px!important;background:#f1f1f5}

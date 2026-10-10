@@ -268,11 +268,11 @@ const TK_SPIN = '<svg class="tk-sp" viewBox="0 0 24 24" aria-hidden="true">' + A
 /* Denk-Animation: Schritte erscheinen nacheinander (Nachdenken → Gesehen → Formulieren), erledigte werden grau mit Haken */
 function thinkSeq(el, msgs) {
   const row = (cls, html) => { if (!el.isConnected) return null; const r = document.createElement("div"); r.className = "tk-row " + cls; r.innerHTML = html; el.appendChild(r); msgs.scrollTop = msgs.scrollHeight; return r; };
-  const done = (r, txt) => { if (!r) return; r.classList.remove("on"); r.classList.add("done"); r.innerHTML = `<i class="tk-ok">${ic("check")}</i><span>${txt}</span>`; };
+  const done = (r, txt, icon = "check") => { if (!r) return; r.classList.remove("on"); r.classList.add("done"); r.innerHTML = `<i class="tk-ok">${ic(icon)}</i><span>${txt}</span>`; };
   const seen = [...chatCtx].map(id => D.docs.find(x => x.id === id)).filter(Boolean).slice(0, 3);
   const r1 = el.firstElementChild;
-  setTimeout(() => { if (!el.isConnected) return; done(r1, "Nachgedacht");
-    if (seen.length) { const r2 = row("on", `${TK_SPIN}<span class="shim">Liest ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")} …</span>`); setTimeout(() => { done(r2, `Gesehen: ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")}`); const r3 = row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1500); }
+  setTimeout(() => { if (!el.isConnected) return; done(r1, "Nachgedacht", "bulb");
+    if (seen.length) { const r2 = row("on", `${TK_SPIN}<span class="shim">Liest ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")} …</span>`); setTimeout(() => { done(r2, `Gesehen: ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")}`, "eye"); const r3 = row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1500); }
     else row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1400);
 }
 function mountChat(box, compact) {
@@ -298,7 +298,7 @@ function mountChat(box, compact) {
     save();
   };
   box.innerHTML = `${compact ? `<header>${ic("spark")}<b>Lumi AI</b><button class="icon-btn" data-full title="Vollbild">${ic("up")}</button><button class="icon-btn" data-close aria-label="Schließen">${ic("x")}</button></header>` : ""}<div class="modes" ${compact ? "hidden" : ""}>${Object.entries(MODES).map(([k, v]) => `<button class="chip ${chatMode === k ? "on" : ""}" data-m="${k}">${v[0]}</button>`).join("")}</div><div class="msgs"></div><div class="imgprev" hidden></div>
-  <form class="t-in cmp"><div class="ctxbar"></div><input class="tin" placeholder="Frag Lumi AI etwas …" aria-label="Nachricht" autocomplete="off"><input type="file" id="cfi" accept="image/*" hidden><button type="button" id="cam" hidden aria-hidden="true"></button><div class="cmp-bar"><button type="button" class="cmp-b" id="att" title="Dokumente anheften" aria-label="Dokumente anheften">${ic("plus")}</button>${serverAI ? `<button type="button" class="mdl" id="mdl" title="Modell wählen" aria-label="Modell wählen">${ic(aiModelProv(aiModelId()).toLowerCase())}<span>${aiModelName(aiModelId())}</span>${ic("chev")}</button>` : ""}<span class="cmp-sp"></span><button class="send" aria-label="Senden">${ic("up")}</button></div></form>${compact ? "" : `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost small" id="clr">Verlauf löschen</button></div>`}`;
+  <form class="t-in cmp"><div class="ctxbar"></div><input class="tin" placeholder="Frag Lumi AI etwas …" aria-label="Nachricht" autocomplete="off"><input type="file" id="cfi" accept="image/*" hidden><button type="button" id="cam" hidden aria-hidden="true"></button><div class="cmp-bar"><button type="button" class="cmp-b" id="att" title="Dokumente anheften" aria-label="Dokumente anheften">${ic("clip")}</button>${serverAI ? `<button type="button" class="mdl" id="mdl" title="Modell wählen" aria-label="Modell wählen">${ic(aiModelProv(aiModelId()).toLowerCase())}<span>${aiModelName(aiModelId())}</span>${ic("chev")}</button>` : ""}<span class="cmp-sp"></span><button class="send" aria-label="Senden">${ic("up")}</button></div></form>${compact ? "" : `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost small" id="clr">Verlauf löschen</button></div>`}`;
   $$("[data-m]", box).forEach(b => b.onclick = () => { chatMode = b.dataset.m; $$("[data-m]", box).forEach(x => x.classList.toggle("on", x === b)); });
   $(".t-in", box).onsubmit = e => { e.preventDefault(); const i = $(".tin", box); const v = i.value; i.value = ""; send(v); };
   $("#cam", box).onclick = () => $("#cfi", box).click();
