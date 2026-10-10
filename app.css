@@ -1303,3 +1303,27 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .docspaper .fold.add .f3d{--c:#c9c9d8;filter:none;opacity:.85}.docspaper .fold.add:hover .f3d{--c:var(--violet);opacity:1;filter:drop-shadow(0 14px 18px rgba(91,61,245,.25))}
 .docspaper .fold.add .ffront>b{color:#fff}
 @media (max-width:900px){.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important}.f3d{height:116px}.fback{height:96px}.ffront{height:70px}.pp{width:56px;height:72px}.ffront>b{font-size:15px}}
+
+/* ======== v35: frosted-glass folder (back with tab, loose papers, stepped front) ======== */
+.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important}
+.f3d{height:auto!important;aspect-ratio:200/160;max-width:210px!important;filter:drop-shadow(0 16px 20px color-mix(in srgb,var(--c,#5b3df5) 26%,transparent))!important}
+.docspaper .fold:hover .f3d{filter:drop-shadow(0 22px 28px color-mix(in srgb,var(--c,#5b3df5) 36%,transparent))!important}
+.f3d>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.f3d .fb{fill:color-mix(in srgb,var(--c) 78%,#fff 22%)}
+.f3d .ff{fill:color-mix(in srgb,var(--c) 52%,#fff 48%);fill-opacity:.94}
+.f3d .fh{fill:rgba(255,255,255,.32);filter:blur(7px)}
+.f3d .fp{fill:#fff;filter:drop-shadow(0 2px 5px rgba(30,20,90,.12));transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+.f3d .fp0{fill-opacity:.82}.f3d .fp1{fill-opacity:.96}.f3d .fp2{fill-opacity:.68}
+.docspaper .fold:hover .fp0{transform:translate(-4px,-8px) rotate(-5deg);transform-origin:90px 112px}
+.docspaper .fold:hover .fp1{transform:translateY(-12px)}
+.docspaper .fold:hover .fp2{transform:translate(4px,-8px) rotate(5deg);transform-origin:128px 110px}
+.ftxt{position:absolute;left:7.5%;right:16%;bottom:9%;display:flex;flex-direction:column;gap:0}
+.ftxt>b{font-size:19px;font-weight:600;letter-spacing:-.02em;color:#fff;text-shadow:0 1px 8px color-mix(in srgb,var(--c) 50%,transparent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ftxt>small{font-size:12.5px;font-weight:600;color:color-mix(in srgb,var(--c) 70%,#000 30%);opacity:.9}
+.f3d>.fic{position:absolute;right:7%;bottom:10%;color:rgba(255,255,255,.95)}.f3d>.fic svg{width:22px;height:22px;stroke-width:1.6}
+.docspaper .fold.add .f3d{--c:#c4c4d4;opacity:.9;filter:none!important}
+.docspaper .fold.add:hover .f3d{--c:var(--violet);opacity:1;filter:drop-shadow(0 16px 20px rgba(91,61,245,.25))!important}
+.docspaper .fold .dmore{top:4px!important;right:8px!important}
+@media (max-width:900px){.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important}.ftxt>b{font-size:15px}}
+.docspaper .fold .f3d>svg{width:100%!important;height:100%!important}
+.docspaper .fold.add{width:100%}
