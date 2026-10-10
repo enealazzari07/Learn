@@ -1375,3 +1375,9 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .todo-add{border-top:1px solid rgba(80,70,170,.12)}
 .todo-add input::placeholder{color:#6b6b88}
 .todo-add:focus-within .tc.add svg{stroke:var(--violet)!important}
+
+/* folders and files in one flowing list */
+.docspaper .items{display:flex;flex-wrap:wrap;gap:24px 20px;align-items:flex-start}
+.docspaper .items>.fold{width:150px;flex:none}
+.docspaper .items>.doc{width:210px;flex:none}
+@media (max-width:900px){.docspaper .items{gap:18px 14px}.docspaper .items>.fold{width:120px}.docspaper .items>.doc{width:calc(50% - 8px)}}
