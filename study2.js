@@ -247,42 +247,95 @@ V.focus = m => {
 const MODES = { tutor: ["Erklären", "Erkläre Konzepte Schritt für Schritt mit Beispielen und stelle am Ende eine kurze Verständnisfrage."], quiz: ["Abfragen", "Stelle mir genau EINE Frage nach der anderen zum Thema, werte meine Antwort, erkläre kurz und stelle dann die nächste."], hw: ["Hausaufgaben", "Hausaufgabenhilfe: gib Hinweise und Teilschritte, lass mich selbst auf die Lösung kommen; zeige die vollständige Lösung nur, wenn ich ausdrücklich darum bitte."], sum: ["Zusammenfassen", "Fasse zusammen, was ich dir gebe, in klaren Stichpunkten."], plan: ["Lernplan", "Erstelle einen realistischen, konkreten Lernplan mit Zeitblöcken."] };
 let chatMode = "tutor", chatCtx = new Set(), chatImg = null, recog = null;
 async function ctxText() { let out = ""; for (const id of chatCtx) { const d = D.docs.find(x => x.id === id); if (d) out += `\n--- ${d.title} ---\n${(await docText(d)).slice(0, 12000)}\n`; } return out.slice(0, 30000); }
+function chatState() {
+  D.chats = D.chats || []; D.cprojects = D.cprojects || [];
+  if (!D.chats.length) { D.chats.push({ id: uid(), title: "Neuer Chat", projectId: "", instr: "", msgs: Array.isArray(D.chat) ? D.chat : [], updated: Date.now() }); D.chat = []; }
+  let c = D.chats.find(x => x.id === D.curChat); if (!c) { c = D.chats[0]; D.curChat = c.id; } return c;
+}
+const chatMsgs = () => chatState().msgs;
+function chatInstr() { const c = chatState(), p = D.cprojects.find(x => x.id === c.projectId); return [p && p.instr ? `Projekt „${p.name}“ – Anweisungen: ${p.instr}` : "", c.instr ? `Anweisungen für diesen Chat: ${c.instr}` : ""].filter(Boolean).join("\n"); }
+function newChat(projectId = "") { const c = { id: uid(), title: "Neuer Chat", projectId, instr: "", msgs: [], updated: Date.now() }; D.chats.unshift(c); D.curChat = c.id; save(); return c; }
 function mountChat(box, compact) {
   const draw = () => {
-    const msgs = $(".msgs", box); msgs.innerHTML = (D.chat.length ? D.chat : [{ role: "assistant", text: `Hi${D.profile.name ? " " + D.profile.name.split(" ")[0] : ""}! Ich bin dein Lern-Tutor. Frag mich etwas, lass dir ein Thema erklären oder foto­grafiere eine Aufgabe.${hasKey() ? "" : "\n\n(Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.)"}` }]).map((x, i) => `<div class="m ${x.role === "user" ? "u" : "a"}">${x.img ? `<img src="${x.img}" alt="">` : ""}${x.fresh ? streamHtml(x.text) : esc(x.text)}${x.acts?.length ? `<div class="acts" style="--base:${x.fresh ? Math.min(2600, (x.text.split(/\s+/).length) * 30 + 200) : 0}ms">${x.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}${x.role === "assistant" && D.chat.length ? `<div class="macts"><button data-cp="${i}" title="Kopieren">${ic("copy")}</button><button data-sv="${i}" title="Als Notiz speichern">${ic("note")}</button></div>` : ""}</div>`).join("");
+    const msgs = $(".msgs", box); msgs.innerHTML = (chatMsgs().length ? chatMsgs() : [{ role: "assistant", text: `Hi${D.profile.name ? " " + D.profile.name.split(" ")[0] : ""}! Ich bin dein Lern-Tutor. Frag mich etwas, lass dir ein Thema erklären.${hasKey() ? "" : "\n\n(Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.)"}` }]).map((x, i) => `<div class="m ${x.role === "user" ? "u" : "a"}">${x.img ? `<img src="${x.img}" alt="">` : ""}${x.fresh ? streamHtml(x.text) : esc(x.text)}${x.acts?.length ? `<div class="acts" style="--base:${x.fresh ? Math.min(2600, (x.text.split(/\s+/).length) * 30 + 200) : 0}ms">${x.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}${x.role === "assistant" && D.chat.length ? `<div class="macts"><button data-cp="${i}" title="Kopieren">${ic("copy")}</button><button data-sv="${i}" title="Als Notiz speichern">${ic("note")}</button></div>` : ""}</div>`).join("");
     msgs.scrollTop = msgs.scrollHeight;
     $$("[data-ag]", msgs).forEach(b => b.onclick = () => go(b.dataset.ag));
-    $$("[data-cp]", msgs).forEach(b => b.onclick = () => { navigator.clipboard?.writeText(D.chat[+b.dataset.cp].text); toast("Kopiert"); });
-    $$("[data-sv]", msgs).forEach(b => b.onclick = () => newNote("", textToHtml(D.chat[+b.dataset.sv].text), "KI-Notiz"));
-    const cx = $(".ctxbar", box); if (cx) cx.innerHTML = chatCtx.size ? `${ic("file")} ${chatCtx.size} Dokument${chatCtx.size > 1 ? "e" : ""} als Kontext <button data-clr>entfernen</button>` : `<button data-pick>${ic("plus")} Dokument als Kontext</button>`;
+    $$("[data-cp]", msgs).forEach(b => b.onclick = () => { navigator.clipboard?.writeText(chatMsgs()[+b.dataset.cp].text); toast("Kopiert"); });
+    $$("[data-sv]", msgs).forEach(b => b.onclick = () => newNote("", textToHtml(chatMsgs()[+b.dataset.sv].text), "KI-Notiz"));
+    const cx = $(".ctxbar", box); if (cx) cx.innerHTML = chatCtx.size ? `${ic("file")} ${chatCtx.size} Dokument${chatCtx.size > 1 ? "e" : ""} als Kontext <button data-clr>entfernen</button>` : ""; if (cx) cx.hidden = !chatCtx.size; $("#att", box)?.classList.toggle("on", chatCtx.size > 0);
     $("[data-clr]", box)?.addEventListener("click", () => { chatCtx.clear(); draw(); }); $("[data-pick]", box)?.addEventListener("click", pickCtx);
     const pv = $(".imgprev", box); if (pv) { pv.hidden = !chatImg; pv.innerHTML = chatImg ? `<img src="${chatImg.url}" alt=""><button aria-label="Entfernen">${ic("x")}</button>` : ""; $("button", pv)?.addEventListener("click", () => { chatImg = null; draw(); }); }
   };
   const pickCtx = () => { const { el, close } = modal(`<h3>Kontext wählen</h3><p class="note">Die KI beantwortet Fragen anhand dieser Dokumente.</p><div class="pick">${D.docs.filter(d => d.type !== "draw").map(d => `<label class="li"><input type="checkbox" value="${d.id}" ${chatCtx.has(d.id) ? "checked" : ""}><b>${esc(d.title)}</b><small>${esc(subj(d.subjectId)?.name || "")}</small></label>`).join("") || `<p class="empty">Keine Dokumente.</p>`}</div><div class="row end"><button class="btn accent" id="ok">Übernehmen</button></div>`); $("#ok", el).onclick = () => { chatCtx = new Set($$("input:checked", el).map(i => i.value)); close(); draw(); }; };
   const send = async text => {
     text = (text || "").trim(); if (!text && !chatImg) return; const img = chatImg; chatImg = null;
-    D.chat.push({ role: "user", text: text || "Bitte erkläre das Bild.", img: img?.url }); draw();
+    { const cc = chatState(); cc.msgs.push({ role: "user", text: text || "Bitte erkläre das Bild.", img: img?.url }); cc.updated = Date.now(); if (cc.title === "Neuer Chat" && text) cc.title = text.slice(0, 40); } draw(); window.onChatsChanged && window.onChatsChanged();
     const msgs = $(".msgs", box); msgs.insertAdjacentHTML("beforeend", `<div class="m a think">${ic("spark")}<span class="shim">Die KI denkt nach …</span></div>`); msgs.scrollTop = msgs.scrollHeight;
     const c = await ctxText(); let r;
-    if (hasKey()) r = await ai(text || "Bitte erkläre das Bild.", { system: sysBase(MODES[chatMode][1] + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (msContext() ? `\nDaten des Lernenden aus Microsoft 365 (Kalender, Teams, OneNote) – nutze sie, wenn nach Terminen, Prüfungen oder Aufgaben gefragt wird. Heute ist ${iso()}.\n${msContext()}` : "") + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), history: D.chat.slice(-11, -1).map(x => ({ role: x.role, text: x.text })), max: 2000, image: img ? { data: img.data, type: "image/jpeg" } : null });
+    if (hasKey()) r = await ai(text || "Bitte erkläre das Bild.", { system: sysBase(MODES[chatMode][1] + (chatInstr() ? "\n\n" + chatInstr() : "") + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (msContext() ? `\nDaten des Lernenden aus Microsoft 365 (Kalender, Teams, OneNote) – nutze sie, wenn nach Terminen, Prüfungen oder Aufgaben gefragt wird. Heute ist ${iso()}.\n${msContext()}` : "") + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), history: D.chat.slice(-11, -1).map(x => ({ role: x.role, text: x.text })), max: 2000, image: img ? { data: img.data, type: "image/jpeg" } : null });
     else { await new Promise(r => setTimeout(r, 500)); r = msContext() && /prüfung|klausur|test|termin|kalender|aufgabe|hausaufgabe|lernziel/i.test(text) ? "Das steht aktuell in deinem Microsoft-Konto:\n\n" + msContext() + "\n\n(Demo-Modus – mit eingerichteter KI beantworte ich gezielte Fragen dazu.)" : c && chatMode === "sum" ? "Zusammenfassung (lokal):\n" + localSummary(c) : "Die KI ist noch nicht eingerichtet, deshalb kann ich keine echten Antworten erzeugen. Hinterlege unter Einstellungen → KI den Gemini-Key (Vercel) – dann erkläre ich Themen, frage dich ab und helfe bei Hausaufgaben. Zusammenfassungen, Karteikarten und Quiz aus Dokumenten funktionieren schon jetzt auch offline."; }
     let acts = []; if (r && hasKey()) { try { const o = await runAgent(r); r = o.text; acts = o.acts; } catch (e) { r = r.replace(/<lumi-actions>[\s\S]*/i, "").trim(); } }
-    D.chat.push({ role: "assistant", text: r || "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts, fresh: true }); D.chat = D.chat.slice(-60); draw(); D.chat.forEach(x => delete x.fresh); save();
+    { const cc = chatState(); cc.msgs.push({ role: "assistant", text: r || "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts, fresh: true }); cc.msgs = cc.msgs.slice(-80); cc.updated = Date.now(); draw(); cc.msgs.forEach(x => delete x.fresh); }
+    save();
   };
   box.innerHTML = `${compact ? `<header>${ic("spark")}<b>KI-Tutor</b><button class="icon-btn" data-full title="Vollbild">${ic("up")}</button><button class="icon-btn" data-close aria-label="Schließen">${ic("x")}</button></header>` : ""}<div class="modes" ${compact ? "hidden" : ""}>${Object.entries(MODES).map(([k, v]) => `<button class="chip ${chatMode === k ? "on" : ""}" data-m="${k}">${v[0]}</button>`).join("")}</div><div class="ctxbar"></div><div class="msgs"></div><div class="imgprev" hidden></div>
-  <form class="t-in"><button type="button" class="icon-btn" id="cam" title="Foto / Bild" aria-label="Bild anhängen">${ic("camera")}</button><input type="file" id="cfi" accept="image/*" hidden><input class="tin" placeholder="Frag etwas oder beschreibe deine Aufgabe…" aria-label="Nachricht"><button type="button" class="icon-btn" id="mic" title="Sprechen" aria-label="Diktieren">${ic("mic")}</button><button class="send" aria-label="Senden">${ic("up")}</button></form>${compact ? "" : `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost small" id="clr">Verlauf löschen</button></div>`}`;
+  <form class="t-in"><button type="button" class="icon-btn" id="cam" title="Foto / Bild" aria-label="Bild anhängen">${ic("camera")}</button><input type="file" id="cfi" accept="image/*" hidden><input class="tin" placeholder="Frag etwas oder beschreibe deine Aufgabe…" aria-label="Nachricht"><button type="button" class="icon-btn" id="att" title="Dokumente anheften" aria-label="Dokumente anheften">${ic("clip")}</button><button class="send" aria-label="Senden">${ic("up")}</button></form>${compact ? "" : `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost small" id="clr">Verlauf löschen</button></div>`}`;
   $$("[data-m]", box).forEach(b => b.onclick = () => { chatMode = b.dataset.m; $$("[data-m]", box).forEach(x => x.classList.toggle("on", x === b)); });
   $(".t-in", box).onsubmit = e => { e.preventDefault(); const i = $(".tin", box); const v = i.value; i.value = ""; send(v); };
   $("#cam", box).onclick = () => $("#cfi", box).click();
   $("#cfi", box).onchange = async e => { const f = e.target.files[0]; if (!f) return; chatImg = { data: await blobToJpeg(f), url: "data:image/jpeg;base64," + (await blobToJpeg(f, 300)) }; e.target.value = ""; draw(); if (!hasKey()) toast("Bild-Analyse braucht die eingerichtete KI"); };
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  $("#mic", box).onclick = () => { if (!SR) return toast("Diktieren wird von diesem Browser nicht unterstützt"); if (recog) { recog.stop(); return; } recog = new SR(); recog.lang = "de-DE"; recog.interimResults = false; recog.onresult = e => { $(".tin", box).value += (e.results[0][0].transcript || "") + " "; }; recog.onend = () => { recog = null; $("#mic", box).classList.remove("rec"); }; recog.start(); $("#mic", box).classList.add("rec"); };
-  $("#clr", box)?.addEventListener("click", async () => { if (await confirmBox("Chatverlauf löschen?")) { D.chat = []; save(); draw(); } });
+  $("#att", box).onclick = pickCtx;
+  $("#clr", box)?.addEventListener("click", async () => { if (await confirmBox("Chatverlauf löschen?")) { chatState().msgs = []; save(); draw(); } });
   $("[data-close]", box)?.addEventListener("click", () => box.hidden = true); $("[data-full]", box)?.addEventListener("click", () => { box.hidden = true; go("ai"); });
   draw();
   if (chatPrefill) { const p = chatPrefill; chatPrefill = ""; send(p); }
 }
-V.ai = m => { m.innerHTML = `<div class="page narrow"><div class="hd"><div><p class="eyebrow">Persönlicher Lernbegleiter</p><h1>KI-Tutor</h1></div></div><div class="chatbox" id="cbox"></div></div>`; $("#cpanel").hidden = true; mountChat($("#cbox", m), false); };
+V.ai = m => {
+  m.classList.add("aipg"); if ($("#cpanel")) $("#cpanel").hidden = true;
+  let filter = "";
+  const page = () => {
+    const cur = chatState();
+    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span><button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
+    aside(); mountChat($("#cbox", m), false); hdr();
+    $("#ct", m).onchange = e => { chatState().title = e.target.value.trim() || "Neuer Chat"; save(); aside(); };
+    $("#ci", m).onclick = instrModal; $("#cmob", m).onclick = e => menu(e.currentTarget, [{ label: "Neuer Chat", icon: "plus", fn: () => { newChat(filter); page(); } }, ...D.chats.slice(0, 12).map(c => ({ label: c.title, icon: "note", fn: () => { D.curChat = c.id; page(); } }))]);
+  };
+  const hdr = () => { const c = chatState(), p = D.cprojects.find(x => x.id === c.projectId); const e = $("#cpj", m); if (e) e.textContent = p ? p.name : ""; };
+  const aside = () => {
+    const box = $("#aipl", m); if (!box) return; const cur = chatState();
+    const list = D.chats.filter(c => !filter || c.projectId === filter).sort((a, b) => b.updated - a.updated);
+    box.innerHTML = `<button class="aip-new" id="cn">${ic("plus")}<span>Neuer Chat</span></button>
+      <div class="aip-h"><span>Projekte</span><button class="icon-btn sm" id="pn" aria-label="Neues Projekt">${ic("plus")}</button></div>
+      <div class="aip-list">${D.cprojects.map(p => `<div class="aip-i ${filter === p.id ? "on" : ""}" data-p="${p.id}" tabindex="0">${ic("folder")}<span>${esc(p.name)}</span><button class="aip-m" data-pm="${p.id}" aria-label="Projekt-Menü">${ic("more")}</button></div>`).join("") || `<p class="aip-e">Gruppiere Chats mit gemeinsamen Anweisungen.</p>`}</div>
+      <div class="aip-h"><span>${filter ? esc(D.cprojects.find(x => x.id === filter)?.name || "Chats") : "Chats"}</span>${filter ? `<button class="link" id="pall">Alle</button>` : ""}</div>
+      <div class="aip-list aip-chats">${list.map(c => `<div class="aip-i ${c.id === cur.id ? "on" : ""}" data-c="${c.id}" tabindex="0"><span>${esc(c.title)}</span><button class="aip-m" data-cm="${c.id}" aria-label="Chat-Menü">${ic("more")}</button></div>`).join("") || `<p class="aip-e">Keine Chats</p>`}</div>`;
+    $("#cn", box).onclick = () => { newChat(filter); page(); };
+    $("#pn", box).onclick = () => projModal();
+    $("#pall", box) && ($("#pall", box).onclick = () => { filter = ""; aside(); });
+    $$("[data-c]", box).forEach(b => b.onclick = e => { if (e.target.closest("[data-cm]")) return; D.curChat = b.dataset.c; save(); page(); });
+    $$("[data-p]", box).forEach(b => b.onclick = e => { if (e.target.closest("[data-pm]")) return; filter = filter === b.dataset.p ? "" : b.dataset.p; aside(); });
+    $$("[data-cm]", box).forEach(b => b.onclick = e => { e.stopPropagation(); const c = D.chats.find(x => x.id === b.dataset.cm); menu(b, [{ label: "Anweisungen", icon: "spark", fn: () => { D.curChat = c.id; page(); instrModal(); } }, { label: "Löschen", icon: "trash", fn: async () => { if (!await confirmBox(`„${c.title}“ löschen?`)) return; D.chats = D.chats.filter(x => x.id !== c.id); if (!D.chats.length) newChat(); D.curChat = D.chats[0].id; save(); page(); } }]); });
+    $$("[data-pm]", box).forEach(b => b.onclick = e => { e.stopPropagation(); const p = D.cprojects.find(x => x.id === b.dataset.pm); menu(b, [{ label: "Bearbeiten", icon: "edit", fn: () => projModal(p) }, { label: "Neuer Chat im Projekt", icon: "plus", fn: () => { filter = p.id; newChat(p.id); page(); } }, { label: "Löschen", icon: "trash", fn: async () => { if (!await confirmBox(`Projekt „${p.name}“ löschen? Die Chats bleiben erhalten.`)) return; D.chats.forEach(c => { if (c.projectId === p.id) c.projectId = ""; }); D.cprojects = D.cprojects.filter(x => x.id !== p.id); if (filter === p.id) filter = ""; save(); aside(); hdr(); } }]); });
+  };
+  window.onChatsChanged = () => { if ($("#aipl", m)) { aside(); const t = $("#ct", m); if (t && document.activeElement !== t) t.value = chatState().title; } else window.onChatsChanged = null; };
+  const instrModal = () => {
+    const c = chatState(), p = D.cprojects.find(x => x.id === c.projectId);
+    const { el, close } = modal(`<h3>Anweisungen für diesen Chat</h3><p class="note">Die KI beachtet diese Regeln in jeder Antwort dieses Chats.</p>
+      <textarea class="field" id="in-c" rows="5" placeholder="z. B. Antworte kurz, in einfachen Worten und mit einem Beispiel aus dem Alltag.">${esc(c.instr)}</textarea>
+      <label class="lbl">Projekt</label><select class="field" id="in-p"><option value="">Kein Projekt</option>${D.cprojects.map(x => `<option value="${x.id}" ${x.id === c.projectId ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
+      ${p ? `<p class="note">Zusätzlich gelten die Anweisungen des Projekts „${esc(p.name)}“.</p>` : ""}
+      <div class="row end" style="margin-top:14px"><button class="btn primary" id="in-s">Speichern</button></div>`);
+    $("#in-s", el).onclick = () => { c.instr = $("#in-c", el).value.trim(); c.projectId = $("#in-p", el).value; save(); close(); aside(); hdr(); toast("Anweisungen gespeichert"); };
+  };
+  const projModal = p => {
+    const { el, close } = modal(`<h3>${p ? "Projekt bearbeiten" : "Neues Projekt"}</h3><label class="lbl">Name</label><input class="field" id="pj-n" maxlength="40" value="${esc(p?.name || "")}" placeholder="z. B. Biologie-Abitur">
+      <label class="lbl">Anweisungen für alle Chats im Projekt</label><textarea class="field" id="pj-i" rows="5" placeholder="z. B. Ich lerne für das Abitur. Erkläre auf Oberstufen-Niveau und frage mich am Ende ab.">${esc(p?.instr || "")}</textarea>
+      <div class="row end" style="margin-top:14px"><button class="btn primary" id="pj-s">${p ? "Speichern" : "Anlegen"}</button></div>`);
+    setTimeout(() => $("#pj-n", el).focus(), 50);
+    $("#pj-s", el).onclick = () => { const n = $("#pj-n", el).value.trim(); if (!n) return toast("Bitte einen Namen eingeben"); if (p) { p.name = n; p.instr = $("#pj-i", el).value.trim(); } else { const np = { id: uid(), name: n, instr: $("#pj-i", el).value.trim() }; D.cprojects.push(np); filter = np.id; } save(); close(); aside(); hdr(); };
+  };
+  page();
+};
 function mountDock() {
   const p = $("#aipane"); if (!p) return;
   const wasOpen = p.classList.contains("open");

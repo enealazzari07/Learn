@@ -1774,3 +1774,35 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .sw::after{content:"";position:absolute;right:-7px;top:50%;width:6px;height:6px;margin-top:-3px;border-radius:50%;background:#0f0f12;opacity:0;pointer-events:none;animation:aiCaret .42s ease-out both;animation-delay:inherit}
 @keyframes aiCaret{0%{opacity:0;transform:scale(0)}25%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.3)}}
 @media (prefers-reduced-motion:reduce){.ld,.m.think .shim,.aic-think{animation:none!important}.sw::after{display:none}}
+
+/* ======== v57: KI-Seite ganzflächig – Chats, Projekte, Anweisungen ======== */
+.main.aipg,.main.aipg:not(.doc-full){padding:0!important;overflow:hidden!important;height:calc(100dvh - 24px);min-height:0;display:block}
+.aip{display:grid;grid-template-columns:292px minmax(0,1fr);height:100%}
+.aip-l{padding:22px 14px 18px 22px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;scrollbar-width:none;border-right:1px solid #e8e7e1}.aip-l::-webkit-scrollbar{display:none}
+.aip-new{display:flex;align-items:center;gap:10px;background:#0f0f12;color:#fff;border-radius:999px;padding:12px 18px;font-weight:600;font-size:14px;cursor:pointer;margin-bottom:10px;transition:transform .15s}.aip-new:active{transform:scale(.98)}.aip-new svg{width:17px;height:17px}
+.aip-h{display:flex;align-items:center;justify-content:space-between;margin:14px 6px 2px;font-size:12px;font-weight:700;color:#8a8a98}
+.aip-list{display:flex;flex-direction:column;gap:2px}
+.aip-i{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:14px;cursor:pointer;font-size:14px;font-weight:500;min-height:38px;transition:background .15s}
+.aip-i:hover{background:rgba(255,255,255,.7)}.aip-i.on{background:#fff;font-weight:600}
+.aip-i>svg{width:17px;height:17px;flex:none}.aip-i>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aip-m{opacity:0;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;cursor:pointer;transition:opacity .15s}.aip-i:hover .aip-m,.aip-i.on .aip-m{opacity:.7}.aip-m:hover{background:#ececf0;opacity:1!important}.aip-m svg{width:16px;height:16px}
+.aip-e{margin:4px 8px;font-size:12.5px;color:#9a9aa6;line-height:1.4}
+.aip-r{display:flex;flex-direction:column;min-width:0;min-height:0}
+.aip-t{display:flex;align-items:center;gap:14px;padding:18px 28px 10px}
+.aip-t input{flex:1;min-width:0;border:0;background:none;outline:0;font:inherit;font-size:20px;font-weight:700;letter-spacing:-.03em;padding:6px 0}
+.aip-ta{display:flex;align-items:center;gap:10px}.aip-pj{font-size:12.5px;color:#6a6a76;background:#ebeae4;border-radius:999px;padding:5px 11px}.aip-pj:empty{display:none}
+.aip-ta .btn{display:flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:9px 15px;font-size:13px;font-weight:600}.aip-ta .btn svg{width:15px;height:15px}
+.aip-mob{display:none}
+.aip .chatbox.flat{flex:1;min-height:0;height:auto;background:transparent;border-radius:0;padding:0 28px 24px;display:flex;flex-direction:column;overflow:hidden}
+.aip .chatbox .modes{margin:0 auto 6px;max-width:760px;width:100%}
+.aip .chatbox .msgs{flex:1;min-height:0;overflow-y:auto;max-width:760px;width:100%;margin:0 auto;padding:10px 4px 16px;scrollbar-width:none}.aip .msgs::-webkit-scrollbar{display:none}
+.aip .chatbox .ctxbar{max-width:760px;width:100%;margin:0 auto}
+.aip .chatbox .t-in{max-width:760px;width:100%;margin:0 auto;background:#fff;border-radius:999px;padding:7px 7px 7px 16px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 34px rgba(0,0,0,.06);display:flex;align-items:center;gap:8px}
+.aip .chatbox .t-in .tin{flex:1;border:0!important;background:none!important;outline:0;box-shadow:none!important;font-size:16px;padding:10px 4px}
+.aip .chatbox .t-in .send{width:42px;height:42px;border-radius:50%;background:#0f0f12;color:#fff}
+.aip .chatbox .row{display:none}
+.aip .m.u{background:#0f0f12;color:#fff}.aip .m.a{background:transparent;padding-left:0;max-width:100%}
+#att.on{background:#0f0f12;color:#fff}
+.ctxbar{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#4a4a56;padding:4px 6px}.ctxbar[hidden]{display:none}.ctxbar button{color:#0f0f12;font-weight:600;cursor:pointer;background:none}
+@media (max-width:900px){.main.aipg,.main.aipg:not(.doc-full){height:calc(100dvh - 80px)}.aip{grid-template-columns:1fr}.aip-l{display:none}.aip-mob{display:grid}.aip-t{padding:14px 16px 6px}.aip .chatbox.flat{padding:0 14px 14px}.aip-pj{display:none}}
+.aip-ta .btn{color:#0f0f12!important}.aip .link{color:#0f0f12!important;font-weight:600}
