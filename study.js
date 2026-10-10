@@ -327,7 +327,7 @@ function bindCommon(m) {
 
 /* ---------- views: documents (folders) ---------- */
 let docSort = "recent", docQuery = "";
-const FOLDER_SVG = `<svg viewBox="0 0 120 96" aria-hidden="true"><path class="fb" d="M8 14a8 8 0 0 1 8-8h27l10 11h51a8 8 0 0 1 8 8v57a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8z"/><path class="ff" d="M8 32a8 8 0 0 1 8-8h88a8 8 0 0 1 8 8v50a8 8 0 0 1-8 8H16a8 8 0 0 1-8-8z"/><path class="fs" d="M8 32a8 8 0 0 1 8-8h88a8 8 0 0 1 8 8v3H8z"/></svg>`;
+const FOLDER_SVG = `<svg viewBox="0 0 120 96" aria-hidden="true"><path class="fb" d="M10 18a12 12 0 0 1 12-12h22c3 0 5.600 1.300 7.300 3.500L57 15h41a12 12 0 0 1 12 12v50a12 12 0 0 1-12 12H22a12 12 0 0 1-12-12z"/><path class="ff" d="M10 34a12 12 0 0 1 12-12h76a12 12 0 0 1 12 12v43a12 12 0 0 1-12 12H22a12 12 0 0 1-12-12z"/><path class="fs" d="M22 22h76a12 12 0 0 1 12 12v2H10v-2a12 12 0 0 1 12-12z"/></svg>`;
 V.docs = (m, id) => {
   if (id !== undefined) docFolder = id || ""; if (docFolder && !folderOf(docFolder)) docFolder = "";
   const q = docQuery.trim().toLowerCase(), path = folderPath(docFolder);

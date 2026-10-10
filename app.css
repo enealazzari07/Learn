@@ -1266,3 +1266,17 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 @media (max-width:900px){.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.docspaper .fold .fsvg{width:88px;height:71px}}
 .docspaper .fold .fsvg>svg{width:100%!important;height:100%!important}
 .docspaper .fold .fsvg .fic svg{width:30px!important;height:30px!important}
+
+/* v33: softer, washed-out modern folders */
+.fsvg .fb{fill:color-mix(in srgb,var(--c) 30%,#fff 70%)!important}
+.fsvg .ff{fill:color-mix(in srgb,var(--c) 17%,#fff 83%)!important}
+.fsvg .fs{fill:rgba(255,255,255,.7)!important}
+.fsvg .fic{color:color-mix(in srgb,var(--c) 78%,#000 22%)!important;top:36%!important}
+.fsvg .fic svg{stroke-width:1.5!important}
+.docspaper .fold .fsvg{filter:drop-shadow(0 10px 16px color-mix(in srgb,var(--c,#5b3df5) 16%,transparent))!important}
+.docspaper .fold:hover .fsvg{filter:drop-shadow(0 14px 22px color-mix(in srgb,var(--c,#5b3df5) 26%,transparent))!important}
+.docspaper .fold.add .fsvg{--c:#c9c9d8;opacity:.9}
+.docspaper .fold.add .fsvg .fic{color:#9a9aae!important}
+.docspaper .fold.add:hover .fsvg{--c:var(--violet)}
+.docspaper .fold.add:hover .fsvg .fic{color:var(--violet)!important}
+.fsvg .fs{fill:rgba(255,255,255,.42)!important}
