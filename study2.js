@@ -108,16 +108,16 @@ V.quizrun = m => {
     if (i >= Q.qs.length) return end(); const q = Q.qs[i];
     m.innerHTML = `<div class="page narrow"><div class="hd"><button class="icon-btn" id="bk" aria-label="Beenden">${ic("x")}</button><span class="note">${esc(Q.title)}</span><span class="note">${i + 1}/${Q.qs.length}</span></div><div class="bar3"><i style="width:${i / Q.qs.length * 100}%"></i></div>
     <div class="qcard"><h2>${esc(q.q)}</h2>${q.o.map((o, k) => `<button class="opt" data-k="${k}"><span>${"ABCD"[k]}</span>${esc(o)}</button>`).join("")}<div id="ex" class="explain" hidden></div><div class="row end"><button class="btn accent" id="nx" hidden>${i === Q.qs.length - 1 ? "Ergebnis" : "Weiter"}</button></div></div></div>`;
-    $("#bk", m).onclick = () => go("quiz"); let answered = false;
+    $("#bk", m).onclick = () => go(Q.examId ? "exam/" + Q.examId : "quiz"); let answered = false;
     $$(".opt", m).forEach(b => b.onclick = () => { if (answered) return; answered = true; const k = +b.dataset.k, ok = k === q.a; if (ok) score++; else wrong.push(q); b.classList.add(ok ? "ok" : "no"); $$(".opt", m)[q.a]?.classList.add("ok"); if (q.e) { $("#ex", m).hidden = false; $("#ex", m).innerHTML = (ok ? "<b>Richtig.</b> " : "<b>Leider falsch.</b> ") + esc(q.e); } $("#nx", m).hidden = false; });
     $("#nx", m).onclick = () => { i++; show(); };
   };
   const end = () => {
-    addRev(Q.qs.length); D.quizzes.unshift({ title: Q.title, score, total: Q.qs.length, date: Date.now() }); D.quizzes = D.quizzes.slice(0, 30); save();
+    addRev(Q.qs.length); D.quizzes.unshift({ title: Q.title, score, total: Q.qs.length, date: Date.now(), ...(Q.examId ? { examId: Q.examId, qs: Q.qs } : {}) }); D.quizzes = D.quizzes.slice(0, 60); save();
     const p = Math.round(score / Q.qs.length * 100);
     m.innerHTML = `<div class="page narrow"><div class="result-big"><div class="ring" style="--p:${p}"><b>${p}%</b></div><h2>${p >= 85 ? "Hervorragend!" : p >= 60 ? "Gut gemacht!" : "Weiter üben!"}</h2><p>${score} von ${Q.qs.length} richtig</p><div class="row" style="justify-content:center">${wrong.length ? `<button class="btn ghost" id="wc">Falsche als Karteikarten</button>` : ""}<button class="btn ghost" id="ag">Nochmal</button><button class="btn accent" id="dn">Fertig</button></div></div>${wrong.length ? `<div class="panel"><h2>Zum Wiederholen</h2>${wrong.map(q => `<div class="wr"><b>${esc(q.q)}</b><span>Richtig: ${esc(q.o[q.a])}</span>${q.e ? `<small>${esc(q.e)}</small>` : ""}</div>`).join("")}</div>` : ""}</div>`;
-    $("#dn", m).onclick = () => go("quiz"); $("#ag", m).onclick = () => { i = 0; score = 0; wrong.length = 0; show(); };
-    $("#wc", m) && ($("#wc", m).onclick = () => cardsModal(wrong.map(q => ({ q: q.q.replace("_____", "…"), a: q.o[q.a] + (q.e ? " – " + q.e : "") })), Q.title + " – Wiederholen", Q.subjectId));
+    $("#dn", m).onclick = () => go(Q.examId ? "exam/" + Q.examId : "quiz"); $("#ag", m).onclick = () => { i = 0; score = 0; wrong.length = 0; show(); };
+    $("#wc", m) && ($("#wc", m).onclick = () => cardsModal(wrong.map(q => ({ q: q.q.replace("_____", "…"), a: q.o[q.a] + (q.e ? " – " + q.e : "") })), Q.title + " – Wiederholen", Q.subjectId, Q.examId));
   };
   show();
 };
@@ -125,16 +125,17 @@ V.quizrun = m => {
 /* ---------- planner ---------- */
 const TYPES = { hw: "Hausaufgabe", task: "Aufgabe", exam: "Prüfung", project: "Referat/Projekt" };
 let plTab = "tasks", calMonth = new Date();
-function taskModal(task, date = "") {
-  const t = task || { title: "", type: "hw", subjectId: "", due: date, note: "" };
+function taskModal(task, date = "", preset = {}) {
+  const t = task || { title: "", type: preset.type || "hw", subjectId: "", due: date, note: "" };
   const { el, close } = modal(`<h3>${task ? "Aufgabe bearbeiten" : "Neue Aufgabe"}</h3><label class="lbl">Titel</label><input class="field" id="tt1" value="${esc(t.title)}" placeholder="z. B. Aufgaben S. 54 Nr. 3–7">
   <div class="row"><div><label class="lbl">Art</label><select class="field" id="tt2">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${k === t.type ? "selected" : ""}>${v}</option>`).join("")}</select></div><div><label class="lbl">Fällig am</label><input type="date" class="field" id="tt3" value="${t.due || ""}"></div></div>
   <label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(t.subjectId, "tt4")}<label class="lbl">Lernmaterial (zum Üben & für Lernziele)</label><select class="field" id="tt6"><option value="">– keins –</option>${D.docs.filter(d => d.type !== "draw").map(d => `<option value="${d.id}" ${d.id === t.docId ? "selected" : ""}>${esc(d.title)}</option>`).join("")}</select>
   <label class="lbl">Notiz / Lernziele</label><textarea class="field" id="tt5" rows="4">${esc(t.note || "")}</textarea><button class="btn ghost small" id="lz" type="button" style="margin-top:8px">${ic("star")}Lernziele ermitteln (Lumi AI)</button>
-  <div class="row end">${task ? `<button class="btn danger ghost" id="tdel">Löschen</button>` : ""}<button class="btn accent" id="tsv">Speichern</button></div>`);
+  <div class="row end">${task && task.type === "exam" ? `<button class="btn ghost" id="exo">${ic("book")}Prüfungsmappe</button>` : ""}${task ? `<button class="btn danger ghost" id="tdel">Löschen</button>` : ""}<button class="btn accent" id="tsv">Speichern</button></div>`);
   setTimeout(() => $("#tt1", el).focus(), 30);
-  $("#tsv", el).onclick = () => { const title = $("#tt1", el).value.trim(); if (!title) return toast("Bitte einen Titel eingeben"); Object.assign(t, { title, type: $("#tt2", el).value, due: $("#tt3", el).value, subjectId: $(".tt4", el).value, note: $("#tt5", el).value, docId: $("#tt6", el).value }); if (!task) D.tasks.push({ id: uid(), done: false, ...t }); save(); close(); toast("Gespeichert"); refreshNav(); renderView(); };
+  $("#tsv", el).onclick = () => { const title = $("#tt1", el).value.trim(); if (!title) return toast("Bitte einen Titel eingeben"); Object.assign(t, { title, type: $("#tt2", el).value, due: $("#tt3", el).value, subjectId: $(".tt4", el).value, note: $("#tt5", el).value, docId: $("#tt6", el).value }); let nt = task; if (!task) { nt = { id: uid(), done: false, ...t }; D.tasks.push(nt); } if (nt.type === "exam") exAfterSave(nt, !task && !preset.quiet); save(); close(); if (nt.type !== "exam" || task) toast("Gespeichert"); refreshNav(); renderView(); };
   $("#lz", el).onclick = async () => { const doc = D.docs.find(x => x.id === $("#tt6", el).value); const src = doc ? await docText(doc) : $("#tt5", el).value; if (!src || src.length < 15) return toast("Wähle zuerst Lernmaterial (z. B. OneNote-Seite) oder schreibe etwas in die Notiz."); $("#lz", el).disabled = true; const g = await extractGoals(src, $("#tt1", el).value || "die Prüfung"); $("#lz", el).disabled = false; const cur = $("#tt5", el).value.replace(/\n*Lernziele:[\s\S]*$/, ""); $("#tt5", el).value = (cur ? cur + "\n\n" : "") + "Lernziele:\n" + g; toast("Lernziele ergänzt"); };
+  $("#exo", el) && ($("#exo", el).onclick = () => { close(); go("exam/" + task.id); });
   $("#tdel", el) && ($("#tdel", el).onclick = () => { D.tasks = D.tasks.filter(x => x !== task); save(); close(); renderView(); });
 }
 function ttModal(day, ev) {

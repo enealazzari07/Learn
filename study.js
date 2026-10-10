@@ -8,7 +8,7 @@ const PRESETS = {
   school: ["Mathe", "Deutsch", "Englisch", "Biologie", "Chemie", "Physik", "Geschichte", "Geografie", "Informatik", "Kunst", "Musik", "Sport", "Politik", "Französisch", "Latein", "Spanisch", "Religion/Ethik"],
   uni: ["Analysis", "Lineare Algebra", "Programmierung", "Statistik", "BWL", "VWL", "Recht", "Psychologie", "Medizin", "Chemie", "Physik", "Informatik", "Literatur", "Geschichte", "Seminar"],
 };
-const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["cards", "Karteikarten", "cards"], ["quiz", "Quiz", "help"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["search", "Suche", "search"]];
+const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["search", "Suche", "search"]];
 
 /* ---------- stats ---------- */
 const addMin = m => { const k = iso(); D.stats.days[k] = (D.stats.days[k] || 0) + m; save(); };
@@ -56,8 +56,8 @@ let sideOpen = (() => { try { return localStorage.getItem("lumi-side") === "1"; 
 function applyRail() { const sh = $(".shell"); if (sh) sh.classList.toggle("collapsed", !sideOpen); }
 function refreshNav() {
   const s = $("#side"); if (!s) return; applyRail();
-  const mob = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["cards", "Karten", "cards"], ["planner", "Planer", "cal"]];
-  const on = k => curView === k || (k === "docs" && curView === "doc") || (k === "board" && curView === "draw") || (k === "quiz" && curView === "quizrun") || (k === "cards" && ["deck", "study"].includes(curView));
+  const mob = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"]];
+  const on = k => curView === k || (k === "docs" && curView === "doc") || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
   s.innerHTML = `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand">Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
   <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
@@ -265,11 +265,11 @@ V.today = m => {
       <p class="fd-g"><b>${mins}</b> von ${goal} Min. heute</p></section>
     <button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>
     <section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 4).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>
-    <button class="wg w-ex rise" style="--i:7" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><h2>${nextEx ? "Nächste Prüfung" : "Prüfungen"}</h2>${nextEx ? `<b class="w-big">${exDays}</b><p>${exDays === 1 ? "Tag" : "Tage"} bis ${esc(nextEx.title)}</p><span class="w-go">Übungsquiz ${ic("back")}</span>` : `<p>Keine Prüfung eingetragen.</p><span class="w-go">Eintragen ${ic("back")}</span>`}</button>
+    <button class="wg w-ex rise" style="--i:7" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="exams"'}><h2>${nextEx ? "Nächste Prüfung" : "Prüfungen"}</h2>${nextEx ? `<b class="w-big">${exDays}</b><p>${exDays === 1 ? "Tag" : "Tage"} bis ${esc(nextEx.title)}</p><span class="w-go">Prüfungsmappe ${ic("back")}</span>` : `<p>Keine Prüfung eingetragen.</p><span class="w-go">Eintragen ${ic("back")}</span>`}</button>
   </div></div></div>`;
   bindCommon(m);
   $$("[data-q]", m).forEach(b => b.onclick = () => docDialog("note"));
-  $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
+  $$("[data-ex]", m).forEach(b => b.onclick = () => go("exam/" + b.dataset.ex));
   const todoRows = () => D.tasks.filter(x => !x.done && x.type !== "exam").sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 5);
   const dueLbl = x => !x.due ? "–" : daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due);
   const drawTodos = () => {
@@ -439,17 +439,17 @@ async function aiTool(kind, text, ctx = {}) {
   const { el } = modal(`<h3>${{ summary: "Zusammenfassung", explain: "Einfach erklärt", improve: "Verbesserter Text", continue: "Fortsetzung", translate: "Übersetzung", ask: "Antwort", goals: "Lernziele" }[kind]}</h3><textarea class="field" id="ar" rows="12">Lumi AI arbeitet…</textarea><div class="row end" id="ab" hidden>${ctx.insert ? `<button class="btn ghost" id="a-ins">Unten einfügen</button>` : ""}${ctx.replace && kind !== "summary" && kind !== "ask" && kind !== "explain" ? `<button class="btn ghost" id="a-rep">Auswahl ersetzen</button>` : ""}<button class="btn ghost" id="a-note">Als Notiz speichern</button><button class="btn" id="a-cp">${ic("copy")}Kopieren</button></div>`, "wide");
   let r = await ai(prompts[kind], { max: 1800, quiet: true });
   if (r == null) { r = kind === "summary" ? localSummary(T) : kind === "goals" ? localGoals(T) : null; if (!r) { $("#ar", el).value = hasKey() ? "Lumi AI hat nicht geantwortet. Versuche es erneut." : "Diese Funktion braucht die eingerichtete Lumi AI.\n\nRichte sie unter Einstellungen → Lumi AI ein (Gemini-Key in Vercel). Zusammenfassungen, Karteikarten und Quiz funktionieren auch ohne Key mit einfacher lokaler Auswertung."; return; } }
-  $("#ar", el).value = r.trim(); $("#ab", el).hidden = false;
+  $("#ar", el).value = r.trim(); $("#ab", el).hidden = false; if (kind === "goals") examAutoGoals(ctx.subjectId, r);
   $("#a-cp", el).onclick = () => { navigator.clipboard?.writeText($("#ar", el).value); toast("Kopiert"); };
   $("#a-note", el).onclick = () => { newNote(ctx.subjectId || "", textToHtml($("#ar", el).value), (ctx.title || "Notiz") + " – Lumi AI"); el.closest(".mask").remove(); };
   $("#a-ins", el) && ($("#a-ins", el).onclick = () => { ctx.insert(textToHtml($("#ar", el).value)); el.closest(".mask").remove(); toast("Eingefügt"); });
   $("#a-rep", el) && ($("#a-rep", el).onclick = () => { ctx.replace($("#ar", el).value); el.closest(".mask").remove(); toast("Ersetzt"); });
 }
-function cardsModal(cards, title, subjectId) {
+function cardsModal(cards, title, subjectId, examId) {
   if (!cards.length) return toast("Keine Karten erstellt");
   const { el, close } = modal(`<h3>${cards.length} Karteikarten</h3><div class="cardprev">${cards.map(c => `<div class="cp"><b>${esc(c.q)}</b><span>${esc(c.a)}</span></div>`).join("")}</div><label class="lbl">Speichern in Stapel</label><select class="field" id="dk"><option value="">+ Neuer Stapel „${esc(title)}“</option>${D.decks.map(d => `<option value="${d.id}">${esc(d.title)}</option>`).join("")}</select><div class="row end"><button class="btn ghost" data-c>Verwerfen</button><button class="btn accent" id="dks">Speichern & lernen</button></div>`, "wide");
   $("[data-c]", el).onclick = close;
-  $("#dks", el).onclick = () => { let d = D.decks.find(x => x.id === $("#dk", el).value); if (!d) { d = { id: uid(), title, subjectId: subjectId || "", cards: [] }; D.decks.unshift(d); } cards.forEach(c => d.cards.push({ id: uid(), q: c.q, a: c.a, box: 0, due: iso() })); save(); close(); toast("Stapel gespeichert"); refreshNav(); go("study/" + d.id); };
+  $("#dks", el).onclick = () => { let d = D.decks.find(x => x.id === $("#dk", el).value); if (!d) { d = { id: uid(), title, subjectId: subjectId || "", examId: examId || "", cards: [] }; D.decks.unshift(d); } cards.forEach(c => d.cards.push({ id: uid(), q: c.q, a: c.a, box: 0, due: iso() })); save(); close(); toast("Stapel gespeichert"); refreshNav(); go("study/" + d.id); };
 }
 
 /* ---------- note editor ---------- */
