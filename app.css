@@ -2276,3 +2276,6 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .docspaper .sd-row:hover{background:#fff}
 @media (max-width:1100px){.docspaper>.dside{display:none}}
 .docspaper .sd-i{background:#fff}
+/* v84: klare, abgerundete Linie mit Abstand zum Rand */
+.docspaper>.dside::before{top:28px;bottom:28px;width:2px;border-radius:2px;background:#d3d3dc}
+.docspaper>.dside{padding-top:28px}
