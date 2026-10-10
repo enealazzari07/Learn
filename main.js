@@ -5,7 +5,12 @@ let onboardShown = false;
 
 /* KI-Dock sitzt bündig unter der Karteikarten-Kachel (dritte Spalte, zweite Reihe); die Kachel ist nur so hoch, dass beides in die Reihe passt */
 function fitDock() {
-  const p = $("#aipane"), ex = $(".w-rec"), cards = $(".w-cards"); if (!p || !ex || !cards) return;
+  const p = $("#aipane"), grid = $("#b-grid");
+  if (p && grid && innerWidth >= 901 && !p.hidden) {   // Raster-Startseite: Dock sitzt auf den Zellen unten rechts (Spalte 5–6) und klappt nach oben über den Block darüber auf
+    const g = grid.getBoundingClientRect(), gap = 12, col = (g.width + gap) / 6;
+    p.style.setProperty("bottom", Math.round(innerHeight - g.bottom) + "px", "important"); p.style.setProperty("right", Math.round(innerWidth - g.right) + "px", "important"); p.style.setProperty("width", Math.round(col * 2 - gap) + "px", "important"); return;
+  }
+  const ex = $(".w-rec"), cards = $(".w-cards"); if (!p || !ex || !cards) return;
   if (innerWidth < 901 || p.hidden) { cards.style.height = ""; ["bottom", "right", "width"].forEach(k => p.style.removeProperty(k)); return; }
   const rr = ex.getBoundingClientRect(), cr = cards.getBoundingClientRect(), r = { bottom: rr.bottom, height: rr.height, right: cr.right, width: cr.width }; if (!r.height) return;
   if (!p.classList.contains("open")) p.dataset.h = p.offsetHeight;

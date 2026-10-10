@@ -2544,3 +2544,8 @@ body.hed-open{overflow:hidden}
 .wk-c.hit:not(.now) .wk-b i{background:#7a7a8c}
 .wk-b{min-height:20px}
 .w-week{display:flex;flex-direction:column}
+
+/* v98: KI-Dock klappt nach oben über den Block darüber auf, gleiche Breite wie zugeklappt */
+.aipane.open .msgs{max-height:min(calc(100dvh - 300px),600px)!important;min-height:min(46dvh,380px)}
+.aipane.open{box-shadow:0 2px 8px rgba(0,0,0,.08),0 28px 70px rgba(30,20,90,.22)!important}
+.aipane{transition:box-shadow .3s ease}
