@@ -251,7 +251,10 @@ V.today = m => {
     <section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
       <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
     <section class="wg w-cal rise" style="--i:3"><div class="cal-t"><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><h2 id="cal-m"></h2><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>
-    <section class="wg w-goal rise" style="--i:4"><h2>Lernziel</h2><div class="w-ring">${ringSvg(pct, "#0f0f12", pct + "%", "")}</div><p><b>${mins}</b> von ${goal} Min.</p><button class="link" data-go="focus">Fokus starten</button></section>
+    <section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
+      <div class="fd" id="fd"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><small id="fd-s">Ziehen zum Einstellen</small></div></div>
+      <div class="fd-row"><button class="fd-go" id="fd-go">Starten</button><button class="fd-rs" id="fd-rs" hidden>Zurücksetzen</button></div>
+      <p class="fd-g"><b>${mins}</b> von ${goal} Min. heute</p></section>
     <button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>
     <section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 4).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>
     <button class="wg w-ex rise" style="--i:7" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><h2>${nextEx ? "Nächste Prüfung" : "Prüfungen"}</h2>${nextEx ? `<b class="w-big">${exDays}</b><p>${exDays === 1 ? "Tag" : "Tage"} bis ${esc(nextEx.title)}</p><span class="w-go">Übungsquiz ${ic("back")}</span>` : `<p>Keine Prüfung eingetragen.</p><span class="w-go">Eintragen ${ic("back")}</span>`}</button>
@@ -277,6 +280,29 @@ V.today = m => {
     run(false);
   })();
   $("#addt", m).onclick = () => taskModal();
+  {
+    const fd = $("#fd", m), C = 2 * Math.PI * 84, MAXM = 120, STEP = 5;
+    const busy = () => T.running || T.left < T.total;
+    const paint = () => {
+      const b = busy(), frac = b ? 1 - T.left / T.total : T.focusLen / MAXM, ang = (b ? 0 : T.focusLen / MAXM) * 360;
+      $("#fd-fg", m).style.strokeDasharray = `${Math.max(0.001, frac) * C} ${C}`; $("#fd-k", m).setAttribute("transform", `rotate(${ang} 100 100)`);
+      $("#fd-k", m).style.display = b ? "none" : ""; fd.classList.toggle("run", T.running);
+      $("#fd-t", m).textContent = b ? fmtT(T.left) : String(T.focusLen).padStart(2, "0") + ":00";
+      $("#fd-s", m).textContent = b ? (T.mode === "focus" ? "Fokus läuft" : "Pause") : "Ziehen zum Einstellen";
+      $("#fd-go", m).textContent = T.running ? "Pausieren" : b ? "Weiter" : "Starten"; $("#fd-rs", m).hidden = !b;
+    };
+    const setLen = v => { v = Math.max(STEP, Math.min(MAXM, v)); if (v !== T.focusLen) { timerSet(v, T.breakLen); paint(); timerPaint(); } };
+    let drag = false;
+    const fromPt = e => { const r = fd.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2); let a = Math.atan2(dx, -dy) * 180 / Math.PI; if (a < 0) a += 360; let v = Math.round(a / 360 * MAXM / STEP) * STEP; if (v === 0) v = T.focusLen > MAXM / 2 ? MAXM : STEP; if (T.focusLen >= 100 && v <= 20) v = MAXM; if (T.focusLen <= 20 && v >= 100) v = STEP; setLen(v); };
+    fd.addEventListener("pointerdown", e => { if (busy()) return; drag = true; fd.setPointerCapture(e.pointerId); fromPt(e); });
+    fd.addEventListener("pointermove", e => { if (drag) fromPt(e); });
+    const end = () => { drag = false; }; fd.addEventListener("pointerup", end); fd.addEventListener("pointercancel", end);
+    fd.addEventListener("wheel", e => { if (busy()) return; e.preventDefault(); setLen(T.focusLen + (e.deltaY < 0 ? STEP : -STEP)); }, { passive: false });
+    fd.tabIndex = 0; fd.addEventListener("keydown", e => { if (busy()) return; if (e.key === "ArrowUp" || e.key === "ArrowRight") { e.preventDefault(); setLen(T.focusLen + STEP); } if (e.key === "ArrowDown" || e.key === "ArrowLeft") { e.preventDefault(); setLen(T.focusLen - STEP); } });
+    $("#fd-go", m).onclick = () => { timerToggle(); paint(); };
+    $("#fd-rs", m).onclick = () => { timerReset(); paint(); };
+    paint(); const iv = setInterval(() => { if (!fd.isConnected) return clearInterval(iv); paint(); }, 500); LEAVE.push(() => clearInterval(iv));
+  }
   {
     const now = new Date(); let cy = now.getFullYear(), cm = now.getMonth(), sel = iso();
     const itemsOn = d => [...D.tasks.filter(x => !x.done && x.due === d).map(x => ({ k: x.type === "exam" ? "exam" : "task", t: x.title })), ...msEventsOn(d).map(e => ({ k: "ev", t: e.title }))];

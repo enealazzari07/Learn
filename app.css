@@ -1723,3 +1723,23 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .aipane.open .chatbox.flat{height:auto!important;display:flex}
 .aipane .hai-chev{transition:transform .4s cubic-bezier(.3,.9,.3,1)}
 .aipane .link,.aipane .ctxbar button,.aipane .ctxbar .link{color:#0f0f12!important}
+
+/* v54: Fokus-Drehrad im Widget */
+.bento .w-goal{align-items:center}
+.bento .w-goal h2{align-self:flex-start}
+.bento .fd{flex:1;min-height:0;aspect-ratio:1;max-height:100%;position:relative;touch-action:none;cursor:grab;user-select:none;outline:0}
+.bento .fd:active{cursor:grabbing}
+.bento .fd svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.bento .fd-bg{fill:none;stroke:#eeeef2;stroke-width:14}
+.bento .fd-fg{fill:none;stroke:#0f0f12;stroke-width:14;stroke-linecap:round;transition:stroke-dasharray .12s linear}
+.bento .fd.run .fd-fg{transition:stroke-dasharray .5s linear}
+.bento .fd-knob{fill:#fff;stroke:#0f0f12;stroke-width:5;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2))}
+.bento .fd-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.bento .fd-c b{font-size:clamp(26px,3.4vh,40px);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.bento .fd-c small{font-size:11px;color:#8a8a98;margin-top:2px}
+.bento .fd-row{display:flex;gap:8px;margin-top:10px;width:100%}
+.bento .fd-go{flex:1;background:#0f0f12;color:#fff;border-radius:999px;padding:11px 16px;font-weight:600;font-size:14px;cursor:pointer;transition:transform .15s}.bento .fd-go:active{transform:scale(.97)}
+.bento .fd-rs{background:#f1f1f4;border-radius:999px;padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.bento .fd-g{margin:8px 0 0!important;font-size:12.5px!important;color:#8a8a98!important}.bento .fd-g b{color:#0f0f12}
+@media (max-width:900px){.bento .w-goal{min-height:340px}.bento .fd{flex:none;width:220px;height:220px;max-height:none}}
+.bento .w-cal .cal-g{grid-template-rows:auto;grid-auto-rows:minmax(0,1fr);align-content:stretch}.bento .w-cal .cal-g .wd{align-self:center}
