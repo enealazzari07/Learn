@@ -2360,3 +2360,29 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .t-in.cmp:focus-within,.chatbox .t-in.cmp:focus-within,.aipane .t-in.cmp:focus-within,#aiside .t-in.cmp:focus-within{border-color:#e4e4ec!important;outline:0!important}
 .aipane .tin:focus,.t-in .tin:focus,.t-in.cmp .tin:focus{outline:0!important;box-shadow:none!important;border-color:transparent}
 .aipane .t-in:not(.cmp) .tin:focus{border-color:transparent}
+
+/* ======== v90: Home & Prüfungen aufgeräumt ======== */
+@media (min-width:901px){
+  .bento .w-ex{grid-column:1!important;grid-row:2!important;background:#fff;display:flex;flex-direction:column;gap:6px;padding:16px 20px}
+  .bento .w-ex h2{margin:0 0 4px;font-size:13px;color:#8a8a98;font-weight:600}.bento .w-ex h2 em{font-style:normal;margin-left:6px;color:#b0b0bc}
+  .bento .w-ex .w-scroll{display:flex;flex-direction:column}
+  .bento .w-ex>.link{align-self:flex-start;margin-top:auto;padding-top:8px;font-weight:600}
+  .bento .w-ex>.empty{margin:auto 0}
+  .bento .w-cards{align-content:start!important;padding:16px 20px!important}
+  .bento .w-cards .w-big{align-self:start}
+}
+.bento .ex-d{width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--c) 14%,#fff)!important;color:var(--c);font-weight:700;font-size:16px;letter-spacing:-.02em}
+.bento .ex-r{border-bottom:1px solid #f0f0f4}.bento .ex-r:last-child{border-bottom:0}
+
+.exgrid{grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch}
+@media (max-width:1100px){.exgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.exgrid{grid-template-columns:1fr}}
+.exc{height:100%;box-sizing:border-box}
+.exc h3{margin-top:2px}
+.exc-m{margin-top:auto;padding-top:12px}
+.exgrid2{align-items:stretch!important;gap:16px}
+.exdet .panel{display:flex;flex-direction:column;margin:0}
+.exdet .panel>.row:last-child{margin-top:auto;padding-top:14px}
+.exdet .panel .row{gap:8px}
+.exadd{margin-top:14px!important;align-items:center}.exadd .btn{height:44px;padding:0 16px;flex:none}
+.exdet .panel .note{margin:4px 0 0}
