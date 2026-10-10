@@ -251,34 +251,42 @@ V.today = m => {
   const icn = d => ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note");
   const SUGG = ["Lernplan für heute", "Quiz zum letzten Dokument", "Was zuerst lernen?"];
   const pct = Math.round(Math.min(100, mins / goal * 100)), exDays = nextEx ? daysUntil(nextEx.due) : null;
+  const BLK = {
+    tasks: () => `<section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
+      <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>`,
+    cal: () => `<section class="wg w-cal rise" style="--i:3"><div class="cal-t"><h2 id="cal-m"></h2><span class="cal-nav"><button class="cal-today" id="cal-t">Heute</button><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></span></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>`,
+    goal: () => `<section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
+      <div class="fd" id="fd"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><small id="fd-s">Ziehen zum Einstellen</small></div></div>
+      <div class="fd-row"><button class="fd-go" id="fd-go">Starten</button><button class="fd-rs" id="fd-rs" hidden>Zurücksetzen</button></div>
+      <p class="fd-g"><b>${mins}</b> von ${goal} Min. heute</p></section>`,
+    cards: () => `<button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>`,
+    rec: () => `<section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 6).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>`,
+    ex: () => `<section class="wg w-ex rise" style="--i:7"><h2>Prüfungen${allEx.length ? ` <em>${allEx.length}</em>` : ""}</h2>${allEx.length ? `<div class="w-scroll">${allEx.slice(0, 6).map(x => { const sj = subj(x.subjectId), dd = daysUntil(x.due); return `<button class="z-doc ex-r" data-ex="${x.id}"><span class="z-di ex-d" style="--c:${sj ? sj.color : "#0f0f12"}">${dd}</span><span><b>${esc(x.title)}</b><small>${sj ? esc(sj.name) + " · " : ""}${dd <= 0 ? "Heute" : dd === 1 ? "Morgen" : "in " + dd + " Tagen"}</small></span></button>`; }).join("")}</div><button class="link" data-go="exams">Alle Prüfungen</button>` : `<p class="empty sm">Keine Prüfung eingetragen.</p><button class="link" data-go="exams">Eintragen</button>`}</section>`,
+    week: () => `<section class="wg w-week rise" style="--i:3"><h2>Woche</h2><div class="wk">${weekData().map(x => `<div class="wk-c ${x.today ? "now" : ""}"><span class="wk-b"><i style="height:${Math.max(4, Math.min(100, Math.round(x.v / goal * 100)))}%"></i></span><small>${x.l}</small></div>`).join("")}</div><p class="wk-s"><b>${weekData().reduce((a, x) => a + x.v, 0)}</b> Min. in 7 Tagen</p></section>`,
+    quick: () => `<section class="wg w-quick rise" style="--i:3"><h2>Schnellstart</h2><div class="qk"><button data-q="n">${ic("note")}<span>Neue Notiz</span></button><button data-go="cards">${ic("cards")}<span>Karteikarten</span></button><button data-go="quiz">${ic("help")}<span>Quiz</span></button><button data-go="docs">${ic("folder")}<span>Dokumente</span></button></div></section>`,
+    note: () => `<section class="wg w-note rise" style="--i:3"><h2>Notiz</h2><textarea id="hnote" placeholder="Schnelle Notiz …" maxlength="4000">${esc(D.profile.homeNote || "")}</textarea></section>`,
+    space: () => `<div class="wg w-space" aria-hidden="true"></div>`,
+  };
+  const blockHtml = b => { const v = `--w:${b.w};--h:${b.h};`, h = BLK[b.type]().replace(/^<(section|button|div) class="wg /, `<$1 data-bid="${b.id}" class="wg `); return /style="--i:/.test(h) ? h.replace('style="--i:', `style="${v}--i:`) : h.replace('class="wg ', `style="${v}" class="wg `); };
   m.innerHTML = `<div class="home-wrap again"><div class="page home zen bento">
   <header class="b-head rise" style="--i:0"><div class="b-hl"><p class="z-date">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1 class="greet-h z-h">${words}</h1></div>
 </header>
   <div class="z-ans" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
-  <div class="b-grid">
-    <section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
-      <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
-    <section class="wg w-cal rise" style="--i:3"><div class="cal-t"><h2 id="cal-m"></h2><span class="cal-nav"><button class="cal-today" id="cal-t">Heute</button><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></span></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>
-    <section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
-      <div class="fd" id="fd"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><small id="fd-s">Ziehen zum Einstellen</small></div></div>
-      <div class="fd-row"><button class="fd-go" id="fd-go">Starten</button><button class="fd-rs" id="fd-rs" hidden>Zurücksetzen</button></div>
-      <p class="fd-g"><b>${mins}</b> von ${goal} Min. heute</p></section>
-    <button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>
-    <section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 6).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>
-    <section class="wg w-ex rise" style="--i:7"><h2>Prüfungen${allEx.length ? ` <em>${allEx.length}</em>` : ""}</h2>${allEx.length ? `<div class="w-scroll">${allEx.slice(0, 6).map(x => { const sj = subj(x.subjectId), dd = daysUntil(x.due); return `<button class="z-doc ex-r" data-ex="${x.id}"><span class="z-di ex-d" style="--c:${sj ? sj.color : "#0f0f12"}">${dd}</span><span><b>${esc(x.title)}</b><small>${sj ? esc(sj.name) + " · " : ""}${dd <= 0 ? "Heute" : dd === 1 ? "Morgen" : "in " + dd + " Tagen"}</small></span></button>`; }).join("")}</div><button class="link" data-go="exams">Alle Prüfungen</button>` : `<p class="empty sm">Keine Prüfung eingetragen.</p><button class="link" data-go="exams">Eintragen</button>`}</section>
+  <div class="b-grid" id="b-grid">${homeLayout().map(blockHtml).join("")}
   </div></div></div>`;
   bindCommon(m);
+  { const hn = $("#hnote", m); if (hn) { let tm; hn.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { D.profile.homeNote = hn.value; save(); }, 400); }; } }
   $$("[data-q]", m).forEach(b => b.onclick = () => docDialog("note"));
   $$("[data-ex]", m).forEach(b => b.onclick = () => go("exam/" + b.dataset.ex));
   const todoRows = () => D.tasks.filter(x => !x.done && x.type !== "exam").sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 5);
   const dueLbl = x => !x.due ? "–" : daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due);
   const drawTodos = () => {
-    const box = $("#todos", m), rows = todoRows();
+    const box = $("#todos", m); if (!box) return; const rows = todoRows();
     box.innerHTML = rows.length ? rows.map(x => `<div class="todo z-t" data-id="${x.id}"><button class="tc" role="checkbox" aria-checked="false" aria-label="${esc(x.title)} erledigt"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></button><b>${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${dueLbl(x)}</small></div>`).join("") : `<p class="empty sm">Alles erledigt – nichts offen.</p>`;
     $$(".todo .tc", box).forEach(b => b.onclick = () => { const row = b.closest(".todo"), x = D.tasks.find(y => y.id === row.dataset.id); if (!x || row.classList.contains("done")) return; x.done = true; x.progress = 100; x.doneAt = Date.now(); save(); b.setAttribute("aria-checked", "true"); row.classList.add("done"); setTimeout(() => { row.style.maxHeight = row.offsetHeight + "px"; requestAnimationFrame(() => row.classList.add("gone")); setTimeout(() => { drawTodos(); refreshNav(); }, 380); }, 520); });
   };
   drawTodos();
-  $("#todo-f", m).onsubmit = e => { e.preventDefault(); const i = $("#todo-i", m), v = i.value.trim(); if (!v) return; D.tasks.push({ id: uid(), title: v, type: "task", due: iso(), subjectId: "", note: "", done: false }); save(); i.value = ""; drawTodos(); };
+  const tfm = $("#todo-f", m); if (tfm) tfm.onsubmit = e => { e.preventDefault(); const i = $("#todo-i", m), v = i.value.trim(); if (!v) return; D.tasks.push({ id: uid(), title: v, type: "task", due: iso(), subjectId: "", note: "", done: false }); save(); i.value = ""; drawTodos(); };
   (async () => {
     const el = $("#sum-t", m), run = async force => {
       const cache = D.daily && D.daily.date === iso() ? D.daily : null; if (cache && cache.ai && !force) { el.textContent = cache.text; return; } if (!hasKey()) return;
@@ -287,8 +295,8 @@ V.today = m => {
     };
     run(false);
   })();
-  $("#addt", m).onclick = () => taskModal();
-  {
+  if ($("#addt", m)) $("#addt", m).onclick = () => taskModal();
+  if ($("#fd", m)) {
     const fd = $("#fd", m), C = 2 * Math.PI * 84, MAXM = 120, STEP = 5;
     const busy = () => T.running || T.left < T.total;
     const paint = () => {
@@ -311,7 +319,7 @@ V.today = m => {
     $("#fd-rs", m).onclick = () => { timerReset(); paint(); };
     paint(); const iv = setInterval(() => { if (!fd.isConnected) return clearInterval(iv); paint(); }, 500); LEAVE.push(() => clearInterval(iv));
   }
-  {
+  if ($("#cal-g", m)) {
     const now = new Date(); let cy = now.getFullYear(), cm = now.getMonth(), sel = iso();
     const itemsOn = d => [...D.tasks.filter(x => !x.done && x.due === d).map(x => ({ k: x.type === "exam" ? "exam" : "task", t: x.title })), ...msEventsOn(d).map(e => ({ k: "ev", t: e.title }))];
     const drawCal = () => {
