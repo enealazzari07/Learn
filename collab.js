@@ -22,7 +22,7 @@ V.join = async (m, id) => {
 
 function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   const me = { key: uid(), name: coName() }; me.color = coColor(CLOUD.user?.id || me.key);
-  const av = $("#co-av", m), btn = $("#co-m", m); let ch = null, peers = {}, lastType = 0, pend = null, tPush = 0, tSave = 0, dead = false;
+  const av = $("#co-av", m), btn = $("#co-m", m); let ch = null, conn = "", peers = {}, lastType = 0, pend = null, tPush = 0, tSave = 0, dead = false;
   const state = () => ({ html: body.innerHTML, tb: TBX.get(), ink: ink.st.strokes });
   const paint = () => {
     const list = Object.values(peers).map(a => a[0]).filter(Boolean);
@@ -81,10 +81,10 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
     ch.on("presence", { event: "sync" }, () => { peers = ch.presenceState(); delete peers[me.key]; paint(); curEls.forEach((e, k) => { if (!peers[k]) { e.remove(); curEls.delete(k); } }); })
       .on("broadcast", { event: "doc" }, ({ payload }) => { if (payload?.pull) pull(); else apply(payload); })
       .on("broadcast", { event: "cur" }, ({ payload }) => { if (payload && payload.k !== me.key) showCur(payload); })
-      .subscribe(async st => { if (st === "SUBSCRIBED") { await ch.track({ name: me.name, color: me.color }); base = blocksNow(); pull(); } });
+      .subscribe(async st => { conn = st; if (st === "SUBSCRIBED") { await ch.track({ name: me.name, color: me.color }); base = blocksNow(); pull(); } else if ((st === "CHANNEL_ERROR" || st === "TIMED_OUT" || st === "CLOSED") && !dead && d.share) { stop(); setTimeout(() => { if (!dead && d.share && !ch) start(); }, 3000); } });
     paint();
   }
-  const stop = () => { if (ch) { try { ch.untrack(); CLOUD.sb.removeChannel(ch); } catch {} ch = null; } peers = {}; paint(); };
+  const stop = () => { if (ch) { try { ch.untrack(); CLOUD.sb.removeChannel(ch); } catch {} ch = null; } conn = ""; peers = {}; paint(); };
   body.addEventListener("input", touch);
   btn.onclick = () => {
     if (!CLOUD.user) { const { el, close } = modal(`<h3>Zusammenarbeiten</h3><p class="note">Zum gemeinsamen Schreiben melde dich zuerst an – dann kannst du Notizen per Link teilen.</p><div class="row end"><button class="btn primary" id="co-login">Anmelden</button></div>`); $("#co-login", el).onclick = () => { close(); cloudLoginModal(); }; return; }
@@ -94,7 +94,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
         $("#co-go", box).onclick = async () => { const s = state(), { data, error } = await CLOUD.sb.rpc("lumi_share_create", { p_title: d.title, p_html: s.html, p_tb: s.tb, p_ink: s.ink }); if (error || !data) return toast("Freigabe nicht möglich: " + (error?.message || "Fehler")); d.share = data; d.shareOwner = true; d.shareRev = 0; save(); start(); draw(); }; return; }
       const others = Object.values(peers).map(a => a[0]).filter(Boolean), link = coLink(d.share);
       box.innerHTML = `<p class="note">Link teilen – wer ihn öffnet (angemeldet), arbeitet mit.</p><div class="co-link"><input class="field" readonly value="${esc(link)}" id="co-l"><button class="btn primary" id="co-cp">Kopieren</button></div>${navigator.share ? `<button class="btn ghost small" id="co-sh">Teilen …</button>` : ""}
-        <h4 class="co-h">Dabei</h4><div class="co-ppl"><span><i style="background:${me.color}">${esc(coIni(me.name))}</i>${esc(me.name)} (du)</span>${others.map(p => `<span><i style="background:${p.color}">${esc(coIni(p.name))}</i>${esc(p.name)}<em>online</em></span>`).join("") || `<small class="note">Noch niemand sonst online.</small>`}</div>
+        <h4 class="co-h">Dabei <em class="co-st ${conn === "SUBSCRIBED" ? "ok" : ""}">${conn === "SUBSCRIBED" ? "Live verbunden" : "Verbinde …"}</em></h4><div class="co-ppl"><span><i style="background:${me.color}">${esc(coIni(me.name))}</i>${esc(me.name)} (du)</span>${others.map(p => `<span><i style="background:${p.color}">${esc(coIni(p.name))}</i>${esc(p.name)}<em>online</em></span>`).join("") || `<small class="note">Noch niemand sonst online.</small>`}</div>
         <div class="row end" style="margin-top:14px"><button class="btn ghost danger" id="co-end">${d.shareOwner ? "Zusammenarbeit beenden" : "Verlassen"}</button></div>`;
       $("#co-cp", box).onclick = async () => { try { await navigator.clipboard.writeText(link); toast("Link kopiert"); } catch { $("#co-l", box).select(); } };
       $("#co-sh", box)?.addEventListener("click", () => navigator.share({ title: d.title, url: link }).catch(() => {}));
@@ -103,6 +103,8 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
     draw(); const t = setInterval(() => { if (!el.isConnected) return clearInterval(t); if (d.share) draw(); }, 4000);
   };
   window.__co = { touch };
+  /* Beim direkten Öffnen/Neuladen ist die Anmeldung evtl. noch nicht fertig – so lange warten, bis die Verbindung steht */
+  const boot = setInterval(() => { if (dead || ch || !d.share) { if (dead) clearInterval(boot); return; } if (CLOUD.sb && CLOUD.user) start(); }, 700); setTimeout(() => clearInterval(boot), 60000);
   start(); paint();
-  return { touch, destroy() { dead = true; clearTimeout(tPush); clearTimeout(tPersist); paper.removeEventListener("pointermove", onMove); paper.removeEventListener("pointerleave", onLeave); curLayer.remove(); if (d.share && ch) persist().catch(() => {}); stop(); if (window.__co && window.__co.touch === touch) window.__co = null; } };
+  return { touch, destroy() { dead = true; clearInterval(boot); clearTimeout(tPush); clearTimeout(tPersist); paper.removeEventListener("pointermove", onMove); paper.removeEventListener("pointerleave", onLeave); curLayer.remove(); if (d.share && ch) persist().catch(() => {}); stop(); if (window.__co && window.__co.touch === touch) window.__co = null; } };
 }

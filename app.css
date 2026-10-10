@@ -2279,3 +2279,4 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 /* v84: klare, abgerundete Linie mit Abstand zum Rand */
 .docspaper>.dside::before{top:28px;bottom:28px;width:2px;border-radius:2px;background:#d3d3dc}
 .docspaper>.dside{padding-top:28px}
+.co-h .co-st{font-style:normal;text-transform:none;letter-spacing:0;margin-left:8px;font-size:11.5px;color:#d97706}.co-h .co-st.ok{color:#16a34a}
