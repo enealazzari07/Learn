@@ -17,6 +17,37 @@ const Suggest = (() => {
     const a = at(i), b = at(i + len - 1); if (!a || !b) return null;
     const r = document.createRange(); r.setStart(a.n, i - a.start); r.setEnd(b.n, i + len - b.start); return r;
   }
+  const textOf = root => { const { s } = textMap(root); return { s }; };
+  function rangeAt(root, start, end) {
+    const { nodes } = textMap(root); const at = off => nodes.find(x => off >= x.start && off < x.start + x.len);
+    const a = at(start), b = at(Math.max(start, end - 1)); if (!a || !b) return null;
+    const r = document.createRange(); r.setStart(a.n, start - a.start); r.setEnd(b.n, end - b.start); return r;
+  }
+  function caretOffset(root) {
+    const sel = getSelection(); if (!sel.rangeCount || !sel.isCollapsed) return -1; const { nodes } = textMap(root), n = nodes.find(x => x.n === sel.anchorNode);
+    return n ? n.start + sel.anchorOffset : -1;
+  }
+  /* Wortweiser Vergleich: liefert Änderungen als {start,end,replace} in Koordinaten des Originaltexts */
+  function wordDiff(a, b) {
+    const tok = str => { const t = [], re = /\S+/g; let m; while ((m = re.exec(str))) t.push({ w: m[0], s: m.index, e: m.index + m[0].length }); return t; };
+    const A = tok(a), B = tok(b); if (A.length > 450 || B.length > 450) return [];
+    const n = A.length, m = B.length, L = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+    for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) L[i][j] = A[i].w === B[j].w ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    const out = []; let i = 0, j = 0, cur = null;
+    const flush = () => { if (cur) { out.push(cur); cur = null; } };
+    while (i < n || j < m) {
+      if (i < n && j < m && A[i].w === B[j].w) { flush(); i++; j++; continue; }
+      if (!cur) cur = { ai: i, aj: i, bi: j, bj: j };
+      if (j < m && (i >= n || L[i][j + 1] >= L[i + 1][j])) { cur.bj = ++j; } else { cur.aj = ++i; }
+    }
+    flush();
+    return out.map(c => {
+      let start, end, repl = B.slice(c.bi, c.bj).map(x => x.w).join(" ");
+      if (c.aj > c.ai) { start = A[c.ai].s; end = A[c.aj - 1].e; if (c.bj === c.bi) { const sp = a.slice(end).match(/^\s+/); if (sp) end += sp[0].length; } }
+      else { const p = c.ai > 0 ? A[c.ai - 1] : null; if (p) { start = p.s; end = p.e; repl = p.w + " " + repl; } else { start = 0; end = A[0] ? A[0].s : 0; repl = repl + " "; if (end === 0) return null; } }
+      return { start, end, replace: repl };
+    }).filter(Boolean);
+  }
   const esc = t => String(t).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
   const toHtml = t => { t = String(t || ""); return /\n/.test(t) && typeof textToHtml === "function" ? textToHtml(t) : esc(t.replace(/\s*\n\s*/g, " ")); };
   const widget = id => { const w = document.createElement("span"); w.className = "sg-ctl"; w.dataset.sg = id; w.contentEditable = "false"; w.innerHTML = `<button type="button" class="sg-ok" title="Übernehmen" aria-label="Änderung übernehmen">${IC_OK}</button><button type="button" class="sg-no" title="Verwerfen" aria-label="Änderung verwerfen">${IC_NO}</button>`; return w; };
@@ -52,13 +83,13 @@ const Suggest = (() => {
     const onClick = e => { const b = e.target.closest(".sg-ok,.sg-no"); if (!b) return; e.preventDefault(); e.stopPropagation(); resolve(b.closest(".sg-ctl").dataset.sg, b.classList.contains("sg-ok")); };
     body.addEventListener("mousedown", onDown); body.addEventListener("click", onClick);
     /* Textbereich ersetzen / Text einfügen – als Vorschlag */
-    function suggestRange(range, newText) {
+    function suggestRange(range, newText, opt = {}) {
       const id = ++seq, collapsed = range.collapsed || !range.toString().trim(); let anchor;
       if (!collapsed) { const del = document.createElement("del"); del.className = "sg-del"; del.dataset.sg = id; del.contentEditable = "false"; del.appendChild(range.extractContents()); range.insertNode(del); anchor = del; }
       const ctl = widget(id);
       if (newText != null && String(newText).trim()) { const ins = document.createElement("ins"); ins.className = "sg-ins"; ins.dataset.sg = id; ins.innerHTML = toHtml(newText); if (anchor) { anchor.after(ins); ins.after(ctl); } else { range.collapse(false); range.insertNode(ctl); range.insertNode(ins); } }
       else if (anchor) anchor.after(ctl); else return 0;
-      dirty && dirty(); refresh(); const t = body.querySelector(`ins[data-sg="${id}"]`) || body.querySelector(`del[data-sg="${id}"]`); t && t.scrollIntoView({ block: "center", behavior: "smooth" });
+      dirty && dirty(); refresh(); if (!opt.quiet) { const t = body.querySelector(`ins[data-sg="${id}"]`) || body.querySelector(`del[data-sg="${id}"]`); t && t.scrollIntoView({ block: "center", behavior: "smooth" }); }
       return id;
     }
     function suggest(edits) {
@@ -70,9 +101,20 @@ const Suggest = (() => {
       }
       return { applied, missed };
     }
+    /* Änderungen per Zeichenposition im Block (Auto-Korrektur); Stellen am Cursor werden übersprungen */
+    function suggestAt(scope, edits, opt = {}) {
+      const caret = opt.avoidCaret ? caretOffset(scope) : -1; let n = 0;
+      for (const e of [...edits].sort((x, y) => y.start - x.start)) {
+        if (caret >= 0 && caret >= e.start && caret <= e.end + 1) continue;
+        const r = rangeAt(scope, e.start, e.end); if (!r) continue;
+        if (opt.direct) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand("insertText", false, e.replace); n++; }
+        else if (suggestRange(r, e.replace, { quiet: true })) n++;
+      }
+      return n;
+    }
     const text = () => plainText(body);
-    return { suggest, suggestRange, all, text, pending: () => ids().length, destroy() { body.removeEventListener("mousedown", onDown); body.removeEventListener("click", onClick); if (bar) { bar.remove(); bar = null; } }, refresh };
+    return { suggest, suggestRange, suggestAt, all, text, pending: () => ids().length, destroy() { body.removeEventListener("mousedown", onDown); body.removeEventListener("click", onClick); if (bar) { bar.remove(); bar = null; } }, refresh };
   }
   function plainText(root) { const c = root.cloneNode(true); c.querySelectorAll(".sg-del,.sg-ctl").forEach(e => e.remove()); c.querySelectorAll("p,div,li,h1,h2,h3,tr,br").forEach(b => b.after("\n")); return c.textContent.replace(/\n{3,}/g, "\n\n"); }
-  return { attach, plainText, locate };
+  return { attach, plainText, locate, textOf, wordDiff, rangeAt };
 })();

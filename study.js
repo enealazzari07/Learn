@@ -481,6 +481,30 @@ async function noteEditor(m, d) {
   const doSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); d.text = Suggest.plainText(body).slice(0, 60000); await KV.set("html:" + d.id, body.innerHTML); save(); svEl.textContent = "Gespeichert"; }, 500);
   const dirty = () => { svEl.textContent = "Speichert…"; count(); doSave(); };
   const SG = Suggest.attach(body, dirty); window.__lumiEd = SG; SG.refresh(); LEAVE.push(() => { SG.destroy(); if (window.__lumiEd === SG) window.__lumiEd = null; });
+  /* Automatische Korrektur beim Schreiben (Groq/Gemini): nach kurzer Pause wird der aktuelle Absatz geprüft; Korrekturen erscheinen als Vorschläge oder werden direkt übernommen */
+  const AC = { busy: false, last: 0, seen: new WeakMap(), timer: null }, acMode = () => D.profile.autoCorrect || "suggest";
+  const scheduleAC = () => { clearTimeout(AC.timer); if (acMode() === "off" || !hasKey()) return; AC.timer = setTimeout(runAC, 1700); };
+  async function runAC() {
+    if (AC.busy || acMode() === "off" || !hasKey() || !body.isConnected) return;
+    const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
+    const blk = blockOf(sel.anchorNode); if (!blk || /^(PRE|CODE)$/.test(blk.tagName) || blk.querySelector(".sg-del,.sg-ins")) return;
+    const orig = Suggest.textOf(blk).s; if (orig.trim().length < 14 || AC.seen.get(blk) === orig) return;
+    if (Date.now() - AC.last < 2500) return scheduleAC();
+    AC.busy = true; AC.last = Date.now();
+    let res = null;
+    try { res = await ai(orig, { system: "Du bist eine unauffällige Rechtschreib-, Grammatik- und Zeichensetzungs-Korrektur. Antworte NUR mit dem korrigierten Text – ohne Erklärung, ohne Anführungszeichen, ohne Markdown. Behalte Sprache, Inhalt, Wortwahl, Stil, Zeilenumbrüche, Zahlen, Namen und Fachbegriffe bei. Formuliere nichts um. Wenn nichts falsch ist, gib den Text exakt unverändert zurück.", max: Math.min(1500, Math.ceil(orig.length / 2) + 120), model: autoModelId(), temperature: 0.1, quiet: true }); } catch {}
+    AC.busy = false; AC.seen.set(blk, orig);
+    if (!res || !blk.isConnected) return;
+    let fixed = res.trim(); if (!/^["„“]/.test(orig)) fixed = fixed.replace(/^["„“]|["“”]$/g, "");
+    if (!fixed || fixed === orig || fixed.length > orig.length * 1.35 + 20 || fixed.length < orig.length * 0.65 - 20) return;
+    if (Suggest.textOf(blk).s !== orig) return scheduleAC();            // Nutzer hat weitergeschrieben
+    const edits = Suggest.wordDiff(orig, fixed); if (!edits.length || edits.length > 12) return;
+    const n = SG.suggestAt(blk, edits, { avoidCaret: true, direct: acMode() === "auto" });
+    if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`);
+    AC.seen.set(blk, Suggest.textOf(blk).s);
+  }
+  if (acMode() !== "off" && hasKey()) body.spellcheck = false;
+  body.addEventListener("input", scheduleAC); LEAVE.push(() => clearTimeout(AC.timer));
   body.addEventListener("input", () => { dirty(); slashCheck(); });
   body.addEventListener("click", e => { if (e.target.matches("input[type=checkbox]")) { e.target.checked ? e.target.setAttribute("checked", "") : e.target.removeAttribute("checked"); dirty(); } });
   body.addEventListener("paste", e => { const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/")); if (f) { e.preventDefault(); insertImage(f); } });

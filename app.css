@@ -1965,3 +1965,7 @@ ins.sg-ins{text-decoration:none;color:inherit;background:linear-gradient(transpa
 .mdl:hover{background:#e8e8ee}.mdl svg{width:13px;height:13px}
 .aip .t-in .mdl{background:#f3f3f7}
 @media (max-width:520px){.mdl span{display:none}}
+.as-ac{padding:0 18px 4px}.as-ac[hidden]{display:none}
+.as-ac button{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#6e6e7c;padding:4px 0;cursor:pointer}.as-ac button svg{width:16px;height:16px}.as-ac button:hover{color:#0f0f12}
+.mdl span{max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.acset{margin-top:10px}
