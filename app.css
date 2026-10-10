@@ -1850,3 +1850,21 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 @keyframes lgSweep{from{-webkit-mask-position:115% 0;mask-position:115% 0}to{-webkit-mask-position:-15% 0;mask-position:-15% 0}}
 .m.think{gap:12px;padding:12px 18px 12px 14px}
 @media (prefers-reduced-motion:reduce){.m.think svg,.aic-think svg{animation:none;-webkit-mask-image:none;mask-image:none}}
+
+/* v64: Lumi-AI-Seitenleiste */
+#aiside{position:fixed;top:68px;right:12px;bottom:12px;width:min(410px,calc(100vw - 24px));z-index:80;background:#fff;border-radius:30px;box-shadow:0 2px 8px rgba(0,0,0,.05),0 24px 70px rgba(0,0,0,.16);display:flex;flex-direction:column;overflow:hidden;transform:translateX(calc(100% + 24px));opacity:0;pointer-events:none;transition:transform .5s cubic-bezier(.3,.9,.3,1),opacity .3s}
+#aiside.on{transform:none;opacity:1;pointer-events:auto}
+#aiside header{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 6px 20px}
+#aiside .as-l{display:flex;align-items:center;gap:10px}#aiside .as-l svg{width:30px;height:30px}#aiside .as-l b{font-size:16px;letter-spacing:-.02em}
+#aiside .as-r{display:flex;gap:2px}
+.as-chips{display:flex;gap:6px;flex-wrap:wrap;padding:4px 18px 8px}
+.as-chips button{background:#f3f3f7;border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .15s}.as-chips button:hover{background:#e8e8ee}
+#aiside .chatbox.flat{flex:1;min-height:0;height:auto;padding:0 14px 14px;background:transparent;display:flex;flex-direction:column}
+#aiside .modes,#aiside .chatbox .row{display:none}
+#aiside .msgs{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;padding:6px 2px 10px}#aiside .msgs::-webkit-scrollbar{display:none}
+#aiside .t-in{background:#f3f3f7;border-radius:999px;padding:5px 5px 5px 14px;display:flex;align-items:center;gap:6px}
+#aiside .t-in .tin{flex:1;border:0!important;background:none!important;outline:0;box-shadow:none!important;font-size:15px;padding:9px 2px}
+#aiside .t-in .send{width:40px;height:40px;border-radius:50%;background:#0f0f12;color:#fff}
+#aiside .m.u{background:#0f0f12;color:#fff}#aiside .m.a{background:transparent;padding-left:0}
+#ai-m.on,#aicb.on{background:#0f0f12!important;color:#fff!important}#ai-m.on svg,#aicb.on svg{filter:invert(1)}
+@media (max-width:900px){#aiside{top:auto;left:8px;right:8px;bottom:8px;height:78dvh;width:auto}body.aiside-open #main{margin-right:0!important}}

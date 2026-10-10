@@ -24,7 +24,7 @@ async function dbEditor(m, d) {
   m.innerHTML = `<div class="ned dfull dbed"><div class="ned-bar">
     <div class="nb-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="nb-name"><b id="cr" title="Zum Umbenennen klicken">${esc(d.title)}</b><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div></div>
     <div class="ned-tools" id="tb"><div class="modesw viewsw" id="vsw" data-m="table"><i class="knob"></i><button data-v="table">Tabelle</button><button data-v="board">Board</button><button data-v="cal">Kalender</button></div><i class="sep"></i><button class="tt" id="addc">${ic("plus")}<span>Spalte</span></button><button class="tt" id="grp" hidden><span id="grp-l"></span>${ic("chev")}</button></div>
-    <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><button class="btn ghost small" id="ai-m">${ic("spark")}<span class="hide-sm">Lumi AI</span></button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button></div></div>
+    <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><button class="btn ghost small" id="ai-m">${ic("spark")}<span class="hide-sm">AI</span></button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button></div></div>
   <article class="ned-paper dbpaper" id="paperc"><div class="dbbody" id="dbb"></div></article></div>`;
   const paper = $("#paperc", m), box = $("#dbb", m), svEl = $("#sv", m); setScroller(paper);
   $$("[data-p]", m).forEach(b => b.onclick = () => go("docs/" + b.dataset.p)); $("#eb", m).onclick = () => go("docs/" + (d.folderId || ""));

@@ -126,3 +126,37 @@ function wordReveal(root, maxMs = 4800) {
   nodes.forEach(t => { const f = document.createDocumentFragment(); t.nodeValue.split(/(\s+)/).forEach(p => { if (!p) return; if (!p.trim()) f.appendChild(document.createTextNode(p)); else { const sp = document.createElement("span"); sp.className = "sw"; sp.textContent = p; sp.style.animationDelay = Math.round(i++ * step) + "ms"; f.appendChild(sp); } }); t.replaceWith(f); });
   return Math.round(total * step) + 650;
 }
+
+/* ---------- Lumi AI Seitenleiste (in Dokumenten ausklappbar) ---------- */
+let aiSideTools = null;
+function aiSideDoc() { const m = location.hash.match(/#\/app\/doc\/([^/?]+)/); return m ? D.docs.find(d => d.id === m[1]) : null; }
+function aiSide(open, trigger) {
+  let el = document.getElementById("aiside");
+  if (open === undefined) open = !(el && el.classList.contains("on"));
+  if (!el) {
+    el = document.createElement("aside"); el.id = "aiside"; el.setAttribute("aria-label", "Lumi AI");
+    el.innerHTML = `<header><span class="as-l">${ic("spark")}<b>Lumi AI</b></span><span class="as-r"><button class="icon-btn" id="as-t" title="Werkzeuge" aria-label="Werkzeuge">${ic("more")}</button><button class="icon-btn" id="as-x" aria-label="Schließen">${ic("x")}</button></span></header><div class="as-chips" id="as-ch"></div><div class="chatbox flat" id="as-box"></div>`;
+    document.body.appendChild(el);
+    $("#as-x", el).onclick = () => aiSide(false);
+    $("#as-t", el).onclick = e => { const b = aiSideTools; if (b && typeof b.onclick === "function") b.onclick.call(b, { currentTarget: e.currentTarget, target: e.currentTarget, stopPropagation() {}, preventDefault() {} }); };
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && el.classList.contains("on") && !document.querySelector(".mask,#aicmd")) aiSide(false); });
+  }
+  if (trigger) aiSideTools = trigger;
+  $$("#ai-m,#aicb").forEach(b => b.classList.toggle("on", open));
+  if (open) {
+    const d = aiSideDoc(); chatCtx.clear(); if (d && d.type !== "draw" && d.type !== "db") chatCtx.add(d.id);
+    mountChat($("#as-box", el), false);
+    $("#as-t", el).hidden = !aiSideTools;
+    const CH = d ? ["Zusammenfassen", "Einfach erklären", "Karteikarten erstellen", "Quiz dazu"] : ["Lernplan für heute", "Neue Notiz erstellen", "Was zuerst lernen?"];
+    const ch = $("#as-ch", el); ch.innerHTML = CH.map(x => `<button type="button">${x}</button>`).join("");
+    $$("button", ch).forEach(b => b.onclick = () => { const t = b.textContent, tin = $(".tin", el); tin.value = d ? `${t} – bezogen auf „${d.title}“.` : t; $(".t-in", el).requestSubmit(); });
+    el.classList.add("on"); document.body.classList.add("aiside-open");
+    setTimeout(() => $(".tin", el)?.focus(), 350);
+  } else { el.classList.remove("on"); document.body.classList.remove("aiside-open"); }
+}
+/* Klick auf den AI-Knopf in Editoren/Dokumenten klappt die Seitenleiste aus (die alten Werkzeuge liegen hinter „…“) */
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("#ai-m,#aicb"); if (!b || !document.getElementById("app") || document.getElementById("app").hidden) return;
+  e.stopPropagation(); e.preventDefault(); aiSide(undefined, b);
+}, true);
+addEventListener("hashchange", () => { if (curView === "today" || curView === "ai") aiSide(false); });
