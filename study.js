@@ -675,10 +675,21 @@ async function noteEditor(m, d) {
   /* Hinweis-Blöcke lassen sich mit Rück- oder Entfernen-Taste auflösen bzw. löschen */
   body.addEventListener("keydown", e => {
     if (e.key !== "Backspace" && e.key !== "Delete") return; const sel = getSelection(); if (!sel.rangeCount || !sel.isCollapsed) return;
-    const el = sel.anchorNode?.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode, co = el?.closest?.("blockquote.callout"); if (!co || !body.contains(co)) return;
-    const txt = co.textContent.replace(/\u00a0/g, " ").trim(), r0 = document.createRange(); r0.setStart(co, 0); r0.setEnd(sel.anchorNode, sel.anchorOffset); const atStart = !r0.toString().replace(/^Hinweis:\s*/, "").replace(/\u00a0/g, "").length;
-    if (txt === "" || txt === "Hinweis:" || (e.key === "Backspace" && atStart)) { e.preventDefault(); const p = document.createElement("p"); const rest = co.textContent.replace(/^Hinweis:\s*/, "").trim(); if (rest) p.textContent = rest; else p.innerHTML = "<br>"; co.replaceWith(p); const r = document.createRange(); r.selectNodeContents(p); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); dirty(); }
+    const el = sel.anchorNode?.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode, co = el?.closest?.("blockquote, pre"); if (!co || !body.contains(co)) return;
+    const txt = co.textContent.replace(/\u00a0/g, " ").trim(), r0 = document.createRange(); r0.setStart(co, 0); r0.setEnd(sel.anchorNode, sel.anchorOffset); const atStart = !r0.toString().replace(co.classList.contains("callout") ? /^Hinweis:\s*/ : /^$/, "").replace(/\u00a0/g, "").length;
+    if (txt === "" || txt === "Hinweis:" || (e.key === "Backspace" && atStart)) { e.preventDefault(); const p = document.createElement("p"); const rest = co.textContent.replace(co.classList.contains("callout") ? /^Hinweis:\s*/ : /^$/, "").trim(); if (rest) p.textContent = rest; else p.innerHTML = "<br>"; co.replaceWith(p); const r = document.createRange(); r.selectNodeContents(p); r.collapse(true); sel.removeAllRanges(); sel.addRange(r); dirty(); }
   });
+
+  /* alle Blöcke (Code, Zitat, Hinweis, Tabelle, Aufklappliste, Trennlinie, Bild) lassen sich über einen kleinen Löschknopf entfernen */
+  { const DEL = "pre,table,blockquote,details,hr,img,.callout", delb = document.createElement("button"); delb.className = "blk-del"; delb.hidden = true; delb.innerHTML = ic("trash"); delb.title = "Block löschen"; delb.setAttribute("aria-label", "Block löschen"); document.body.appendChild(delb); LEAVE.push(() => delb.remove());
+    let tgt = null, ht = 0; const show = el => { tgt = el; clearTimeout(ht); const r = el.getBoundingClientRect(); delb.style.left = Math.min(innerWidth - 44, r.right - 30) + "px"; delb.style.top = Math.max(8, r.top - 12) + "px"; delb.hidden = false; }, hide = () => { clearTimeout(ht); ht = setTimeout(() => { delb.hidden = true; }, 500); };
+    body.addEventListener("mouseover", e => { const el = e.target.closest?.(DEL); if (el && body.contains(el) && !el.closest(".sg-ins-blk")) show(el); });
+    body.addEventListener("mouseout", e => { if (e.target.closest?.(DEL)) hide(); });
+    const fromCaret = () => { const s = getSelection(), n = s.rangeCount && s.anchorNode && (s.anchorNode.nodeType === 3 ? s.anchorNode.parentElement : s.anchorNode), el = n && n.closest?.(DEL); if (el && body.contains(el) && el !== body) show(el); };
+    body.addEventListener("click", e => { if (e.target.closest?.(DEL)) show(e.target.closest(DEL)); else fromCaret(); }); body.addEventListener("keyup", fromCaret);
+    delb.addEventListener("mouseenter", () => clearTimeout(ht)); delb.addEventListener("mouseleave", hide); delb.onmousedown = e => e.preventDefault();
+    delb.onclick = () => { if (!tgt || !tgt.isConnected) return; const r = document.createRange(); r.selectNode(tgt); const s = getSelection(); s.removeAllRanges(); s.addRange(r); body.focus(); document.execCommand("delete"); if (tgt.isConnected) tgt.remove(); if (!body.textContent.trim() && !body.querySelector("img,table,hr")) body.innerHTML = "<p><br></p>"; delb.hidden = true; tgt = null; dirty(); };
+  }
   body.addEventListener("contextmenu", e => { e.preventDefault(); openAiBar({ x: e.clientX, y: e.clientY }); });
   body.addEventListener("keydown", e => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "j") { e.preventDefault(); openAiBar(); return; }

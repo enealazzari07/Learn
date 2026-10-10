@@ -2232,3 +2232,9 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .co-ppl em{margin-left:auto;font-style:normal;font-size:11.5px;color:#16a34a;font-weight:700}
 @media (max-width:600px){.co-av i{width:24px;height:24px}}
 .tbx-bar .tbx-sw:not([style]){background:linear-gradient(135deg,#fff 46%,#e5484d 46% 54%,#fff 54%)!important}
+
+/* v81: mehrere Stifte + Löschknopf für Blöcke */
+.ip-pens{display:inline-flex;gap:2px;align-items:center}
+.ip-pen{position:relative}.ip-pen i{position:absolute;left:50%;bottom:4px;width:14px;height:3px;margin-left:-7px;border-radius:2px;box-shadow:0 0 0 1px rgba(255,255,255,.7)}
+.blk-del{position:fixed;z-index:280;width:30px;height:30px;border-radius:50%;border:0;background:#fff;color:#0f0f12;display:grid;place-items:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.18);animation:inkPop .18s ease}
+.blk-del svg{width:15px;height:15px}.blk-del:hover{background:#0f0f12;color:#fff}.blk-del[hidden]{display:none}

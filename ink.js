@@ -9,7 +9,7 @@ const INK_TOOLS = [["pen", "Stift", "brush"], ["hl", "Marker", "hl"], ["eraser",
 const INK_BRUSH = [["pen", "Füller"], ["mono", "Kugelschreiber"], ["pencil", "Bleistift"]];
 const INK_SHAPE = [["line", "Linie"], ["arrow", "Pfeil"], ["rect", "Rechteck"], ["ellipse", "Kreis"], ["tri", "Dreieck"]];
 const INK_SHAPE_IC = { line: "line", arrow: "arrow", rect: "square", ellipse: "circle", tri: "square" };
-const INK_DEF = { smooth: .35, press: .8, penOnly: false, snap: true, eras: "stroke", brush: "pen", shape: "arrow", grid: "none", color: INK_COL[0], tool: "pen", sizes: { pen: 4, hl: 5, eraser: 24, shape: 3 } };
+const INK_DEF = { smooth: .35, press: .8, penOnly: false, snap: true, eras: "stroke", brush: "pen", shape: "arrow", grid: "none", color: INK_COL[0], tool: "pen", sizes: { pen: 4, hl: 5, eraser: 24, shape: 3 }, pen: 0, pens: [{ brush: "pen", color: "#1c1c22", size: 4 }, { brush: "mono", color: "#2563eb", size: 3 }, { brush: "pencil", color: "#555a66", size: 3 }, { brush: "pen", color: "#e5484d", size: 6 }] };
 
 function createInk(paper, d, opts = {}) {
   let S = { ...INK_DEF, sizes: { ...INK_DEF.sizes } };
@@ -276,7 +276,7 @@ function createInk(paper, d, opts = {}) {
   /* ---------- palette ---------- */
   const shapeIc = () => ic(INK_SHAPE_IC[S.shape] || "arrow");
   const pal = document.createElement("div"); pal.className = "inkpal";
-  pal.innerHTML = `<div class="ip-row">${INK_TOOLS.map(([k, t, i]) => `<button class="tbtn" data-t="${k}" title="${t}" aria-label="${t}">${k === "shape" ? shapeIc() : ic(i)}</button>`).join("")}</div>
+  pal.innerHTML = `<div class="ip-row">${INK_TOOLS.map(([k, t, i]) => k === "pen" ? `<span class="ip-pens" id="ip-pens"></span>` : `<button class="tbtn" data-t="${k}" title="${t}" aria-label="${t}">${k === "shape" ? shapeIc() : ic(i)}</button>`).join("")}</div>
   <i class="ip-sep"></i><div class="ip-cols">${INK_COL.map(c => `<button class="cdot" data-c="${c}" style="background:${c}" aria-label="Farbe"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="ip-cc" value="#2563eb"></label></div>
   <i class="ip-sep"></i><input type="range" id="ip-sz" min="1" max="24" value="4" aria-label="Strichstärke">
   <i class="ip-sep"></i><div class="ip-row"><button class="tbtn" id="ip-un" title="Rückgängig (Zwei-Finger-Tipp)" aria-label="Rückgängig">${ic("undo")}</button><button class="tbtn" id="ip-re" title="Wiederholen (Drei-Finger-Tipp)" aria-label="Wiederholen">${ic("redo")}</button><button class="tbtn" id="ip-dup" title="Auswahl duplizieren" aria-label="Duplizieren" hidden>${ic("copy")}</button><button class="tbtn" id="ip-cl" title="Zeichnung leeren" aria-label="Zeichnung leeren">${ic("trash")}</button><button class="tbtn" id="ip-set" title="Zeichen-Einstellungen" aria-label="Zeichen-Einstellungen">${ic("gear")}</button></div>`;
@@ -287,7 +287,7 @@ function createInk(paper, d, opts = {}) {
   function closePop() { pop?.remove(); pop = null; popFor = ""; $p("#ip-set")?.classList.remove("on"); }
   const chip = (k, v, on, t) => `<button class="ink-chip${on ? " on" : ""}" data-k="${k}:${v}">${t}</button>`;
   function popHtml(kind) {
-    if (kind === "pen") return `<b>Stift</b><div class="ink-chips">${INK_BRUSH.map(([v, t]) => chip("brush", v, S.brush === v, t)).join("")}</div>`;
+    if (kind === "pen") return `<b>Stift ${S.pen + 1}</b><div class="ink-chips">${INK_BRUSH.map(([v, t]) => chip("brush", v, S.brush === v, t)).join("")}</div><div class="ink-chips">${S.pens.length < 8 ? chip("penadd", "1", false, "Neuer Stift") : ""}${S.pens.length > 1 ? chip("penrm", "1", false, "Diesen Stift löschen") : ""}</div>`;
     if (kind === "shape") return `<b>Form</b><div class="ink-chips">${INK_SHAPE.map(([v, t]) => chip("shape", v, S.shape === v, t)).join("")}</div>`;
     if (kind === "eraser") return `<b>Radierer</b><div class="ink-chips">${chip("eras", "stroke", S.eras === "stroke", "Ganzer Strich")}${chip("eras", "point", S.eras === "point", "Nur berührte Stelle")}</div>`;
     if (kind === "gear") return `<b>Zeichnen</b><label class="ink-rg"><span>Glättung</span><input type="range" min="0" max="100" value="${Math.round(S.smooth * 100)}" data-r="smooth"></label>
@@ -304,7 +304,7 @@ function createInk(paper, d, opts = {}) {
     if (kind === "gear") anchor.classList.add("on");
     pop.addEventListener("pointerdown", ev => ev.stopPropagation());
     pop.addEventListener("click", ev => { const b = ev.target.closest("[data-k]"); if (!b) return; const [k, v] = b.dataset.k.split(":");
-      if (k === "brush") S.brush = v; else if (k === "shape") { S.shape = v; refreshShapeIc(); } else if (k === "eras") S.eras = v; else if (k === "penOnly") S.penOnly = v === "1"; else if (k === "snap") S.snap = v === "1"; else if (k === "grid") { S.grid = v; applyGrid(); }
+      if (k === "brush") { S.brush = v; S.pens[S.pen].brush = v; paintPens(); } else if (k === "penadd") { S.pens.push({ ...S.pens[S.pen] }); S.pen = S.pens.length - 1; applyPen(); paintPens(); } else if (k === "penrm") { S.pens.splice(S.pen, 1); S.pen = 0; applyPen(); paintPens(); } else if (k === "shape") { S.shape = v; refreshShapeIc(); } else if (k === "eras") S.eras = v; else if (k === "penOnly") S.penOnly = v === "1"; else if (k === "snap") S.snap = v === "1"; else if (k === "grid") { S.grid = v; applyGrid(); }
       saveS(); pop.innerHTML = popHtml(kind); rangeBind(); updUI(); });
     const rangeBind = () => pop?.querySelectorAll("[data-r]").forEach(i => i.oninput = () => { S[i.dataset.r] = +i.value / 100; saveS(); }); rangeBind();
   }
@@ -317,21 +317,26 @@ function createInk(paper, d, opts = {}) {
   function setTool(t, keepPop) {
     if (t !== "lasso" && st.sel) setSel(null);
     st.tool = t; S.tool = t; if (!keepPop) closePop();
-    $$p("[data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t));
+    $$p("[data-t]").forEach(b => b.classList.toggle("on", b.dataset.t === t && (b.dataset.slot === undefined || +b.dataset.slot === S.pen)));
     applyTA(); cv.style.pointerEvents = st.on && t !== "hand" ? "auto" : "none"; cv.style.cursor = t === "eraser" ? "cell" : t === "lasso" ? "default" : "crosshair"; ring.classList.remove("on"); updUI(); saveS();
   }
   function setColor(c, noPrefs) {
     if (st.sel?.size && !noPrefs) { snap(); const m = new Map(); st.strokes = st.strokes.map(x => { if (!st.sel.has(x)) return x; const n = { ...x, color: c }; m.set(x, n); return n; }); st.sel = new Set(m.values()); render(); changed(); }
-    st.color = c; S.color = c; saveS(); $$p("[data-c]").forEach(b => b.classList.toggle("on", b.dataset.c === c)); if (tl() === "eraser" || tl() === "hand") setTool("pen");
+    st.color = c; S.color = c; if (!noPrefs && tl() === "pen" && S.pens[S.pen]) { S.pens[S.pen].color = c; paintPens(); } saveS(); $$p("[data-c]").forEach(b => b.classList.toggle("on", b.dataset.c === c)); if (tl() === "eraser" || tl() === "hand") setTool("pen");
   }
   function updUI() {
     $p("#ip-un").disabled = !st.hist.length; $p("#ip-re").disabled = !st.redo.length; const has = !!st.sel?.size; $p("#ip-cl").disabled = !st.strokes.length && !has; $p("#ip-cl").title = has ? "Auswahl löschen" : "Zeichnung leeren"; $p("#ip-cl").classList.toggle("sel", has); $p("#ip-dup").hidden = !has;
     const k = sizeKey(), z = $p("#ip-sz"); z.min = k === "eraser" ? 8 : 1; z.max = k === "eraser" ? 80 : k === "hl" ? 14 : 24; z.value = S.sizes[k]; z.disabled = ["lasso", "laser", "hand"].includes(st.tool);
   }
-  $$p("[data-t]").forEach(b => b.onclick = () => { const t = b.dataset.t; if (st.tool === t && ["pen", "eraser", "shape"].includes(t)) openPop(t, b); else { setTool(t); } });
+  function applyPen() { const p = S.pens[S.pen] || (S.pen = 0, S.pens[0]); S.brush = p.brush; S.sizes.pen = p.size; st.color = p.color; S.color = p.color; $$p("[data-c]").forEach(b => b.classList.toggle("on", b.dataset.c === p.color)); updUI(); }
+  function paintPens() {
+    const box = $p("#ip-pens"); box.innerHTML = S.pens.map((p, i) => `<button class="tbtn ip-pen" data-t="pen" data-slot="${i}" title="Stift ${i + 1} – nochmal tippen für Einstellungen" aria-label="Stift ${i + 1}">${ic(p.brush === "pencil" ? "pen" : "brush")}<i style="background:${p.color}"></i></button>`).join("");
+    $$p("[data-slot]").forEach(b => { b.classList.toggle("on", st.tool === "pen" && +b.dataset.slot === S.pen); b.onclick = () => { const i = +b.dataset.slot; if (st.tool === "pen" && S.pen === i) openPop("pen", b); else { S.pen = i; applyPen(); setTool("pen"); } }; });
+  }
+  $$p("[data-t]:not([data-slot])").forEach(b => b.onclick = () => { const t = b.dataset.t; if (st.tool === t && ["eraser", "shape"].includes(t)) openPop(t, b); else { setTool(t); } });
   $$p("[data-c]").forEach(b => b.onclick = () => setColor(b.dataset.c));
   $p("#ip-cc").oninput = e => { setColor(e.target.value); $$p("[data-c]").forEach(b => b.classList.remove("on")); };
-  $p("#ip-sz").oninput = e => { S.sizes[sizeKey()] = +e.target.value; saveS(); };
+  $p("#ip-sz").oninput = e => { S.sizes[sizeKey()] = +e.target.value; if (sizeKey() === "pen" && S.pens[S.pen]) S.pens[S.pen].size = +e.target.value; saveS(); };
   $p("#ip-un").onclick = undo; $p("#ip-re").onclick = redo;
   $p("#ip-set").onclick = e => openPop("gear", e.currentTarget);
   $p("#ip-dup").onclick = () => { if (!st.sel?.size) return; snap(); const cl = [...st.sel].map(x => ({ ...x, pts: x.pts.map(q => [q[0] + 24, q[1] + 24, ...q.slice(2)]) })); st.strokes.push(...cl); setSel(new Set(cl)); changed(); };
@@ -354,7 +359,7 @@ function createInk(paper, d, opts = {}) {
   document.addEventListener("keydown", key);
   const ro = new ResizeObserver(size); ro.observe(paper); if (paper.firstElementChild) ro.observe(paper.querySelector(".body") || paper.firstElementChild);
 
-  setColor(st.color, true); setTool(st.tool); applyGrid(); updUI();
+  applyPen(); paintPens(); setColor(st.color, true); setTool(st.tool); applyGrid(); updUI();
   return {
     st, canvas: cv,
     load(strokes) { st.strokes = Array.isArray(strokes) ? strokes : []; st.sel = null; size(); dirty = true; frame(); updUI(); },
