@@ -187,7 +187,7 @@ function docRow(d) {
 function docCard(d) {
   const s = subj(d.subjectId);
   let thumb;
-  if (d.type === "note") thumb = `<div class="th note-th">${esc((d.text || "").slice(0, 150)) || "<i>Leer</i>"}</div>`;
+  if (d.type === "note") thumb = `<div class="th note-th">${esc((d.text || "").slice(0, 150)) || `<span class="ph"></span>`}</div>`;
   else if (d.type === "db") thumb = `<div class="th file-th"><b style="background:#5b3df5">${ic("table")}</b></div>`;
   else if (d.type === "draw") thumb = `<div class="th" style="background:#fff center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.thumb) thumb = `<div class="th" style="background:#f3f3f5 center/cover url(${d.thumb})"></div>`;
