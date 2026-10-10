@@ -1995,3 +1995,22 @@ ins.sg-ins{text-decoration:none;color:inherit;background:linear-gradient(transpa
 .tk-seen{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:#8a8a98;margin:8px 0 0 4px}
 .tk-seen span{display:inline-flex;align-items:center;gap:6px}.tk-seen svg{width:14px;height:14px}
 .tk-seen b{background:#f1f1f5;color:#2a2a33;border-radius:999px;padding:3px 10px;font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ======== v70: Denk-Ablauf – Schritte erscheinen sanft nacheinander ======== */
+.m.think.tkb{display:flex!important;flex-direction:column;align-items:flex-start;gap:7px;background:none!important;padding:8px 2px!important;width:100%;max-width:100%}
+.tk-row{display:flex;align-items:center;gap:10px;min-height:26px;font-size:14px;color:#6e6e7c;animation:tkIn .55s cubic-bezier(.2,.8,.2,1) both;overflow:hidden}
+.tk-row b{font-weight:600;color:#2a2a33}
+.tk-row.on .shim{font-weight:600}
+.tk-row.done{color:#9a9aa8;font-size:13.5px}
+.tk-row.done b{color:#6e6e7c}
+.tk-ok{width:18px;height:18px;border-radius:50%;background:#f1f1f5;display:grid;place-items:center;flex:none;animation:tkPop .4s cubic-bezier(.3,1.6,.5,1) both}.tk-ok svg{width:11px;height:11px;stroke-width:2.8;color:#0f0f12}
+.tk-sp{width:18px;height:18px;flex:none;fill:#0f0f12}.tk-sp circle{opacity:.12;animation:tkDot 1s linear infinite;animation-delay:calc(var(--i) * -.125s)}
+@keyframes tkDot{0%{opacity:1;transform:scale(1)}100%{opacity:.12;transform:scale(.7)}}
+.tk-sp circle{transform-box:fill-box;transform-origin:center}
+@keyframes tkIn{from{opacity:0;transform:translateY(8px);filter:blur(4px);max-height:0}to{opacity:1;transform:none;filter:none;max-height:40px}}
+@keyframes tkPop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.m.think.tkb .tk-row.on:first-child svg{width:24px;height:24px}
+@media (prefers-reduced-motion:reduce){.tk-row,.tk-ok,.tk-sp circle{animation:none}.tk-sp circle{opacity:.6}}
+.m.think .tk-ok svg{width:11px!important;height:11px!important;animation:none!important;-webkit-mask-image:none!important;mask-image:none!important;filter:none!important;color:#0f0f12}
+.m.think svg.tk-sp{width:18px!important;height:18px!important;animation:none!important;-webkit-mask-image:none!important;mask-image:none!important;filter:none!important}
+.m.think.tkb .tk-row:not(:first-child) svg:not(.tk-sp){animation:none}

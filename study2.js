@@ -264,6 +264,17 @@ function chatHistory() {
   while (out.length && out[0].role !== "user") out.shift();
   return out;
 }
+const TK_SPIN = '<svg class="tk-sp" viewBox="0 0 24 24" aria-hidden="true">' + Array.from({ length: 8 }, (_, i) => `<circle cx="${(12 + 8.6 * Math.sin(i * Math.PI / 4)).toFixed(2)}" cy="${(12 - 8.6 * Math.cos(i * Math.PI / 4)).toFixed(2)}" r="1.9" style="--i:${i}"/>`).join("") + "</svg>";
+/* Denk-Animation: Schritte erscheinen nacheinander (Nachdenken → Gesehen → Formulieren), erledigte werden grau mit Haken */
+function thinkSeq(el, msgs) {
+  const row = (cls, html) => { if (!el.isConnected) return null; const r = document.createElement("div"); r.className = "tk-row " + cls; r.innerHTML = html; el.appendChild(r); msgs.scrollTop = msgs.scrollHeight; return r; };
+  const done = (r, txt) => { if (!r) return; r.classList.remove("on"); r.classList.add("done"); r.innerHTML = `<i class="tk-ok">${ic("check")}</i><span>${txt}</span>`; };
+  const seen = [...chatCtx].map(id => D.docs.find(x => x.id === id)).filter(Boolean).slice(0, 3);
+  const r1 = el.firstElementChild;
+  setTimeout(() => { if (!el.isConnected) return; done(r1, "Nachgedacht");
+    if (seen.length) { const r2 = row("on", `${TK_SPIN}<span class="shim">Liest ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")} …</span>`); setTimeout(() => { done(r2, `Gesehen: ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")}`); const r3 = row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1500); }
+    else row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1400);
+}
 function mountChat(box, compact) {
   const draw = () => {
     const msgs = $(".msgs", box); msgs.innerHTML = (chatMsgs().length ? chatMsgs() : [{ role: "assistant", text: `Hi${D.profile.name ? " " + D.profile.name.split(" ")[0] : ""}! Ich bin dein Lern-Tutor. Frag mich etwas, lass dir ein Thema erklären.${hasKey() ? "" : "\n\n(Lumi AI ist noch nicht eingerichtet – siehe Einstellungen → Lumi AI.)"}` }]).map((x, i) => `<div class="m ${x.role === "user" ? "u" : "a"}">${x.img ? `<img src="${x.img}" alt="">` : ""}${x.fresh ? streamHtml(x.text) : esc(x.text)}${x.acts?.length ? `<div class="acts" style="--base:${x.fresh ? Math.min(2600, (x.text.split(/\s+/).length) * 30 + 200) : 0}ms">${x.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : /^doc\//.test(a.go || "") ? "note" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}${x.role === "assistant" && D.chat.length ? `<div class="macts"><button data-cp="${i}" title="Kopieren">${ic("copy")}</button><button data-sv="${i}" title="Als Notiz speichern">${ic("note")}</button></div>` : ""}</div>`).join("");
@@ -278,7 +289,7 @@ function mountChat(box, compact) {
   const send = async text => {
     text = (text || "").trim(); if (!text && !chatImg) return; const img = chatImg; chatImg = null;
     { const cc = chatState(); cc.msgs.push({ role: "user", text: text || "Bitte erkläre das Bild.", img: img?.url }); cc.updated = Date.now(); if (cc.title === "Neuer Chat" && text) cc.title = text.slice(0, 40); } draw(); window.onChatsChanged && window.onChatsChanged();
-    const msgs = $(".msgs", box); msgs.insertAdjacentHTML("beforeend", `<div class="m a think">${ic("spark")}<span class="shim">Lumi AI denkt nach …</span></div>${chatCtx.size ? `<div class="tk-seen"><span>${ic("file")}Gesehen</span>${[...chatCtx].map(id => D.docs.find(x => x.id === id)).filter(Boolean).slice(0, 3).map(d => `<b>${esc(d.title)}</b>`).join("")}</div>` : ""}`); msgs.scrollTop = msgs.scrollHeight;
+    const msgs = $(".msgs", box); const tkEl = document.createElement("div"); tkEl.className = "m a think tkb"; tkEl.innerHTML = `<div class="tk-row on">${ic("spark")}<span class="shim">Lumi AI denkt nach …</span></div>`; msgs.appendChild(tkEl); thinkSeq(tkEl, msgs); msgs.scrollTop = msgs.scrollHeight;
     const c = await ctxText(), hist = chatHistory(); let r;
     if (hasKey()) r = await ai(text || "Bitte erkläre das Bild.", { history: hist, system: sysBase(MODES[chatMode][1] + (chatInstr() ? "\n\n" + chatInstr() : "") + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (msContext() ? `\nDaten des Lernenden aus Microsoft 365 (Kalender, Teams, OneNote) – nutze sie, wenn nach Terminen, Prüfungen oder Aufgaben gefragt wird. Heute ist ${iso()}.\n${msContext()}` : "") + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), max: 2000, image: img ? { data: img.data, type: "image/jpeg" } : null });
     else { await new Promise(r => setTimeout(r, 500)); r = msContext() && /prüfung|klausur|test|termin|kalender|aufgabe|hausaufgabe|lernziel/i.test(text) ? "Das steht aktuell in deinem Microsoft-Konto:\n\n" + msContext() + "\n\n(Demo-Modus – mit eingerichteter Lumi AI beantworte ich gezielte Fragen dazu.)" : c && chatMode === "sum" ? "Zusammenfassung (lokal):\n" + localSummary(c) : "Lumi AI ist noch nicht eingerichtet, deshalb kann ich keine echten Antworten erzeugen. Hinterlege unter Einstellungen → Lumi AI den Gemini-Key (Vercel) – dann erkläre ich Themen, frage dich ab und helfe bei Hausaufgaben. Zusammenfassungen, Karteikarten und Quiz aus Dokumenten funktionieren schon jetzt auch offline."; }
