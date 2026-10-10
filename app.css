@@ -1327,3 +1327,21 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 @media (max-width:900px){.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important}.ftxt>b{font-size:15px}}
 .docspaper .fold .f3d>svg{width:100%!important;height:100%!important}
 .docspaper .fold.add{width:100%}
+
+/* ======== v36: 1:1 frosted folder – no icon ======== */
+.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))!important}
+.f3d{aspect-ratio:227/190!important;max-width:230px!important}
+.f3d .fb{fill:color-mix(in srgb,var(--c) 88%,#000 12%)!important}
+.f3d .ff{fill:color-mix(in srgb,var(--c) 64%,#fff 36%)!important;fill-opacity:.93!important}
+.f3d .fh{fill:rgba(255,255,255,.4)!important;filter:blur(10px)!important}
+.f3d .fp{filter:drop-shadow(0 2px 6px rgba(20,30,80,.16));fill:#fff}
+.f3d .fp0{fill-opacity:.8}.f3d .fp1{fill-opacity:.95}.f3d .fp2{fill-opacity:.62}
+.docspaper .fold:hover .fp0{transform:translate(-3px,-6px) rotate(-4deg);transform-origin:85px 124px}
+.docspaper .fold:hover .fp1{transform:translateY(-10px)}
+.docspaper .fold:hover .fp2{transform:translate(3px,-6px) rotate(4deg);transform-origin:130px 122px}
+.ftxt{left:6.5%!important;right:8%!important;bottom:11%!important}
+.ftxt>b{font-size:21px!important;font-weight:500!important;letter-spacing:-.015em!important}
+.ftxt>small{font-size:12.5px!important;font-weight:500!important;color:color-mix(in srgb,var(--c) 62%,#000 38%)!important;opacity:.9}
+.f3d>.fic{display:none!important}
+.f3d .fb{fill:color-mix(in srgb,var(--c) 92%,#fff 8%)!important}
+.f3d .ff{fill:color-mix(in srgb,var(--c) 60%,#fff 40%)!important;fill-opacity:.97!important}
