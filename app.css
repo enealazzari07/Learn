@@ -1474,3 +1474,34 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .sana .s-sec .sech h2,.sana .sech .sh2{margin:0}
 .sana section{margin-bottom:34px}.sana .sech{margin-top:0}
 .sana section.sec{padding-top:0!important}.sana .page,.page.home.sana{padding-top:6px}
+
+/* ======== v43: kompakt, volle Breite ======== */
+.main.homew,.main.homew:not(.doc-full){margin:0!important;border-radius:0!important;box-shadow:none!important;min-height:100dvh;padding:22px clamp(18px,2.6vw,44px) 40px}
+.shell:has(.main.homew){background:#fff}
+.page.home.sana{max-width:none;padding:0 0 60px}
+.sana .hh{margin-bottom:14px;align-items:center}
+.sana .greet-h{font-size:clamp(22px,2.2vw,28px);letter-spacing:-.03em}
+.sana .hsub{font-size:15px;margin-top:3px}
+.sana .hsearch{max-width:340px;flex:0 1 340px;padding:3px 3px 3px 14px;margin:0}
+.sana .hsearch input{padding:6px 0;font-size:14px}.sana .hs-ai{padding:8px 13px;font-size:13px}
+.sana .s-tbl{border:0;border-radius:0;padding:0;margin-bottom:22px}
+.sana .s-tr{padding:7px 4px;gap:12px;border-radius:12px;border-bottom:1px solid #f1f1f5;border-radius:0}
+.sana .s-th0{padding:4px 4px;border-bottom:1px solid #ececf1}
+.sana .todo:hover{background:#fafafc}
+.sana .s-tt{gap:11px}.sana .s-tt b{font-size:14px}
+.sana .rt{width:30px;height:30px;border-radius:9px;flex:none;order:2;background:linear-gradient(140deg,hsl(var(--h) 75% 80%),hsl(calc(var(--h) + 50) 80% 62%))}
+.sana .s-tt .tc{order:1}.sana .s-tt b{order:3}
+.sana .s-ty,.sana .todo small{font-size:13px}.sana .s-pri{font-size:12px;padding:3px 10px}
+.sana .todo-add{padding:8px 4px;border-bottom:1px solid #f1f1f5}
+.sana .s-sec{margin-bottom:24px}.sana .sh2{font-size:17px}.sana .sh2 em{font-style:normal;color:#a0a0ae;font-weight:500;margin-left:4px}
+.sana .s-cards4{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+.sana .s-rc .s-th{aspect-ratio:4/3;border-radius:16px;margin-bottom:6px}
+.sana .s-rc b{font-size:14px}
+.sana .s-cards3{gap:14px}
+.sana .s-fc{min-height:150px;padding:20px 22px;border-radius:22px;color:#fff}
+.sana .s-fc-ai{background:linear-gradient(120deg,#33b6d9,#f7b733 95%)}
+.sana .s-fc-c{background:linear-gradient(135deg,#5a3df0,#9b6bff)}
+.sana .s-fc-e{background:linear-gradient(135deg,#111827,#374151)}
+.sana .s-fc .s-fk{opacity:.85}.sana .s-fc-ai p{font-size:19px;font-weight:600;line-height:1.3;letter-spacing:-.02em;color:#fff}
+.sana .s-fc b{font-size:30px}.sana .s-fc-e b{font-size:22px}.sana .s-fc small{opacity:.8}
+@media (max-width:900px){.main.homew,.main.homew:not(.doc-full){padding:14px 16px 150px}}
