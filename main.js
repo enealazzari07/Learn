@@ -26,7 +26,7 @@ addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLower
 /* ---------- landing ---------- */
 function appShot() {
   const rows = [["Mathe", "#2563eb", "Aufgaben S. 54 Nr. 3–7", "Morgen"], ["Biologie", "#0e9f6e", "Referat Zellatmung", "Fr"], ["Englisch", "#ff6a3d", "Vokabeltest Unit 4", "Mo"]];
-  return `<div class="shot-in"><div class="shot-side"><b>Lumi</b>${["Heute", "Dokumente", "Karteikarten", "Planer", "KI-Tutor"].map((x, i) => `<span class="${i ? "" : "on"}">${x}</span>`).join("")}</div><div class="shot-main"><small>Donnerstag, 9. Oktober</small><h4>Guten Morgen, Alex</h4>
+  return `<div class="shot-in"><div class="shot-side"><b>Lumi</b>${["Heute", "Dokumente", "Karteikarten", "Planer", "Lumi AI"].map((x, i) => `<span class="${i ? "" : "on"}">${x}</span>`).join("")}</div><div class="shot-main"><small>Donnerstag, 9. Oktober</small><h4>Guten Morgen, Alex</h4>
   <div class="shot-tiles"><div><b>12</b><small>Tage Serie</small></div><div><b>45</b><small>Min. heute</small></div><div><b>18</b><small>Karten fällig</small></div></div>
   <div class="shot-list">${rows.map(r => `<div><i style="background:${r[1]}"></i><span>${r[2]}</span><small>${r[0]} · ${r[3]}</small></div>`).join("")}</div></div></div>`;
 }
@@ -36,7 +36,7 @@ function renderLanding() {
     ["Schreiben", "Notizen, Skizzen und Dateien an einem Ort", "Ein richtiger Editor mit Überschriften, Listen, Tabellen, Formeln und Bildern. Dazu Stift, Marker und Formen direkt im selben Dokument – und Platz für alle PDFs und Skripte.", "edit", ["Notizen mit Formeln & Tabellen", "Whiteboard mit Stift & Formen", "PDFs, Bilder & Skripte ablegen"]],
     ["Lernen", "Karteikarten und Quiz, die wirklich hängenbleiben", "Spaced Repetition zeigt dir jede Karte genau dann, wenn du sie fast vergessen hast. Quiz und Prüfungstraining entstehen auf Knopfdruck aus deinen Unterlagen.", "cards", ["Karteikarten aus Notizen erzeugen", "Quiz zu jedem Thema", "Lernserie & Statistik"]],
     ["Planen", "Stundenplan, Hausaufgaben und Prüfungen", "Behalte Abgabetermine, Klausuren und den Stundenplan im Blick – mit Kalender, Erinnerungen und Fokus-Timer für konzentrierte Lernblöcke.", "cal", ["Hausaufgaben & Prüfungen", "Stundenplan & Kalender", "Pomodoro-Fokus-Timer"]],
-    ["KI-Tutor", "Ein Tutor, der dich nie nervt", "Lass dir Themen erklären, dich abfragen oder fotografiere eine Aufgabe. Die KI hilft mit Hinweisen statt nur mit der Lösung – und kennt deine Unterlagen.", "spark", ["Erklärt Schritt für Schritt", "Hausaufgaben-Hilfe per Foto", "Fasst Skripte zusammen"]],
+    ["Lumi AI", "Ein Tutor, der dich nie nervt", "Lass dir Themen erklären, dich abfragen oder fotografiere eine Aufgabe. Die KI hilft mit Hinweisen statt nur mit der Lösung – und kennt deine Unterlagen.", "spark", ["Erklärt Schritt für Schritt", "Hausaufgaben-Hilfe per Foto", "Fasst Skripte zusammen"]],
   ];
   landingEl.innerHTML = `
   <header class="nav" id="nav"><a class="logo" href="#/"><i class="mark"></i>Lumi</a>

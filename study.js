@@ -8,7 +8,7 @@ const PRESETS = {
   school: ["Mathe", "Deutsch", "Englisch", "Biologie", "Chemie", "Physik", "Geschichte", "Geografie", "Informatik", "Kunst", "Musik", "Sport", "Politik", "Französisch", "Latein", "Spanisch", "Religion/Ethik"],
   uni: ["Analysis", "Lineare Algebra", "Programmierung", "Statistik", "BWL", "VWL", "Recht", "Psychologie", "Medizin", "Chemie", "Physik", "Informatik", "Literatur", "Geschichte", "Seminar"],
 };
-const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["cards", "Karteikarten", "cards"], ["quiz", "Quiz", "help"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "KI-Tutor", "spark"], ["search", "Suche", "search"], ["settings", "Einstellungen", "gear"]];
+const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["cards", "Karteikarten", "cards"], ["quiz", "Quiz", "help"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["search", "Suche", "search"], ["settings", "Einstellungen", "gear"]];
 
 /* ---------- stats ---------- */
 const addMin = m => { const k = iso(); D.stats.days[k] = (D.stats.days[k] || 0) + m; save(); };
@@ -45,7 +45,7 @@ function go(path) { location.hash = "#/app/" + path; }
 function buildShell(force) {
   const app = $("#app");
   if (!force && $(".shell", app)) { refreshNav(); return; }
-  app.innerHTML = `<div class="shell"><aside class="side" id="side"></aside><main class="main" id="main"></main><aside class="aipane" id="aipane" hidden></aside></div><div class="timer-pill" id="tpill" hidden></div><button class="tfab" id="tfab" aria-label="KI-Tutor">${ic("spark")}<span>KI</span></button><div class="chat-panel" id="cpanel" hidden></div><input type="file" id="upl" multiple hidden>`;
+  app.innerHTML = `<div class="shell"><aside class="side" id="side"></aside><main class="main" id="main"></main><aside class="aipane" id="aipane" hidden></aside></div><div class="timer-pill" id="tpill" hidden></div><button class="tfab" id="tfab" aria-label="KI-Tutor">${ic("spark")}<span>Lumi AI</span></button><div class="chat-panel" id="cpanel" hidden></div><input type="file" id="upl" multiple hidden>`;
   $("#tfab").onclick = () => toggleChatPanel();
   $("#upl").onchange = e => { uploadFiles([...e.target.files]); e.target.value = ""; };
   app.addEventListener("dragover", e => { e.preventDefault(); });
@@ -60,7 +60,7 @@ function refreshNav() {
   const on = k => curView === k || (k === "docs" && curView === "doc") || (k === "board" && curView === "draw") || (k === "quiz" && curView === "quizrun") || (k === "cards" && ["deck", "study"].includes(curView));
   s.innerHTML = `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand">Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
-  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
+  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
   <button class="nav-i prof hide-mob" id="profbtn" title="Profil"><span class="av">${esc((D.profile.name || (CLOUD.user?.email) || "L").trim()[0].toUpperCase())}</span><span class="nl pn"><b>${esc(D.profile.name || "Profil")}</b><small>${esc(CLOUD.user?.email || "Nicht angemeldet")}</small></span></button>`;
@@ -365,7 +365,7 @@ V.docs = (m, id) => {
   m.innerHTML = `<div class="ned dfull docsed"><div class="ned-bar">
     <div class="nb-l"><div class="nb-name docs-t"><b>Dokumente</b><nav class="path" aria-label="Pfad"><button data-p="" class="${path.length ? "" : "here"}">Home</button>${path.map((f, i) => `<span>/</span><button data-p="${f.id}" class="${i === path.length - 1 ? "here" : ""}">${esc(f.name)}</button>`).join("")}</nav></div></div>
     <div class="ned-tools docs-tools"><div class="searchbox flat">${ic("search")}<input id="dq" placeholder="${path.length ? "In „" + esc(path[path.length - 1].name) + "“ und überall suchen …" : "Dokumente durchsuchen …"}" value="${esc(docQuery)}"></div><label class="sortl">${ic("filter")}<select class="field slim" id="ds"><option value="recent" ${docSort === "recent" ? "selected" : ""}>Neueste</option><option value="name" ${docSort === "name" ? "selected" : ""}>Name A–Z</option></select></label></div>
-    <div class="nb-r"><button class="btn ghost small" id="aicb">${ic("spark")}<span>KI</span></button><button class="btn accent small" id="nw">${ic("plus")}<span>Neu</span></button></div></div>
+    <div class="nb-r"><button class="btn ghost small" id="aicb">${ic("spark")}<span>Lumi AI</span></button><button class="btn accent small" id="nw">${ic("plus")}<span>Neu</span></button></div></div>
   <article class="ned-paper docspaper" id="paperc">
   ${folders.length || list.length ? `<div class="items">${folders.map(f => { const n = folderCount(f.id); return `<div class="fold" data-f="${f.id}" style="--c:${f.color}" tabindex="0"><div class="f3d">${folderSvg(f.color)}<div class="ftxt"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; }).join("")}${list.map(docCard).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>${q ? "Nichts gefunden" : path.length ? "Dieser Ordner ist leer" : "Noch nichts hier"}</h3><p>${q ? "Versuche einen anderen Suchbegriff." : "Lege mit „Neu“ oben rechts Ordner, Notizen oder Datenbanken an oder lade Dateien hoch. Dateien kannst du auch einfach hierher ziehen."}</p></div>`}
   </article></div>`;
@@ -558,7 +558,7 @@ async function noteEditor(m, d) {
 
   /* floating selection menu */
   const bub = document.createElement("div"); bub.className = "bubble"; bub.hidden = true; document.body.appendChild(bub); LEAVE.push(() => bub.remove());
-  bub.innerHTML = [["bold", "bold"], ["italic", "italic"], ["underline", "underline"], ["hilite", "hl"], ["link", "link"]].map(([c, i]) => `<button data-b="${c}">${ic(i)}</button>`).join("") + `<i class="sep"></i><button data-bai>${ic("spark")}<span>KI</span></button>`;
+  bub.innerHTML = [["bold", "bold"], ["italic", "italic"], ["underline", "underline"], ["hilite", "hl"], ["link", "link"]].map(([c, i]) => `<button data-b="${c}">${ic(i)}</button>`).join("") + `<i class="sep"></i><button data-bai>${ic("spark")}<span>Lumi AI</span></button>`;
   bub.onmousedown = e => e.preventDefault();
   $$("[data-b]", bub).forEach(b => b.onclick = () => CMD[b.dataset.b]());
   $("[data-bai]", bub).onclick = () => openAiBar();

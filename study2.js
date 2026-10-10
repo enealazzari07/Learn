@@ -278,7 +278,7 @@ function mountChat(box, compact) {
     { const cc = chatState(); cc.msgs.push({ role: "assistant", text: r || "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts, fresh: true }); cc.msgs = cc.msgs.slice(-80); cc.updated = Date.now(); draw(); cc.msgs.forEach(x => delete x.fresh); }
     save();
   };
-  box.innerHTML = `${compact ? `<header>${ic("spark")}<b>KI-Tutor</b><button class="icon-btn" data-full title="Vollbild">${ic("up")}</button><button class="icon-btn" data-close aria-label="Schließen">${ic("x")}</button></header>` : ""}<div class="modes" ${compact ? "hidden" : ""}>${Object.entries(MODES).map(([k, v]) => `<button class="chip ${chatMode === k ? "on" : ""}" data-m="${k}">${v[0]}</button>`).join("")}</div><div class="ctxbar"></div><div class="msgs"></div><div class="imgprev" hidden></div>
+  box.innerHTML = `${compact ? `<header>${ic("spark")}<b>Lumi AI</b><button class="icon-btn" data-full title="Vollbild">${ic("up")}</button><button class="icon-btn" data-close aria-label="Schließen">${ic("x")}</button></header>` : ""}<div class="modes" ${compact ? "hidden" : ""}>${Object.entries(MODES).map(([k, v]) => `<button class="chip ${chatMode === k ? "on" : ""}" data-m="${k}">${v[0]}</button>`).join("")}</div><div class="ctxbar"></div><div class="msgs"></div><div class="imgprev" hidden></div>
   <form class="t-in"><button type="button" class="icon-btn" id="cam" title="Foto / Bild" aria-label="Bild anhängen">${ic("camera")}</button><input type="file" id="cfi" accept="image/*" hidden><input class="tin" placeholder="Frag etwas oder beschreibe deine Aufgabe…" aria-label="Nachricht"><button type="button" class="icon-btn" id="att" title="Dokumente anheften" aria-label="Dokumente anheften">${ic("clip")}</button><button class="send" aria-label="Senden">${ic("up")}</button></form>${compact ? "" : `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost small" id="clr">Verlauf löschen</button></div>`}`;
   $$("[data-m]", box).forEach(b => b.onclick = () => { chatMode = b.dataset.m; $$("[data-m]", box).forEach(x => x.classList.toggle("on", x === b)); });
   $(".t-in", box).onsubmit = e => { e.preventDefault(); const i = $(".tin", box); const v = i.value; i.value = ""; send(v); };
@@ -295,7 +295,7 @@ V.ai = m => {
   let filter = "";
   const page = () => {
     const cur = chatState();
-    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><span class="ai-ic aip-logo"></span><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span><button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
+    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><span class="aip-logo">${ic("spark")}</span><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span><button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
     aside(); mountChat($("#cbox", m), false); hdr();
     $("#ct", m).onchange = e => { chatState().title = e.target.value.trim() || "Neuer Chat"; save(); aside(); };
     $("#ci", m).onclick = instrModal; $("#cmob", m).onclick = e => menu(e.currentTarget, [{ label: "Neuer Chat", icon: "plus", fn: () => { newChat(filter); page(); } }, ...D.chats.slice(0, 12).map(c => ({ label: c.title, icon: "note", fn: () => { D.curChat = c.id; page(); } }))]);
@@ -339,7 +339,7 @@ V.ai = m => {
 function mountDock() {
   const p = $("#aipane"); if (!p) return;
   const wasOpen = p.classList.contains("open");
-  p.innerHTML = `<button class="hai-h" id="hai-t" aria-expanded="${wasOpen}"><span class="ai-ic">${ic("spark")}</span><div><b>KI-Tutor</b><small>Frag etwas zu deinen Unterlagen</small></div><i class="hai-chev">${ic("chev")}</i></button><div class="chatbox flat" id="hcb"></div>`;
+  p.innerHTML = `<button class="hai-h" id="hai-t" aria-expanded="${wasOpen}"><span class="ai-ic">${ic("spark")}</span><div><b>Lumi AI</b><small>Frag etwas zu deinen Unterlagen</small></div><i class="hai-chev">${ic("chev")}</i></button><div class="chatbox flat" id="hcb"></div>`;
   mountChat($("#hcb", p), false);
   const tog = o => { p.classList.toggle("open", o); $("#hai-t", p).setAttribute("aria-expanded", o); };
   $("#hai-t", p).onclick = () => tog(!p.classList.contains("open"));

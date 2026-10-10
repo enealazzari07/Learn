@@ -1830,5 +1830,11 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .ic .ld,image.ld{transform-box:fill-box;transform-origin:center}
 .send .ic image,.btn.primary .ic image,.aip-new .ic image{filter:invert(1)}
 .nav-i .ic image{opacity:1}
-.nav-i .ic:has(image){width:28px;height:28px}
-.m.think svg,.aic-think svg{width:26px;height:26px}
+
+/* v62: nur schwarzes Lumi-AI-Icon, kein gelbes Bild; Nav-Icon outline → gefüllt beim Aktivieren */
+.ai-ic,.aipane .ai-ic,.hai-h .ai-ic{background:none!important;color:#0f0f12!important;width:40px;height:40px;border-radius:0!important;box-shadow:none!important}
+.ai-ic svg{display:block!important;width:36px;height:36px}
+.aipane .ai-ic{width:40px;height:40px;border-radius:0!important}
+.aip-logo{width:40px;height:40px;flex:none;display:block;background:none!important}.aip-logo svg{width:100%;height:100%}
+.mark{background:url(logo-dark.png) center/contain no-repeat!important;border-radius:0!important}
+.nav-i .ic image.ld{transform-box:fill-box}
