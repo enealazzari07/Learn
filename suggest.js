@@ -130,13 +130,14 @@ const Suggest = (() => {
     }
     /* Änderungen per Zeichenposition im Block (Auto-Korrektur); Stellen am Cursor werden übersprungen */
     function suggestAt(scope, edits, opt = {}) {
-      const caret = opt.avoidCaret ? caretOffset(scope) : -1; let n = 0;
+      const caret = opt.avoidCaret ? caretOffset(scope) : -1, c0 = opt.direct ? caretOffset(scope) : -1; let n = 0, shift = 0;
       for (const e of [...edits].sort((x, y) => y.start - x.start)) {
         if (caret >= 0 && caret >= e.start && caret <= e.end + 1) continue;
         const r = rangeAt(scope, e.start, e.end); if (!r) continue;
-        if (opt.direct) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand("insertText", false, e.replace); n++; }
+        if (opt.direct) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand("insertText", false, e.replace); n++; if (c0 >= 0 && e.end <= c0) shift += e.replace.length - (e.end - e.start); }
         else if (suggestRange(r, e.replace, { quiet: true, mini: opt.mini })) n++;
       }
+      if (c0 >= 0 && n) { try { const pos = c0 + shift, x = textMap(scope).nodes.find(q => pos >= q.start && pos <= q.start + q.len); if (x) { const r = document.createRange(); r.setStart(x.n, pos - x.start); r.collapse(true); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } } catch {} }
       return n;
     }
     const text = () => plainText(body);

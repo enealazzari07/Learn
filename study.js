@@ -491,12 +491,23 @@ async function noteEditor(m, d) {
   const SG = Suggest.attach(body, dirty); window.__lumiEd = SG; SG.refresh(); LEAVE.push(() => { SG.destroy(); if (window.__lumiEd === SG) window.__lumiEd = null; });
   /* Automatische Korrektur beim Schreiben (Groq/Gemini): nach kurzer Pause wird der aktuelle Absatz geprüft; Korrekturen erscheinen als Vorschläge oder werden direkt übernommen */
   const AC = { busy: false, last: 0, seen: new WeakMap(), timer: null }, acMode = () => D.profile.autoCorrect || "suggest";
-  const scheduleAC = () => { clearTimeout(AC.timer); if (acMode() === "off" || !hasKey()) return; AC.timer = setTimeout(runAC, 1700); };
+  AC.dirty = new Set(); AC.lt = null;
+  /* gelernte Korrekturen: ein Fehler, den die KI einmal gefunden hat, wird danach sofort und zuverlässig auch ohne KI erkannt */
+  const acDict = () => (D.profile.acDict ||= {}), capLike = (o, r) => o[0] !== o[0].toLowerCase() && r[0] === r[0].toLowerCase() ? r[0].toUpperCase() + r.slice(1) : r;
+  const learnAC = (orig, edits) => { const dict = acDict(); let n = 0; for (const e of edits) { const o = orig.slice(e.start, e.end); if (/^\p{L}{2,}$/u.test(o) && /^\p{L}{2,}$/u.test(e.replace) && o !== e.replace) { dict[o] = e.replace; n++; } } if (n) { const k = Object.keys(dict); if (k.length > 400) k.slice(0, k.length - 400).forEach(x => delete dict[x]); save(); } };
+  const localEdits = txt => { const dict = acDict(), out = []; for (const m of txt.matchAll(/\p{L}+/gu)) { const w = m[0], end = m.index + w.length; if (end >= txt.length) continue; let r = dict[w]; if (!r && dict[w.toLowerCase()]) r = capLike(w, dict[w.toLowerCase()]); if (r && r !== w) out.push({ start: m.index, end, replace: r }); } return out; };
+  const localAC = () => {
+    if (acMode() === "off" || !Object.keys(acDict()).length) return; const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
+    const blk = blockOf(sel.anchorNode); if (!blk || /^(PRE|CODE)$/.test(blk.tagName) || blk.querySelector(".sg-del,.sg-ins")) return;
+    const ed = localEdits(Suggest.textOf(blk).s); if (ed.length) { const n = SG.suggestAt(blk, ed, { avoidCaret: true, direct: acMode() === "auto", mini: true }); if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`); }
+  };
+  const scheduleAC = () => { clearTimeout(AC.lt); AC.lt = setTimeout(localAC, 450); { const s = getSelection(), b = s.rangeCount && body.contains(s.anchorNode) ? blockOf(s.anchorNode) : null; if (b) AC.dirty.add(b); } clearTimeout(AC.timer); if (acMode() === "off" || !hasKey()) return; AC.timer = setTimeout(runAC, 1700); };
   async function runAC() {
     if (AC.busy || acMode() === "off" || !hasKey() || !body.isConnected) return;
     const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
-    const blk = blockOf(sel.anchorNode); if (!blk || /^(PRE|CODE)$/.test(blk.tagName) || blk.querySelector(".sg-del,.sg-ins")) return;
-    const orig = Suggest.textOf(blk).s; if (orig.trim().length < 14 || AC.seen.get(blk) === orig) return;
+    const cb = blockOf(sel.anchorNode), ok = b => b && b.isConnected && !/^(PRE|CODE)$/.test(b.tagName) && !b.querySelector(".sg-del,.sg-ins") && Suggest.textOf(b).s.trim().length >= 14 && AC.seen.get(b) !== Suggest.textOf(b).s;
+    const blk = [cb, ...AC.dirty].find(ok); AC.dirty.forEach(b => { if (!b.isConnected || b === blk) AC.dirty.delete(b); }); if (!blk) return;
+    const orig = Suggest.textOf(blk).s;
     if (Date.now() - AC.last < 2500) return scheduleAC();
     AC.busy = true; AC.last = Date.now();
     let res = null;
@@ -508,10 +519,11 @@ async function noteEditor(m, d) {
     if (Suggest.textOf(blk).s !== orig) return scheduleAC();            // Nutzer hat weitergeschrieben
     let edits = Suggest.wordDiff(orig, fixed);
     edits = edits.filter(e => { const o = orig.slice(e.start, e.end), strip = x => x.replace(/[\s.,;:!?„“"'()\-–]/g, ""); return strip(o) !== strip(e.replace) && e.replace.split(/\s+/).length <= 4 && o.split(/\s+/).length <= 4; });   // nur kleine, echte Wortkorrekturen
-    if (!edits.length || edits.length > 6) return;
+    if (!edits.length || edits.length > 6) { if (AC.dirty.size) scheduleAC(); return; }
+    learnAC(orig, edits);
     const n = SG.suggestAt(blk, edits, { avoidCaret: true, direct: acMode() === "auto", mini: true });
     if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`);
-    AC.seen.set(blk, Suggest.textOf(blk).s);
+    AC.seen.set(blk, Suggest.textOf(blk).s); if (AC.dirty.size) scheduleAC();
   }
   if (acMode() !== "off" && hasKey()) body.spellcheck = false;
   body.addEventListener("input", scheduleAC); LEAVE.push(() => clearTimeout(AC.timer));
