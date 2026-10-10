@@ -301,26 +301,27 @@ function mountChat(box, compact) {
     save();
   };
   box.innerHTML = `${compact ? `<header>${ic("spark")}<b>Lumi AI</b><button class="icon-btn" data-full title="Vollbild">${ic("up")}</button><button class="icon-btn" data-close aria-label="Schließen">${ic("x")}</button></header>` : ""}<div class="modes" ${compact ? "hidden" : ""}>${Object.entries(MODES).map(([k, v]) => `<button class="chip ${chatMode === k ? "on" : ""}" data-m="${k}">${v[0]}</button>`).join("")}</div><div class="msgs"></div><div class="imgprev" hidden></div>
-  <form class="t-in cmp"><div class="ctxbar"></div><input class="tin" placeholder="Frag Lumi AI etwas …" aria-label="Nachricht" autocomplete="off"><input type="file" id="cfi" accept="image/*" hidden><button type="button" id="cam" hidden aria-hidden="true"></button><div class="cmp-bar"><button type="button" class="cmp-b" id="att" title="Dokumente anheften" aria-label="Dokumente anheften">${ic("clip")}</button>${serverAI ? `<button type="button" class="mdl" id="mdl" title="Modell wählen" aria-label="Modell wählen">${ic(aiModelProv(aiModelId()).toLowerCase())}<span>${aiModelName(aiModelId())}</span>${ic("chev")}</button>` : ""}${serverInfo && serverInfo.gemini ? `<button type="button" class="cmp-b ${sourcesOn() ? "on" : ""}" id="src" title="Quellen mit Google-Suche – klicken zum Ein-/Ausschalten" aria-label="Quellen ein- oder ausschalten">${ic("globe")}</button>` : ""}<span class="cmp-sp"></span><button class="send" aria-label="Senden">${ic("up")}</button></div></form>${compact ? "" : `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost small" id="clr">Verlauf löschen</button></div>`}`;
+  <form class="t-in cmp"><div class="ctxbar"></div><input class="tin" placeholder="Frag Lumi AI etwas …" aria-label="Nachricht" autocomplete="off"><input type="file" id="cfi" accept="image/*" hidden><button type="button" id="cam" hidden aria-hidden="true"></button><div class="cmp-bar"><button type="button" class="cmp-b" id="att" title="Dateien und Dokumente" aria-label="Dateien und Dokumente">${ic("clip")}</button><button type="button" class="cmp-b" id="mre" title="Mehr" aria-label="Mehr">${ic("more")}</button>${serverAI ? `<button type="button" class="mdl" id="mdl" title="Modell wählen" aria-label="Modell wählen">${ic(aiModelProv(aiModelId()).toLowerCase())}<span>${aiModelName(aiModelId())}</span>${ic("chev")}</button>` : ""}<span class="cmp-sp"></span><button class="send" aria-label="Senden">${ic("up")}</button></div></form>`;
   $$("[data-m]", box).forEach(b => b.onclick = () => { chatMode = b.dataset.m; $$("[data-m]", box).forEach(x => x.classList.toggle("on", x === b)); });
   $(".t-in", box).onsubmit = e => { e.preventDefault(); const i = $(".tin", box); const v = i.value; i.value = ""; send(v); };
   $("#cam", box).onclick = () => $("#cfi", box).click();
   $("#cfi", box).onchange = async e => { const f = e.target.files[0]; if (!f) return; chatImg = { data: await blobToJpeg(f), url: "data:image/jpeg;base64," + (await blobToJpeg(f, 300)) }; e.target.value = ""; draw(); if (!hasKey()) toast("Bild-Analyse braucht die eingerichtete Lumi AI"); };
   $("#att", box).onclick = pickCtx;
-  $("#src", box)?.addEventListener("click", e => { D.profile.sources = !sourcesOn(); save(); e.currentTarget.classList.toggle("on", sourcesOn()); toast(sourcesOn() ? "Quellen an – Lumi AI recherchiert mit Google und verlinkt Fundstellen" : "Quellen aus"); });
+  $("#mre", box).onclick = e => menu(e.currentTarget, [{ label: "Bild hinzufügen", icon: "image", fn: () => $("#cfi", box).click() }, { label: "Neuer Chat", icon: "plus", fn: () => { newChat(); mountChat(box, compact); window.onChatsChanged && window.onChatsChanged(); } }]);
   $("#mdl", box)?.addEventListener("click", e => {
     const b = e.currentTarget; document.querySelectorAll(".mpop").forEach(x => x.remove());
     const L = aiModelList(), pop = document.createElement("div"); pop.className = "mpop"; let html = "", last = "";
     for (const [id, n, d, prov] of L) { if (prov !== last) { html += `<div class="mp-h">${ic(prov.toLowerCase())}<span>${AI_PROV[prov] || prov}</span></div>`; last = prov; } html += `<button type="button" class="mp-i ${id === aiModelId() ? "on" : ""}" data-id="${id}">${ic(prov.toLowerCase())}<span class="mp-t"><b>${n}</b><small>${d}</small></span>${id === aiModelId() ? ic("check") : ""}</button>`; }
+    if (serverInfo && serverInfo.gemini) html += `<button type="button" class="mp-i mp-src ${sourcesOn() ? "on" : ""}" id="mp-src">${ic("globe")}<span class="mp-t"><b>Quellen</b><small>Mit Google-Suche, direkt anklickbar</small></span><i class="mp-sw"></i></button>`;
     pop.innerHTML = html; document.body.appendChild(pop);
+    $("#mp-src", pop)?.addEventListener("click", ev => { ev.stopPropagation(); D.profile.sources = !sourcesOn(); save(); ev.currentTarget.classList.toggle("on", sourcesOn()); });
     const r = b.getBoundingClientRect(), pw = pop.offsetWidth, ph = pop.offsetHeight;
     pop.style.left = Math.max(8, Math.min(innerWidth - pw - 8, r.left)) + "px"; pop.style.top = (r.top - ph - 10 < 8 ? r.bottom + 10 : r.top - ph - 10) + "px";
     requestAnimationFrame(() => pop.classList.add("on"));
     const close = () => { pop.classList.remove("on"); setTimeout(() => pop.remove(), 180); document.removeEventListener("mousedown", out, true); document.removeEventListener("keydown", kd, true); }, out = ev => { if (!pop.contains(ev.target) && !b.contains(ev.target)) close(); }, kd = ev => { if (ev.key === "Escape") close(); };
     setTimeout(() => { document.addEventListener("mousedown", out, true); document.addEventListener("keydown", kd, true); }, 0);
-    $$(".mp-i", pop).forEach(x => x.onclick = () => { D.profile.aiModel = x.dataset.id; save(); const m = AI_MODELS.find(y => y[0] === x.dataset.id); b.innerHTML = `${ic(m[3].toLowerCase())}<span>${m[1]}</span>${ic("chev")}`; close(); });
+    $$(".mp-i[data-id]", pop).forEach(x => x.onclick = () => { D.profile.aiModel = x.dataset.id; save(); const m = AI_MODELS.find(y => y[0] === x.dataset.id); b.innerHTML = `${ic(m[3].toLowerCase())}<span>${m[1]}</span>${ic("chev")}`; close(); });
   });
-  $("#clr", box)?.addEventListener("click", async () => { if (await confirmBox("Chatverlauf löschen?")) { chatState().msgs = []; save(); draw(); } });
   $("[data-close]", box)?.addEventListener("click", () => box.hidden = true); $("[data-full]", box)?.addEventListener("click", () => { box.hidden = true; go("ai"); });
   draw();
   if (chatPrefill) { const p = chatPrefill; chatPrefill = ""; send(p); }
@@ -375,6 +376,7 @@ function mountDock() {
   const p = $("#aipane"); if (!p) return;
   const wasOpen = p.classList.contains("open");
   p.innerHTML = `<button class="hai-h" id="hai-t" aria-expanded="${wasOpen}"><span class="ai-ic">${ic("spark")}</span><div><b>Lumi AI</b><small>Frag etwas zu deinen Unterlagen</small></div><i class="hai-chev">${ic("chev")}</i></button><div class="chatbox flat" id="hcb"></div>`;
+  if (!window.__dockFresh) { window.__dockFresh = true; if (chatMsgs().length) newChat(); }
   mountChat($("#hcb", p), false);
   const tog = o => { p.classList.toggle("open", o); $("#hai-t", p).setAttribute("aria-expanded", o); };
   $("#hai-t", p).onclick = () => tog(!p.classList.contains("open"));

@@ -621,13 +621,14 @@ async function noteEditor(m, d) {
   const HLS = window.CSS && CSS.highlights && window.Highlight ? new Highlight() : null; if (HLS) CSS.highlights.set("lumi-ai", HLS);
   LEAVE.push(() => { try { CSS.highlights?.delete("lumi-ai"); } catch {} });
   const QA = [["Kürzer", "Kürze den Text auf das Wesentliche."], ["Ausführlicher", "Formuliere den Text ausführlicher, mit einem kurzen Beispiel."], ["Einfacher", "Formuliere den Text einfacher, so dass ihn ein Vierzehnjähriger versteht."], ["Verbessern", "Korrigiere Rechtschreibung und Grammatik und verbessere den Stil."], ["Formeller", "Formuliere den Text formeller, im Schul- bzw. Uni-Stil."], ["Auf Englisch", "Übersetze den Text ins Englische."], ["Als Liste", "Wandle den Text in eine übersichtliche Aufzählung um."]];
+  const ACT = [["Zusammenfassen", "summary"], ["Einfach erklären", "explain"], ["Übersetzen", "translate"], ["Weiterschreiben", "continue"], ["Frage zum Text", "ask"], ["Lernziele", "goals"], ["Karteikarten", "cards"], ["Quiz", "quiz"]];
   const bar = document.createElement("div"); bar.className = "aibar"; bar.hidden = true; document.body.appendChild(bar); LEAVE.push(() => bar.remove());
-  bar.innerHTML = `<div class="ab-in">${ic("spark")}<input aria-label="Lumi-AI-Anweisung" autocomplete="off"><button class="send" aria-label="Senden">${ic("up")}</button></div><div class="ab-chips">${QA.map(([l]) => `<button type="button">${l}</button>`).join("")}</div><div class="ab-busy" hidden><span class="dots"><span></span><span></span><span></span></span><b>Lumi AI überarbeitet den Text …</b></div><div class="ab-done" hidden><b>Text aktualisiert</b><button type="button" data-k>Behalten</button><button type="button" data-u>Rückgängig</button></div>`;
+  bar.innerHTML = `<div class="ab-in">${ic("spark")}<input aria-label="Lumi-AI-Anweisung" autocomplete="off"><button class="send" aria-label="Senden">${ic("up")}</button></div><div class="ab-chips">${QA.map(([l]) => `<button type="button">${l}</button>`).join("")}</div><div class="ab-acts"><small>Ganzes Dokument</small>${ACT.map(([l]) => `<button type="button">${l}</button>`).join("")}</div><div class="ab-busy" hidden><span class="dots"><span></span><span></span><span></span></span><b>Lumi AI überarbeitet den Text …</b></div><div class="ab-done" hidden><b>Text aktualisiert</b><button type="button" data-k>Behalten</button><button type="button" data-u>Rückgängig</button></div>`;
   const barIn = $("input", bar); let aiR = null, aiPrev = "", aiState = "idle";
   const blockOf = node => { const el = node?.nodeType === 3 ? node.parentElement : node; const b = el?.closest?.("p,h1,h2,h3,li,blockquote,pre,td,th"); return b && body.contains(b) ? b : null; };
   const setTarget = r => { aiR = r; if (HLS) { HLS.clear(); if (r && !r.collapsed) HLS.add(r); } };
   const closeAi = () => { bar.hidden = true; aiState = "idle"; HLS?.clear(); };
-  const panel = w => { $(".ab-in", bar).hidden = w !== "idle"; $(".ab-chips", bar).hidden = w !== "idle" || !aiR || aiR.collapsed; $(".ab-busy", bar).hidden = w !== "busy"; $(".ab-done", bar).hidden = w !== "done"; };
+  const panel = w => { $(".ab-in", bar).hidden = w !== "idle"; $(".ab-chips", bar).hidden = w !== "idle" || !aiR || aiR.collapsed; $(".ab-acts", bar).hidden = w !== "idle"; $(".ab-busy", bar).hidden = w !== "busy"; $(".ab-done", bar).hidden = w !== "done"; };
   function openAiBar(pt) {
     const s = getSelection(); let r = null;
     if (s.rangeCount && !s.isCollapsed && body.contains(s.anchorNode)) r = s.getRangeAt(0).cloneRange();
@@ -654,6 +655,7 @@ async function noteEditor(m, d) {
   }
   $(".send", bar).onclick = () => sendAi(barIn.value); barIn.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); sendAi(barIn.value); } else if (e.key === "Escape") closeAi(); };
   $$(".ab-chips button", bar).forEach((b, i) => b.onclick = () => sendAi(QA[i][1]));
+  $$(".ab-acts button", bar).forEach((b, i) => b.onclick = () => { closeAi(); run(ACT[i][1]); });
   $("[data-k]", bar).onclick = closeAi; $("[data-u]", bar).onclick = () => { body.innerHTML = aiPrev; dirty(); closeAi(); };
   const outside = e => { if (!bar.hidden && aiState !== "busy" && !bar.contains(e.target)) closeAi(); };
   document.addEventListener("mousedown", outside, true); LEAVE.push(() => document.removeEventListener("mousedown", outside, true));

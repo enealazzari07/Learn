@@ -139,10 +139,9 @@ function aiSide(open, trigger) {
   if (open === undefined) open = !(el && el.classList.contains("on"));
   if (!el) {
     el = document.createElement("aside"); el.id = "aiside"; el.setAttribute("aria-label", "Lumi AI");
-    el.innerHTML = `<header><span class="as-l">${ic("spark")}<b>Lumi AI</b></span><span class="as-r"><button class="icon-btn" id="as-t" title="Werkzeuge" aria-label="Werkzeuge">${ic("more")}</button><button class="icon-btn" id="as-x" aria-label="Schließen">${ic("x")}</button></span></header><div class="as-ac" id="as-ac"></div><div class="as-chips" id="as-ch"></div><div class="chatbox flat" id="as-box"></div>`;
+    el.innerHTML = `<header><span class="as-l">${ic("spark")}<b>Lumi AI</b></span><span class="as-r"><button class="icon-btn" id="as-x" aria-label="Schließen">${ic("x")}</button></span></header><div class="chatbox flat" id="as-box"></div>`;
     document.body.appendChild(el);
     $("#as-x", el).onclick = () => aiSide(false);
-    $("#as-t", el).onclick = e => { const b = aiSideTools; if (b && typeof b.onclick === "function") b.onclick.call(b, { currentTarget: e.currentTarget, target: e.currentTarget, stopPropagation() {}, preventDefault() {} }); };
     document.addEventListener("keydown", e => { if (e.key === "Escape" && el.classList.contains("on") && !document.querySelector(".mask,#aicmd")) aiSide(false); });
   }
   if (trigger) aiSideTools = trigger;
@@ -150,13 +149,6 @@ function aiSide(open, trigger) {
   if (open) {
     const d = aiSideDoc(); chatCtx.clear(); if (d && d.type !== "draw" && d.type !== "db") chatCtx.add(d.id);
     mountChat($("#as-box", el), false);
-    $("#as-t", el).hidden = !aiSideTools;
-    const CH = d ? ["Zusammenfassen", "Einfach erklären", "Karteikarten erstellen", "Quiz dazu"] : ["Lernplan für heute", "Neue Notiz erstellen", "Was zuerst lernen?"];
-    const ch = $("#as-ch", el); ch.innerHTML = CH.map(x => `<button type="button">${x}</button>`).join("");
-    $$("button", ch).forEach(b => b.onclick = () => { const t = b.textContent, tin = $(".tin", el); tin.value = d ? `${t} – bezogen auf „${d.title}“.` : t; $(".t-in", el).requestSubmit(); });
-    const acL = { suggest: "Auto-Korrektur: Vorschläge", auto: "Auto-Korrektur: automatisch", off: "Auto-Korrektur: aus" }, acEl = $("#as-ac", el);
-    acEl.hidden = !window.__lumiEd; const acPaint = () => { acEl.innerHTML = `<button type="button" title="Automatische Rechtschreib- und Grammatikkorrektur beim Schreiben">${ic("spark")}<span>${acL[D.profile.autoCorrect || "suggest"]}</span></button>`; $("button", acEl).onclick = () => { const o = ["suggest", "auto", "off"], i = o.indexOf(D.profile.autoCorrect || "suggest"); D.profile.autoCorrect = o[(i + 1) % 3]; save(); acPaint(); }; };
-    acPaint();
     el.classList.add("on"); document.body.classList.add("aiside-open");
     setTimeout(() => $(".tin", el)?.focus(), 350);
   } else { el.classList.remove("on"); document.body.classList.remove("aiside-open"); }

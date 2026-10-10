@@ -2148,3 +2148,19 @@ a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{w
 .ned-bar .aitog{width:auto;height:38px;border-radius:999px;padding:0 12px;gap:6px;display:inline-flex;align-items:center;font:700 13px/1 inherit;font-family:inherit;color:#0f0f12;background:#f1f1f5}
 .ned-bar .aitog svg{width:20px;height:20px}
 .ned-bar .aitog.on{background:#0f0f12;color:#fff}
+
+/* ======== v76: Chat-Leiste ohne dunkle Kreise, Aktionen im Rechtsklick-Menü ======== */
+.cmp-b.on,.cmp-b:active{background:none;color:#0f0f12}
+.cmp-b{width:34px;height:34px}
+.mp-src{margin-top:4px;border-top:1px solid #ececf1;border-radius:0 0 14px 14px}
+.mp-sw{margin-left:auto;width:34px;height:20px;border-radius:999px;background:#d9d9e0;position:relative;flex:none;transition:background .2s}
+.mp-sw::after{content:"";position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .25s cubic-bezier(.3,.9,.3,1)}
+.mp-src.on .mp-sw{background:#0f0f12}.mp-src.on .mp-sw::after{transform:translateX(14px)}
+.aibar .ab-acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid #ececf1}
+.aibar .ab-acts small{width:100%;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#8a8a98;font-weight:700}
+.aibar .ab-acts button{border:0;background:#f1f1f5;color:#1c1c22;border-radius:999px;padding:7px 12px;font:600 12.5px/1 inherit;font-family:inherit;cursor:pointer;transition:background .15s}
+.aibar .ab-acts button:hover{background:#0f0f12;color:#fff}
+.aibar .ab-acts[hidden]{display:none}
+.ab-chips button:hover{background:#0f0f12;color:#fff}
+.aibar .ab-in .send{background:#0f0f12!important;color:#fff}
+#att.on{background:none!important;color:#0f0f12!important}
