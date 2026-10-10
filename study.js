@@ -235,27 +235,15 @@ V.today = m => {
   m.innerHTML = `<div class="home-wrap ${first ? "first" : "again"}"><div class="page home calm">
   <section class="welcome">
     <p class="eyebrow rise" style="--i:0">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p>
-    <div class="hero-art" aria-hidden="true" id="hart">
-      <div class="ha-scene on"><div class="ha-card ha-note"><div class="ha-h">${ic("note")}<span>Notiz</span></div><i class="tl t1"></i><i class="tl t2"></i><i class="tl t3"></i><i class="tl t4"></i><b class="car"></b></div>
-        <div class="ha-card ha-draw"><div class="ha-h">${ic("brush")}<span>Skizze</span></div><svg viewBox="0 0 180 100"><path class="p1" d="M14 70 C34 20 54 20 74 62 S112 96 128 38"/><circle class="p2" cx="140" cy="62" r="22"/><path class="p3" d="M20 88 L96 88 M86 82 L96 88 L86 94"/></svg><span class="dots"><u style="background:#5b3df5"></u><u style="background:#ec4899"></u><u style="background:#16a34a"></u></span></div>
-        <div class="ha-card ha-quiz"><small>Karteikarte</small><b>Frage</b><span class="ok">${ic("check")}<em>Antwort</em></span></div></div>
-      <div class="ha-scene"><div class="ha-card ha-table"><div class="ha-h">${ic("table")}<span>Tabelle</span></div><div class="tb"><u class="th">&nbsp;</u><u class="th">&nbsp;</u><u class="th">&nbsp;</u><u>&nbsp;</u><u>&nbsp;</u><u>&nbsp;</u><u>&nbsp;</u><u>&nbsp;</u><u>&nbsp;</u></div></div>
-        <div class="ha-card ha-pdf"><div class="ha-h">${ic("file")}<span>PDF</span></div><i class="pl l1"></i><i class="pl l2"></i><i class="pl l3"></i><i class="hl"></i><span class="pen"></span></div>
-        <div class="ha-card ha-sum"><div class="ha-h">${ic("spark")}<span>KI-Zusammenfassung</span></div><p><i></i><s></s></p><p><i></i><s class="w2"></s></p></div></div>
-      <div class="ha-scene"><div class="ha-card ha-exam"><small>Prüfung</small><b>Lernplan</b><div class="bar"><i></i></div></div>
-        <div class="ha-card ha-grade"><div class="ha-h">${ic("chart")}<span>Diagramm</span></div><div class="bars"><u style="--h:46%"></u><u style="--h:72%"></u><u style="--h:58%"></u><u style="--h:88%"></u><u style="--h:78%"></u></div></div>
-        <div class="ha-card ha-focus"><svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18"/><circle class="pg" cx="22" cy="22" r="18"/></svg><div><small>Timer</small><b>Fokus</b></div></div></div>
-    </div>
     <h1 class="greet-h">${words}</h1>
     <form class="hsearch rise" style="--i:4" id="hs">${ic("search")}<input id="hq" placeholder="Suchen oder die KI etwas fragen …" autocomplete="off" aria-label="Suchen oder KI fragen"><button type="button" class="hs-ai" id="hs-ai">${ic("spark")}<span>KI fragen</span></button></form>
-  <div class="hero-body rise" style="--i:5"><div class="hb-l"><div class="sumbox"><span class="sum-ic">${ic("spark")}</span><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p><button class="sum-r" id="sum-r" title="Neu erstellen" aria-label="Zusammenfassung neu erstellen">${ic("rot")}</button></div>${timeline.length ? `<div class="mini-tl">${timeline.slice(0, 2).map(x => `<span><i style="background:${x.c}"></i>${x.t} ${esc(x.n)}</span>`).join("")}</div>` : ""}</div>
+  <div class="hero-body rise" style="--i:5"><div class="hb-l"><div class="sumbox"><span class="sum-ic">${ic("spark")}</span><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div></div>
     <div class="hb-r"><div class="sub-h">Aufgaben</div><div id="todos"></div>
     <form class="todo-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Neue Aufgabe …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Datum / Prüfung</button></form></div></div>
   </section>
-  <section class="rise" style="--i:6"><div class="tiles2">${TILES.map(([i, l, s, k, c]) => `<button data-q="${k}" style="--c:${c}"><span>${ic(i)}</span><b>${l}</b><small>${s}</small></button>`).join("")}</div></section>
   <div class="hgrid">
 
-  <div class="hcol"><section class="panel soft hcal rise" style="--i:9"><div class="cal-h"><div class="cal-t"><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><h2 id="cal-m"></h2><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></div><div class="cal-r"><span class="hchip"><b>${streak()}</b> Tage in Folge</span><span class="hchip"><b>${mins}</b>/${goal} Min.</span><button class="btn small accent" id="plan">${ic("spark")}KI-Plan</button></div></div>
+  <div class="hcol"><section class="panel soft hcal rise" style="--i:9"><div class="cal-h"><div class="cal-t"><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><h2 id="cal-m"></h2><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></div></div>
     <div class="cal-b"><div class="cal-g" id="cal-g"></div><div class="cal-d" id="cal-d"></div></div></section>  </div>
   ${recent.length ? `<section class="rise rec" style="--i:10"><div class="sech"><h2 class="sh2">Weiterarbeiten</h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="rlist">${recent.map(d => `<button class="rrow" data-d="${d.id}"><span class="ri">${ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note")}</span><div class="tm2"><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></div></button>`).join("")}</div></section>` : ""}
   </div>
@@ -278,7 +266,7 @@ V.today = m => {
       el.classList.add("busy"); const ctx = dailyCtx({ lessons, evToday, exams, due, mins, goal }); const r = await ai(`Schreibe eine kurze, motivierende Tageszusammenfassung (höchstens 2 kurze Sätze, zusammen unter 30 Wörter, Du-Form) für heute. Nenne die wichtigsten Dinge und was zuerst angehen. Daten:\n${ctx}`, { system: sysBase(), max: 120, quiet: true });
       el.classList.remove("busy"); if (r && r.trim()) { D.daily = { date: iso(), text: r.trim(), ai: true }; save(); el.textContent = D.daily.text; } else if (force) toast("KI nicht erreichbar – lokale Zusammenfassung bleibt.");
     };
-    $("#sum-r", m).onclick = () => { $("#sum-r", m).classList.add("spin"); setTimeout(() => $("#sum-r", m)?.classList.remove("spin"), 900); if (!hasKey()) return toast("Für KI-Zusammenfassungen die KI einrichten (Einstellungen → KI)."); run(true); };
+    if ($("#sum-r", m)) $("#sum-r", m).onclick = () => { $("#sum-r", m).classList.add("spin"); setTimeout(() => $("#sum-r", m)?.classList.remove("spin"), 900); if (!hasKey()) return toast("Für KI-Zusammenfassungen die KI einrichten (Einstellungen → KI)."); run(true); };
     run(false);
   })();
   $("#addt", m) && ($("#addt", m).onclick = () => taskModal());
@@ -310,7 +298,7 @@ V.today = m => {
     $("#cal-n", m).onclick = () => { cm++; if (cm > 11) { cm = 0; cy++; } drawCal(); };
     drawCal();
   }
-  $("#plan", m).onclick = async () => {
+  if ($("#plan", m)) $("#plan", m).onclick = async () => {
     const { el } = modal(`<h3>Dein Tagesplan</h3><div class="result" id="pr">Plane deinen Tag…</div>`, "wide");
     const ctx = `Heute ist ${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}. Stunden heute: ${lessons.map(e => `${e.start}-${e.end} ${e.title || subj(e.subjectId)?.name}`).join(", ") || "keine"}. Termine heute (Outlook): ${evToday.map(e => `${e.time} ${e.title}`).join(", ") || "keine"}. Offene Aufgaben: ${open.slice(0, 10).map(x => `${x.title}${x.due ? " (fällig " + x.due + ")" : ""}${x.type === "exam" ? " [Prüfung]" : ""}`).join("; ") || "keine"}. Fällige Karteikarten: ${due}.`;
     const r = await ai(`Erstelle mir einen realistischen Lernplan für heute (Zeitblöcke, Pausen). ${ctx}`, { max: 700 });

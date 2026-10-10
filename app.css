@@ -1418,3 +1418,12 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 @keyframes dotJump{0%,60%,100%{transform:translateY(0);opacity:.45}30%{transform:translateY(-5px);opacity:1}}
 .m.a{animation:aiIn .45s cubic-bezier(.2,.8,.2,1) both}.m.u{animation:aiIn .35s cubic-bezier(.2,.8,.2,1) both}
 @media (prefers-reduced-motion:reduce){.sw,.ai-in,.acts .act,.m.a,.m.u{animation:none;opacity:1;filter:none;transform:none}.ned-paper.ai-writing,.aic-think,.aic-think svg{animation:none}}
+
+/* ======== v41: calmer home – no art cards, no tiles ======== */
+.hero-art{display:none!important}
+.page.home.calm>.welcome{padding-bottom:clamp(40px,4vw,56px)!important}
+.page.home.calm>.welcome+*{margin-top:-14px!important}
+.hgrid{margin-top:0!important}
+.hcal .cal-h{justify-content:flex-start}
+.hero-body{max-width:min(860px,100%)}
+.page.home.calm{overflow-y:clip;overflow-x:visible}
