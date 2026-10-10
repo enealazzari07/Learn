@@ -240,15 +240,18 @@ V.today = m => {
   m.classList.add("homew");
   m.innerHTML = `<div class="home-wrap ${first ? "first" : "again"}"><div class="page home sana">
   <header class="hh rise" style="--i:0"><div><h1 class="greet-h">${words}</h1><p class="hsub">${open.length ? `Du hast ${todayN} ${todayN === 1 ? "Ding" : "Dinge"} heute zu erledigen.` : "Heute ist nichts offen – ein guter Moment zum Lernen."}</p></div>
-    <form class="hsearch" id="hs">${ic("search")}<input id="hq" placeholder="Suchen oder die KI fragen …" autocomplete="off" aria-label="Suchen oder KI fragen"><button type="button" class="hs-ai" id="hs-ai">${ic("spark")}<span>KI fragen</span></button></form></header>
+    </header>
+  <section class="s-ai rise" style="--i:1"><div class="s-aih"><span class="s-aik">${ic("spark")} Lumi KI</span><span class="s-aid">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</span></div>
+    <form class="s-aif" id="hs"><input id="hq" placeholder="Frag mich etwas, lass mich etwas erstellen oder suche …" autocomplete="off" aria-label="KI fragen"><button class="send" id="hs-ai" aria-label="Senden">${ic("up")}</button></form>
+    <div class="s-aia" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
+    <div class="s-aic"><span>Mehr entdecken</span>${["Lernplan für heute erstellen", "Quiz zu meinem letzten Dokument", "Karteikarten aus meiner letzten Notiz", "Was sollte ich zuerst lernen?"].map(x => `<button type="button">${x}</button>`).join("")}</div></section>
+  <div class="s-two">
   <section class="s-tbl rise" style="--i:2"><div class="s-tr s-th0"><span>Aufgabe</span><span>Art</span><span>Fortschritt</span><span>Fällig</span><span>Priorität</span></div><div id="todos"></div>
     <form class="todo-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Neue Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
+  
+  <aside class="s-side rise" style="--i:3"><button class="s-fc s-fc-c" data-go="cards"><span class="s-fk">Karteikarten</span><b>${due}</b><small>${due === 1 ? "Karte ist" : "Karten sind"} fällig</small></button>
+    <button class="s-fc s-fc-e" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><span class="s-fk">${nextEx ? "Nächste Prüfung" : "Lernziel"}</span><b>${nextEx ? esc(nextEx.title) : mins + " / " + goal + " Min."}</b><small>${nextEx ? `in ${daysUntil(nextEx.due)} ${daysUntil(nextEx.due) === 1 ? "Tag" : "Tagen"} – Übungsquiz starten` : "Heute gelernt"}</small></button></aside></div>
   ${recent.length ? `<section class="rise s-sec" style="--i:3"><div class="sech"><h2 class="sh2">Zuletzt <em>${D.docs.length}</em></h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="s-cards4">${recent.map(d => `<button class="s-rc" data-d="${d.id}">${thumb(d)}<b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></button>`).join("")}</div></section>` : ""}
-  <section class="rise s-sec" style="--i:4"><div class="sech"><h2 class="sh2">Empfohlen</h2></div><div class="s-cards3">
-    <div class="s-fc s-fc-ai"><span class="s-fk">${ic("spark")} KI-Zusammenfassung</span><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
-    <button class="s-fc s-fc-c" data-go="cards"><span class="s-fk">Karteikarten</span><b>${due}</b><small>${due === 1 ? "Karte ist" : "Karten sind"} fällig</small></button>
-    <button class="s-fc s-fc-e" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><span class="s-fk">${nextEx ? "Nächste Prüfung" : "Lernziel"}</span><b>${nextEx ? esc(nextEx.title) : mins + " / " + goal + " Min."}</b><small>${nextEx ? `in ${daysUntil(nextEx.due)} ${daysUntil(nextEx.due) === 1 ? "Tag" : "Tagen"} – Übungsquiz starten` : "Heute gelernt"}</small></button>
-  </div></section>
   </div></div>`;
   bindCommon(m);
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
@@ -271,8 +274,17 @@ V.today = m => {
     run(false);
   })();
   $("#addt", m).onclick = () => taskModal();
-  $("#hs", m).onsubmit = e => { e.preventDefault(); searchPrefill = $("#hq", m).value.trim(); go("search"); };
-  $("#hs-ai", m).onclick = () => { const v = $("#hq", m).value.trim(), di = $("#aipane .tin"); $("#aipane")?.classList.add("open"); if (v && di) { di.value = v; $("#hq", m).value = ""; $("#aipane .t-in").requestSubmit(); } else di?.focus(); };
+  $("#hs", m).onsubmit = async e => {
+    e.preventDefault(); const q = $("#hq", m).value.trim(), out = $("#ai-out", m); if (!q) return;
+    if (!hasKey()) { out.innerHTML = `<p class="note">Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.</p>`; return; }
+    $("#hq", m).value = ""; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>KI schreibt …</span></div>`;
+    const r = await agentAsk(q);
+    if (!out.isConnected) return;
+    if (!r) { out.innerHTML = `<p class="note">Das hat leider nicht geklappt. Versuche es bitte noch einmal.</p>`; return; }
+    out.innerHTML = `<p>${streamHtml(r.text)}</p>${r.acts.length ? `<div class="acts" style="--base:${Math.min(2600, r.text.split(/\s+/).length * 30 + 200)}ms">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
+    $$("[data-ag]", out).forEach(b => b.onclick = () => go(b.dataset.ag));
+  };
+  $$(".s-aic button", m).forEach(b => b.onclick = () => { $("#hq", m).value = b.textContent; $("#hs", m).requestSubmit(); });
 };
 const msLogoSvg = () => `<svg viewBox="0 0 24 24" width="26" height="26"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="13" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="13" width="10" height="10" fill="#00a4ef"/><rect x="13" y="13" width="10" height="10" fill="#ffb900"/></svg>`;
 let quizPrefill = null;

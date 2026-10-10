@@ -1513,3 +1513,39 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .sana .hsearch{background:#fff}
 @media (max-width:900px){.main.homew,.main.homew:not(.doc-full){margin:8px 8px 0!important;border-radius:30px!important;padding:16px 16px 150px}}
 .sana .s-tbl{background:transparent}
+
+/* ======== v45: KI im Vordergrund ======== */
+.sana .s-ai{background:linear-gradient(180deg,#e4eeff,#eaf1ff);border-radius:32px;padding:22px 26px 20px;margin-bottom:22px;display:flex;flex-direction:column;gap:14px}
+.sana .s-aih{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#4a6290}
+.sana .s-aik{display:flex;align-items:center;gap:7px;font-weight:700;color:#2850b8}.sana .s-aik svg{width:16px;height:16px}
+.sana .s-aif{display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:7px 7px 7px 22px;box-shadow:0 6px 24px rgba(40,80,184,.1)}
+.sana .s-aif input{flex:1;border:0;outline:0;background:none;font:inherit;font-size:16px;padding:9px 0;min-width:0}
+.sana .s-aif .send{width:42px;height:42px;border-radius:50%;background:var(--violet,#5a3df0);color:#fff;display:grid;place-items:center;flex:none;cursor:pointer}
+.sana .s-aif .send svg{width:18px;height:18px}
+.sana .s-aia{min-height:46px;color:#17306b}.sana .s-aia p{margin:0;font-size:18px;line-height:1.5;font-weight:500;letter-spacing:-.01em}
+.sana .s-aia .acts{margin-top:12px}
+.sana .s-aic{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.sana .s-aic span{font-size:13px;color:#4a6290;margin-right:4px}
+.sana .s-aic button{background:rgba(255,255,255,.75);border-radius:999px;padding:8px 14px;font-size:13px;color:#2850b8;font-weight:500;cursor:pointer;transition:background .2s}
+.sana .s-aic button:hover{background:#fff}
+.sana .s-two{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start;margin-bottom:22px}
+.sana .s-two .s-tbl{margin-bottom:0}
+.sana .s-side{display:flex;flex-direction:column;gap:14px}
+.sana .s-side .s-fc{min-height:0;flex:1;padding:18px 20px}
+@media (max-width:1000px){.sana .s-two{grid-template-columns:1fr}.sana .s-side{flex-direction:row}.sana .s-side .s-fc{min-height:120px}}
+@media (max-width:700px){.sana .s-ai{padding:16px;border-radius:26px}.sana .s-side{flex-direction:column}}
+@media (min-width:901px){body:has(.main.homew) #aipane{display:none}}
+
+/* v46: schwarz statt blau */
+.sana .s-ai{background:#0f0f12;color:#fff}
+.sana .s-aih,.sana .s-aic span{color:#9a9aa6}.sana .s-aik{color:#fff}
+.sana .s-aif{background:#1c1c21;box-shadow:none}
+.sana .s-aif input{color:#fff}.sana .s-aif input::placeholder{color:#7d7d89}
+.sana .s-aif .send{background:#fff;color:#0f0f12}
+.sana .s-aia,.sana .s-aia p{color:#f2f2f5}
+.sana .s-aic button{background:#1c1c21;color:#e6e6ec}.sana .s-aic button:hover{background:#2a2a31}
+.sana .s-aia .aic-think{color:#c9c9d2}.sana .s-aia .act{background:#26262c;color:#fff}
+.sana .s-fc-c{background:linear-gradient(135deg,#2a2a31,#4a4a55)}
+.sana .s-fc-e{background:#fff;color:#0f0f12}.sana .s-fc-e .s-fk,.sana .s-fc-e small{color:#0f0f12}
+.sana .s-pg i,.sana .s-pg i{background:#0f0f12}
+.sana .hs-ai,.sana .link{color:#0f0f12}
