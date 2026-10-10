@@ -182,7 +182,7 @@ const KIND_L = { note: "Notiz", db: "Datenbank", draw: "Skizze", pdf: "PDF", fil
 const KIND_I = { note: "note", db: "table", draw: "brush", pdf: "file", file: "file" };
 function docRow(d) {
   const s = subj(d.subjectId), k = docKind(d);
-  return `<div class="drow" data-d="${d.id}" draggable="true"><span class="dr-i">${ic(KIND_I[k])}</span><span class="dr-t"><b>${d.pinned ? `<i class="pin">${ic("star")}</i>` : ""}${esc(d.title)}</b><small>${esc(docPath(d) || "Home")}</small></span><span class="dr-k">${KIND_L[k]}</span><span class="dr-s">${s ? `<i class="sdot" style="background:${s.color}"></i>${esc(s.name)}` : ""}</span><span class="dr-a">${fmtAgo(d.updated)}</span><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
+  return `<div class="drow" data-d="${d.id}" draggable="true"><span class="dr-i">${ic(KIND_I[k])}${d.share ? `<i class="shbadge" title="Geteilt">${ic("adduser")}</i>` : ""}</span><span class="dr-t"><b>${d.pinned ? `<i class="pin">${ic("star")}</i>` : ""}${esc(d.title)}</b><small>${esc(docPath(d) || "Home")}</small></span><span class="dr-k">${KIND_L[k]}</span><span class="dr-s">${s ? `<i class="sdot" style="background:${s.color}"></i>${esc(s.name)}` : ""}</span><span class="dr-a">${fmtAgo(d.updated)}</span><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
 }
 function docCard(d) {
   const s = subj(d.subjectId);
@@ -192,7 +192,7 @@ function docCard(d) {
   else if (d.type === "draw") thumb = `<div class="th" style="background:#fff center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.thumb) thumb = `<div class="th" style="background:#f3f3f5 center/cover url(${d.thumb})"></div>`;
   else { const [l, c] = fileIcon(d); thumb = `<div class="th file-th"><b style="background:${c}">${esc(l)}</b></div>`; }
-  return `<div class="doc" data-d="${d.id}" draggable="true"><span class="tbadge">${ic(KIND_I[docKind(d)])}${KIND_L[docKind(d)]}</span>${thumb}<div class="dm"><div class="dt">${d.pinned ? `<span class="pin">${ic("star")}</span>` : ""}${esc(d.title)}</div><div class="ds">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)} · ` : ""}${fmtAgo(d.updated)}</div></div><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
+  return `<div class="doc" data-d="${d.id}" draggable="true"><span class="tbadge">${ic(KIND_I[docKind(d)])}${KIND_L[docKind(d)]}</span>${d.share ? `<span class="shbadge on-card" title="Geteilt">${ic("adduser")}</span>` : ""}${thumb}<div class="dm"><div class="dt">${d.pinned ? `<span class="pin">${ic("star")}</span>` : ""}${esc(d.title)}</div><div class="ds">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)} · ` : ""}${fmtAgo(d.updated)}</div></div><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
 }
 function docMenu(btn, d) {
   menu(btn, [
@@ -367,6 +367,11 @@ function folderSvg(c) {
     <path d="${FRONT}" fill="none" stroke="url(#${k}s3)" stroke-width="5.33" mask="url(#${k}m2)"/></svg>`;
 }
 const FOLDER_SVG_UNUSED = 1;
+const sideRow = d => `<div class="sd-row" data-d="${d.id}" tabindex="0"><span class="sd-i">${ic(KIND_I[docKind(d)])}${d.share ? `<i class="shbadge" title="Geteilt">${ic("adduser")}</i>` : ""}</span><span class="sd-t"><b>${esc(d.title)}</b><small>${d.share ? (d.shareOwner ? "Von dir geteilt" : "Mit dir geteilt") + " · " : ""}${fmtAgo(d.updated)}</small></span></div>`;
+function docSide() {
+  const recent = [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 7), shared = D.docs.filter(d => d.share).sort((a, b) => b.updated - a.updated).slice(0, 12);
+  return `<aside class="dside" aria-label="Zuletzt genutzt und geteilt"><section><h4>${ic("timer")}Zuletzt genutzt</h4>${recent.map(sideRow).join("") || `<p class="sd-empty">Noch nichts geöffnet.</p>`}</section><section><h4>${ic("adduser")}Geteilt</h4>${shared.map(sideRow).join("") || `<p class="sd-empty">Noch nichts geteilt. Im Dokument oben auf das Teilen-Symbol tippen, um andere einzuladen.</p>`}</section></aside>`;
+}
 V.docs = (m, id) => {
   if (id !== undefined) docFolder = id || ""; if (docFolder && !folderOf(docFolder)) docFolder = "";
   const q = docQuery.trim().toLowerCase(), path = folderPath(docFolder);
@@ -379,10 +384,10 @@ V.docs = (m, id) => {
     <div class="nb-l"><div class="nb-name docs-t"><b>Dokumente</b><nav class="path" aria-label="Pfad"><button data-p="" class="${path.length ? "" : "here"}">Home</button>${path.map((f, i) => `<span>/</span><button data-p="${f.id}" class="${i === path.length - 1 ? "here" : ""}">${esc(f.name)}</button>`).join("")}</nav></div></div>
     <div class="ned-tools docs-tools"><div class="searchbox flat">${ic("search")}<input id="dq" placeholder="${path.length ? "In „" + esc(path[path.length - 1].name) + "“ und überall suchen …" : "Dokumente durchsuchen …"}" value="${esc(docQuery)}"></div><label class="sortl">${ic("filter")}<select class="field slim" id="ds"><option value="recent" ${docSort === "recent" ? "selected" : ""}>Neueste</option><option value="name" ${docSort === "name" ? "selected" : ""}>Name A–Z</option></select></label></div>
     <div class="nb-r"><button class="btn ghost small" id="aicb">${ic("spark")}<span>AI</span></button><button class="btn accent small" id="nw">${ic("plus")}<span>Neu</span></button></div></div>
-  <article class="ned-paper docspaper" id="paperc">
+  <div class="dbody"><article class="ned-paper docspaper" id="paperc">
   ${folders.length || base.length ? `<div class="dtools"><div class="dchips">${DTYPES.filter(([k]) => k === "all" || cnt(k) || docType === k).map(([k, l]) => `<button class="${docType === k ? "on" : ""}" data-t="${k}">${l}<em>${cnt(k)}</em></button>`).join("")}</div><div class="dview"><button class="${docView === "grid" ? "on" : ""}" data-v="grid" aria-label="Kacheln">${ic("table")}</button><button class="${docView === "list" ? "on" : ""}" data-v="list" aria-label="Liste">${ic("list")}</button></div></div>` : ""}
   ${folders.length || shown.length ? `<div class="items ${docView === "list" ? "as-list" : ""}">${folders.map(f => { const n = folderCount(f.id); if (docView === "list") return `<div class="drow frow" data-f="${f.id}" tabindex="0"><span class="dr-i" style="background:${f.color}22;color:${f.color}">${ic("folder")}</span><span class="dr-t"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}</small></span><span class="dr-k">Ordner</span><span class="dr-s"></span><span class="dr-a"></span><button class="dmore" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; return `<div class="fold" data-f="${f.id}" style="--c:${f.color}" tabindex="0"><div class="f3d">${folderSvg(f.color)}<div class="ftxt"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; }).join("")}${shown.map(docView === "list" ? docRow : docCard).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>${q ? "Nichts gefunden" : path.length ? "Dieser Ordner ist leer" : "Noch nichts hier"}</h3><p>${q ? "Versuche einen anderen Suchbegriff." : "Lege mit „Neu“ oben rechts Ordner, Notizen oder Datenbanken an oder lade Dateien hoch. Dateien kannst du auch einfach hierher ziehen."}</p>${q ? "" : `<div class="row" style="justify-content:center;gap:8px;margin-top:14px"><button class="btn primary small" data-e="n">${ic("newnote")}Notiz</button><button class="btn small" data-e="u">${ic("upload")}Hochladen</button><button class="btn small" data-e="a">${ic("spark")}Mit Lumi AI</button></div>`}</div>`}
-  </article></div>`;
+  </article>${docSide()}</div></div>`;
   setScroller($("#paperc", m));
   bindCommon(m);
   $$("[data-p]", m).forEach(b => { b.onclick = () => go("docs/" + b.dataset.p); b.ondragover = e => { e.preventDefault(); b.classList.add("drop"); }; b.ondragleave = () => b.classList.remove("drop"); b.ondrop = e => dropOn(e, b.dataset.p); });
