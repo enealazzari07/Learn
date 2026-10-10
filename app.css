@@ -1901,3 +1901,45 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .acts button.act:hover{background:none!important}.acts button.act:hover span{text-decoration-color:#0f0f12}
 .acts .act.err{color:#d93a3a}
 .acts .act svg{color:#0f0f12!important}
+
+/* ======== v67: Schritt-Ablauf (Kreis · Text · gestrichelte Linie · nächster Kreis), weißes Logo auf Schwarz, Dokumente-Seite ======== */
+.acts{display:flex;flex-direction:column;gap:0;margin-top:14px;align-items:flex-start}
+.acts .act{position:relative;display:block!important;padding:0 0 20px 38px!important;min-height:24px;line-height:24px;font-size:14px;font-weight:600;color:#0f0f12;text-align:left;background:none!important;box-shadow:none!important}
+.acts .act:last-child{padding-bottom:0!important}
+.acts .act::before{content:"";position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1.6px #0f0f12}
+.acts .act svg{position:absolute;left:4px;top:4px;width:16px;height:16px;color:#0f0f12!important}
+.acts .act:not(:last-child)::after{content:"";position:absolute;left:11.5px;top:28px;bottom:4px;border-left:1.6px dashed #b9b9c6}
+.acts .act.err::before{box-shadow:inset 0 0 0 1.6px #d93a3a}.acts .act.err svg{color:#d93a3a!important}
+.acts button.act:hover::before{background:#0f0f12}.acts button.act:hover svg{color:#fff!important}
+.acts .act svg+span{display:inline}
+/* AI-Knopf in Dokumenten: immer schwarz mit weißem Logo */
+#ai-m,#aicb{background:#0f0f12!important;color:#fff!important;border-radius:999px;padding:0 14px 0 11px;gap:7px;font-weight:700}
+#ai-m svg,#aicb svg{filter:invert(1)}
+#ai-m:hover,#aicb:hover{background:#2a2a31!important}
+#ai-m.on,#aicb.on{box-shadow:0 0 0 3px rgba(15,15,18,.15)}
+/* Dokumente-Seite */
+.dtools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px;flex-wrap:wrap}
+.dchips{display:flex;gap:6px;flex-wrap:wrap}
+.dchips button{display:flex;align-items:center;gap:7px;background:#fff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
+.dchips button em{font-style:normal;font-size:11.5px;color:#9a9aa8;font-weight:600}.dchips button:hover{background:#ececf2}
+.dchips button.on{background:#0f0f12;color:#fff}.dchips button.on em{color:#b0b0bc}
+.dview{display:flex;background:#fff;border-radius:999px;padding:3px}.dview button{width:34px;height:30px;border-radius:999px;display:grid;place-items:center;cursor:pointer}.dview button svg{width:16px;height:16px}.dview button.on{background:#0f0f12;color:#fff}
+.docspaper .items>.doc{width:228px;border-radius:24px;box-shadow:0 1px 2px rgba(0,0,0,.03);transition:transform .25s cubic-bezier(.3,.9,.3,1),box-shadow .25s}
+.docspaper .items>.doc:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.09)}
+.doc .tbadge{position:absolute;left:10px;top:10px;z-index:2;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border-radius:999px;padding:4px 10px 4px 8px;font-size:11px;font-weight:700;color:#0f0f12}.doc .tbadge svg{width:13px;height:13px}
+.docspaper .items.as-list{display:flex;flex-direction:column;gap:0;background:#fff;border-radius:24px;padding:6px 10px}
+.items.as-list>.fold{width:auto!important;transform:none}
+.drow{display:grid;grid-template-columns:34px minmax(0,1fr) 90px 150px 90px 30px;align-items:center;gap:12px;padding:10px 8px;border-bottom:1px solid #f0f0f4;cursor:pointer;border-radius:14px;transition:background .15s}
+.drow:last-child{border-bottom:0}.drow:hover{background:#f6f6fa}
+.dr-i{width:34px;height:34px;border-radius:11px;background:#f3f3f7;display:grid;place-items:center}.dr-i svg{width:18px;height:18px}
+.dr-t{display:flex;flex-direction:column;min-width:0}.dr-t b{font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dr-t small{font-size:12px;color:#8a8a98}.dr-t .pin{display:inline-block;margin-right:5px;vertical-align:-2px}.dr-t .pin svg{width:13px;height:13px}
+.dr-k,.dr-a{font-size:12.5px;color:#6e6e7c}.dr-s{font-size:12.5px;color:#6e6e7c;display:flex;align-items:center;gap:6px}
+.drow .dmore{position:static;opacity:.5;width:28px;height:28px}.drow:hover .dmore{opacity:1}
+@media (max-width:760px){.drow{grid-template-columns:34px minmax(0,1fr) 30px}.dr-k,.dr-s,.dr-a{display:none}}
+.docspaper .items.as-list>.drow{width:100%}
+.docspaper .items.as-list{gap:0}
+.doc .th.note-th{padding:44px 16px 12px}
+.doc .th.file-th{display:grid;place-items:center}
+.doc .th.file-th b{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700}.doc .th.file-th b svg{width:26px;height:26px;color:#fff}
+.docsed #nw{background:#0f0f12!important;color:#fff!important}.docsed #nw svg{filter:none}
+.doc .th.file-th b[style*="5b3df5"]{background:#0f0f12!important}
