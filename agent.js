@@ -96,7 +96,7 @@ function openAiCommand(prefill = "") {
   document.getElementById("aicmd")?.remove();
   const el = document.createElement("div"); el.id = "aicmd";
   const SUG = ["Erstelle eine Notiz zur Zellatmung", "Erstelle einen Lernplan für die nächste Woche als Datenbank", "Trage morgen einen Vokabeltest ein", "Erstelle 10 Karteikarten zu diesem Dokument"];
-  el.innerHTML = `<div class="aic-bg"></div><div class="aic-box" role="dialog" aria-label="KI"><form class="aic-in">${ic("spark")}<input id="aic-i" autocomplete="off" placeholder="Was soll die KI für dich tun? z. B. „Erstelle eine Notiz zu …“" value="${esc(prefill)}"><button class="send" aria-label="Senden">${ic("up")}</button></form><div class="aic-sug">${SUG.map(x => `<button type="button">${esc(x)}</button>`).join("")}</div><div class="aic-out" hidden></div></div>`;
+  el.innerHTML = `<div class="aic-bg"></div><div class="aic-box" role="dialog" aria-label="Lumi AI"><form class="aic-in">${ic("spark")}<input id="aic-i" autocomplete="off" placeholder="Was soll Lumi AI für dich tun? z. B. „Erstelle eine Notiz zu …“" value="${esc(prefill)}"><button class="send" aria-label="Senden">${ic("up")}</button></form><div class="aic-sug">${SUG.map(x => `<button type="button">${esc(x)}</button>`).join("")}</div><div class="aic-out" hidden></div></div>`;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
   const close = () => { el.classList.remove("on"); setTimeout(() => el.remove(), 250); document.removeEventListener("keydown", kd); }, kd = e => { if (e.key === "Escape") close(); };
   document.addEventListener("keydown", kd); $(".aic-bg", el).onclick = close; const inp = $("#aic-i", el), out = $(".aic-out", el);
@@ -104,8 +104,8 @@ function openAiCommand(prefill = "") {
   $$(".aic-sug button", el).forEach(b => b.onclick = () => { inp.value = b.textContent; $(".aic-in", el).requestSubmit(); });
   $(".aic-in", el).onsubmit = async e => {
     e.preventDefault(); const q = inp.value.trim(); if (!q) return;
-    if (!hasKey()) { out.hidden = false; out.innerHTML = `<p class="note">Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.</p>`; return; }
-    $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>KI schreibt …</span></div>`;
+    if (!hasKey()) { out.hidden = false; out.innerHTML = `<p class="note">Lumi AI ist noch nicht eingerichtet – siehe Einstellungen → Lumi AI.</p>`; return; }
+    $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>Lumi AI schreibt …</span></div>`;
     const r = await agentAsk(q);
     if (!r) { out.innerHTML = `<p class="note">Das hat leider nicht geklappt. Versuche es bitte noch einmal.</p>`; return; }
     out.innerHTML = `<p>${streamHtml(r.text)}</p>${r.acts.length ? `<div class="acts" style="--base:${Math.min(2600, r.text.split(/\s+/).length * 30 + 200)}ms">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
