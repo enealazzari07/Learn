@@ -1505,3 +1505,11 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .sana .s-fc .s-fk{opacity:.85}.sana .s-fc-ai p{font-size:19px;font-weight:600;line-height:1.3;letter-spacing:-.02em;color:#fff}
 .sana .s-fc b{font-size:30px}.sana .s-fc-e b{font-size:22px}.sana .s-fc small{opacity:.8}
 @media (max-width:900px){.main.homew,.main.homew:not(.doc-full){padding:14px 16px 150px}}
+
+/* ======== v44: weißer Rand + graue Box bleibt auch auf Home ======== */
+.main.homew,.main.homew:not(.doc-full){margin:12px 12px 12px 0!important;border-radius:40px!important;background:var(--appbg)!important;--panel:var(--appbg);box-shadow:none!important;min-height:calc(100dvh - 24px);padding:26px clamp(18px,2.6vw,44px) 40px}
+.sana .s-tr,.sana .todo-add,.sana .s-th0{border-bottom-color:#e8e7e1}
+.sana .todo:hover{background:rgba(255,255,255,.6)}
+.sana .hsearch{background:#fff}
+@media (max-width:900px){.main.homew,.main.homew:not(.doc-full){margin:8px 8px 0!important;border-radius:30px!important;padding:16px 16px 150px}}
+.sana .s-tbl{background:transparent}
