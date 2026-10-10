@@ -20,12 +20,14 @@ const available = () => { const h = have(); return MODELS.filter(x => h[x.p]); }
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
 
 /* Quellen: Gemini „Grounding mit Google Suche“ liefert Fundstellen; wir hängen [n]-Marker an die belegten Sätze */
+/* Marker dürfen auch in den Text innerhalb von <lumi-actions> (z. B. append_to_note), aber nie mitten in ein JSON-Escape */
+const unsafeCut = (buf, pos) => { const tail = buf.subarray(Math.max(0, pos - 6), pos).toString("latin1"); return /\\$/.test(tail) || /\\u[0-9a-fA-F]{0,3}$/.test(tail); };
 function withCitations(text, meta) {
   const chunks = meta?.groundingChunks || [], sup = meta?.groundingSupports || [], srcs = [], idx = new Map();
   chunks.forEach((c, i) => { const u = c.web?.uri; if (!u || !/^https?:/.test(u)) return; srcs.push({ n: srcs.length + 1, title: String(c.web.title || "Quelle").slice(0, 80), url: u }); idx.set(i, srcs.length); });
   if (!srcs.length) return { text, sources: [] };
-  let buf = Buffer.from(text, "utf8"); const cut = buf.indexOf("<lumi-actions>"), limit = cut < 0 ? buf.length : cut, ins = new Map();
-  for (const s of sup) { const end = s.segment?.endIndex, ns = [...new Set((s.groundingChunkIndices || []).map(i => idx.get(i)).filter(Boolean))].slice(0, 3); if (end != null && end <= limit && ns.length) ins.set(end, (ins.get(end) || "") + ns.map(n => `[${n}]`).join("")); }
+  let buf = Buffer.from(text, "utf8"); const cut = buf.indexOf("<lumi-actions>"), ins = new Map();
+  for (const s of sup) { const end = s.segment?.endIndex, ns = [...new Set((s.groundingChunkIndices || []).map(i => idx.get(i)).filter(Boolean))].slice(0, 3); if (end != null && ns.length && !(end > cut && cut >= 0 && end <= cut + 15) && !unsafeCut(buf, end)) ins.set(end, (ins.get(end) || "") + ns.map(n => `[${n}]`).join("")); }
   [...ins.entries()].sort((x, y) => y[0] - x[0]).forEach(([pos, m]) => { buf = Buffer.concat([buf.subarray(0, pos), Buffer.from(" " + m), buf.subarray(pos)]); });
   return { text: buf.toString("utf8"), sources: srcs };
 }
