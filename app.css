@@ -2115,3 +2115,24 @@ a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{w
 @media (max-width:900px){.ned-bar .rtabs{grid-column:1/-1;grid-row:2}.rib{position:static;padding:2px 10px 8px}}
 @media (min-width:901px){body.aiside-open .ned-bar .rtabs{max-width:100%}}
 .rib .tbtn.lbl em{right:auto;left:calc(50% + 6px);top:2px}
+
+/* ======== v74: drawing engine (Apple Pencil) ======== */
+.inkcv{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ink-ring{position:absolute;left:0;top:0;z-index:4;border-radius:50%;pointer-events:none;border:1px solid rgba(0,0,0,.4);opacity:0;transition:opacity .15s;will-change:transform}
+.ink-ring.on{opacity:1}.ink-ring.er{background:rgba(255,255,255,.5);border-color:#888}
+.ink-pop{position:fixed;z-index:400;width:min(300px,calc(100vw - 20px));background:#fff;border-radius:22px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.08),0 22px 60px rgba(0,0,0,.2);display:flex;flex-direction:column;gap:10px;animation:inkPop .22s cubic-bezier(.3,.9,.3,1)}
+@keyframes inkPop{from{opacity:0;transform:translateY(-6px) scale(.97)}}
+.ink-pop b{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#8a8a98}
+.ink-pop small{font-size:12px;line-height:1.45;color:#8a8a98}
+.ink-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ink-chip{border:0;background:#f1f1f5;color:#1c1c22;border-radius:999px;padding:8px 14px;font:600 13px/1 inherit;font-family:inherit;cursor:pointer;transition:background .2s,color .2s}
+.ink-chip.on{background:#0f0f12;color:#fff}
+.ink-rg{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600}
+.ink-rg input{width:100%;accent-color:#0f0f12}
+.inkpal input[type=range]{accent-color:#0f0f12}
+.inkpal .tbtn.on{background:#0f0f12;color:#fff}
+.inkpal .tbtn[hidden]{display:none}
+.inkpal #ip-cl.sel{background:#f1f1f5;color:#0f0f12}
+.ned-paper[data-grid=dots]{background-image:radial-gradient(#cfcfd8 1.2px,transparent 1.4px);background-size:26px 26px}
+.ned-paper[data-grid=grid]{background-image:linear-gradient(#e6e6ec 1px,transparent 1px),linear-gradient(90deg,#e6e6ec 1px,transparent 1px);background-size:28px 28px}
+.ned-paper[data-grid=lines]{background-image:repeating-linear-gradient(transparent 0 31px,#e6e6ec 31px 32px);background-position:0 8px}

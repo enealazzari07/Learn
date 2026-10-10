@@ -694,7 +694,7 @@ async function noteEditor(m, d) {
   /* ink layer: write and draw in the same document */
   const paper = $("#paperc", m); setScroller(paper); const inkSave = debounce(async () => { if (!D.docs.includes(d)) return; d.hasInk = ink.st.strokes.length > 0; d.updated = Date.now(); await KV.set("ink:" + d.id, ink.st.strokes); save(); svEl.textContent = "Gespeichert"; }, 600);
   const fitInk = mx => { paper.style.minHeight = mx > 0 ? Math.max(mx + 260, 0) + "px" : ""; };
-  const ink = createInk(paper, d, { bar: $("#rib-draw", m), onChange: (strokes, mx) => { svEl.textContent = "Speichert…"; fitInk(mx); inkSave(); } });
+  const ink = createInk(paper, d, { grid: true, bar: $("#rib-draw", m), onChange: (strokes, mx) => { svEl.textContent = "Speichert…"; fitInk(mx); inkSave(); } });
   const inkData = await KV.get("ink:" + d.id); if (inkData?.length) { ink.load(inkData); fitInk(Math.max(...inkData.flatMap(s => s.pts.map(q => q[1])))); } else ink.load([]);
   let mode = "write"; const msw = $("#msw", m);
   const setMode = k => { mode = k; ink.mode(k === "draw"); body.contentEditable = k === "write"; m.classList.toggle("drawing", k === "draw"); msw.dataset.m = k; $$("button", msw).forEach(b => b.classList.toggle("on", b.dataset.m === k)); if (k === "draw") { getSelection().removeAllRanges(); bub.hidden = true; } else body.focus({ preventScroll: true }); };
