@@ -162,7 +162,8 @@ function msContext() {
   const on = D.docs.filter(d => d.source === "onenote").slice(0, 25); if (on.length) s += "OneNote-Seiten (importiert): " + on.map(d => d.title).join("; ") + "\n";
   return s.trim();
 }
-const msEventsOn = date => (D.ms?.events || []).filter(e => e.date === date).sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+/* Termine eines Tages aus allen verbundenen Kalendern (Outlook + Apple/ICS) */
+const msEventsOn = date => [...(D.ms?.events || []).filter(e => e.date === date), ...(D.apple?.events || []).filter(e => e.date === date || (e.allDay && e.date < date && e.endDate >= date))].sort((a, b) => (a.time || "").localeCompare(b.time || ""));
 
 /* learning goals ("Lernziele") for an exam: from linked document / OneNote page / calendar text */
 async function extractGoals(text, title) {

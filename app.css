@@ -2564,3 +2564,18 @@ body.hed-open{overflow:hidden}
 .shi{display:inline-flex;vertical-align:-2px;margin-left:8px;color:#a9a9b6}.shi svg{width:12px;height:12px}
 .shbadge{width:12px;height:12px;border-radius:50%;background:#ececf1;color:#8a8a98;border:2px solid #fff;right:-6px;bottom:-6px}
 .shbadge svg{width:8px;height:8px}
+
+/* v101: Uhr-Block zeigt ab 2 Spalten Breite die heutigen Kalendereinträge; Apple-Kalender-Panel */
+.w-clock{container-type:inline-size;justify-content:center}
+.w-clock .ck-in{display:grid;grid-template-columns:1fr;align-items:center;min-width:0}
+.w-clock .ck-t b{font-size:clamp(34px,6vh,60px);letter-spacing:-.045em;line-height:1;display:block}
+.w-clock .ck-ev{display:none;min-width:0}
+@container (min-width:380px){.w-clock .ck-in{grid-template-columns:auto minmax(0,1fr);gap:26px}.w-clock .ck-ev{display:block;border-left:1px solid #ececf1;padding-left:22px}}
+.ck-ev h3{margin:0 0 6px;font-size:12px;font-weight:700;color:#8a8a98;text-transform:uppercase;letter-spacing:.06em}
+.ck-r{display:flex;align-items:center;gap:10px;padding:4px 0;min-width:0}.ck-r i{width:4px;height:18px;border-radius:3px;flex:none}
+.ck-tm{font-size:12px;font-weight:700;color:#8a8a98;width:62px;flex:none;font-variant-numeric:tabular-nums;white-space:nowrap}
+.w-clock .ck-r b{font-size:14.5px;font-weight:600;letter-spacing:0;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.ck-r.more{font-size:12.5px;color:#8a8a98;padding-left:14px}.ck-none{margin:0!important;color:#9a9aa8;font-size:14px}
+.apf{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:#f5f5f9;margin-bottom:8px}.apf>i{width:10px;height:10px;border-radius:50%;flex:none}.apf span{flex:1;min-width:0;display:flex;flex-direction:column}.apf small{color:#8a8a98;font-size:12px}.apf .bad{color:#d92d20;font-style:normal}
+.apadd{display:grid;grid-template-columns:170px 1fr auto;gap:8px;margin-top:10px}
+@media (max-width:700px){.apadd{grid-template-columns:1fr}}

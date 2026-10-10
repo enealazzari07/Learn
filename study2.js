@@ -436,6 +436,7 @@ V.settings = m => {
   <details class="msh"><summary>Erweitert: eigenen Anthropic-API-Key nutzen</summary><p class="note">Nur nötig, wenn die Server-KI nicht aktiv ist. Der Key wird nur in diesem Browser gespeichert.</p><label class="lbl">API-Key</label><input class="field" id="sk" type="password" placeholder="sk-ant-…" value="${esc(p.apiKey)}" autocomplete="off"><label class="lbl">Modell</label><input class="field" id="sm" value="${esc(p.model)}"></details></div>
   ${cloudPanelHtml()}
   ${msPanelHtml()}
+  ${applePanelHtml()}
   <div class="panel"><h2>Daten</h2><p class="note">Alles liegt lokal auf diesem Gerät (IndexedDB) und funktioniert offline. Erstelle regelmäßig ein Backup – z. B. um auf Handy, iPad und PC dieselben Daten zu nutzen.</p><div class="row"><button class="btn ghost" id="ex">${ic("download")}Backup exportieren</button><button class="btn ghost" id="im">${ic("upload")}Backup importieren</button><input type="file" id="imf" accept="application/json" hidden><button class="btn ghost danger" id="rs">${ic("trash")}Alles löschen</button></div></div>
   <div class="row end"><button class="btn accent big" id="sv">Speichern</button></div></div>`;
   $$("#sl button", m).forEach(b => b.onclick = () => { $$("#sl button", m).forEach(x => x.classList.toggle("on", x === b)); });
@@ -444,7 +445,7 @@ V.settings = m => {
   $$("[data-c]", m).forEach(i => i.oninput = () => { subj(i.dataset.c).color = i.value; save(); }); $$("[data-n]", m).forEach(i => i.onchange = () => { subj(i.dataset.n).name = i.value.trim() || subj(i.dataset.n).name; save(); });
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
   $("#rs", m).onclick = async () => { if (await confirmBox("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.", "Alles löschen")) { indexedDB.deleteDatabase("lumi"); localStorage.clear(); setTimeout(() => location.hash = "#/", 100); setTimeout(() => location.reload(), 300); } };
-  bindMsPanel(m); cloudBindPanel(m);
+  bindMsPanel(m); bindApplePanel(m); cloudBindPanel(m);
   $("#srcs", m)?.addEventListener("change", e => { p.sources = e.target.checked; save(); });
   $("#hed-open", m)?.addEventListener("click", () => homeEditor());
   $("#swz", m)?.addEventListener("change", e => { p.swiss = e.target.checked; const ss = $("#ss", m); if (p.swiss && p.scale !== "ch" && ss && ["de", "ch"].includes(ss.value)) p.scale = ss.value = "ch"; else if (!p.swiss && p.scale === "ch" && ss) p.scale = ss.value = "de"; save(); toast(p.swiss ? "Schweiz: „ss“ statt „ß“ und Noten 1–6 (6 = beste)" : "Deutschland: „ß“ erlaubt, Noten 1–6 (1 = beste)"); });
