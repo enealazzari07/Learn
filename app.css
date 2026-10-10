@@ -2386,3 +2386,32 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .exdet .panel .row{gap:8px}
 .exadd{margin-top:14px!important;align-items:center}.exadd .btn{height:44px;padding:0 16px;flex:none}
 .exdet .panel .note{margin:4px 0 0}
+
+/* ======== v91: Prüfungen als Terminliste, Dokumente als Blätter (Ordner getrennt) ======== */
+.exlist{background:#fff;border-radius:28px;padding:6px 8px;margin-bottom:18px}
+.exlist.past{opacity:.65}
+.exr{display:grid;grid-template-columns:56px minmax(0,1fr) 140px 96px;align-items:center;gap:18px;padding:14px 16px;border-radius:20px;cursor:pointer;transition:background .15s}
+.exr+.exr{box-shadow:0 -1px 0 #f0f0f4}
+.exr:hover,.exr:focus-visible{background:#f6f6f9;outline:0;box-shadow:none}.exr:hover+.exr{box-shadow:none}
+.exr-d{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;border-left:3px solid var(--c);padding-left:12px;height:44px}
+.exr-d b{font-size:22px;letter-spacing:-.03em}.exr-d small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#8a8a98;margin-top:4px;font-weight:600}
+.exr-t{display:flex;flex-direction:column;gap:3px;min-width:0}.exr-t b{font-size:16px;letter-spacing:-.015em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.exr-t small{font-size:13px;color:#8a8a98;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exr-p{height:4px;border-radius:99px;background:#ececf1;overflow:hidden}.exr-p i{display:block;height:100%;background:var(--c);border-radius:99px}
+.exr-l{text-align:right;font-size:13px;font-weight:600;color:#0f0f12}
+@media (max-width:700px){.exr{grid-template-columns:48px minmax(0,1fr) auto;gap:12px;padding:12px}.exr-p{display:none}}
+
+.dsec{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#9a9aa8;margin:6px 0 14px}
+.docspaper .items.fgrid{display:flex;flex-wrap:wrap;gap:20px 16px;margin-bottom:26px}.docspaper .items.fgrid:empty{display:none}
+.docspaper .items.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:28px 22px;align-items:start}
+.docspaper .items.dgrid>.doc{width:auto;background:none;border-radius:0;box-shadow:none;overflow:visible;transform:none}
+.docspaper .items.dgrid>.doc:hover{transform:none;box-shadow:none}
+.dgrid>.doc .th{height:auto;aspect-ratio:3/4;background:#fff;border-radius:10px;box-shadow:0 0 0 1px rgba(30,20,90,.06),0 2px 4px rgba(30,20,90,.04),0 10px 26px rgba(30,20,90,.07);transition:transform .25s cubic-bezier(.3,.9,.3,1),box-shadow .25s;overflow:hidden}
+.dgrid>.doc:hover .th{transform:translateY(-4px);box-shadow:0 0 0 1px rgba(30,20,90,.08),0 4px 8px rgba(30,20,90,.05),0 18px 36px rgba(30,20,90,.12)}
+.dgrid>.doc .th.note-th{padding:18px 16px;font-size:8.5px;line-height:1.55;color:#6b6b78;background:#fff}
+.dgrid>.doc .tbadge{left:8px;top:8px;border-radius:6px;padding:3px 7px 3px 6px;font-size:10px;background:#f3f3f7;box-shadow:none}
+.dgrid>.doc .dm{padding:10px 2px 0}.dgrid>.doc .dt{font-size:14px;font-weight:600}.dgrid>.doc .ds{font-size:12px;color:#8a8a98;margin-top:2px}
+.dgrid>.doc .dmore{top:8px;right:8px}
+.docspace .items.fgrid>.fold{width:150px}
+.docspaper .items.dgrid{grid-template-columns:repeat(auto-fill,minmax(148px,172px));gap:26px 20px}
+.dgrid>.doc .th.note-th{padding:40px 14px 12px;font-size:8px}
+.dgrid>.doc .th.note-th i{color:#c4c4d0}

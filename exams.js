@@ -24,13 +24,12 @@ const exLeft = t => { if (!t.due) return ""; const d = daysUntil(t.due); return 
 
 V.exams = m => {
   const list = exList(), upcoming = list.filter(t => !t.due || t.due >= iso()), past = list.filter(t => t.due && t.due < iso());
-  const card = t => { const s = subj(t.subjectId), st = exStats(t), pct = st.goals ? Math.round(st.done / st.goals * 100) : 0;
-    return `<div class="exc" data-x="${t.id}" tabindex="0"><div class="exc-top"><span class="exc-i" style="${s ? `background:${s.color}22;color:${s.color}` : ""}">${ic("book")}</span><span class="exc-d"><b>${t.due ? fmtD(t.due) : "Ohne Datum"}</b><small>${exLeft(t)}</small></span></div>
-      <h3>${esc(t.title)}</h3><p class="exc-s">${s ? `<i class="sdot" style="background:${s.color}"></i>${esc(s.name)}` : "Kein Fach"}</p>
-      <div class="exc-bar"><i style="width:${pct}%"></i></div><div class="exc-m"><span>${ic("star")}${st.done}/${st.goals} Lernziele</span><span>${ic("cards")}${st.cards}</span><span>${ic("help")}${st.quizzes}${st.best != null ? " · " + st.best + "%" : ""}</span></div></div>`; };
+  const card = t => { const sj = subj(t.subjectId), st = exStats(t), pct = st.goals ? Math.round(st.done / st.goals * 100) : 0, dt = t.due ? parseISO(t.due) : null;
+    const meta = [sj ? esc(sj.name) : "Kein Fach", st.goals ? `${st.done} von ${st.goals} Lernzielen` : "Keine Lernziele", st.cards ? `${st.cards} Karten` : "", st.quizzes ? `${st.quizzes} Quiz${st.best != null ? " · " + st.best + "%" : ""}` : ""].filter(Boolean).join(" · ");
+    return `<div class="exr" data-x="${t.id}" tabindex="0" style="--c:${sj ? sj.color : "#0f0f12"}"><div class="exr-d">${dt ? `<b>${dt.getDate()}</b><small>${dt.toLocaleDateString("de-DE", { month: "short" }).replace(".", "")}</small>` : `<b>–</b><small>offen</small>`}</div><div class="exr-t"><b>${esc(t.title)}</b><small>${meta}</small></div><div class="exr-p" title="${pct}% der Lernziele"><i style="width:${pct}%"></i></div><span class="exr-l">${exLeft(t)}</span></div>`; };
   m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Alles an einem Ort</p><h1>Prüfungen</h1></div><div class="row"><button class="btn ghost" data-go="cards">${ic("cards")}Alle Karteikarten</button><button class="btn ghost" data-go="quiz">${ic("help")}Freies Quiz</button><button class="btn accent" id="exn">${ic("plus")}Prüfung eintragen</button></div></div>
-  ${upcoming.length ? `<div class="exgrid">${upcoming.map(card).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("book")}</div><h3>Noch keine Prüfung</h3><p>Trage eine Prüfung ein – im Planer, im Kalender oder hier. Sie bekommt automatisch eine Mappe mit Lernzielen, Karteikarten und Quiz.</p><button class="btn accent" id="exn2">${ic("plus")}Prüfung eintragen</button></div>`}
-  ${past.length ? `<h2 class="sh2">Vergangen</h2><div class="exgrid past">${past.slice(-6).reverse().map(card).join("")}</div>` : ""}</div>`;
+  ${upcoming.length ? `<div class="exlist">${upcoming.map(card).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("book")}</div><h3>Noch keine Prüfung</h3><p>Trage eine Prüfung ein – im Planer, im Kalender oder hier. Sie bekommt automatisch eine Mappe mit Lernzielen, Karteikarten und Quiz.</p><button class="btn accent" id="exn2">${ic("plus")}Prüfung eintragen</button></div>`}
+  ${past.length ? `<h2 class="sh2">Vergangen</h2><div class="exlist past">${past.slice(-6).reverse().map(card).join("")}</div>` : ""}</div>`;
   bindCommon(m);
   $$("[data-x]", m).forEach(c => c.onclick = () => go("exam/" + c.dataset.x));
   const nw = () => taskModal(null, "", { type: "exam" }); $("#exn", m).onclick = nw; $("#exn2", m) && ($("#exn2", m).onclick = nw);
