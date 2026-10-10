@@ -1209,3 +1209,8 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 @media (max-width:1100px){.hgrid{grid-template-columns:1fr!important}}
 @media (min-width:901px){.page.home.calm>.welcome{padding-bottom:clamp(34px,3vw,44px)!important}.cd{height:29px!important}.hgrid{margin-top:10px!important}}
 .page.home.calm .hgrid section{margin-bottom:0!important}
+
+/* v32: the blue glow flows further down on the LEFT only */
+.page.home.calm{position:relative;isolation:isolate}
+.page.home.calm::before{content:"";position:absolute;z-index:-1;pointer-events:none;left:calc(-1 * var(--mx) - 260px);top:120px;width:640px;height:900px;background:radial-gradient(closest-side,rgba(115,145,255,.5),rgba(115,145,255,.22) 55%,rgba(115,145,255,0));filter:blur(6px)}
+@media (max-width:900px){.page.home.calm::before{display:none}}
