@@ -1362,3 +1362,10 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .ftxt>b{font-size:14px!important}.ftxt>small{font-size:11px!important}
 .ftxt{left:9%!important;bottom:12%!important}
 @media (max-width:900px){.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))!important}.f3d{max-width:120px!important}.ftxt>b{font-size:12.5px!important}}
+/* v39: calm folders – no glow, no hover tint, no white box */
+.docspaper .fold,.docspaper .fold:hover,.docspaper .fold:focus,.docspaper .fold:focus-visible,.docspaper .fold.drop{background:transparent!important;box-shadow:none!important;outline:0!important;transform:none!important}
+.docspaper .fold .f3d,.docspaper .fold:hover .f3d,.docspaper .fold.add .f3d,.docspaper .fold.add:hover .f3d{filter:none!important;transition:none}
+.docspaper .fold.drop .f3d{opacity:.75}
+.docspaper .fold .dmore{background:transparent!important;box-shadow:none!important;color:#fff;top:calc(10% + 2px)!important;right:8%!important;width:24px!important;height:24px!important}
+.docspaper .fold .dmore svg{width:16px;height:16px;filter:drop-shadow(0 1px 2px rgba(0,20,60,.4))}
+.docspaper .fold.add:hover .f3d{opacity:.9;--c:#8b8ba3}
