@@ -251,8 +251,9 @@ V.today = m => {
   <section class="s-tbl rise" style="--i:2"><div class="s-tr s-th0"><span>Aufgabe</span><span>Art</span><span>Fortschritt</span><span>Fällig</span><span>Priorität</span></div><div id="todos"></div>
     <form class="todo-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Neue Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
   
-  <aside class="s-side rise" style="--i:3"><button class="s-fc s-fc-c" data-go="cards"><span class="s-fk">Karteikarten</span><b>${due}</b><small>${due === 1 ? "Karte ist" : "Karten sind"} fällig</small></button>
-    <button class="s-fc s-fc-e" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><span class="s-fk">${nextEx ? "Nächste Prüfung" : "Lernziel"}</span><b>${nextEx ? esc(nextEx.title) : mins + " / " + goal + " Min."}</b><small>${nextEx ? `in ${daysUntil(nextEx.due)} ${daysUntil(nextEx.due) === 1 ? "Tag" : "Tagen"} – Übungsquiz starten` : "Heute gelernt"}</small></button></aside></div>
+  <aside class="s-side rise" style="--i:3"><div class="s-card s-goal">${ringSvg(Math.round(Math.min(100, mins / goal * 100)), "#0f0f12", mins, "Min.")}<div><span class="s-fk">Lernziel heute</span><b>${mins} von ${goal} Minuten</b><button class="link" data-go="focus">Fokus starten</button></div></div>
+    <div class="s-card s-list"><button class="s-li" data-go="cards"><span><small>Karteikarten</small><b>${due} ${due === 1 ? "Karte" : "Karten"} fällig</b></span>${ic("back")}</button>
+    <button class="s-li" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><span><small>${nextEx ? "Nächste Prüfung" : "Planer"}</small><b>${nextEx ? esc(nextEx.title) + " · " + daysUntil(nextEx.due) + " " + (daysUntil(nextEx.due) === 1 ? "Tag" : "Tage") : "Termin eintragen"}</b></span>${ic("back")}</button></div></aside></div>
   ${recent.length ? `<section class="rise s-sec s-rec" style="--i:3"><div class="sech"><h2 class="sh2">Zuletzt <em>${D.docs.length}</em></h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="s-cards4">${recent.map(d => `<button class="s-rc" data-d="${d.id}">${thumb(d)}<b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></button>`).join("")}</div></section>` : ""}
   </div></div>`;
   bindCommon(m);
