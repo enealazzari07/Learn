@@ -1214,3 +1214,5 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .page.home.calm{position:relative;isolation:isolate}
 .page.home.calm::before{content:"";position:absolute;z-index:-1;pointer-events:none;left:calc(-1 * var(--mx) - 260px);top:120px;width:640px;height:900px;background:radial-gradient(closest-side,rgba(115,145,255,.5),rgba(115,145,255,.22) 55%,rgba(115,145,255,0));filter:blur(6px)}
 @media (max-width:900px){.page.home.calm::before{display:none}}
+.hero-body .todo{gap:14px}
+.hero-body .todo .tc{width:28px;height:28px;border-width:2px}

@@ -62,13 +62,10 @@ function refreshNav() {
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
   <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
-  <div class="sp hide-mob"></div><div class="side-h hide-mob"><span>Ordner</span><button id="addsubj" aria-label="Neuer Ordner">${ic("plus")}</button></div>
-  <div class="subjlist hide-mob">${D.folders.filter(f => !f.parent).map(x => `<button class="space ${curView === "docs" && folderPath(docFolder)[0]?.id === x.id ? "on" : ""}" data-fold="${x.id}" title="${esc(x.name)}"><i style="background:${x.color}"></i><span>${esc(x.name)}</span><b>${folderCount(x.id) || ""}</b></button>`).join("") || `<p class="note nosub">Noch keine Ordner.</p>`}</div>`;
+  <div class="sp hide-mob"></div>`;
   $$("[data-go]", s).forEach(b => b.onclick = () => { if (b.dataset.go === "docs") docFolder = ""; go(b.dataset.go); });
-  $$("[data-fold]", s).forEach(b => b.onclick = () => go("docs/" + b.dataset.fold));
   $("#newbtn", s).onclick = e => newMenu(e.currentTarget);
   $("#sidetgl", s).onclick = () => { sideOpen = !sideOpen; try { localStorage.setItem("lumi-side", sideOpen ? "1" : "0"); } catch {} applyRail(); };
-  $("#addsubj", s) && ($("#addsubj", s).onclick = () => newFolder(""));
   $("#morebtn", s).onclick = e => menu(e.currentTarget, NAVS.filter(n => !mob.find(m => m[0] === n[0])).map(([k, l, i]) => ({ label: l, icon: i, fn: () => go(k) })));
 }
 function newMenu(anchor) {
@@ -251,7 +248,7 @@ V.today = m => {
     </div>
     <h1 class="greet-h">${words}</h1>
     <form class="hsearch rise" style="--i:4" id="hs">${ic("search")}<input id="hq" placeholder="Suchen oder die KI etwas fragen …" autocomplete="off" aria-label="Suchen oder KI fragen"><button type="button" class="hs-ai" id="hs-ai">${ic("spark")}<span>KI fragen</span></button></form>
-  <div class="hero-body rise" style="--i:5"><div class="hb-l"><div class="sumbox"><span class="sum-ic">${ic("spark")}</span><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open, exams, due, mins, goal }))}</p><button class="sum-r" id="sum-r" title="Neu erstellen" aria-label="Zusammenfassung neu erstellen">${ic("rot")}</button></div>${timeline.length ? `<div class="mini-tl">${timeline.slice(0, 2).map(x => `<span><i style="background:${x.c}"></i>${x.t} ${esc(x.n)}</span>`).join("")}</div>` : ""}</div>
+  <div class="hero-body rise" style="--i:5"><div class="hb-l"><div class="sumbox"><span class="sum-ic">${ic("spark")}</span><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p><button class="sum-r" id="sum-r" title="Neu erstellen" aria-label="Zusammenfassung neu erstellen">${ic("rot")}</button></div>${timeline.length ? `<div class="mini-tl">${timeline.slice(0, 2).map(x => `<span><i style="background:${x.c}"></i>${x.t} ${esc(x.n)}</span>`).join("")}</div>` : ""}</div>
     <div class="hb-r"><div class="sub-h">Aufgaben</div><div id="todos"></div>
     <form class="todo-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Neue Aufgabe …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Datum / Prüfung</button></form></div></div>
   </section>
@@ -266,11 +263,11 @@ V.today = m => {
   bindCommon(m);
   $$("[data-q]", m).forEach(b => b.onclick = () => ({ n: () => docDialog("note"), u: () => $("#upl").click(), c: () => go("cards"), q: () => go("quiz"), f: () => go("focus") }[b.dataset.q])());
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
-  const todoRows = () => D.tasks.filter(x => !x.done).sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 5);
+  const todoRows = () => D.tasks.filter(x => !x.done && x.type !== "exam").sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 5);
   const dueLbl = x => !x.due ? "" : daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due);
   const drawTodos = () => {
     const box = $("#todos", m), rows = todoRows();
-    box.innerHTML = rows.length ? rows.map(x => `<div class="todo" data-id="${x.id}"><button class="tc" role="checkbox" aria-checked="false" aria-label="${esc(x.title)} erledigt"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></button><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#c9c9d6"}"></span><b>${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${dueLbl(x)}</small></div>`).join("") : `<p class="empty sm">Alles erledigt – nichts offen.</p>`;
+    box.innerHTML = rows.length ? rows.map(x => `<div class="todo" data-id="${x.id}"><button class="tc" role="checkbox" aria-checked="false" aria-label="${esc(x.title)} erledigt"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></button><b>${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${dueLbl(x)}</small></div>`).join("") : `<p class="empty sm">Alles erledigt – nichts offen.</p>`;
     $$(".todo .tc", box).forEach(b => b.onclick = () => { const row = b.closest(".todo"), x = D.tasks.find(y => y.id === row.dataset.id); if (!x || row.classList.contains("done")) return; x.done = true; x.doneAt = Date.now(); save(); b.setAttribute("aria-checked", "true"); row.classList.add("done"); setTimeout(() => { row.style.maxHeight = row.offsetHeight + "px"; requestAnimationFrame(() => row.classList.add("gone")); setTimeout(() => { drawTodos(); refreshNav(); }, 380); }, 520); });
   };
   drawTodos();
@@ -426,7 +423,7 @@ async function noteEditor(m, d) {
     <div class="nb-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="nb-name"><b id="cr">${esc(d.title)}</b><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div></div>
     <div class="ned-tools" id="tb"><button class="tt" id="t-blk" title="Textformat"><b>Aa</b>${ic("chev")}</button><i class="sep"></i>${BTN("bold", "bold", "Fett (Strg+B)")}${BTN("italic", "italic", "Kursiv (Strg+I)")}${BTN("underline", "underline", "Unterstrichen")}${BTN("strike", "strike", "Durchgestrichen")}<i class="sep"></i>${BTN("hilite", "hl", "Markieren")}<button class="tbtn mini" id="hl-m" title="Markierfarbe" aria-label="Markierfarbe">${ic("chev")}</button><button class="tbtn" id="cl-b" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #5b3df5;line-height:1">A</b></button><input type="color" id="cin" value="#5b3df5" hidden><i class="sep"></i>${BTN("ul", "list", "Aufzählung")}${BTN("ol", "listnum", "Nummerierung")}${BTN("todo", "todo", "Checkliste")}<i class="sep"></i><button class="tt" id="t-ins" title="Einfügen">${ic("plus")}<span>Einfügen</span>${ic("chev")}</button><button class="tt" id="t-paper" title="Papier">${ic("note")}<span>Papier</span>${ic("chev")}</button><i class="sep"></i>${BTN("undo", "undo", "Rückgängig")}${BTN("redo", "redo", "Wiederholen")}</div>
     <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><div class="modesw" id="msw" role="tablist"><i class="knob"></i><button role="tab" data-m="write" class="on">Schreiben</button><button role="tab" data-m="draw">Zeichnen</button></div><button class="btn ghost small" id="ai-m">${ic("spark")}<span class="hide-sm">KI</span></button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button></div></div>
-  <article class="ned-paper p-${paperOf()}" id="paperc"><div class="body" id="body" contenteditable="true" spellcheck="true" data-ph="Schreibe etwas, tippe „/“ für Blöcke oder drücke Leertaste für die KI …">${html}</div><div class="docstat" id="dstat"></div></article><input type="file" id="imgin" accept="image/*" hidden></div>`;
+  <article class="ned-paper p-${paperOf()}" id="paperc"><div class="body" id="body" contenteditable="true" spellcheck="true" data-ph="Schreibe etwas, tippe „/“ für Blöcke oder drücke Leertaste für die KI …">${html}</div></article><input type="file" id="imgin" accept="image/*" hidden></div>`;
   const body = $("#body", m), svEl = $("#sv", m); let saved = null, stat = "";
   const onSel = () => { const s = getSelection(); if (s.rangeCount && body.contains(s.anchorNode)) saved = s.getRangeAt(0).cloneRange(); updBubble(); };
   document.addEventListener("selectionchange", onSel); LEAVE.push(() => document.removeEventListener("selectionchange", onSel));
