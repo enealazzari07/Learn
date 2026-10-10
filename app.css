@@ -2136,3 +2136,15 @@ a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{w
 .ned-paper[data-grid=dots]{background-image:radial-gradient(#cfcfd8 1.2px,transparent 1.4px);background-size:26px 26px}
 .ned-paper[data-grid=grid]{background-image:linear-gradient(#e6e6ec 1px,transparent 1px),linear-gradient(90deg,#e6e6ec 1px,transparent 1px);background-size:28px 28px}
 .ned-paper[data-grid=lines]{background-image:repeating-linear-gradient(transparent 0 31px,#e6e6ec 31px 32px);background-position:0 8px}
+
+/* ======== v75: Leiste immer gleich: feste Höhe/Position, AI-Umschalter rechts ======== */
+.rib{height:64px;min-height:64px;box-sizing:border-box;align-items:center}
+.rib .rp{height:100%}
+@media (min-width:901px){
+  body .ned-bar:has(.rtabs){grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)!important;height:62px;box-sizing:border-box}
+  body .ned-bar:has(.rtabs) .nb-r{justify-self:end}
+  body .ned-bar:has(.rtabs) .rtabs{justify-self:center}
+}
+.ned-bar .aitog{width:auto;height:38px;border-radius:999px;padding:0 12px;gap:6px;display:inline-flex;align-items:center;font:700 13px/1 inherit;font-family:inherit;color:#0f0f12;background:#f1f1f5}
+.ned-bar .aitog svg{width:20px;height:20px}
+.ned-bar .aitog.on{background:#0f0f12;color:#fff}

@@ -353,3 +353,14 @@ Object.assign(P, {
   lasso: '<path d="M6 11.5C4.2 10.6 3.4 9 4 7.5 5 4.8 9.4 4 13.5 4.6c4.3.6 6.9 2.4 6.5 5-.4 2.6-3.7 4.4-8 4.5-1.3 0-2.5-.1-3.5-.4"/><path d="M8.5 14.3c-.6 1.6-.3 3.3.8 4.2 1 .8 2.4.6 3-.4"/>',
   laser: '<circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.5 1.5M16.5 16.5L18 18M18 6l-1.5 1.5M7.5 16.5L6 18"/>',
 });
+
+P.aipanel = '<rect x="3" y="4.5" width="18" height="15" rx="4.5"/><path d="M15.5 4.5v15"/><path d="M10.6 9.4L8 12l2.6 2.6"/>';
+/* Ansicht (Zoom, Vollbild) steckt in jedem Dokument unter den drei Punkten */
+const _menu = menu;
+menu = function (anchor, items) {
+  if (anchor && anchor.id === "mo-m") {
+    const z = k => { const b = document.getElementById(k); if (b) return b.click(); const t = document.querySelector(".main .ned, .main .editor"); if (!t) return; const v = Math.max(.6, Math.min(1.8, k === "z0" ? 1 : (parseFloat(t.style.zoom) || 1) + (k === "zp" ? .1 : -.1))); t.style.zoom = v; };
+    items = [...items, "-", { label: "Ansicht vergrößern", icon: "plus", fn: () => z(document.getElementById("f-zp") ? "f-zp" : "zp") }, { label: "Ansicht verkleinern", icon: "line", fn: () => z(document.getElementById("f-zm") ? "f-zm" : "zm") }, { label: "Zoom zurücksetzen", icon: "rot", fn: () => z(document.getElementById("f-zv") ? "f-zv" : "z0") }, { label: document.fullscreenElement ? "Vollbild beenden" : "Vollbild", icon: "eye", fn: () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.() }];
+  }
+  return _menu(anchor, items);
+};
