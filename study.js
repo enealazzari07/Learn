@@ -95,6 +95,7 @@ const TEMPLATES = [
 ];
 const PAPERS = [["white", "Leer"], ["lines", "Liniert"], ["grid", "Kariert"], ["dots", "Punkte"]];
 function docDialog(kind = "note") {
+  if (kind === "draw") return boardDialog();
   const isNote = kind === "note"; let folder = docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank";
   const { el, close } = modal(`<div class="nd"><p class="eyebrow">${isNote ? "Neue Notiz" : "Neue Zeichnung"}</p>
   <input class="nd-name" id="nd-n" placeholder="${isNote ? "Wie soll die Notiz heißen?" : "Wie soll die Zeichnung heißen?"}" autocomplete="off" maxlength="80">
@@ -496,7 +497,7 @@ async function noteEditor(m, d) {
     <div class="rp on" data-pn="start"><span class="rgp" id="fx-text"></span><i class="fsep"></i><span class="rgp">${BTN("bold", "bold", "Fett (Strg+B)")}${BTN("italic", "italic", "Kursiv (Strg+I)")}${BTN("underline", "underline", "Unterstrichen")}${BTN("strike", "strike", "Durchgestrichen")}</span><i class="fsep"></i><span class="rgp">${BTN("hilite", "hl", "Markieren")}<button class="tbtn mini" id="hl-m" title="Markierfarbe" aria-label="Markierfarbe">${ic("chev")}</button><button class="tbtn" id="cl-b" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #5b3df5;line-height:1">A</b></button><input type="color" id="cin" value="#5b3df5" hidden></span><i class="fsep"></i><span class="rgp">${BTN("ul", "list", "Aufzählung")}${BTN("ol", "listnum", "Nummerierung")}${BTN("todo", "todo", "Checkliste")}</span><i class="fsep"></i><span class="rgp" id="fx-par"></span><i class="fsep"></i><span class="rgp">${BTN("undo", "undo", "Rückgängig")}${BTN("redo", "redo", "Wiederholen")}</span></div>
     <div class="rp" data-pn="ins">${[["table", "table", "Tabelle"], ["image", "image", "Bild"], ["link", "link", "Link"], ["plink", "file", "Seite verlinken"], ["formula", "text", "Formel"], ["hr", "hrule", "Trennlinie"], ["textbox", "text", "Textfeld"], ["callout", "note", "Hinweis"], ["toggle", "chev", "Aufklappliste"], ["quote", "quote", "Zitat"], ["code", "code", "Code"], ["date", "cal", "Datum"], ["toc", "list", "Inhalt"]].map(([c, i, t]) => `<button type="button" class="tbtn lbl" data-c="${c}" title="${t}">${ic(i)}<span>${t}</span></button>`).join("")}</div>
     <div class="rp" data-pn="draw" id="rib-draw"></div>
-    <div class="rp" data-pn="design"><span class="rgp" id="fx-design"></span><i class="fsep"></i><button class="tt" id="t-paper" title="Papier">${ic("note")}<span>Papier</span>${ic("chev")}</button></div>
+    <div class="rp" data-pn="design"><span class="rgp" id="fx-design"></span><i class="fsep"></i><button class="tt" id="t-paper" title="Papier">${ic("note")}<span>Papier</span>${ic("chev")}</button><i class="fsep"></i><button class="tt" id="t-pages" title="Seiten im A4-Format anzeigen">${ic("file")}<span>Seiten (A4)</span></button><span class="pg-s" id="pg-s"></span></div>
     <div class="rp" data-pn="ai">${[["ai-edit", "Text schreiben / ändern"], ["ai-summary", "Zusammenfassen"], ["ai-cards", "Karteikarten"], ["ai-quiz", "Quiz"], ["ai-goals", "Lernziele"]].map(([c, t]) => `<button type="button" class="tbtn lbl" data-c="${c}" title="${t}">${ic(c === "ai-edit" ? "spark" : c === "ai-summary" ? "list" : c === "ai-cards" ? "cards" : c === "ai-quiz" ? "help" : "award")}<span>${t}</span></button>`).join("")}<i class="fsep"></i><button type="button" class="tbtn lbl" id="r-ac" title="Automatische Korrektur beim Schreiben">${ic("check")}<span>Auto-Korrektur</span><em id="r-acv"></em></button>${serverInfo && serverInfo.gemini ? `<button type="button" class="tbtn lbl" id="r-src" title="Quellen mit Google-Suche">${ic("globe")}<span>Quellen</span><em id="r-srcv"></em></button>` : ""}</div>
     <span id="fx-view" hidden></span>
   </div>
@@ -506,7 +507,7 @@ async function noteEditor(m, d) {
   document.addEventListener("selectionchange", onSel); LEAVE.push(() => document.removeEventListener("selectionchange", onSel));
   const restore = () => { const s = getSelection(); if (saved && body.contains(saved.startContainer)) { s.removeAllRanges(); s.addRange(saved); } else { const r = document.createRange(); r.selectNodeContents(body); r.collapse(false); s.removeAllRanges(); s.addRange(r); } body.focus(); };
   const count = () => { const t = body.innerText.trim(), w = t ? t.split(/\s+/).length : 0; stat = `${w} Wörter · ${Math.max(1, Math.round(w / 200))} Min. Lesezeit`; const ds = $("#dstat", m); if (ds) ds.textContent = `${w} Wörter · ${t.length} Zeichen · ${Math.max(1, Math.round(w / 200))} Min.`; };
-  const doSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); d.text = Suggest.plainText(body).slice(0, 60000); await KV.set("html:" + d.id, body.innerHTML); save(); svEl.textContent = "Gespeichert"; }, 500);
+  const doSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); d.text = Suggest.plainText(body).slice(0, 60000); await KV.set("html:" + d.id, lumiHtml(body)); save(); svEl.textContent = "Gespeichert"; }, 500);
   const dirty = () => { svEl.textContent = "Speichert…"; count(); doSave(); };
   const SG = Suggest.attach(body, dirty); window.__lumiEd = SG; SG.refresh(); LEAVE.push(() => { SG.destroy(); if (window.__lumiEd === SG) window.__lumiEd = null; });
   /* Automatische Korrektur beim Schreiben (Groq/Gemini): nach kurzer Pause wird der aktuelle Absatz geprüft; Korrekturen erscheinen als Vorschläge oder werden direkt übernommen */
@@ -547,7 +548,7 @@ async function noteEditor(m, d) {
   }
   if (acMode() !== "off" && hasKey()) body.spellcheck = false;
   body.addEventListener("input", scheduleAC); LEAVE.push(() => clearTimeout(AC.timer));
-  body.addEventListener("input", () => { dirty(); slashCheck(); });
+  body.addEventListener("input", () => { dirty(); slashCheck(); PGV.refresh(); });
   body.addEventListener("click", e => { if (e.target.matches("input[type=checkbox]")) { e.target.checked ? e.target.setAttribute("checked", "") : e.target.removeAttribute("checked"); dirty(); } });
   body.addEventListener("paste", e => { const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/")); if (f) { e.preventDefault(); insertImage(f); } });
   async function insertImage(f) { const bmp = await createImageBitmap(f), s = Math.min(1, 1100 / bmp.width), c = document.createElement("canvas"); c.width = bmp.width * s; c.height = bmp.height * s; c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); restore(); document.execCommand("insertImage", false, c.toDataURL("image/jpeg", .8)); dirty(); }
@@ -575,6 +576,7 @@ async function noteEditor(m, d) {
     "ai-edit": () => openAiBar(), "ai-summary": () => run("summary"), "ai-cards": () => run("cards"), "ai-quiz": () => run("quiz"), "ai-goals": () => run("goals"),
   };
   const FM = Format.attach({ m, body, exec, restore, dirty, d, save }); LEAVE.push(() => FM.destroy());
+  const PGV = PageView.attach({ m, body, paper: $("#paperc", m), d, dirty }); LEAVE.push(() => PGV.destroy()); $("#t-pages", m).onclick = () => PGV.set(!PGV.on);
   const noFocus = e => e.preventDefault();
   $$(".tbtn[data-c], .tt", m).forEach(b => b.onmousedown = noFocus);
   $$(".tbtn[data-c]", m).forEach(b => b.onclick = () => CMD[b.dataset.c]?.());

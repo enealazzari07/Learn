@@ -12,7 +12,7 @@ V.draw = async (m, id) => {
   if (id === "new") { const nid = uid(); D.docs.unshift({ id: nid, type: "draw", title: "Neue Zeichnung", subjectId: subjectOfFolder(docFolder), folderId: docFolder, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + nid, { strokes: [], bg: "grid", H: 1000 }); save(); return go("draw/" + nid); }
   const d = D.docs.find(x => x.id === id); if (!d || d.type !== "draw") return go("board");
   const saved = (await KV.get("draw:" + id)) || { strokes: [], bg: "grid", H: 1000 };
-  const W = 1600; const st = { strokes: saved.strokes || [], hist: [], redo: [], tool: "pen", color: "#111111", size: 4, bg: saved.bg || "grid", H: saved.H || 1000, cur: null, penSeen: false, pending: null };
+  const W = saved.W || 1600, FMT = saved.fmt || "endless"; const st = { strokes: saved.strokes || [], hist: [], redo: [], tool: "pen", color: saved.bg === "dark" ? "#ffffff" : "#111111", size: 4, bg: saved.bg || "grid", H: saved.H || 1000, cur: null, penSeen: false, pending: null };
   const COL = ["#111111", "#e5484d", "#f59e0b", "#16a34a", "#2563eb", "#7c3aed", "#ec4899", "#ffffff"];
   const TOOLS = [["hand", "Verschieben", "up"], ["pen", "Stift", "pen"], ["hl", "Marker", "hl"], ["eraser", "Radierer", "eraser"], ["line", "Linie", "line"], ["arrow", "Pfeil", "arrow"], ["rect", "Rechteck", "square"], ["ellipse", "Ellipse", "circle"], ["text", "Text", "text"], ["img", "Bild", "image"]];
   m.classList.add("doc-full");
@@ -20,16 +20,17 @@ V.draw = async (m, id) => {
   m.innerHTML = `<div class="editor board dfull"><div class="dhead"><div class="ned-bar"><div class="nb-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="nb-name"><input class="nb-in" id="et" value="${esc(d.title)}" aria-label="Titel"><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div></div>
   <div class="ned-tools btools">${TOOLS.map(([k, t, i]) => `<button class="tbtn ${k === st.tool ? "on" : ""}" data-t="${k}" title="${t}">${ic(i)}</button>`).join("")}<i class="sep"></i><button class="tbtn" id="un" title="Rückgängig (Strg+Z)">${ic("undo")}</button><button class="tbtn" id="re" title="Wiederholen">${ic("redo")}</button><button class="tbtn" id="cl" title="Alles löschen">${ic("trash")}</button></div>
   <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><button class="btn ghost small" id="exp">${ic("download")}<span class="hide-sm">PNG</span></button><button class="btn accent small" id="done">Fertig</button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button><button class="icon-btn aitog" id="ai-m" aria-label="AI ein- und ausklappen" title="AI ein- und ausklappen">${ic("aipanel")}<span class="hide-sm">AI</span></button></div></div>
-  <div class="opts flat"><div class="cols">${COL.map(c => `<button class="cdot ${c === st.color ? "on" : ""}" data-c="${c}" style="background:${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="cc" value="#111111"></label></div><label class="sz">${ic("pen")}<input type="range" id="sz" min="1" max="24" value="4"></label><select id="bg" class="field slim"><option value="blank">Weiß</option><option value="lines">Liniert</option><option value="grid">Kariert</option><option value="dots">Punkte</option></select><button class="btn ghost small" id="more">${ic("plus")}Platz</button></div></div>
+  <div class="opts flat"><div class="cols">${COL.map(c => `<button class="cdot ${c === st.color ? "on" : ""}" data-c="${c}" style="background:${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="cc" value="#111111"></label></div><label class="sz">${ic("pen")}<input type="range" id="sz" min="1" max="24" value="4"></label><select id="bg" class="field slim"><option value="blank">Weiß</option><option value="lines">Liniert</option><option value="grid">Kariert</option><option value="dots">Punkte</option><option value="dark">Tafel</option></select>${FMT === "endless" ? `<button class="btn ghost small" id="more">${ic("plus")}Platz</button>` : `<span class="fmt-chip">${(BFORMATS.find(f => f[0] === FMT) || [0, "Format"])[1]}</span>`}</div></div>
   <div class="dpanel"><div class="cvwrap" id="cvw"><canvas id="cv" width="${W}" height="${st.H}"></canvas><input class="texti" id="ti" hidden><input type="file" id="fi" accept="image/*" hidden></div></div></div>`;
   $$("[data-p]", m).forEach(x => x.onclick = () => go("docs/" + x.dataset.p));
   const cv = $("#cv", m), ctx = cv.getContext("2d"), imgs = new WeakMap(), titleEl = $("#et", m), savedEl = $("#sv", m);
   $("#bg", m).value = st.bg;
+  if (FMT !== "endless") { cv.style.cssText = `width:min(100%,calc((100dvh - 250px) * ${W / st.H}));height:auto;margin:0 auto;display:block;box-shadow:0 0 0 1px rgba(30,20,90,.06)`; $("#cvw", m).classList.add("fixed"); }
   const hexA = (c, a) => c;
 
   /* drawing primitives */
   function bgDraw() {
-    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, W, st.H); ctx.strokeStyle = "#e3e6ee"; ctx.fillStyle = "#cfd4df"; ctx.lineWidth = 1;
+    const dk = st.bg === "dark"; ctx.fillStyle = dk ? "#1d2523" : "#fff"; ctx.fillRect(0, 0, W, st.H); ctx.strokeStyle = dk ? "#2c3835" : "#e3e6ee"; ctx.fillStyle = dk ? "#3a4743" : "#cfd4df"; ctx.lineWidth = 1;
     if (st.bg === "grid") { ctx.beginPath(); for (let x = 40; x < W; x += 40) { ctx.moveTo(x + .5, 0); ctx.lineTo(x + .5, st.H); } for (let y = 40; y < st.H; y += 40) { ctx.moveTo(0, y + .5); ctx.lineTo(W, y + .5); } ctx.stroke(); }
     else if (st.bg === "lines") { ctx.beginPath(); for (let y = 56; y < st.H; y += 48) { ctx.moveTo(0, y + .5); ctx.lineTo(W, y + .5); } ctx.stroke(); }
     else if (st.bg === "dots") { for (let x = 40; x < W; x += 40) for (let y = 40; y < st.H; y += 40) ctx.fillRect(x - 1, y - 1, 2.4, 2.4); }
@@ -69,7 +70,7 @@ V.draw = async (m, id) => {
     if (!D.docs.includes(d)) return;
     const t = document.createElement("canvas"); t.width = 480; t.height = Math.round(480 * st.H / W); t.getContext("2d").drawImage(cv, 0, 0, t.width, t.height);
     d.thumb = t.toDataURL("image/jpeg", .6); d.title = titleEl.value.trim() || "Zeichnung"; d.updated = Date.now();
-    await KV.set("draw:" + id, { strokes: st.strokes, bg: st.bg, H: st.H }); save(); savedEl.textContent = "Gespeichert";
+    await KV.set("draw:" + id, { strokes: st.strokes, bg: st.bg, H: st.H, W, fmt: FMT }); save(); savedEl.textContent = "Gespeichert";
   }, 700);
   const touch = () => { savedEl.textContent = "Speichert…"; persist(); };
   const snap = () => { st.hist.push([...st.strokes]); if (st.hist.length > 80) st.hist.shift(); st.redo = []; };
@@ -119,7 +120,7 @@ V.draw = async (m, id) => {
   $("#cc", m).oninput = e => { st.color = e.target.value; $$("[data-c]", m).forEach(x => x.classList.remove("on")); if (st.tool === "eraser" || st.tool === "hand") setTool("pen"); };
   $("#sz", m).oninput = e => st.size = +e.target.value;
   $("#bg", m).onchange = e => { st.bg = e.target.value; render(); touch(); };
-  $("#more", m).onclick = () => { st.H += 600; cv.height = st.H; render(); touch(); toast("Zeichenfläche erweitert"); };
+  if ($("#more", m)) $("#more", m).onclick = () => { st.H += 600; cv.height = st.H; render(); touch(); toast("Zeichenfläche erweitert"); };
   $("#un", m).onclick = undo; $("#re", m).onclick = redo;
   $("#cl", m).onclick = async () => { if (st.strokes.length && await confirmBox("Zeichenfläche komplett leeren?", "Leeren")) { snap(); st.strokes = []; render(); touch(); } };
   $("#fi", m).onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) { setTool("pen"); return; } const bmp = await createImageBitmap(f), s = Math.min(1, 700 / bmp.width), c = document.createElement("canvas"); c.width = bmp.width * s; c.height = bmp.height * s; c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); st.pending = { src: c.toDataURL("image/jpeg", .85), w: c.width, h: c.height }; st.tool = "place"; $$("[data-t]", m).forEach(b => b.classList.remove("on")); cv.style.touchAction = "pinch-zoom"; toast("Tippe dorthin, wo das Bild hin soll"); };
@@ -138,3 +139,43 @@ V.draw = async (m, id) => {
   document.addEventListener("keydown", key); LEAVE.push(() => { document.removeEventListener("keydown", key); persist(); });
   setTool("pen"); render();
 };
+
+/* ---------- Whiteboard erstellen: Format, Hintergrund, Vorlage ---------- */
+const BFORMATS = [["endless", "Endlos", "Wächst nach unten", 1600, 1000], ["a4p", "A4 hoch", "Wie ein Blatt Papier", 1240, 1754], ["a4l", "A4 quer", "Querformat", 1754, 1240], ["wide", "16:9", "Präsentation", 1600, 900], ["sq", "Quadrat", "Skizze, Mindmap", 1200, 1200]];
+const BBGS = [["blank", "Weiß"], ["grid", "Kariert"], ["lines", "Liniert"], ["dots", "Punkte"], ["dark", "Tafel"]];
+const BTPLS = [["blank", "Leer", "Freie Fläche"], ["axes", "Achsenkreuz", "x- und y-Achse"], ["mind", "Mindmap", "Thema in der Mitte"], ["proco", "Pro & Contra", "Zwei Spalten"], ["time", "Zeitstrahl", "Linie mit Punkten"]];
+function boardStrokes(k, W, H, dark) {
+  const col = dark ? "#ffffff" : "#111111", acc = dark ? "#8fb8ff" : "#2563eb", S = [];
+  const line = (a, b, c = col, size = 4, type = "line") => S.push({ type, color: c, size, pts: [a, b] });
+  const text = (t, x, y, size = 4, c = col) => S.push({ type: "text", color: c, size, text: t, pts: [[x, y]] });
+  const ell = (a, b, c = col, size = 4) => S.push({ type: "ellipse", color: c, size, pts: [a, b] });
+  const rect = (a, b, c = col, size = 4) => S.push({ type: "rect", color: c, size, pts: [a, b] });
+  if (k === "axes") { const cx = Math.round(W / 2), cy = Math.round(H / 2); line([80, cy], [W - 80, cy], col, 4, "arrow"); line([cx, H - 80], [cx, 80], col, 4, "arrow"); text("x", W - 76, cy + 14, 3); text("y", cx + 14, 70, 3); }
+  else if (k === "mind") { const cx = W / 2, cy = H / 2; ell([cx - 190, cy - 80], [cx + 190, cy + 80], acc, 5); text("Thema", cx - 62, cy - 22, 5, acc); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy], i) => { const ex = cx + sx * 520, ey = cy + sy * 280; line([cx + sx * 150, cy + sy * 62], [ex - sx * 150, ey - sy * 20], col, 3); rect([ex - 150, ey - 40], [ex + 150, ey + 40], col, 3); text("Idee " + (i + 1), ex - 50, ey - 18, 3); }); }
+  else if (k === "proco") { const m = W / 2; line([m, 120], [m, H - 80], col, 4); line([80, 150], [W - 80, 150], col, 4); text("Pro", m / 2 - 36, 70, 6, dark ? "#7be0a4" : "#16a34a"); text("Contra", m + m / 2 - 70, 70, 6, dark ? "#ff9a9a" : "#e5484d"); }
+  else if (k === "time") { const y = Math.round(H / 2); line([80, y], [W - 80, y], col, 5, "arrow"); for (let i = 0; i < 5; i++) { const x = 220 + i * ((W - 440) / 4); ell([x - 14, y - 14], [x + 14, y + 14], acc, 5); text("Datum", x - 52, y + 36, 3); } }
+  return S;
+}
+function boardDialog() {
+  let folder = docFolder, fmt = "endless", bg = "grid", tpl = "blank";
+  const { el, close } = modal(`<div class="nd bd"><p class="eyebrow">Neues Whiteboard</p>
+  <input class="nd-name" id="bd-n" placeholder="Wie soll das Whiteboard heißen?" autocomplete="off" maxlength="80">
+  <div class="nd-row"><div><label class="lbl">Ordner</label><button class="nd-folder" id="bd-f" type="button"></button></div></div>
+  <div class="bd-sec"><label class="lbl">1 · Format</label><div class="bd-fm" id="bd-fm">${BFORMATS.map(([k, n, d, w, h]) => `<button type="button" class="bf ${k === fmt ? "on" : ""}" data-k="${k}"><span class="bf-s" style="aspect-ratio:${w}/${k === "endless" ? 1.5 * 1000 : h};${k === "endless" ? "border-bottom-style:dashed" : ""}"></span><b>${n}</b><small>${d}</small></button>`).join("")}</div></div>
+  <div class="bd-sec"><label class="lbl">2 · Hintergrund</label><div class="bd-bg" id="bd-bg">${BBGS.map(([k, n]) => `<button type="button" class="bb ${k === bg ? "on" : ""}" data-k="${k}"><i class="pv ${k}"></i><b>${n}</b></button>`).join("")}</div></div>
+  <div class="bd-sec"><label class="lbl">3 · Vorlage</label><div class="bd-tp" id="bd-tp">${BTPLS.map(([k, n, d]) => `<button type="button" class="bt ${k === tpl ? "on" : ""}" data-k="${k}"><b>${n}</b><small>${d}</small></button>`).join("")}</div></div>
+  <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="bd-go">Whiteboard erstellen</button></div></div>`, "wide nd-modal");
+  const nameIn = $("#bd-n", el), fb = $("#bd-f", el);
+  const drawF = () => { fb.innerHTML = `${ic("folder")}<span>${["Home", ...folderPath(folder).map(f => f.name)].map(esc).join(" / ")}</span><em>Ändern</em>`; };
+  drawF(); setTimeout(() => nameIn.focus(), 40);
+  fb.onclick = async () => { const t = await pickFolder("Ordner wählen"); if (t !== null) { folder = t; drawF(); } };
+  const pick = (id, cls, set) => $$(`#${id} .${cls}`, el).forEach(b => b.onclick = () => { set(b.dataset.k); $$(`#${id} .${cls}`, el).forEach(x => x.classList.toggle("on", x === b)); });
+  pick("bd-fm", "bf", k => fmt = k); pick("bd-bg", "bb", k => bg = k); pick("bd-tp", "bt", k => tpl = k);
+  $("[data-c]", el).onclick = close;
+  const go2 = async () => {
+    const f = BFORMATS.find(x => x[0] === fmt), title = nameIn.value.trim() || (tpl !== "blank" ? BTPLS.find(x => x[0] === tpl)[1] : "Neues Whiteboard"); close();
+    const id = uid(); D.docs.unshift({ id, type: "draw", title, subjectId: subjectOfFolder(folder), folderId: folder, updated: Date.now(), created: Date.now(), thumb: "" });
+    await KV.set("draw:" + id, { strokes: boardStrokes(tpl, f[3], f[4], bg === "dark"), bg, H: f[4], W: f[3], fmt }); save(); go("draw/" + id);
+  };
+  $("#bd-go", el).onclick = go2; nameIn.onkeydown = e => { if (e.key === "Enter") go2(); };
+}

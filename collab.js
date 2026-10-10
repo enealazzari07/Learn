@@ -23,7 +23,7 @@ V.join = async (m, id) => {
 function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   const me = { key: uid(), name: coName() }; me.color = coColor(CLOUD.user?.id || me.key);
   const av = $("#co-av", m), btn = $("#co-m", m); let ch = null, conn = "", peers = {}, lastType = 0, pend = null, tPush = 0, tSave = 0, dead = false;
-  const state = () => ({ html: body.innerHTML, tb: TBX.get(), ink: ink.st.strokes });
+  const state = () => ({ html: lumiHtml(body), tb: TBX.get(), ink: ink.st.strokes });
   const paint = () => {
     const list = Object.values(peers).map(a => a[0]).filter(Boolean);
     av.innerHTML = list.length ? list.slice(0, 4).map(p => `<i style="background:${p.color}" title="${esc(p.name)}">${esc(coIni(p.name))}</i>`).join("") + (list.length > 4 ? `<i class="more">+${list.length - 4}</i>` : "") : "";
@@ -52,7 +52,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   }
   function apply(p) {
     if (dead || !p) return;
-    if (p.html != null && p.html !== body.innerHTML) { mergeHtml(p.html); dirty(); }
+    if (p.html != null && p.html !== lumiHtml(body)) { mergeHtml(p.html); dirty(); }
     if (p.tb && JSON.stringify(p.tb) !== JSON.stringify(TBX.get()) && !document.activeElement?.closest?.(".tbx")) { TBX.load(p.tb); KV.set("tb:" + d.id, p.tb); }
     if (p.ink && JSON.stringify(p.ink) !== JSON.stringify(ink.st.strokes)) { ink.load(p.ink); KV.set("ink:" + d.id, p.ink); }
     if (p.rev) d.shareRev = p.rev; svEl.textContent = "Gespeichert";
