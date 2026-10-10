@@ -26,19 +26,14 @@ const Format = (() => {
   const pt = px => Math.round(parseFloat(px) * 0.75 * 2) / 2;
 
   function attach({ m, body, exec, restore, dirty, d, save }) {
-    const bar = document.createElement("div"); bar.className = "fmtbar"; bar.id = "fmtbar";
+    const rib = m.querySelector("#rib"), host = id => m.querySelector("#" + id);
     const B = (id, ico, t, cls = "") => `<button type="button" class="fb ${cls}" id="${id}" title="${t}" aria-label="${t}">${ico}</button>`;
-    bar.innerHTML = `<button type="button" class="fb fd wide" id="f-style" title="Absatzformat"><span>Normal</span>${IC.chev}</button><button type="button" class="fb fd wide" id="f-font" title="Schriftart"><span>Standard</span>${IC.chev}</button>
-      <span class="fsz">${B("f-m", IC.minus, "Schrift kleiner")}<button type="button" class="fb fd" id="f-s" title="Schriftgrösse"><span>12</span></button>${B("f-p", IC.plus, "Schrift grösser")}</span><i class="fsep"></i>
-      ${B("f-sub", IC.sub, "Tiefgestellt")}${B("f-sup", IC.sup, "Hochgestellt")}<i class="fsep"></i>
-      ${B("f-al", IC.left, "Linksbündig")}${B("f-ac", IC.center, "Zentriert")}${B("f-ar", IC.right, "Rechtsbündig")}${B("f-aj", IC.justify, "Blocksatz")}<i class="fsep"></i>
-      ${B("f-lh", IC.lh, "Zeilenabstand")}${B("f-out", IC.outdent, "Einzug verkleinern")}${B("f-in", IC.indent, "Einzug vergrössern")}${B("f-clr", IC.clear, "Formatierung löschen")}
-      <span class="fsp"></span>
-      <button type="button" class="fb fd wide" id="f-des" title="Dokumentdesign">${IC.design}<span>Design</span>${IC.chev}</button><button type="button" class="fb fd" id="f-w" title="Seitenbreite">${IC.width}<span>Normal</span></button>
-      <span class="fsz">${B("f-zm", IC.minus, "Verkleinern")}<button type="button" class="fb fd" id="f-zv" title="Zoom zurücksetzen"><span>100%</span></button>${B("f-zp", IC.plus, "Vergrössern")}</span>`;
-    const bBar = m.querySelector(".ned-bar"); bBar.after(bar);
-    const $b = id => bar.querySelector("#" + id), noFocus = e => e.preventDefault();
-    bar.addEventListener("mousedown", noFocus);
+    host("fx-text").innerHTML = `<button type="button" class="fb fd wide" id="f-style" title="Absatzformat"><span>Normal</span>${IC.chev}</button><button type="button" class="fb fd wide" id="f-font" title="Schriftart"><span>Standard</span>${IC.chev}</button><span class="fsz">${B("f-m", IC.minus, "Schrift kleiner")}<button type="button" class="fb fd" id="f-s" title="Schriftgrösse"><span>12</span></button>${B("f-p", IC.plus, "Schrift grösser")}</span>`;
+    host("fx-par").innerHTML = `${B("f-sub", IC.sub, "Tiefgestellt")}${B("f-sup", IC.sup, "Hochgestellt")}<i class="fsep"></i>${B("f-al", IC.left, "Linksbündig")}${B("f-ac", IC.center, "Zentriert")}${B("f-ar", IC.right, "Rechtsbündig")}${B("f-aj", IC.justify, "Blocksatz")}<i class="fsep"></i>${B("f-lh", IC.lh, "Zeilenabstand")}${B("f-out", IC.outdent, "Einzug verkleinern")}${B("f-in", IC.indent, "Einzug vergrössern")}${B("f-clr", IC.clear, "Formatierung löschen")}`;
+    host("fx-design").innerHTML = `<button type="button" class="fb fd wide" id="f-des" title="Dokumentdesign">${IC.design}<span>Design</span>${IC.chev}</button><button type="button" class="fb fd wide" id="f-w" title="Seitenbreite">${IC.width}<span>Normal</span>${IC.chev}</button>`;
+    host("fx-view").innerHTML = `<span class="fsz">${B("f-zm", IC.minus, "Verkleinern")}<button type="button" class="fb fd" id="f-zv" title="Zoom zurücksetzen"><span>100%</span></button>${B("f-zp", IC.plus, "Vergrössern")}</span>`;
+    const $b = id => m.querySelector("#" + id), noFocus = e => { if (!e.target.closest("input,select,textarea")) e.preventDefault(); };
+    rib.addEventListener("mousedown", noFocus);
 
     /* ---- Popover (stiehlt keinen Fokus, Auswahl bleibt erhalten) ---- */
     let pop = null;
@@ -105,7 +100,7 @@ const Format = (() => {
     }
     const onSel = () => { if (body.contains(getSelection().anchorNode)) upd(); };
     document.addEventListener("selectionchange", onSel);
-    return { destroy() { document.removeEventListener("selectionchange", onSel); closePop(); bar.remove(); }, update: upd };
+    return { destroy() { document.removeEventListener("selectionchange", onSel); closePop(); }, update: upd };
   }
   return { attach };
 })();
