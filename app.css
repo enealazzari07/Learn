@@ -2164,3 +2164,11 @@ a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{w
 .ab-chips button:hover{background:#0f0f12;color:#fff}
 .aibar .ab-in .send{background:#0f0f12!important;color:#fff}
 #att.on{background:none!important;color:#0f0f12!important}
+
+/* v77: kompakte Aktions-Chips mit Icons */
+.aibar .ab-chips{gap:5px;padding:6px 2px 2px}
+.aibar .ab-chips button{display:inline-flex;align-items:center;gap:5px;padding:5px 10px 5px 8px;font-size:12px;font-weight:600;background:#f3f3f7;color:#2a2a33}
+.aibar .ab-chips button[hidden]{display:none}
+.aibar .ab-chips button svg{width:13px;height:13px;flex:none}
+.cmp-b.src.on{color:#0f0f12;background:#ececf1!important}
+.cmp-b.src{color:#9a9aa6}
