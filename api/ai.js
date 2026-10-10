@@ -6,17 +6,19 @@
 /* Model chain: GEMINI_MODEL first, then Google's self-updating aliases – used when a model was retired (404). */
 const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];
+/* Vom Nutzer wählbare Modelle (alles Google-Aliasse, die im Gratis-Tarif der Gemini-API nutzbar sind – Pro mit sehr kleinem Limit) */
+const ALLOWED = ["gemini-flash-lite-latest", "gemini-flash-latest", "gemini-pro-latest"];
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
-  if (req.method === "GET") return res.status(200).json({ ok: true, provider: "gemini", model: MODEL(), configured: !!process.env.GEMINI_API_KEY });
+  if (req.method === "GET") return res.status(200).json({ ok: true, provider: "gemini", model: MODEL(), models: ALLOWED, configured: !!process.env.GEMINI_API_KEY });
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const key = process.env.GEMINI_API_KEY;
   if (!key) return res.status(503).json({ error: "GEMINI_API_KEY ist in Vercel nicht gesetzt." });
   if (!sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
-  const { system = "", messages = [], max = 1024, image = null } = body || {};
+  const { system = "", messages = [], max = 1024, image = null, model: wanted = "" } = body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "Keine Nachricht" });
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
   const contents = messages.slice(-24).map((m, i, arr) => {
@@ -29,15 +31,16 @@ module.exports = async function handler(req, res) {
   try {
     const payload = JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, +max || 1024)), temperature: 0.6 } });
     let r, j;
-    for (const model of CHAIN()) {
+    const chain = [...new Set([ALLOWED.includes(wanted) ? wanted : null, ...CHAIN()].filter(Boolean))]; let used = chain[0];
+    for (const model of chain) { used = model;
       r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: "POST", signal: ctl.signal, headers: { "content-type": "application/json", "x-goog-api-key": key }, body: payload });
       j = await r.json().catch(() => ({}));
-      if (r.status !== 404) break;
+      if (r.status !== 404 && r.status !== 429) break;
     }
     if (!r.ok) return res.status(r.status === 429 ? 429 : 502).json({ error: j.error?.message || `Gemini ${r.status}` });
     const text = (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("");
     if (!text) return res.status(422).json({ error: j.promptFeedback?.blockReason ? "Die Anfrage wurde von der KI blockiert." : "Leere Antwort der KI." });
-    return res.status(200).json({ text });
+    return res.status(200).json({ text, model: used });
   } catch (e) { return res.status(e.name === "AbortError" ? 504 : 502).json({ error: e.name === "AbortError" ? "Zeitüberschreitung bei der KI." : "KI nicht erreichbar." }); }
   finally { clearTimeout(timer); }
 };

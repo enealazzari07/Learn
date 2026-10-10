@@ -6,6 +6,7 @@ const AGENT_RULES = `Du bist auch ein Assistent, der die App bedienen kann. Wenn
 Verfügbare Aktionen (Felder in Klammern sind optional):
 - create_note {title, content, (folder), (subject)} – neue Notiz; content ist Text, "- " für Listen, Leerzeile für Absätze; folder z. B. "Mathe" oder "Mathe/Analysis"
 - append_to_note {doc, content} – Text an eine Notiz anhängen
+- suggest_edits {edits:[{find, replace} oder {after, insert}]} – Änderungen am GERADE GEÖFFNETEN Notiztext als Vorschläge direkt im Dokument markieren (alt durchgestrichen, neu markiert, Nutzer übernimmt oder verwirft). find = EXAKTER kurzer Originaltext aus dem Dokument (ein Satz oder Absatzteil), replace = neuer Text ("" zum Löschen); after = Textstelle, hinter die insert eingefügt wird. Nutze das, wenn der Nutzer den Text verbessern, kürzen, korrigieren, übersetzen oder ergänzen will (nicht append_to_note). Nur möglich, wenn unten „Text des geöffneten Dokuments“ steht.
 - rename_doc {doc, title} – Dokument umbenennen
 - move_doc {doc, folder} – Dokument in Ordner verschieben ("" = Home)
 - create_folder {name, (parent)} – neuen Ordner erstellen
@@ -22,7 +23,8 @@ function agentContext() {
   const path = f => folderPath(f).map(x => x.name).join("/");
   const L = (t, a) => a.length ? `${t}:\n${a.join("\n")}\n` : "";
   const cur = (location.hash.match(/#\/app\/doc\/([^/]+)/) || [])[1], cd = cur && D.docs.find(x => x.id === cur);
-  return (cd ? `Aktuell geöffnet: [${cd.id}] ${cd.title}\n` : "") + `Heute: ${iso()} (${new Date().toLocaleDateString("de-DE", { weekday: "long" })})\n` +
+  const edTxt = cd && window.__lumiEd ? `Text des geöffneten Dokuments (für suggest_edits):\n"""\n${window.__lumiEd.text().slice(0, 7000)}\n"""\n` : "";
+  return (cd ? `Aktuell geöffnet: [${cd.id}] ${cd.title}\n` : "") + edTxt + `Heute: ${iso()} (${new Date().toLocaleDateString("de-DE", { weekday: "long" })})\n` +
     L("Fächer", D.subjects.map(s => `- ${s.name}`)) +
     L("Ordner", D.folders.slice(0, 60).map(f => `- ${path(f.id)}`)) +
     L("Dokumente", [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 50).map(d => `- [${d.id}] ${d.title}${d.folderId ? " (" + path(d.folderId) + ")" : ""}`)) +
@@ -45,6 +47,7 @@ function ensureFolderPath(p) {
 
 const ACTIONS = {
   async create_note(a) { const fid = ensureFolderPath(a.folder), sid = findSubject(a.subject)?.id || subjectOfFolder(fid), html = textToHtml(String(a.content || "")), id = uid(); D.docs.unshift({ id, type: "note", title: String(a.title || "Neue Notiz").slice(0, 120), subjectId: sid || "", folderId: fid, paper: D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) }); await KV.set("html:" + id, html); window.__aiReveal = id; return { label: `Notiz „${D.docs[0].title}“ erstellt`, go: "doc/" + id, open: true }; },
+  async suggest_edits(a) { const ed = window.__lumiEd; if (!ed) throw "Öffne zuerst eine Notiz, damit ich Änderungen vorschlagen kann"; const r = ed.suggest(Array.isArray(a.edits) ? a.edits : []); if (!r.applied) throw "Die Textstelle wurde im Dokument nicht gefunden"; return { label: `${r.applied} ${r.applied === 1 ? "Änderung" : "Änderungen"} im Text vorgeschlagen${r.missed ? " (" + r.missed + " nicht gefunden)" : ""}` }; },
   async append_to_note(a) { const d = findDoc(a.doc); if (!d || d.type !== "note") throw "Notiz nicht gefunden"; const h = ((await KV.get("html:" + d.id)) || "") + textToHtml(String(a.content || "")); await KV.set("html:" + d.id, h); d.text = htmlToText(h); d.updated = Date.now(); return { label: `Text zu „${d.title}“ hinzugefügt`, go: "doc/" + d.id }; },
   async rename_doc(a) { const d = findDoc(a.doc); if (!d || !String(a.title || "").trim()) throw "Dokument nicht gefunden"; const old = d.title; d.title = String(a.title).trim().slice(0, 120); d.updated = Date.now(); return { label: `„${old}“ umbenannt in „${d.title}“`, go: "doc/" + d.id }; },
   async move_doc(a) { const d = findDoc(a.doc); if (!d) throw "Dokument nicht gefunden"; d.folderId = ensureFolderPath(a.folder); d.subjectId = subjectOfFolder(d.folderId) || d.subjectId; d.updated = Date.now(); return { label: `„${d.title}“ verschoben nach ${["Home", ...folderPath(d.folderId).map(f => f.name)].join(" / ")}`, go: "docs/" + d.folderId }; },

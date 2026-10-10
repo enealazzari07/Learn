@@ -478,8 +478,9 @@ async function noteEditor(m, d) {
   document.addEventListener("selectionchange", onSel); LEAVE.push(() => document.removeEventListener("selectionchange", onSel));
   const restore = () => { if (saved) { const s = getSelection(); s.removeAllRanges(); s.addRange(saved); } body.focus(); };
   const count = () => { const t = body.innerText.trim(), w = t ? t.split(/\s+/).length : 0; stat = `${w} Wörter · ${Math.max(1, Math.round(w / 200))} Min. Lesezeit`; const ds = $("#dstat", m); if (ds) ds.textContent = `${w} Wörter · ${t.length} Zeichen · ${Math.max(1, Math.round(w / 200))} Min.`; };
-  const doSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); d.text = body.innerText.slice(0, 60000); await KV.set("html:" + d.id, body.innerHTML); save(); svEl.textContent = "Gespeichert"; }, 500);
+  const doSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); d.text = Suggest.plainText(body).slice(0, 60000); await KV.set("html:" + d.id, body.innerHTML); save(); svEl.textContent = "Gespeichert"; }, 500);
   const dirty = () => { svEl.textContent = "Speichert…"; count(); doSave(); };
+  const SG = Suggest.attach(body, dirty); window.__lumiEd = SG; SG.refresh(); LEAVE.push(() => { SG.destroy(); if (window.__lumiEd === SG) window.__lumiEd = null; });
   body.addEventListener("input", () => { dirty(); slashCheck(); });
   body.addEventListener("click", e => { if (e.target.matches("input[type=checkbox]")) { e.target.checked ? e.target.setAttribute("checked", "") : e.target.removeAttribute("checked"); dirty(); } });
   body.addEventListener("paste", e => { const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/")); if (f) { e.preventDefault(); insertImage(f); } });
@@ -614,11 +615,7 @@ async function noteEditor(m, d) {
     if (res == null) res = localEdit(instr, text);
     if (res == null) { toast(hasKey() ? "Lumi AI hat nicht geantwortet." : "Für diese Lumi-AI-Änderung muss Lumi AI eingerichtet sein (Einstellungen → Lumi AI)."); aiState = "idle"; panel("idle"); return; }
     res = res.trim().replace(/^["„“]|["“”]$/g, ""); aiPrev = body.innerHTML;
-    const s = getSelection(); s.removeAllRanges(); s.addRange(aiR); body.focus();
-    const blk = blockOf(aiR.startContainer), simple = /^(H[1-3]|LI|TD|TH)$/.test(blk?.tagName || "");
-    if (res.includes("\n") && !simple) document.execCommand("insertHTML", false, textToHtml(res)); else document.execCommand("insertText", false, res.replace(/\s*\n\s*/g, " "));
-    dirty(); HLS?.clear(); aiState = "done"; panel("done");
-    const sr = getSelection(), nb = sr.rangeCount ? blockOf(sr.anchorNode) : null; if (nb) { const rc = nb.getBoundingClientRect(), bh = bar.offsetHeight; bar.style.top = (rc.bottom + 12 + bh > innerHeight ? Math.max(8, rc.top - bh - 12) : rc.bottom + 12) + "px"; }
+    SG.suggestRange(aiR.cloneRange(), res); HLS?.clear(); aiState = "idle"; closeAi();
   }
   $(".send", bar).onclick = () => sendAi(barIn.value); barIn.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); sendAi(barIn.value); } else if (e.key === "Escape") closeAi(); };
   $$(".ab-chips button", bar).forEach((b, i) => b.onclick = () => sendAi(QA[i][1]));

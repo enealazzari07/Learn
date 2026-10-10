@@ -1943,3 +1943,25 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .doc .th.file-th b{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700}.doc .th.file-th b svg{width:26px;height:26px;color:#fff}
 .docsed #nw{background:#0f0f12!important;color:#fff!important}.docsed #nw svg{filter:none}
 .doc .th.file-th b[style*="5b3df5"]{background:#0f0f12!important}
+
+/* ======== v68: Änderungsvorschläge im Text ======== */
+del.sg-del{color:#a8321f;background:rgba(217,58,58,.1);text-decoration:line-through;text-decoration-color:rgba(217,58,58,.65);text-decoration-thickness:1.5px;border-radius:5px;padding:0 3px;margin:0 1px;transition:opacity .22s,max-width .22s}
+ins.sg-ins{text-decoration:none;color:inherit;background:linear-gradient(transparent 62%,rgba(18,178,122,.28) 62%),rgba(18,178,122,.1);border-radius:5px;padding:0 3px;margin:0 1px;animation:sgIn .55s cubic-bezier(.2,.8,.2,1) both;transition:opacity .22s}
+@keyframes sgIn{from{opacity:0;transform:translateY(5px);filter:blur(4px);background-position:-100% 0}to{opacity:1;transform:none;filter:none}}
+.sg-ctl{display:inline-flex;gap:3px;vertical-align:middle;margin:0 2px 0 5px;user-select:none;animation:sgIn .5s .15s cubic-bezier(.2,.8,.2,1) both}
+.sg-ctl button{width:22px;height:22px;border-radius:50%;display:inline-grid;place-items:center;cursor:pointer;background:#fff;color:#0f0f12;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .15s,background .15s,color .15s;padding:0}
+.sg-ctl button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.sg-ctl .sg-ok{background:#0f0f12;color:#fff}.sg-ctl button:hover{transform:scale(1.15)}.sg-ctl .sg-no:hover{background:#ffeaea;color:#d93a3a}
+.sg-out{opacity:0!important}
+#sgbar{position:fixed;left:50%;bottom:26px;z-index:85;display:flex;align-items:center;gap:8px;background:#0f0f12;color:#fff;border-radius:999px;padding:7px 8px 7px 16px;box-shadow:0 14px 40px rgba(0,0,0,.28);transform:translate(-50%,24px);opacity:0;transition:transform .45s cubic-bezier(.3,.9,.3,1),opacity .3s;font-size:13.5px}
+#sgbar.on{transform:translate(-50%,0);opacity:1}
+#sgbar .sgb-l{display:flex;align-items:center;gap:8px;margin-right:6px;font-weight:700}#sgbar .sgb-l svg{width:20px;height:20px;filter:invert(1)}
+#sgbar button{border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;cursor:pointer}
+#sgbar .sgb-no{background:rgba(255,255,255,.12);color:#fff}#sgbar .sgb-no:hover{background:rgba(255,255,255,.2)}
+#sgbar .sgb-ok{background:#fff;color:#0f0f12}#sgbar .sgb-ok:hover{background:#eee}
+@media (prefers-reduced-motion:reduce){ins.sg-ins,.sg-ctl{animation:none}}
+/* Modellwahl im Chat */
+.mdl{display:inline-flex;align-items:center;gap:4px;height:34px;padding:0 10px 0 12px;border-radius:999px;background:#f3f3f7;font-size:12.5px;font-weight:700;color:#0f0f12;cursor:pointer;flex:none;white-space:nowrap;transition:background .15s}
+.mdl:hover{background:#e8e8ee}.mdl svg{width:13px;height:13px}
+.aip .t-in .mdl{background:#f3f3f7}
+@media (max-width:520px){.mdl span{display:none}}
