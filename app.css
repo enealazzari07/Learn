@@ -2552,3 +2552,10 @@ body.hed-open{overflow:hidden}
   .aipane.open .chatbox.flat{flex:1;min-height:0;display:flex!important;flex-direction:column}
   .aipane.open .msgs{flex:1;min-height:0;max-height:none!important;overflow:auto}
 }
+
+/* v99: Umschalter Dokument A4 / Whiteboard im Erstellen-Dialog */
+.nd-sw.seg{display:flex;width:100%;margin:0 0 16px;max-width:none}.nd-sw.seg button{flex:1;padding:11px 14px;font-weight:600}
+/* Papierauswahl im Dokument-Dialog: nicht von den Ordner-Blättern (.pp) überschreiben lassen */
+.papers .pp{position:static;bottom:auto;width:auto;height:auto;transform:none!important;box-shadow:none;padding:10px 8px 12px;border-radius:20px;background:var(--soft);display:flex;flex-direction:column;gap:8px;align-items:center;border:2px solid transparent}
+.papers .pp.on{background:#fff;border-color:#0f0f12}.papers .pp:hover{background:#ecebf5}
+.papers .pp b{font:600 13px/1.2 inherit;font-family:inherit;color:#0f0f12;margin:0;max-height:none;overflow:visible}

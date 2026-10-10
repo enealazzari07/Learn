@@ -72,7 +72,7 @@ function refreshNav() {
 }
 function newMenu(anchor) {
   menu(anchor, [
-    { label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Neue Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
+    { label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Neues Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Neues Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
     { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-",
     { label: "Karteikarten-Stapel", icon: "cards", fn: () => newDeck() }, { label: "Aufgabe / Prüfung", icon: "todo", fn: () => taskModal() },
     { label: isUni() ? "Neues Modul" : "Neues Fach", icon: "star", fn: newSubject },
@@ -94,17 +94,17 @@ const TEMPLATES = [
   ["protocol", "Protokoll", "<h1>Protokoll</h1><p>Datum · Teilnehmende</p><h2>Ziel</h2><p><br></p><h2>Durchführung</h2><p><br></p><h2>Ergebnis</h2><p><br></p>"],
 ];
 const PAPERS = [["white", "Leer"], ["lines", "Liniert"], ["grid", "Kariert"], ["dots", "Punkte"]];
-function docDialog(kind = "note") {
-  if (kind === "draw") return boardDialog();
-  const isNote = kind === "note"; let folder = docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank";
-  const { el, close } = modal(`<div class="nd"><p class="eyebrow">${isNote ? "Neue Notiz" : "Neue Zeichnung"}</p>
-  <input class="nd-name" id="nd-n" placeholder="${isNote ? "Wie soll die Notiz heißen?" : "Wie soll die Zeichnung heißen?"}" autocomplete="off" maxlength="80">
+function docDialog(kind = "note", pre = null) {
+  if (kind === "draw") return boardDialog(pre);
+  const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank";
+  const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument A4</button><button type="button" role="tab" id="nd-swb">Whiteboard</button></div><p class="eyebrow">Neues Dokument</p>
+  <input class="nd-name" id="nd-n" placeholder="Wie soll das Dokument heißen?" autocomplete="off" maxlength="80">
   <div class="nd-sugg" id="nd-s"></div>
   <div class="nd-row"><div><label class="lbl">Ordner</label><button class="nd-folder" id="nd-f" type="button"></button></div></div>
   <label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
   ${isNote ? `<label class="lbl">Vorlage</label><div class="chips" id="nd-t">${TEMPLATES.map(([k, l]) => `<button type="button" class="chip ${k === tpl ? "on" : ""}" data-t="${k}">${l}</button>`).join("")}</div>` : ""}
-  <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="nd-go">${isNote ? "Notiz erstellen" : "Zeichnung erstellen"}</button></div></div>`, "wide nd-modal");
-  const nameIn = $("#nd-n", el), fb = $("#nd-f", el);
+  <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="nd-go">Dokument erstellen</button></div></div>`, "wide nd-modal");
+  const nameIn = $("#nd-n", el), fb = $("#nd-f", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); };
   const fname = () => { const fp = folderPath(folder); return fp.length ? fp[fp.length - 1].name : ""; };
   const drawF = () => { fb.innerHTML = `${ic("folder")}<span>${["Home", ...folderPath(folder).map(f => f.name)].map(esc).join(" / ")}</span><em>Ändern</em>`; const base = fname(); const sugg = isNote ? [base ? base + " – Mitschrift" : "Mitschrift", "Zusammenfassung", "Lernzettel", "Hausaufgaben", "Ideen"] : [base ? base + " – Skizze" : "Skizze", "Mindmap", "Formelsammlung", "Tafelbild"]; $("#nd-s", el).innerHTML = sugg.map(x => `<button type="button" class="chip">${esc(x)}</button>`).join(""); $$("#nd-s .chip", el).forEach(b => b.onclick = () => { nameIn.value = b.textContent; nameIn.focus(); }); };
   drawF(); setTimeout(() => nameIn.focus(), 40);
@@ -113,7 +113,7 @@ function docDialog(kind = "note") {
   $$("#nd-t .chip", el).forEach(b => b.onclick = () => { tpl = b.dataset.t; $$("#nd-t .chip", el).forEach(x => x.classList.toggle("on", x === b)); const t = TEMPLATES.find(x => x[0] === tpl); if (!nameIn.value.trim() && tpl !== "blank") nameIn.placeholder = t[1]; });
   $("[data-c]", el).onclick = close;
   const go2 = async () => {
-    const title = nameIn.value.trim() || (isNote ? (TEMPLATES.find(x => x[0] === tpl)[0] === "blank" ? "Unbenannte Notiz" : TEMPLATES.find(x => x[0] === tpl)[1]) : "Neue Zeichnung"); close();
+    const title = nameIn.value.trim() || (isNote ? (TEMPLATES.find(x => x[0] === tpl)[0] === "blank" ? "Unbenanntes Dokument" : TEMPLATES.find(x => x[0] === tpl)[1]) : "Neue Zeichnung"); close();
     if (isNote) { D.profile.paper = paper; await newNote("", TEMPLATES.find(x => x[0] === tpl)[2], title, folder, paper); }
     else { const id = uid(); D.docs.unshift({ id, type: "draw", title, subjectId: subjectOfFolder(folder), folderId: folder, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + id, { strokes: [], bg: paper === "white" ? "blank" : paper, H: 1000 }); save(); go("draw/" + id); }
   };
@@ -156,7 +156,7 @@ function folderMenu(btn, f) {
 }
 
 /* ---------- documents CRUD ---------- */
-async function newNote(subjectId = "", html = "", title = "Unbenannte Notiz", folderId = docFolder, paper = "") {
+async function newNote(subjectId = "", html = "", title = "Unbenanntes Dokument", folderId = docFolder, paper = "") {
   const id = uid(); D.docs.unshift({ id, type: "note", title, subjectId: subjectId || subjectOfFolder(folderId), folderId, paper: paper || D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) });
   await KV.set("html:" + id, html || ""); save(); go("doc/" + id);
 }
@@ -177,9 +177,9 @@ async function deleteDoc(d) {
   D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:", "db:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
 }
 const fileIcon = d => { const e = (d.title.split(".").pop() || "").toLowerCase(); return /pdf/.test(e) ? ["PDF", "#e5484d"] : /docx?/.test(e) ? ["DOC", "#2563eb"] : /pptx?/.test(e) ? ["PPT", "#f97316"] : /xlsx?|csv/.test(e) ? ["XLS", "#16a34a"] : /txt|md/.test(e) ? ["TXT", "#64748b"] : [e.slice(0, 4).toUpperCase() || "FILE", "#64748b"]; };
-const DTYPES = [["all", "Alle"], ["note", "Notizen"], ["pdf", "PDFs"], ["db", "Datenbanken"], ["draw", "Skizzen"], ["file", "Dateien"]];
+const DTYPES = [["all", "Alle"], ["note", "Dokumente"], ["pdf", "PDFs"], ["db", "Datenbanken"], ["draw", "Whiteboards"], ["file", "Dateien"]];
 const docKind = d => d.type === "note" ? "note" : d.type === "db" ? "db" : d.type === "draw" ? "draw" : /pdf$/i.test(d.title) || d.mime === "application/pdf" ? "pdf" : "file";
-const KIND_L = { note: "Notiz", db: "Datenbank", draw: "Skizze", pdf: "PDF", file: "Datei" };
+const KIND_L = { note: "Dokument", db: "Datenbank", draw: "Whiteboard", pdf: "PDF", file: "Datei" };
 const KIND_I = { note: "note", db: "table", draw: "brush", pdf: "file", file: "file" };
 function docRow(d) {
   const s = subj(d.subjectId), k = docKind(d);
@@ -264,8 +264,8 @@ V.today = m => {
     rec: () => `<section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 6).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>`,
     ex: () => `<section class="wg w-ex rise" style="--i:7"><h2>Prüfungen${allEx.length ? ` <em>${allEx.length}</em>` : ""}</h2>${allEx.length ? `<div class="w-scroll">${allEx.slice(0, 6).map(x => { const sj = subj(x.subjectId), dd = daysUntil(x.due); return `<button class="z-doc ex-r" data-ex="${x.id}"><span class="z-di ex-d" style="--c:${sj ? sj.color : "#0f0f12"}">${dd}</span><span><b>${esc(x.title)}</b><small>${sj ? esc(sj.name) + " · " : ""}${dd <= 0 ? "Heute" : dd === 1 ? "Morgen" : "in " + dd + " Tagen"}</small></span></button>`; }).join("")}</div><button class="link" data-go="exams">Alle Prüfungen</button>` : `<p class="empty sm">Keine Prüfung eingetragen.</p><button class="link" data-go="exams">Eintragen</button>`}</section>`,
     week: () => { const wd = Array.from({ length: 7 }, (_, n) => { const dd = new Date(); dd.setDate(dd.getDate() - (6 - n)); const k = iso(dd); return { l: dd.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", ""), m: D.stats.days[k] || 0, r: D.stats.reviews[k] || 0, today: n === 6 }; }), mx = Math.max(goal, ...wd.map(x => x.m)), tot = wd.reduce((a, x) => a + x.m, 0), rev = wd.reduce((a, x) => a + x.r, 0), act = wd.filter(x => x.m || x.r).length; return `<section class="wg w-week rise" style="--i:3"><h2>Woche</h2><div class="wk">${wd.map(x => `<div class="wk-c ${x.today ? "now" : ""} ${x.m >= goal ? "hit" : ""}" title="${x.m} Min. Lernzeit · ${x.r} Karten"><em>${x.m || ""}</em><span class="wk-b"><i style="height:${x.m ? Math.max(6, Math.round(x.m / mx * 100)) : 0}%"></i></span><small>${x.l}</small></div>`).join("")}</div><p class="wk-s"><b>${tot}</b> Min. · Ø <b>${Math.round(tot / 7)}</b>/Tag · <b>${rev}</b> Karten · ${act}/7 Tage aktiv</p></section>`; },
-    quick: () => `<section class="wg w-quick rise" style="--i:3"><h2>Schnellstart</h2><div class="qk"><button data-q="n">${ic("note")}<span>Neue Notiz</span></button><button data-go="cards">${ic("cards")}<span>Karteikarten</span></button><button data-go="quiz">${ic("help")}<span>Quiz</span></button><button data-go="docs">${ic("folder")}<span>Dokumente</span></button></div></section>`,
-    note: () => `<section class="wg w-note rise" style="--i:3"><h2>Notiz</h2><textarea id="hnote" placeholder="Schnelle Notiz …" maxlength="4000">${esc(D.profile.homeNote || "")}</textarea></section>`,
+    quick: () => `<section class="wg w-quick rise" style="--i:3"><h2>Schnellstart</h2><div class="qk"><button data-q="n">${ic("note")}<span>Neues Dokument</span></button><button data-go="cards">${ic("cards")}<span>Karteikarten</span></button><button data-go="quiz">${ic("help")}<span>Quiz</span></button><button data-go="docs">${ic("folder")}<span>Dokumente</span></button></div></section>`,
+    note: () => `<section class="wg w-note rise" style="--i:3"><h2>Notizzettel</h2><textarea id="hnote" placeholder="Schnelle Notiz …" maxlength="4000">${esc(D.profile.homeNote || "")}</textarea></section>`,
     tt: () => `<section class="wg w-tt rise" style="--i:3"><h2>Stundenplan <em>heute</em></h2>${lessons.length ? `<div class="w-scroll">${lessons.map(e => { const sj = subj(e.subjectId); return `<div class="tt-r"><span class="tt-t">${esc(e.start || "")}</span><i style="background:${sj ? sj.color : "#0f0f12"}"></i><span><b>${esc(e.title || (sj && sj.name) || "Stunde")}</b><small>${esc(e.room || "")}${e.room && e.end ? " · " : ""}${e.end ? "bis " + esc(e.end) : ""}</small></span></div>`; }).join("")}</div>` : `<p class="empty sm">Heute keine Stunden eingetragen.</p>`}</section>`,
     streak: () => `<section class="wg w-stat rise" style="--i:3"><h2>Lernserie</h2><b class="w-big">${streak()}</b><p>${streak() === 1 ? "Tag" : "Tage"} in Folge</p></section>`,
     grades: () => `<button class="wg w-stat rise" style="--i:3" data-go="grades"><h2>Noten</h2><b class="w-big">${gfmt(wavg(D.grades))}</b><p>Gesamtschnitt · ${D.grades.length} ${D.grades.length === 1 ? "Eintrag" : "Einträge"}</p><span class="w-go">Zu den Noten ${ic("back")}</span></button>`,
@@ -415,7 +415,7 @@ V.docs = (m, id) => {
   $$("[data-e]", m).forEach(b => b.onclick = () => ({ n: () => docDialog("note"), u: () => $("#upl").click(), a: () => openAiCommand() })[b.dataset.e]());
   $$("[data-t]", m).forEach(b => b.onclick = () => { docType = b.dataset.t; V.docs(m); });
   $$("[data-v]", m).forEach(b => b.onclick = () => { docView = b.dataset.v; V.docs(m); });
-  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
+  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
   $("#dq", m).oninput = debounce(e => { docQuery = e.target.value; const p = e.target.selectionStart; V.docs(m); const i = $("#dq", m); i.focus(); i.setSelectionRange(p, p); }, 200);
   $("#ds", m).onchange = e => { docSort = e.target.value; V.docs(m); };
 };
@@ -638,8 +638,8 @@ async function noteEditor(m, d) {
   $$("[data-p]", m).forEach(b => b.onclick = () => go("docs/" + b.dataset.p));
   $("#eb", m).onclick = () => go("docs/" + (d.folderId || ""));
   const rename = () => {
-    const b = $("#cr", m); if (!b) return; const inp = document.createElement("input"); inp.className = "nb-in"; inp.value = d.title === "Unbenannte Notiz" ? "" : d.title; inp.placeholder = "Name der Notiz"; inp.maxLength = 80; b.replaceWith(inp); inp.focus(); inp.select();
-    let done = false; const fin = ok => { if (done) return; done = true; if (ok) { d.title = inp.value.trim() || "Unbenannte Notiz"; d.updated = Date.now(); save(); } const nb = document.createElement("b"); nb.id = "cr"; nb.title = "Zum Umbenennen klicken"; nb.textContent = d.title; inp.replaceWith(nb); nb.onclick = rename; };
+    const b = $("#cr", m); if (!b) return; const inp = document.createElement("input"); inp.className = "nb-in"; inp.value = /^Unbenannte[sr]? (Notiz|Dokument)$/.test(d.title) ? "" : d.title; inp.placeholder = "Name der Notiz"; inp.maxLength = 80; b.replaceWith(inp); inp.focus(); inp.select();
+    let done = false; const fin = ok => { if (done) return; done = true; if (ok) { d.title = inp.value.trim() || "Unbenanntes Dokument"; d.updated = Date.now(); save(); } const nb = document.createElement("b"); nb.id = "cr"; nb.title = "Zum Umbenennen klicken"; nb.textContent = d.title; inp.replaceWith(nb); nb.onclick = rename; };
     inp.onblur = () => fin(true); inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); inp.blur(); } else if (e.key === "Escape") { fin(false); } };
   };
   $("#cr", m).title = "Zum Umbenennen klicken"; $("#cr", m).onclick = rename;

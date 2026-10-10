@@ -16,8 +16,8 @@ const HB = {
   streak: { n: "Lernserie", d: "Tage in Folge", i: "flame", w: 1, h: 1 },
   week: { n: "Woche", d: "Lernzeit der letzten 7 Tage", i: "chart", w: 2, h: 2 },
   subjects: { n: "Fächer", d: "Deine Fächer mit offenen Aufgaben", i: "folder", w: 2, h: 1 },
-  quick: { n: "Schnellstart", d: "Notiz, Quiz, Karteikarten", i: "spark", w: 2, h: 1 },
-  note: { n: "Notiz", d: "Schnelle Notiz auf der Startseite", i: "note", w: 2, h: 2 },
+  quick: { n: "Schnellstart", d: "Dokument, Quiz, Karteikarten", i: "spark", w: 2, h: 1 },
+  note: { n: "Notizzettel", d: "Schneller Notizzettel auf der Startseite", i: "note", w: 2, h: 2 },
   clock: { n: "Uhr & Datum", d: "Uhrzeit und heutiges Datum", i: "timer", w: 2, h: 1 },
 };
 const HOME_COLS = 6, HOME_ROWS = 4, HOME_MAXROW = 8, HOME_DOCK = { c: 5, r: 4, w: 2, h: 1 };

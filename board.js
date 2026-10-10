@@ -156,16 +156,16 @@ function boardStrokes(k, W, H, dark) {
   else if (k === "time") { const y = Math.round(H / 2); line([80, y], [W - 80, y], col, 5, "arrow"); for (let i = 0; i < 5; i++) { const x = 220 + i * ((W - 440) / 4); ell([x - 14, y - 14], [x + 14, y + 14], acc, 5); text("Datum", x - 52, y + 36, 3); } }
   return S;
 }
-function boardDialog() {
-  let folder = docFolder, fmt = "endless", bg = "grid", tpl = "blank";
-  const { el, close } = modal(`<div class="nd bd"><p class="eyebrow">Neues Whiteboard</p>
+function boardDialog(pre = null) {
+  let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, fmt = "endless", bg = "grid", tpl = "blank";
+  const { el, close } = modal(`<div class="nd bd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" role="tab" id="bd-swd">Dokument A4</button><button type="button" class="on" role="tab">Whiteboard</button></div><p class="eyebrow">Neues Whiteboard</p>
   <input class="nd-name" id="bd-n" placeholder="Wie soll das Whiteboard heißen?" autocomplete="off" maxlength="80">
   <div class="nd-row"><div><label class="lbl">Ordner</label><button class="nd-folder" id="bd-f" type="button"></button></div></div>
   <div class="bd-sec"><label class="lbl">1 · Format</label><div class="bd-fm" id="bd-fm">${BFORMATS.map(([k, n, d, w, h]) => `<button type="button" class="bf ${k === fmt ? "on" : ""}" data-k="${k}"><span class="bf-s" style="aspect-ratio:${w}/${k === "endless" ? 1.5 * 1000 : h};${k === "endless" ? "border-bottom-style:dashed" : ""}"></span><b>${n}</b><small>${d}</small></button>`).join("")}</div></div>
   <div class="bd-sec"><label class="lbl">2 · Hintergrund</label><div class="bd-bg" id="bd-bg">${BBGS.map(([k, n]) => `<button type="button" class="bb ${k === bg ? "on" : ""}" data-k="${k}"><i class="pv ${k}"></i><b>${n}</b></button>`).join("")}</div></div>
   <div class="bd-sec"><label class="lbl">3 · Vorlage</label><div class="bd-tp" id="bd-tp">${BTPLS.map(([k, n, d]) => `<button type="button" class="bt ${k === tpl ? "on" : ""}" data-k="${k}"><b>${n}</b><small>${d}</small></button>`).join("")}</div></div>
   <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="bd-go">Whiteboard erstellen</button></div></div>`, "wide nd-modal");
-  const nameIn = $("#bd-n", el), fb = $("#bd-f", el);
+  const nameIn = $("#bd-n", el), fb = $("#bd-f", el); if (pre && pre.name) nameIn.value = pre.name; $("#bd-swd", el).onclick = () => { const n = nameIn.value, f = folder; close(); docDialog("note", { name: n, folder: f }); };
   const drawF = () => { fb.innerHTML = `${ic("folder")}<span>${["Home", ...folderPath(folder).map(f => f.name)].map(esc).join(" / ")}</span><em>Ändern</em>`; };
   drawF(); setTimeout(() => nameIn.focus(), 40);
   fb.onclick = async () => { const t = await pickFolder("Ordner wählen"); if (t !== null) { folder = t; drawF(); } };
