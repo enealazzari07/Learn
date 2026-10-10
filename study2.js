@@ -326,6 +326,7 @@ function mountChat(box, compact) {
   });
   $("[data-close]", box)?.addEventListener("click", () => box.hidden = true); $("[data-full]", box)?.addEventListener("click", () => { box.hidden = true; go("ai"); });
   draw();
+  phCycle($(".tin", box));
   if (chatPrefill) { const p = chatPrefill; chatPrefill = ""; send(p); }
 }
 V.ai = m => {
@@ -481,4 +482,20 @@ function bindMsPanel(m) {
   $("#ms-in", m) && ($("#ms-in", m).onclick = async () => { rd(); if (await msQuickLogin()) V.settings(m); });
   $("#ms-sync", m) && ($("#ms-sync", m).onclick = sync);
   $("#ms-out", m) && ($("#ms-out", m).onclick = async () => { await msLogout(); toast("Abgemeldet"); V.settings(m); });
+}
+
+/* Platzhalter im Chat-Eingabefeld: tippt nacheinander verschiedene Beispiel-Fragen (nur solange das Feld leer und nicht fokussiert ist) */
+const PH_LIST = ["Frag Lumi AI etwas …", "Erkläre mir die Zellatmung …", "Erstelle 10 Karteikarten zu Mathe …", "Fasse mein letztes Dokument zusammen …", "Mach ein Quiz zu meiner nächsten Prüfung …", "Was soll ich heute zuerst lernen? …", "Erstelle einen Lernplan für diese Woche …", "Hilf mir bei dieser Aufgabe …"];
+function phCycle(inp) {
+  if (!inp || inp.dataset.ph) return; inp.dataset.ph = "1"; const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; let i = 0, tm;
+  const idle = () => document.activeElement !== inp && !inp.value;
+  const step = (txt, n, dir) => {
+    if (!inp.isConnected) return;
+    if (!idle()) { inp.placeholder = PH_LIST[0]; return void (tm = setTimeout(() => step(PH_LIST[i % PH_LIST.length], PH_LIST[i % PH_LIST.length].length, 0), 600)); }
+    if (dir === 1) { n++; inp.placeholder = txt.slice(0, n) + "▏"; if (n < txt.length) tm = setTimeout(() => step(txt, n, 1), 38 + Math.random() * 30); else tm = setTimeout(() => { inp.placeholder = txt; tm = setTimeout(() => step(txt, n, -1), 2300); }, 120); }
+    else if (dir === -1) { n -= 2; inp.placeholder = txt.slice(0, Math.max(0, n)) + "▏"; if (n > 0) tm = setTimeout(() => step(txt, n, -1), 16); else { i++; tm = setTimeout(() => { const nx = PH_LIST[i % PH_LIST.length]; step(nx, 0, 1); }, 260); } }
+    else { tm = setTimeout(() => step(txt, txt.length, -1), 1200); }
+  };
+  if (reduce) { tm = setInterval(() => { if (!inp.isConnected) return clearInterval(tm); if (idle()) inp.placeholder = PH_LIST[++i % PH_LIST.length]; }, 4000); return; }
+  tm = setTimeout(() => step(PH_LIST[0], PH_LIST[0].length, -1), 2500);
 }

@@ -2559,3 +2559,8 @@ body.hed-open{overflow:hidden}
 .papers .pp{position:static;bottom:auto;width:auto;height:auto;transform:none!important;box-shadow:none;padding:10px 8px 12px;border-radius:20px;background:var(--soft);display:flex;flex-direction:column;gap:8px;align-items:center;border:2px solid transparent}
 .papers .pp.on{background:#fff;border-color:#0f0f12}.papers .pp:hover{background:#ecebf5}
 .papers .pp b{font:600 13px/1.2 inherit;font-family:inherit;color:#0f0f12;margin:0;max-height:none;overflow:visible}
+
+/* v100: Geteilt-Hinweis dezent – kleines graues Symbol in der Meta-Zeile statt dunklem Kreis auf der Karte */
+.shi{display:inline-flex;vertical-align:-2px;margin-left:8px;color:#a9a9b6}.shi svg{width:12px;height:12px}
+.shbadge{width:12px;height:12px;border-radius:50%;background:#ececf1;color:#8a8a98;border:2px solid #fff;right:-6px;bottom:-6px}
+.shbadge svg{width:8px;height:8px}
