@@ -2355,3 +2355,8 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
   .main.homew,.main.homew:not(.doc-full){padding-bottom:clamp(16px,2vw,30px)}
   .aipane{bottom:calc(12px + clamp(16px,2vw,30px))!important}
 }
+
+/* v89: Chat-Eingabe ohne schwarzen Rahmen – nur der Cursor zeigt den Fokus */
+.t-in.cmp:focus-within,.chatbox .t-in.cmp:focus-within,.aipane .t-in.cmp:focus-within,#aiside .t-in.cmp:focus-within{border-color:#e4e4ec!important;outline:0!important}
+.aipane .tin:focus,.t-in .tin:focus,.t-in.cmp .tin:focus{outline:0!important;box-shadow:none!important;border-color:transparent}
+.aipane .t-in:not(.cmp) .tin:focus{border-color:transparent}

@@ -76,7 +76,7 @@ module.exports = async function handler(req, res) {
   const geminiList = h.gemini ? CHAIN().map(m => ({ id: m, p: "gemini", m })) : [];
   const groqList = h.groq ? MODELS.filter(x => x.p === "groq") : [];
   let cands = [want, ...(want?.p === "groq" ? [...groqList, ...geminiList] : [...geminiList, ...groqList])].filter(Boolean);
-  if (image || (sources && h.gemini)) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
+  if (image || (sources && h.gemini && want?.p !== "groq")) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
   const seen = new Set(); cands = cands.filter(c => !seen.has(c.id) && seen.add(c.id));
   if (!cands.length) return res.status(422).json({ error: "Für Bilder wird GEMINI_API_KEY benötigt." });
 
