@@ -2329,3 +2329,25 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .msl-ok{display:flex;align-items:center;gap:9px;margin-bottom:8px}
 .msl-m{min-height:20px;margin:0;font-size:13px;text-align:center;color:#2a2a33}.msl-m.bad{color:#d92d20}
 .msl-fine{margin:0;font-size:11.5px;color:#8a8a98;text-align:center}
+
+/* ======== v88: alle Seiten bündig von links bis rechts, Home füllt bis unten, Kalender ohne Kreise ======== */
+.main,.main:not(.homew):not(.doc-full){padding-left:clamp(16px,2vw,30px);padding-right:clamp(16px,2vw,30px)}
+.main .page,.main .page.narrow,.main .editor,.main .editor.board,.main .ned,.main .home-wrap,.main .page.home,.main .dfull{max-width:none!important;width:100%;margin-left:0!important;margin-right:0!important}
+.main .page.home.calm>*:not(.welcome){max-width:none}
+@media (min-width:901px){
+  .main.homew,.main.homew:not(.doc-full){padding-bottom:12px}
+  .page.home.bento{padding-bottom:0!important}
+  .main.homew .home-wrap{align-items:stretch!important;justify-content:stretch!important}
+  .page.home.zen{padding-bottom:0!important}
+}
+.bento .w-cal .cd{border-radius:12px;outline:0;-webkit-tap-highlight-color:transparent}
+.bento .w-cal .cd:focus,.bento .w-cal .cd:focus-visible{outline:0;box-shadow:none}
+.bento .w-cal .cd span,.bento .w-cal .cd.today span{width:100%;height:auto;border-radius:0;background:none!important;box-shadow:none!important;display:block;line-height:1.9;color:inherit}
+.bento .w-cal .cd:hover{background:#f3f3f7}
+.bento .w-cal .cd.sel:not(.today){background:#ececf1}
+.bento .w-cal .cd.today{background:#0f0f12;color:#fff}
+.bento .w-cal .cd.today u{background:#fff}
+.bento .w-cal .cd.out span{color:#c0c0cc}
+.bento .w-cal .cd.today.out span{color:#fff}
+.bento .w-cal .cd.ex:not(.today) span{color:#d93a3a}
+.main .calgrid .cald{aspect-ratio:auto;height:clamp(58px,8.5vh,88px)}
