@@ -116,7 +116,9 @@ const Suggest = (() => {
     }
     function suggestAppend(text, srcs) {
       if (!String(text || "").trim()) return 0; const id = ++seq, ctl = widget(id), blk = document.createElement("div");
-      blk.className = "sg-ins-blk"; blk.dataset.sg = id; blk.innerHTML = toHtml(/\n/.test(text) ? text : text); if (srcs && srcs.length) blk.insertAdjacentHTML("beforeend", `<p class="sg-src">Quellen: ${srcs.filter(s => /^https?:/i.test(s.url)).map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">[${s.n}] ${esc(s.title)}</a>`).join(" · ")}</p>`); (blk.lastElementChild || blk).appendChild(ctl); body.appendChild(blk);
+      blk.className = "sg-ins-blk"; blk.dataset.sg = id; const okS = (srcs || []).filter(s => /^https?:/i.test(s.url)), host = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u; } };
+      blk.innerHTML = toHtml(text).replace(/\[(\d{1,2})\]/g, (m, n) => { const q = okS.find(x => x.n === +n); return q ? `<a class="cite" href="${esc(q.url)}" target="_blank" rel="noopener noreferrer" title="${esc(q.title)}">${n}</a>` : m; });
+      if (okS.length) blk.insertAdjacentHTML("beforeend", `<div class="sg-src" contenteditable="false"><span class="sg-src-t">Quellen</span>${okS.map(s => `<a class="src" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" title="${esc(s.title)}"><i>${s.n}</i><span><b>${esc(s.title)}</b><small>${esc(host(s.url))}</small></span></a>`).join("")}</div>`); (blk.lastElementChild || blk).appendChild(ctl); body.appendChild(blk);
       dirty && dirty(); refresh(); blk.scrollIntoView({ block: "center", behavior: "smooth" }); return id;
     }
     function suggest(edits) {

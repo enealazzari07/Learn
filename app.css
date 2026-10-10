@@ -2175,3 +2175,17 @@ a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{w
 .ned .body blockquote.callout{background:#f1f1f5}.ned .body blockquote.callout b{color:#0f0f12}
 .aitog svg.ic-flip{animation:aiFlip .35s cubic-bezier(.3,.9,.3,1)}
 @keyframes aiFlip{from{transform:scale(.6) rotate(-12deg);opacity:.3}}
+
+/* v78: Quellen in Notizen als Karten statt unterstrichener Links */
+.sg-src{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:14px 0 4px;font-size:13px}
+.sg-src-t{width:100%;font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;color:#8a8a98}
+.sg-src a.src,.ned .body .sg-src a.src{display:inline-flex;align-items:center;gap:9px;max-width:240px;padding:8px 12px 8px 8px;border-radius:14px;background:#f1f1f5;color:#1c1c22!important;text-decoration:none!important;transition:background .15s,transform .2s}
+.sg-src a.src:hover{background:#e6e6ee;transform:translateY(-1px)}
+.sg-src a.src i{font-style:normal;flex:none;width:24px;height:24px;border-radius:8px;background:#0f0f12;color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:800}
+.sg-src a.src span{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.sg-src a.src b{font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sg-src a.src small{font-size:11px;color:#8a8a98;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ned .body a.cite{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 4px;margin:0 1px 0 2px;vertical-align:2px;border-radius:999px;background:#eceef3;color:#0f0f12!important;font-size:10.5px;font-weight:700;text-decoration:none!important}
+.ned .body a.cite:hover{background:#0f0f12;color:#fff!important}
+/* Chat-Quellen etwas hochwertiger */
+a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;border-radius:50%}
