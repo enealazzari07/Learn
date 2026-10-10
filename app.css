@@ -2427,3 +2427,19 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .dgrid>.doc .tbadge{display:none}
 .dgrid>.doc .dm{padding:8px 1px 0}.dgrid>.doc .dt{font-size:12.5px;line-height:1.3}.dgrid>.doc .ds{font-size:11px}
 .dgrid>.doc .dmore{top:6px;right:6px;width:24px;height:24px}
+
+/* v93: moderne, abgerundete Seite – Eselsohr, Text oben, Name unten in der Seite */
+.docspaper .items.dgrid{grid-template-columns:repeat(auto-fill,minmax(150px,168px));gap:20px 18px}
+.docspaper .items.dgrid>.doc{aspect-ratio:1/1.3;display:flex;flex-direction:column;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 0 0 1px rgba(30,20,90,.05),0 2px 6px rgba(30,20,90,.05),0 10px 24px rgba(30,20,90,.06);transition:transform .25s cubic-bezier(.3,.9,.3,1),box-shadow .25s}
+.docspaper .items.dgrid>.doc:hover{transform:translateY(-4px);box-shadow:0 0 0 1px rgba(30,20,90,.07),0 4px 10px rgba(30,20,90,.07),0 18px 36px rgba(30,20,90,.13)}
+.dgrid>.doc::after{content:"";position:absolute;top:0;right:0;width:30px;height:30px;background:linear-gradient(225deg,var(--paperbg,#f3f3f8) 50%,#e8e8f1 50%);border-bottom-left-radius:10px;box-shadow:-2px 2px 5px rgba(30,20,90,.08);pointer-events:none}
+.dgrid>.doc .th,.dgrid>.doc:hover .th{flex:1;min-height:0;aspect-ratio:auto;background:none;border-radius:0;box-shadow:none;transform:none;position:static}
+.dgrid>.doc .th::after,.dgrid>.doc .th.note-th::before{display:none}
+.dgrid>.doc .th.note-th{padding:18px 16px 6px;font-size:7.5px;line-height:1.65;color:#6b6b78;-webkit-mask-image:linear-gradient(#000 65%,transparent);mask-image:linear-gradient(#000 65%,transparent)}
+.dgrid>.doc .ph{height:100%;min-height:70px;background:repeating-linear-gradient(#ececf2 0 3px,transparent 3px 11px)}
+.dgrid>.doc .dm{padding:0 14px 13px;position:relative}
+.dgrid>.doc .dt{font-size:13.5px;font-weight:700;letter-spacing:-.01em;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dgrid>.doc .ds{font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dgrid>.doc .dmore{top:auto;bottom:10px;right:8px}
+.dgrid>.doc .th.file-th b{width:44px;height:44px;border-radius:14px}
+.dgrid>.doc .th.note-th{overflow-wrap:anywhere;word-break:break-word;padding-right:14px}
