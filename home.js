@@ -22,7 +22,8 @@ const HB = {
 };
 const HOME_COLS = 6, HOME_ROWS = 4, HOME_MAXROW = 8, HOME_DOCK = { c: 5, r: 4, w: 2, h: 1 };
 const HOME_TPL = {
-  std: { n: "Standard", d: "Aufgaben, Kalender, Fokus, Prüfungen", l: [["tasks", 1, 1, 2, 2], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["rec", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
+  std: { n: "Standard", d: "Uhr, Aufgaben, Kalender, Fokus, Woche", l: [["clock", 1, 1, 2, 1], ["tasks", 1, 2, 2, 2], ["ex", 1, 4, 2, 1], ["cal", 3, 1, 2, 2], ["rec", 3, 3, 2, 2], ["goal", 5, 1, 2, 2], ["week", 5, 3, 2, 1]] },
+  classic: { n: "Klassisch", d: "Aufgaben, Kalender, Fokus, Prüfungen, Zuletzt", l: [["tasks", 1, 1, 2, 2], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["rec", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
   focus: { n: "Fokus", d: "Großer Timer, dazu Aufgaben und Kalender", l: [["goal", 1, 1, 2, 4], ["tasks", 3, 1, 2, 2], ["cal", 5, 1, 2, 2], ["ex", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
   plan: { n: "Planer", d: "Großer Kalender mit Aufgaben und Prüfungen", l: [["cal", 1, 1, 3, 4], ["tasks", 4, 1, 3, 2], ["ex", 4, 3, 3, 1], ["cards", 4, 4, 1, 1]] },
   learn: { n: "Lernen", d: "Karteikarten, Fokus und Wochenverlauf", l: [["cards", 1, 1, 2, 2], ["goal", 3, 1, 2, 2], ["week", 5, 1, 2, 2], ["rec", 1, 3, 2, 2], ["tasks", 3, 3, 2, 2], ["ex", 5, 3, 2, 1]] },

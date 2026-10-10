@@ -2540,3 +2540,7 @@ body.hed-open{overflow:hidden}
 .fmt-chip{font-size:12px;font-weight:700;color:#6b6b78;background:#f1f1f5;border-radius:999px;padding:6px 12px}
 .cvwrap.fixed{background:#e8e8ef!important;padding:14px 0}
 @media (max-width:700px){.bd-fm,.bd-bg,.bd-tp{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.wk-c em{font-style:normal;font-size:11px;font-weight:700;color:#55555f;height:14px;line-height:14px}
+.wk-c.hit:not(.now) .wk-b i{background:#7a7a8c}
+.wk-b{min-height:20px}
+.w-week{display:flex;flex-direction:column}
