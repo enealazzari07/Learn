@@ -2351,3 +2351,7 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .bento .w-cal .cd.today.out span{color:#fff}
 .bento .w-cal .cd.ex:not(.today) span{color:#d93a3a}
 .main .calgrid .cald{aspect-ratio:auto;height:clamp(58px,8.5vh,88px)}
+@media (min-width:901px){
+  .main.homew,.main.homew:not(.doc-full){padding-bottom:clamp(16px,2vw,30px)}
+  .aipane{bottom:calc(12px + clamp(16px,2vw,30px))!important}
+}
