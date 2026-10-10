@@ -2030,3 +2030,33 @@ ins.sg-ins.sg-mini{background:none;border-radius:0;padding:0 1px;margin:0;box-sh
 .sg-ins-blk.sg-mini{background:none;border-left-color:rgba(15,15,18,.3)}
 /* Logo in der dunklen Markier-Leiste weiß */
 .bubble button svg:has(image){filter:invert(1)}
+
+/* ======== v71: Lumi AI wohnt im Rahmen – der weiße Rahmen rechts wird breiter ======== */
+@media (min-width:901px){
+  #aiside{top:0;right:0;bottom:0;width:410px;border-radius:0;box-shadow:none;background:#fff;transform:translateX(100%);opacity:1}
+  #aiside.on{transform:none}
+  .main{transition:margin-right .55s cubic-bezier(.3,.9,.3,1)}
+  body.aiside-open .main{margin-right:410px!important}
+  body.aiside-open .main:not(.doc-full){margin-right:422px!important}
+  body.aiside-open .ned-bar{grid-template-columns:minmax(0,1fr) minmax(0,auto) auto!important;gap:8px}
+  body.aiside-open .ned-bar .ned-tools{min-width:0;overflow-x:auto;scrollbar-width:none}
+  body.aiside-open .ned-bar .ned-tools::-webkit-scrollbar{display:none}
+  body.aiside-open .ned-bar .saved{display:none}
+  body.aiside-open #sgbar{left:calc(50% - 205px)}
+  #aiside header{padding:16px 14px 8px 22px}
+  #aiside .chatbox.flat{padding:0 16px 18px}
+  #aiside .t-in.cmp{box-shadow:none!important;border-color:#e4e4ec}
+}
+/* AI-Knopf: ruhig, hell – kein schwarzer Block */
+#ai-m,#aicb{background:#f3f3f7!important;color:#0f0f12!important;font-weight:700;padding:0 14px 0 10px;box-shadow:none}
+#ai-m svg,#aicb svg{filter:none}
+#ai-m:hover,#aicb:hover{background:#e8e8ee!important}
+#ai-m.on,#aicb.on{background:#e3e3ea!important;box-shadow:none}
+/* Neues = nur grün angestrichen */
+.sg-ins-blk{background:rgba(18,178,122,.15)!important;border-left:0!important;border-radius:8px;padding:3px 10px}
+.sg-ins-blk.sg-mini{background:rgba(18,178,122,.1)!important}
+ins.sg-ins{background:rgba(18,178,122,.16)!important;box-shadow:none}
+#ai-m.on,#aicb.on{color:#0f0f12!important;background:#e3e3ea!important}
+#ai-m.on svg,#aicb.on svg{filter:none!important}
+@media (min-width:901px){body.aiside-open .ned-bar{grid-template-columns:minmax(120px,.45fr) minmax(0,1.55fr) auto!important}}
+@media (min-width:901px){body.aiside-open .ned-bar .nb-r{gap:6px;padding-left:6px}body.aiside-open .ned-bar .modesw{transform:scale(.92);transform-origin:right center}}
