@@ -2025,3 +2025,8 @@ ins.sg-ins.sg-mini{background:none;border-radius:0;padding:0 1px;margin:0;box-sh
 .sg-ctl.sg-mini button{width:15px;height:15px;box-shadow:none;background:#ececf1;color:#4a4a56}.sg-ctl.sg-mini button svg{width:9px;height:9px;stroke-width:2.8}
 .sg-ctl.sg-mini .sg-ok{background:#0f0f12;color:#fff}
 .sg-ctl.sg-mini button:hover{transform:scale(1.25)}
+.sg-ins-blk{background:linear-gradient(90deg,rgba(18,178,122,.14),rgba(18,178,122,.04));border-left:3px solid rgba(18,178,122,.6);border-radius:6px;padding:4px 10px;margin:6px 0;animation:sgIn .55s cubic-bezier(.2,.8,.2,1) both;transition:opacity .22s}
+.sg-ins-blk p{margin:.35em 0}.sg-ins-blk .sg-ctl{margin-left:8px}
+.sg-ins-blk.sg-mini{background:none;border-left-color:rgba(15,15,18,.3)}
+/* Logo in der dunklen Markier-Leiste weiß */
+.bubble button svg:has(image){filter:invert(1)}

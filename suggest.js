@@ -74,7 +74,7 @@ const Suggest = (() => {
         els.forEach(e => {
           if (e.classList.contains("sg-ctl")) e.remove();
           else if (e.tagName === "DEL") { if (accept) e.remove(); else e.replaceWith(...e.childNodes); }
-          else if (e.tagName === "INS") { if (accept) e.replaceWith(...e.childNodes); else e.remove(); }
+          else if (e.tagName === "INS" || e.classList.contains("sg-ins-blk")) { if (accept) e.replaceWith(...e.childNodes); else e.remove(); }
         });
         body.normalize(); dirty && dirty(); refresh();
       }, 220);
@@ -84,14 +84,40 @@ const Suggest = (() => {
     const onClick = e => { const b = e.target.closest(".sg-ok,.sg-no"); if (!b) return; e.preventDefault(); e.stopPropagation(); resolve(b.closest(".sg-ctl").dataset.sg, b.classList.contains("sg-ok")); };
     body.addEventListener("mousedown", onDown); body.addEventListener("click", onClick);
     /* Textbereich ersetzen / Text einfügen – als Vorschlag */
+    const LEAF = "p,h1,h2,h3,li,blockquote,td,th,pre";
+    function leafBlocks(range) {
+      const root = range.commonAncestorContainer, el = root.nodeType === 1 ? root : root.parentElement; if (!el) return [];
+      const all = el.matches && el.matches(LEAF) ? [el] : [...el.querySelectorAll(LEAF)];
+      const hit = all.filter(b => body.contains(b) && range.intersectsNode(b) && !b.querySelector(LEAF));
+      if (!hit.length) { const own = el.closest && el.closest(LEAF); return own && body.contains(own) ? [own] : []; }
+      return hit;
+    }
+    function clamp(range, b) { const r = range.cloneRange(); if (!b.contains(range.startContainer)) r.setStart(b, 0); if (!b.contains(range.endContainer)) r.setEnd(b, b.childNodes.length); return r; }
+    function wrapDel(range, id, mini) { const del = document.createElement("del"); del.className = "sg-del" + mini; del.dataset.sg = id; del.contentEditable = "false"; del.appendChild(range.extractContents()); range.insertNode(del); return del; }
+    function topChild(n) { while (n && n.parentElement && n.parentElement !== body) n = n.parentElement; return n && n.parentElement === body ? n : null; }
+    function insBlock(text, id, mini, ctl, after) { const blk = document.createElement("div"); blk.className = "sg-ins-blk" + mini; blk.dataset.sg = id; blk.innerHTML = toHtml(text); (blk.lastElementChild || blk).appendChild(ctl); const t = topChild(after); if (t) t.after(blk); else body.appendChild(blk); return blk; }
+    /* Textbereich ersetzen / Text einfügen – als Vorschlag (mehrere Absätze → eigener Block) */
     function suggestRange(range, newText, opt = {}) {
-      const mini = opt.mini ? " sg-mini" : "", id = ++seq, collapsed = range.collapsed || !range.toString().trim(); let anchor;
-      if (!collapsed) { const del = document.createElement("del"); del.className = "sg-del" + mini; del.dataset.sg = id; del.contentEditable = "false"; del.appendChild(range.extractContents()); range.insertNode(del); anchor = del; }
+      const mini = opt.mini ? " sg-mini" : "", id = ++seq, text = newText == null ? "" : String(newText), collapsed = range.collapsed || !range.toString().trim();
+      const multiOut = /\n/.test(text.trim()); let blocks = [], lastDel = null, lastBlock = null;
+      if (!collapsed) {
+        blocks = leafBlocks(range);
+        if (blocks.length > 1) { for (const b of blocks) { const sub = clamp(range, b); if (sub.toString().trim()) lastDel = wrapDel(sub, id, mini); lastBlock = b; } }
+        else lastDel = wrapDel(range, id, mini), lastBlock = blocks[0] || null;
+      }
       const ctl = widget(id); if (mini) ctl.classList.add("sg-mini");
-      if (newText != null && String(newText).trim()) { const ins = document.createElement("ins"); ins.className = "sg-ins" + mini; ins.dataset.sg = id; ins.innerHTML = toHtml(newText); if (anchor) { anchor.after(ins); ins.after(ctl); } else { range.collapse(false); range.insertNode(ctl); range.insertNode(ins); } }
-      else if (anchor) anchor.after(ctl); else return 0;
-      dirty && dirty(); refresh(); if (!opt.quiet) { const t = body.querySelector(`ins[data-sg="${id}"]`) || body.querySelector(`del[data-sg="${id}"]`); t && t.scrollIntoView({ block: "center", behavior: "smooth" }); }
+      if (text.trim()) {
+        if (blocks.length > 1 || multiOut) { const anchor = lastBlock || (lastDel && lastDel.parentElement) || range.startContainer; insBlock(text, id, mini, ctl, anchor && anchor.nodeType === 3 ? anchor.parentElement : anchor); }
+        else { const ins = document.createElement("ins"); ins.className = "sg-ins" + mini; ins.dataset.sg = id; ins.innerHTML = toHtml(text); if (lastDel) { lastDel.after(ins); ins.after(ctl); } else { range.collapse(false); range.insertNode(ctl); range.insertNode(ins); } }
+      } else if (lastDel) lastDel.after(ctl); else return 0;
+      dirty && dirty(); refresh();
+      if (!opt.quiet) { const t = body.querySelector(`[data-sg="${id}"]:not(.sg-ctl)`); t && t.scrollIntoView({ block: "center", behavior: "smooth" }); }
       return id;
+    }
+    function suggestAppend(text) {
+      if (!String(text || "").trim()) return 0; const id = ++seq, ctl = widget(id), blk = document.createElement("div");
+      blk.className = "sg-ins-blk"; blk.dataset.sg = id; blk.innerHTML = toHtml(/\n/.test(text) ? text : text); (blk.lastElementChild || blk).appendChild(ctl); body.appendChild(blk);
+      dirty && dirty(); refresh(); blk.scrollIntoView({ block: "center", behavior: "smooth" }); return id;
     }
     function suggest(edits) {
       let applied = 0, missed = 0;
@@ -114,7 +140,7 @@ const Suggest = (() => {
       return n;
     }
     const text = () => plainText(body);
-    return { suggest, suggestRange, suggestAt, all, text, pending: () => ids().length, destroy() { body.removeEventListener("mousedown", onDown); body.removeEventListener("click", onClick); if (bar) { bar.remove(); bar = null; } }, refresh };
+    return { suggest, suggestRange, suggestAppend, suggestAt, all, text, pending: () => ids().length, destroy() { body.removeEventListener("mousedown", onDown); body.removeEventListener("click", onClick); if (bar) { bar.remove(); bar = null; } }, refresh };
   }
   function plainText(root) { const c = root.cloneNode(true); c.querySelectorAll(".sg-del,.sg-ctl").forEach(e => e.remove()); c.querySelectorAll("p,div,li,h1,h2,h3,tr,br").forEach(b => b.after("\n")); return c.textContent.replace(/\n{3,}/g, "\n\n"); }
   return { attach, plainText, locate, textOf, wordDiff, rangeAt };
