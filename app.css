@@ -1280,3 +1280,26 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .docspaper .fold.add:hover .fsvg{--c:var(--violet)}
 .docspaper .fold.add:hover .fsvg .fic{color:var(--violet)!important}
 .fsvg .fs{fill:rgba(255,255,255,.42)!important}
+
+/* ======== v34: glossy folders with papers peeking out, name + count printed on the front ======== */
+.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))!important;gap:30px 22px!important}
+.docspaper .fold{padding:6px!important;gap:0!important;align-items:stretch!important;text-align:left!important}
+.docspaper .fold:hover{transform:translateY(-4px)!important}
+.f3d{position:relative;width:100%;max-width:200px;height:140px;margin:0 auto;filter:drop-shadow(0 14px 18px color-mix(in srgb,var(--c,#5b3df5) 22%,transparent));transition:filter .2s}
+.docspaper .fold:hover .f3d{filter:drop-shadow(0 20px 26px color-mix(in srgb,var(--c,#5b3df5) 32%,transparent))}
+.fback{position:absolute;left:0;right:0;bottom:0;height:116px;border-radius:20px;background:color-mix(in srgb,var(--c) 52%,#fff 48%)}
+.fback::before{content:"";position:absolute;left:0;top:-14px;width:44%;height:30px;border-radius:16px 16px 0 0;background:inherit}
+.fpapers{position:absolute;left:0;right:0;bottom:62px;height:84px}
+.pp{position:absolute;bottom:0;width:70px;height:88px;background:#fff;border-radius:7px;padding:9px 8px;box-shadow:0 2px 8px rgba(30,20,90,.18);transform-origin:50% 100%;transition:transform .3s cubic-bezier(.3,1.4,.5,1);overflow:hidden}
+.pp b{display:block;font:700 9.5px/1.15 Georgia,"Times New Roman",serif;color:#1c1c22;margin-bottom:6px;max-height:22px;overflow:hidden}
+.pp s{display:block;height:3px;border-radius:3px;background:#e4e4ec;margin:4px 0;text-decoration:none}.pp s:nth-child(3){width:80%}.pp s:nth-child(4){width:55%}
+.pp0{left:7%;transform:rotate(-9deg)}.pp1{left:33%;transform:rotate(2deg) translateY(-6px)}.pp2{left:58%;transform:rotate(10deg)}
+.docspaper .fold:hover .pp0{transform:rotate(-13deg) translateY(-8px)}.docspaper .fold:hover .pp1{transform:rotate(2deg) translateY(-14px)}.docspaper .fold:hover .pp2{transform:rotate(14deg) translateY(-8px)}
+.ffront{position:absolute;left:0;right:0;bottom:0;height:84px;border-radius:22px;padding:0 16px 13px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 38%,#fff 62%),color-mix(in srgb,var(--c) 66%,#fff 34%));box-shadow:inset 0 2px 0 rgba(255,255,255,.65),inset 0 -10px 18px color-mix(in srgb,var(--c) 30%,transparent)}
+.ffront>b{font-size:18px;font-weight:600;letter-spacing:-.02em;color:#fff;text-shadow:0 1px 6px color-mix(in srgb,var(--c) 55%,transparent);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0}
+.ffront>small{font-size:12.5px;font-weight:600;color:color-mix(in srgb,var(--c) 72%,#000 28%);opacity:.85}
+.ffront .fic{position:absolute;right:13px;top:11px;color:rgba(255,255,255,.92)}.ffront .fic svg{width:22px;height:22px;stroke-width:1.6}
+.docspaper .fold .dmore{top:2px!important;right:6px!important}
+.docspaper .fold.add .f3d{--c:#c9c9d8;filter:none;opacity:.85}.docspaper .fold.add:hover .f3d{--c:var(--violet);opacity:1;filter:drop-shadow(0 14px 18px rgba(91,61,245,.25))}
+.docspaper .fold.add .ffront>b{color:#fff}
+@media (max-width:900px){.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important}.f3d{height:116px}.fback{height:96px}.ffront{height:70px}.pp{width:56px;height:72px}.ffront>b{font-size:15px}}
