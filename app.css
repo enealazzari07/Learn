@@ -1136,3 +1136,15 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .cal-r .hchip{padding:4px 10px}
 .hgrid{grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr)}
 @media (max-width:1100px){.cal-b{grid-template-columns:1fr}.cal-b .cal-d{border-left:0;padding-left:0;border-top:1px solid #f0f0f4;padding-top:8px}}
+.inkpal #ip-cl.sel{background:#efeaff;color:var(--violet)}
+
+/* notion-style blocks: toggle list + page links */
+.ned .body details.tgl{margin:6px 0;padding:2px 0 2px 2px}
+.ned .body details.tgl>summary{list-style:none;cursor:text;font-weight:600;position:relative;padding-left:28px;border-radius:10px}
+.ned .body details.tgl>summary::-webkit-details-marker{display:none}
+.ned .body details.tgl>summary::before{content:"";position:absolute;left:6px;top:50%;width:8px;height:8px;border-right:2.2px solid #8a8a9e;border-bottom:2.2px solid #8a8a9e;transform:translateY(-70%) rotate(-45deg);transition:transform .2s;cursor:pointer}
+.ned .body details.tgl[open]>summary::before{transform:translateY(-70%) rotate(45deg)}
+.ned .body details.tgl>*:not(summary){margin-left:28px}
+.ned .body a.plink{display:inline-flex;align-items:center;gap:5px;background:#efeaff;color:var(--violet);border-radius:9px;padding:0 9px;font-weight:600;text-decoration:none;cursor:pointer;font-size:.95em;line-height:1.5}
+.ned .body a.plink::before{content:"";width:9px;height:11px;border:2px solid currentColor;border-radius:3px;display:inline-block;opacity:.7}
+.ned .body a.plink:hover{background:#e2d9ff}
