@@ -380,7 +380,11 @@ function mountDock() {
   p.innerHTML = `<button class="hai-h" id="hai-t" aria-expanded="${wasOpen}"><span class="ai-ic">${ic("spark")}</span><div><b>Lumi AI</b><small>Frag etwas zu deinen Unterlagen</small></div><i class="hai-chev">${ic("chev")}</i></button><div class="chatbox flat" id="hcb"></div>`;
   if (!window.__dockFresh) { window.__dockFresh = true; if (chatMsgs().length) newChat(); }
   mountChat($("#hcb", p), false);
-  const tog = o => { p.classList.toggle("open", o); $("#hai-t", p).setAttribute("aria-expanded", o); };
+  const tog = o => {
+    const grid = innerWidth >= 901 && $("#b-grid"), h0 = p.offsetHeight; if (grid && o === p.classList.contains("open")) return;
+    p.classList.toggle("open", o); $("#hai-t", p).setAttribute("aria-expanded", o);
+    if (grid) { const ch = +p.dataset.ch || 172, H = v => p.style.setProperty("height", v + "px", "important"); H(h0); void p.offsetHeight; H(o ? dockOpenH() : ch); if (!o) setTimeout(() => { if (!p.classList.contains("open")) p.style.removeProperty("height"); }, 480); }
+  };
   $("#hai-t", p).onclick = () => tog(!p.classList.contains("open"));
   $(".t-in", p).addEventListener("submit", () => tog(true), true); $(".tin", p).addEventListener("focus", () => tog(true));
 }
