@@ -159,4 +159,4 @@ document.addEventListener("click", e => {
   const b = e.target.closest && e.target.closest("#ai-m,#aicb"); if (!b || !document.getElementById("app") || document.getElementById("app").hidden) return;
   e.stopPropagation(); e.preventDefault(); aiSide(undefined, b);
 }, true);
-addEventListener("hashchange", () => { if (curView === "today" || curView === "ai") aiSide(false); });
+addEventListener("hashchange", () => { if (!/^#\/app\/(doc|docs|draw|board)(\/|$)/.test(location.hash)) aiSide(false); });
