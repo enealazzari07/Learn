@@ -241,21 +241,23 @@ V.today = m => {
   const nextEx = exams[0];
   m.classList.add("homew");
   const icn = d => ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note");
-  const SUGG = ["Lernplan für heute erstellen", "Quiz zu meinem letzten Dokument", "Was sollte ich zuerst lernen?"];
-  m.innerHTML = `<div class="home-wrap again"><div class="page home zen">
-  <p class="z-date rise" style="--i:0">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p>
-  <h1 class="greet-h z-h">${words}</h1>
-  <form class="z-ask rise" style="--i:3" id="hs"><span class="z-sp">${ic("spark")}</span><input id="hq" placeholder="Was möchtest du lernen oder erstellen?" autocomplete="off" aria-label="KI fragen"><button class="send" id="hs-ai" aria-label="Senden">${ic("up")}</button></form>
-  <div class="z-chips rise" style="--i:4">${SUGG.map(x => `<button type="button">${x}</button>`).join("")}</div>
+  const SUGG = ["Lernplan für heute", "Quiz zum letzten Dokument", "Was zuerst lernen?"];
+  const pct = Math.round(Math.min(100, mins / goal * 100)), exDays = nextEx ? daysUntil(nextEx.due) : null;
+  m.innerHTML = `<div class="home-wrap again"><div class="page home zen bento">
+  <header class="b-head rise" style="--i:0"><div class="b-hl"><p class="z-date">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1 class="greet-h z-h">${words}</h1></div>
+    <div class="b-hr"><form class="z-ask" id="hs"><span class="z-sp">${ic("spark")}</span><input id="hq" placeholder="Die KI fragen oder etwas erstellen lassen …" autocomplete="off" aria-label="KI fragen"><button class="send" id="hs-ai" aria-label="Senden">${ic("up")}</button></form>
+    <div class="z-chips">${SUGG.map(x => `<button type="button">${x}</button>`).join("")}</div></div></header>
   <div class="z-ans" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
-  <div class="z-pills rise" style="--i:5">${nextEx ? `<button class="z-pill" data-ex="${nextEx.id}"><i></i>${esc(nextEx.title)} in ${daysUntil(nextEx.due)} ${daysUntil(nextEx.due) === 1 ? "Tag" : "Tagen"}</button>` : ""}<button class="z-pill" data-go="cards"><i></i>${due} ${due === 1 ? "Karte" : "Karten"} fällig</button><button class="z-pill" data-go="focus"><i></i>${mins} / ${goal} Min. gelernt</button></div>
-  <div class="z-cols rise" style="--i:6">
-    <section class="z-col"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos"></div>
+  <div class="b-grid">
+    <section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
       <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
-    <section class="z-col"><h2>Zuletzt</h2>${recent.length ? recent.slice(0, 4).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</section>
-  </div>
-  <nav class="z-quick rise" style="--i:7"><button data-q="n">${ic("note")}<span>Neue Notiz</span></button><button data-go="cards">${ic("cards")}<span>Karteikarten</span></button><button data-go="quiz">${ic("help")}<span>Quiz</span></button><button data-go="focus">${ic("timer")}<span>Fokus</span></button><button data-go="planner">${ic("cal")}<span>Planer</span></button></nav>
-  </div></div>`;
+    <section class="wg w-cal rise" style="--i:3"><div class="cal-t"><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><h2 id="cal-m"></h2><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>
+    <section class="wg w-goal rise" style="--i:4"><h2>Lernziel</h2><div class="w-ring">${ringSvg(pct, "#0f0f12", pct + "%", "")}</div><p><b>${mins}</b> von ${goal} Min.</p><button class="link" data-go="focus">Fokus starten</button></section>
+    <button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>
+    <section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 4).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>
+    <button class="wg w-ex rise" style="--i:7" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><h2>${nextEx ? "Nächste Prüfung" : "Prüfungen"}</h2>${nextEx ? `<b class="w-big">${exDays}</b><p>${exDays === 1 ? "Tag" : "Tage"} bis ${esc(nextEx.title)}</p><span class="w-go">Übungsquiz ${ic("back")}</span>` : `<p>Keine Prüfung eingetragen.</p><span class="w-go">Eintragen ${ic("back")}</span>`}</button>
+    <section class="wg w-quick rise" style="--i:8"><h2>Schnell</h2><div class="w-q"><button data-q="n">${ic("note")}<span>Notiz</span></button><button data-go="quiz">${ic("help")}<span>Quiz</span></button><button data-go="planner">${ic("cal")}<span>Planer</span></button><button data-go="grades">${ic("award")}<span>Noten</span></button></div></section>
+  </div></div></div>`;
   bindCommon(m);
   $$("[data-q]", m).forEach(b => b.onclick = () => docDialog("note"));
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
@@ -277,6 +279,25 @@ V.today = m => {
     run(false);
   })();
   $("#addt", m).onclick = () => taskModal();
+  {
+    const now = new Date(); let cy = now.getFullYear(), cm = now.getMonth(), sel = iso();
+    const itemsOn = d => [...D.tasks.filter(x => !x.done && x.due === d).map(x => ({ k: x.type === "exam" ? "exam" : "task", t: x.title })), ...msEventsOn(d).map(e => ({ k: "ev", t: e.title }))];
+    const drawCal = () => {
+      $("#cal-m", m).textContent = new Date(cy, cm, 1).toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+      const f0 = (new Date(cy, cm, 1).getDay() + 6) % 7, dim = new Date(cy, cm + 1, 0).getDate(), today = iso();
+      let h = ["M", "D", "M", "D", "F", "S", "S"].map(w => `<span class="wd">${w}</span>`).join("");
+      for (let i = 0; i < f0; i++) h += `<i></i>`;
+      for (let d = 1; d <= dim; d++) { const ds = `${cy}-${pad(cm + 1)}-${pad(d)}`, it = itemsOn(ds); h += `<button class="cd ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><span>${d}</span><em>${it.length ? "<u></u>" : ""}</em></button>`; }
+      $("#cal-g", m).innerHTML = h;
+      $$("[data-cd]", $("#cal-g", m)).forEach(b => b.onclick = () => { sel = b.dataset.cd; drawCal(); });
+      const l = itemsOn(sel);
+      $("#cal-d", m).innerHTML = `<b>${sel === today ? "Heute" : fmtD(sel)}</b>` + (l.length ? l.slice(0, 2).map(x => `<span class="k${x.k}">${esc(x.t)}</span>`).join("") : `<span class="none">Nichts eingetragen</span>`) + `<button class="link" id="cal-a">+ Eintragen</button>`;
+      $("#cal-a", m).onclick = () => taskModal(null, sel);
+    };
+    $("#cal-p", m).onclick = () => { cm--; if (cm < 0) { cm = 11; cy--; } drawCal(); };
+    $("#cal-n", m).onclick = () => { cm++; if (cm > 11) { cm = 0; cy++; } drawCal(); };
+    drawCal();
+  }
   $("#hs", m).onsubmit = async e => {
     e.preventDefault(); const q = $("#hq", m).value.trim(), out = $("#ai-out", m); if (!q) return;
     if (!hasKey()) { out.innerHTML = `<p class="note">Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.</p>`; return; }
