@@ -1189,3 +1189,23 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .dcell small{font-size:11px;color:#9a9aae}
 .chkrow{display:flex;align-items:center;gap:8px}
 .viewsw button{min-width:96px}
+
+/* ======== v31: calmer banner background, calendar + "Weiterarbeiten" as matching cards ======== */
+.welcome{background:linear-gradient(120deg,#e3ebff 0%,#ebe6ff 52%,#f3e9ff 100%)!important}
+.welcome::before{left:-6%!important;bottom:-55%!important;width:60%!important;height:130%!important;background:radial-gradient(closest-side,rgba(120,150,255,.38),rgba(120,150,255,0))!important;filter:blur(8px)!important;transform:none!important;border-radius:50%!important}
+.welcome::after{right:-6%!important;top:-60%!important;width:62%!important;height:140%!important;background:radial-gradient(closest-side,rgba(176,140,255,.5),rgba(176,140,255,0))!important;filter:blur(8px)!important;border-radius:50%!important}
+.hgrid{align-items:stretch!important;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)!important;gap:14px!important}
+.hgrid .hcol{display:flex;flex-direction:column}
+.hgrid .hcol>.hcal{flex:1}
+.hgrid .rec{grid-column:auto!important;margin:0!important;display:flex;flex-direction:column;background:#fff;border-radius:30px;padding:14px 16px 10px;box-shadow:0 1px 3px rgba(40,30,120,.05),0 10px 30px rgba(70,60,170,.08);min-width:0;min-height:0}
+.rec .sech{margin:0 0 6px!important;align-items:center}
+.rec .sh2{font-size:17px!important;margin:0!important}
+.rec .rlist{flex-direction:column!important;gap:4px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:0!important;flex:1;min-height:0}
+.rec .rlist .rrow{flex:none!important;width:100%!important;box-shadow:none!important;background:transparent;border-radius:16px;padding:9px 10px!important;gap:12px}
+.rec .rlist .rrow:hover{background:#f6f3ff;transform:none}
+.rec .rrow .ri{width:38px;height:38px;border-radius:13px}
+.rec .rrow b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}.rec .rrow small{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.rec .rrow .tm2{min-width:0}
+@media (max-width:1100px){.hgrid{grid-template-columns:1fr!important}}
+@media (min-width:901px){.page.home.calm>.welcome{padding-bottom:clamp(34px,3vw,44px)!important}.cd{height:29px!important}.hgrid{margin-top:10px!important}}
+.page.home.calm .hgrid section{margin-bottom:0!important}
