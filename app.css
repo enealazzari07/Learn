@@ -1743,3 +1743,13 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .bento .fd-g{margin:8px 0 0!important;font-size:12.5px!important;color:#8a8a98!important}.bento .fd-g b{color:#0f0f12}
 @media (max-width:900px){.bento .w-goal{min-height:340px}.bento .fd{flex:none;width:220px;height:220px;max-height:none}}
 .bento .w-cal .cal-g{grid-template-rows:auto;grid-auto-rows:minmax(0,1fr);align-content:stretch}.bento .w-cal .cal-g .wd{align-self:center}
+
+/* v55: Sidebar komplett schwarz/grau */
+.side .btn-new{background:#0f0f12!important;color:#fff!important;box-shadow:none!important}
+.side .nav-i,.side .nav-i svg,.side .rail-tgl,.side .rail-tgl svg{color:#0f0f12!important}
+.side .nav-i svg{stroke:currentColor}
+.side .nav-i.on{background:#ececf0!important;color:#0f0f12!important}
+.side .nav-i:hover{background:#f3f3f6!important}
+.side .nav-i.on svg *{fill:revert-layer}
+.side .brand,.side .lvl{color:#0f0f12}
+@media (max-width:900px){.side .nav-i.on{background:transparent!important}.side .nav-i.on span{color:#0f0f12!important}}
