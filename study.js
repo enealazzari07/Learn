@@ -492,14 +492,16 @@ async function noteEditor(m, d) {
     if (Date.now() - AC.last < 2500) return scheduleAC();
     AC.busy = true; AC.last = Date.now();
     let res = null;
-    try { res = await ai(orig, { system: "Du bist eine unauffällige Rechtschreib-, Grammatik- und Zeichensetzungs-Korrektur. Antworte NUR mit dem korrigierten Text – ohne Erklärung, ohne Anführungszeichen, ohne Markdown. Behalte Sprache, Inhalt, Wortwahl, Stil, Zeilenumbrüche, Zahlen, Namen und Fachbegriffe bei. Formuliere nichts um. Wenn nichts falsch ist, gib den Text exakt unverändert zurück.", max: Math.min(1500, Math.ceil(orig.length / 2) + 120), model: autoModelId(), temperature: 0.1, quiet: true }); } catch {}
+    try { res = await ai(orig, { system: "Du bist eine sehr zurückhaltende Rechtschreibkorrektur. Korrigiere NUR eindeutige Tippfehler und klare Rechtschreibfehler (vertauschte oder fehlende Buchstaben, doppelte Wörter, falsche Gross-/Kleinschreibung am Satzanfang oder bei Namen). Ändere NICHT: Stil, Wortwahl, Satzbau, Kommas, Fachbegriffe, Namen, Zahlen, Abkürzungen, Umgangssprache, Zeilenumbrüche. Formuliere nichts um und füge nichts hinzu." + (swissOn() ? " Schweizer Rechtschreibung: Das Zeichen „ß“ gibt es nicht, immer „ss“ schreiben." : "") + " Antworte NUR mit dem Text, ohne Erklärung, ohne Anführungszeichen. Wenn nichts eindeutig falsch ist, gib den Text exakt unverändert zurück.", max: Math.min(1500, Math.ceil(orig.length / 2) + 120), model: autoModelId(), temperature: 0.1, quiet: true }); } catch {}
     AC.busy = false; AC.seen.set(blk, orig);
     if (!res || !blk.isConnected) return;
     let fixed = res.trim(); if (!/^["„“]/.test(orig)) fixed = fixed.replace(/^["„“]|["“”]$/g, "");
     if (!fixed || fixed === orig || fixed.length > orig.length * 1.35 + 20 || fixed.length < orig.length * 0.65 - 20) return;
     if (Suggest.textOf(blk).s !== orig) return scheduleAC();            // Nutzer hat weitergeschrieben
-    const edits = Suggest.wordDiff(orig, fixed); if (!edits.length || edits.length > 12) return;
-    const n = SG.suggestAt(blk, edits, { avoidCaret: true, direct: acMode() === "auto" });
+    let edits = Suggest.wordDiff(orig, fixed);
+    edits = edits.filter(e => { const o = orig.slice(e.start, e.end), strip = x => x.replace(/[\s.,;:!?„“"'()\-–]/g, ""); return strip(o) !== strip(e.replace) && e.replace.split(/\s+/).length <= 4 && o.split(/\s+/).length <= 4; });   // nur kleine, echte Wortkorrekturen
+    if (!edits.length || edits.length > 6) return;
+    const n = SG.suggestAt(blk, edits, { avoidCaret: true, direct: acMode() === "auto", mini: true });
     if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`);
     AC.seen.set(blk, Suggest.textOf(blk).s);
   }

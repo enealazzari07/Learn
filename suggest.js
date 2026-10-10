@@ -55,8 +55,9 @@ const Suggest = (() => {
   function attach(body, dirty) {
     let bar = null;
     const ids = () => [...new Set([...body.querySelectorAll("[data-sg]")].map(e => e.dataset.sg))];
+    const bigIds = () => [...new Set([...body.querySelectorAll("[data-sg]:not(.sg-mini)")].map(e => e.dataset.sg))];
     const refresh = () => {
-      const n = ids().length;
+      const n = bigIds().length;
       if (!n) { if (bar) { bar.classList.remove("on"); const b = bar; bar = null; setTimeout(() => b.remove(), 350); } return; }
       if (!bar) {
         bar = document.createElement("div"); bar.id = "sgbar";
@@ -84,10 +85,10 @@ const Suggest = (() => {
     body.addEventListener("mousedown", onDown); body.addEventListener("click", onClick);
     /* Textbereich ersetzen / Text einfügen – als Vorschlag */
     function suggestRange(range, newText, opt = {}) {
-      const id = ++seq, collapsed = range.collapsed || !range.toString().trim(); let anchor;
-      if (!collapsed) { const del = document.createElement("del"); del.className = "sg-del"; del.dataset.sg = id; del.contentEditable = "false"; del.appendChild(range.extractContents()); range.insertNode(del); anchor = del; }
-      const ctl = widget(id);
-      if (newText != null && String(newText).trim()) { const ins = document.createElement("ins"); ins.className = "sg-ins"; ins.dataset.sg = id; ins.innerHTML = toHtml(newText); if (anchor) { anchor.after(ins); ins.after(ctl); } else { range.collapse(false); range.insertNode(ctl); range.insertNode(ins); } }
+      const mini = opt.mini ? " sg-mini" : "", id = ++seq, collapsed = range.collapsed || !range.toString().trim(); let anchor;
+      if (!collapsed) { const del = document.createElement("del"); del.className = "sg-del" + mini; del.dataset.sg = id; del.contentEditable = "false"; del.appendChild(range.extractContents()); range.insertNode(del); anchor = del; }
+      const ctl = widget(id); if (mini) ctl.classList.add("sg-mini");
+      if (newText != null && String(newText).trim()) { const ins = document.createElement("ins"); ins.className = "sg-ins" + mini; ins.dataset.sg = id; ins.innerHTML = toHtml(newText); if (anchor) { anchor.after(ins); ins.after(ctl); } else { range.collapse(false); range.insertNode(ctl); range.insertNode(ins); } }
       else if (anchor) anchor.after(ctl); else return 0;
       dirty && dirty(); refresh(); if (!opt.quiet) { const t = body.querySelector(`ins[data-sg="${id}"]`) || body.querySelector(`del[data-sg="${id}"]`); t && t.scrollIntoView({ block: "center", behavior: "smooth" }); }
       return id;
@@ -108,7 +109,7 @@ const Suggest = (() => {
         if (caret >= 0 && caret >= e.start && caret <= e.end + 1) continue;
         const r = rangeAt(scope, e.start, e.end); if (!r) continue;
         if (opt.direct) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand("insertText", false, e.replace); n++; }
-        else if (suggestRange(r, e.replace, { quiet: true })) n++;
+        else if (suggestRange(r, e.replace, { quiet: true, mini: opt.mini })) n++;
       }
       return n;
     }

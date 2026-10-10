@@ -236,8 +236,11 @@ async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return
 const hasKey = () => serverAI || !!D.profile.apiKey;
 function sysBase(extra = "") {
   const p = D.profile;
-  return `You are Lumi, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${extra ? "\n" + extra : ""}`;
+  return `You are Lumi, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural." : ""}${extra ? "\n" + extra : ""}`;
 }
+const swissOn = () => D.profile.swiss !== false;
+const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
+async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
 const AI_MODELS = [
   ["gemini-flash-lite-latest", "Lite", "Schnell · hohes Gratis-Limit", "Gemini"], ["gemini-flash-latest", "Flash", "Ausgewogen · bessere Antworten", "Gemini"], ["gemini-pro-latest", "Pro", "Gründlich · im Gratis-Tarif stark begrenzt", "Gemini"],
   ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B", "Groq"]];
@@ -248,7 +251,7 @@ const aiModelId = () => { const L = aiModelList(); return (L.find(m => m[0] === 
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
 /* schnelles Modell für Hintergrundaufgaben (Auto-Korrektur): bevorzugt Groq */
 const autoModelId = () => { const L = aiModelList(), pick = D.profile.autoModel && L.find(m => m[0] === D.profile.autoModel); return (pick || L.find(m => m[0] === "groq:llama-3.1-8b-instant") || L.find(m => m[0] === "gemini-flash-lite-latest") || L[0] || AI_MODELS[0])[0]; };
-async function ai(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature } = {}) {
+async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature } = {}) {
   if (!hasKey()) { if (!quiet) toast("Lumi AI ist noch nicht eingerichtet (Einstellungen → Lumi AI). Lokale Hilfe wird verwendet."); return null; }
   if (serverAI) {
     try {
