@@ -1216,3 +1216,27 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 @media (max-width:900px){.page.home.calm::before{display:none}}
 .hero-body .todo{gap:14px}
 .hero-body .todo .tc{width:28px;height:28px;border-width:2px}
+
+/* ======== documents page: controls in the white bar, content in the grey box ======== */
+.docsed .docs-t{display:flex;flex-direction:column;gap:2px}
+.docsed .docs-t>b{font-size:16px;letter-spacing:-.02em}
+.docsed .path{display:flex;align-items:center;gap:4px;font-size:12.5px;flex-wrap:nowrap;white-space:nowrap}
+.docsed .path button{padding:1px 4px;border-radius:7px;color:#6b6b78;font-size:12.5px}.docsed .path button.here{color:var(--ink);font-weight:600}.docsed .path button:hover{background:#f1f1f6}.docsed .path span{color:#b0b0be}
+.docs-tools{gap:10px!important;width:min(520px,38vw)}
+.docs-tools .searchbox{flex:1;margin:0;min-width:0}
+.searchbox.flat{display:flex;align-items:center;gap:8px;background:#f3f3f7;border-radius:999px;padding:0 14px;height:38px;box-shadow:none}
+.searchbox.flat svg{width:17px;height:17px;color:#8a8a98;flex:none}
+.searchbox.flat input{flex:1;border:0;background:none;outline:0;font:inherit;font-size:14px;min-width:0}
+.docs-tools .sortl{display:flex;align-items:center;gap:6px;color:#8a8a98;flex:none}.docs-tools .sortl svg{width:16px;height:16px}
+.docs-tools .sortl select{border:0;background:#f3f3f7;border-radius:999px;padding:8px 12px;font-size:13px;height:38px}
+.docsed .nb-r{gap:6px}
+.docspaper{padding:22px clamp(16px,3vw,40px) 120px!important}
+.docspaper .sh2.sm{margin:4px 0 12px}
+.docspaper .foldgrid{margin-bottom:26px}
+.fold .fi svg{width:22px;height:22px}
+.icgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.icb{height:44px;border-radius:14px;background:#f3f3f7;color:#4b4b5e;display:grid;place-items:center;cursor:pointer;transition:background .15s,transform .15s}.icb:hover{background:#ebe6ff}.icb.on{background:var(--c,#5b3df5);color:#fff;transform:scale(1.06)}.icb svg{width:21px;height:21px}
+@media (max-width:900px){.docs-tools{width:100%}.icgrid{grid-template-columns:repeat(6,1fr)}}
+.docs-tools{width:min(480px,34vw)!important}
+.docs-tools .sortl select{width:112px}
+@media (min-width:901px){.docs-tools{width:min(400px,28vw)!important}.docs-tools .sortl select{width:100px;padding:8px 10px}.docsed .ned-bar{grid-template-columns:minmax(150px,1fr) auto auto!important}.docsed .ned-bar .nb-r{grid-column:3}}
