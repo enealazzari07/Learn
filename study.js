@@ -250,7 +250,7 @@ V.today = m => {
   <div class="b-grid">
     <section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
       <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
-    <section class="wg w-cal rise" style="--i:3"><div class="cal-t"><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><h2 id="cal-m"></h2><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>
+    <section class="wg w-cal rise" style="--i:3"><div class="cal-t"><h2 id="cal-m"></h2><span class="cal-nav"><button class="cal-today" id="cal-t">Heute</button><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></span></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>
     <section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
       <div class="fd" id="fd"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><small id="fd-s">Ziehen zum Einstellen</small></div></div>
       <div class="fd-row"><button class="fd-go" id="fd-go">Starten</button><button class="fd-rs" id="fd-rs" hidden>Zurücksetzen</button></div>
@@ -308,16 +308,19 @@ V.today = m => {
     const itemsOn = d => [...D.tasks.filter(x => !x.done && x.due === d).map(x => ({ k: x.type === "exam" ? "exam" : "task", t: x.title })), ...msEventsOn(d).map(e => ({ k: "ev", t: e.title }))];
     const drawCal = () => {
       $("#cal-m", m).textContent = new Date(cy, cm, 1).toLocaleDateString("de-DE", { month: "long", year: "numeric" });
-      const f0 = (new Date(cy, cm, 1).getDay() + 6) % 7, dim = new Date(cy, cm + 1, 0).getDate(), today = iso();
-      let h = ["M", "D", "M", "D", "F", "S", "S"].map(w => `<span class="wd">${w}</span>`).join("");
-      for (let i = 0; i < f0; i++) h += `<i></i>`;
-      for (let d = 1; d <= dim; d++) { const ds = `${cy}-${pad(cm + 1)}-${pad(d)}`, it = itemsOn(ds); h += `<button class="cd ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><span>${d}</span><em>${it.length ? "<u></u>" : ""}</em></button>`; }
+      const f0 = (new Date(cy, cm, 1).getDay() + 6) % 7, today = iso();
+      let h = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(w => `<span class="wd">${w}</span>`).join("");
+      for (let i = 0; i < 42; i++) {
+        const dt = new Date(cy, cm, 1 - f0 + i), ds = iso(dt), out = dt.getMonth() !== cm, it = itemsOn(ds);
+        h += `<button class="cd ${out ? "out" : ""} ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><span>${dt.getDate()}</span><em>${it.length ? "<u></u>" : ""}</em></button>`;
+      }
       $("#cal-g", m).innerHTML = h;
-      $$("[data-cd]", $("#cal-g", m)).forEach(b => b.onclick = () => { sel = b.dataset.cd; drawCal(); });
+      $$("[data-cd]", $("#cal-g", m)).forEach(b => b.onclick = () => { sel = b.dataset.cd; const d = parseISO(sel); if (d.getMonth() !== cm) { cm = d.getMonth(); cy = d.getFullYear(); } drawCal(); });
       const l = itemsOn(sel);
-      $("#cal-d", m).innerHTML = `<b>${sel === today ? "Heute" : fmtD(sel)}</b>` + (l.length ? l.slice(0, 2).map(x => `<span class="k${x.k}">${esc(x.t)}</span>`).join("") : `<span class="none">Nichts eingetragen</span>`) + `<button class="link" id="cal-a">+ Eintragen</button>`;
+      $("#cal-d", m).innerHTML = `<div class="cd-h"><b>${sel === today ? "Heute" : fmtD(sel)}</b><button class="link" id="cal-a">+ Eintragen</button></div>` + (l.length ? l.slice(0, 2).map(x => `<span class="cd-i k${x.k}"><i></i>${esc(x.t)}</span>`).join("") : `<span class="none">Nichts eingetragen</span>`);
       $("#cal-a", m).onclick = () => taskModal(null, sel);
     };
+    $("#cal-t", m).onclick = () => { const n = new Date(); cy = n.getFullYear(); cm = n.getMonth(); sel = iso(); drawCal(); };
     $("#cal-p", m).onclick = () => { cm--; if (cm < 0) { cm = 11; cy--; } drawCal(); };
     $("#cal-n", m).onclick = () => { cm++; if (cm > 11) { cm = 0; cy++; } drawCal(); };
     drawCal();

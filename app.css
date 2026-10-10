@@ -1870,3 +1870,34 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 @media (max-width:900px){#aiside{top:auto;left:8px;right:8px;bottom:8px;height:78dvh;width:auto}body.aiside-open #main{margin-right:0!important}}
 /* v65: Logo im Kopf der KI-Boxen steht still */
 .hai-h .ld,.ai-ic .ld,.aipane header .ld,#aiside header .ld,.aip-logo .ld{animation:none!important;transform:none!important;opacity:1!important}
+
+/* v66: Aufgaben ohne seltsamen Rand, Kalender neu, Erstellt-Hinweise als Link statt Block */
+.bento .z-t,.bento .todo.z-t{border:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;border-bottom:1px solid #f0f0f4!important;padding:10px 0!important;outline:0}
+.bento .z-t:last-child{border-bottom:0!important}
+.bento .z-add{border:0;border-top:1px solid #f0f0f4;border-radius:0;background:none;box-shadow:none}
+.bento .w-cal{padding:16px 18px 14px}
+.bento .w-cal .cal-t{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}
+.bento .w-cal .cal-t h2{margin:0;font-size:16px;font-weight:700;color:#0f0f12;letter-spacing:-.02em}
+.bento .cal-nav{display:flex;align-items:center;gap:2px}
+.bento .cal-today{font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;background:#f3f3f7;margin-right:6px;cursor:pointer}.bento .cal-today:hover{background:#e8e8ee}
+.bento .w-cal .cal-g{display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:auto repeat(6,minmax(0,1fr));gap:2px 0;flex:1;min-height:0;overflow:hidden}
+.bento .w-cal .wd{font-size:11px;color:#9a9aa8;text-align:center;font-weight:600;padding-bottom:4px}
+.bento .w-cal .cd{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;height:100%;min-height:0;border-radius:12px;font-size:13px;font-weight:500;cursor:pointer;padding:0;background:none;border:0;aspect-ratio:auto}
+.bento .w-cal .cd span{width:28px;height:28px;display:grid;place-items:center;border-radius:50%}
+.bento .w-cal .cd.out{color:#c0c0cc}
+.bento .w-cal .cd:hover span{background:#f3f3f7}
+.bento .w-cal .cd.today span{background:#0f0f12;color:#fff}
+.bento .w-cal .cd.sel:not(.today) span{box-shadow:inset 0 0 0 1.5px #0f0f12}
+.bento .w-cal .cd em{height:4px;display:block;line-height:0;margin-top:-1px}.bento .w-cal .cd u{display:inline-block;width:4px;height:4px;border-radius:50%;background:#0f0f12}.bento .w-cal .cd.ex u{background:#d93a3a}
+.bento .w-cd{border-top:1px solid #f0f0f4;margin-top:8px;padding-top:8px;display:flex;flex-direction:column;gap:3px;font-size:13px}
+.bento .w-cd .cd-h{display:flex;justify-content:space-between;align-items:center}.bento .w-cd .cd-h b{font-size:13px}
+.bento .w-cd .cd-i{display:flex;align-items:center;gap:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bento .w-cd .cd-i i{width:6px;height:6px;border-radius:50%;background:#0f0f12;flex:none}.bento .w-cd .cd-i.kexam i{background:#d93a3a}
+.bento .w-cd .none{color:#a0a0ae}
+/* Von Lumi AI Erstelltes: Symbol + Link, kein eigener Block */
+.acts{gap:4px}
+.acts .act,.aipane .act,.aipane .acts .act,.sana .s-aia .act{background:none!important;box-shadow:none!important;border-radius:0!important;padding:2px 0!important;font-size:14px;font-weight:600;gap:8px;color:#0f0f12}
+.acts .act svg{width:17px;height:17px;flex:none}
+.acts button.act span{text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(15,15,18,.3);transition:text-decoration-color .15s}
+.acts button.act:hover{background:none!important}.acts button.act:hover span{text-decoration-color:#0f0f12}
+.acts .act.err{color:#d93a3a}
+.acts .act svg{color:#0f0f12!important}
