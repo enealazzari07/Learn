@@ -69,12 +69,24 @@ function mountTextBoxes(paper, opts = {}) {
   const keyd = e => { if ((e.key === "Delete") && sel && !e.target.isContentEditable) { $('[data-a="rm"]', bar).click(); } };
   document.addEventListener("keydown", keyd);
 
+  let rb = null;
+  const stopPlace = () => { layer.classList.remove("placing"); paper.classList.remove("tbx-placing"); rb?.remove(); rb = null; };
+  const mk = (x, y, w, h) => { const b = { id: uid2(), x: Math.round(x), y: Math.max(0, Math.round(y)), w: Math.round(w), h: Math.round(h), html: "", fs: 18, fill: "", bd: false }; boxes.push(b); const el = build(b); select(b.id); el.querySelector(".tbx-in").focus(); changed(); };
+  layer.addEventListener("pointerdown", e => {
+    if (!layer.classList.contains("placing") || e.target !== layer) return; e.preventDefault(); const r = layer.getBoundingClientRect(), sx = e.clientX - r.left, sy = e.clientY - r.top; let ex = sx, ey = sy;
+    rb = document.createElement("div"); rb.className = "tbx-rb"; layer.appendChild(rb); layer.setPointerCapture(e.pointerId);
+    const draw = () => { rb.style.left = Math.min(sx, ex) + "px"; rb.style.top = Math.min(sy, ey) + "px"; rb.style.width = Math.abs(ex - sx) + "px"; rb.style.height = Math.abs(ey - sy) + "px"; };
+    const mv = ev => { ex = ev.clientX - r.left; ey = ev.clientY - r.top; draw(); };
+    const up = () => { layer.removeEventListener("pointermove", mv); layer.removeEventListener("pointerup", up); const w = Math.abs(ex - sx), h = Math.abs(ey - sy); stopPlace(); const big = w > 40 && h > 24; mk(big ? Math.min(sx, ex) - r.width / 2 : sx - r.width / 2, big ? Math.min(sy, ey) : sy - 4, big ? w : 240, big ? h : 44); };
+    layer.addEventListener("pointermove", mv); layer.addEventListener("pointerup", up);
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") stopPlace(); });
   return {
     load(arr) { boxes = Array.isArray(arr) ? arr.map(b => ({ ...b })) : []; layer.innerHTML = ""; boxes.forEach(build); select(null); },
     get: () => boxes,
+    /* Platzier-Modus: einmal auf die Seite klicken (oder einen Bereich aufziehen) – das Textfeld erscheint direkt dort, ohne Farbe */
     add() {
-      const r = paper.getBoundingClientRect(), y = Math.max(40, Math.round(innerHeight / 2 - r.top - 40)), b = { id: uid2(), x: -Math.round(Math.min(160, W() / 4)), y, w: 280, h: 90, html: "", fs: 18, fill: "", bd: true };
-      boxes.push(b); const el = build(b); select(b.id); el.querySelector(".tbx-in").focus(); changed();
+      if (layer.classList.contains("placing")) return stopPlace(); layer.classList.add("placing"); paper.classList.add("tbx-placing"); toast("Tippe auf die Seite oder ziehe einen Bereich auf");
     },
     destroy() { document.removeEventListener("pointerdown", outside, true); removeEventListener("resize", onScroll); document.removeEventListener("scroll", onScroll, true); document.removeEventListener("keydown", keyd); bar.remove(); layer.remove(); },
   };
