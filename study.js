@@ -3,7 +3,7 @@
 
 const V = {};            // view registry: V.name(main, ...args)
 let docFilter = "";      // current subject filter
-const COLORS = ["#5b3df5", "#ff6a3d", "#0e9f6e", "#2563eb", "#d6249f", "#f59e0b", "#0891b2", "#7c3aed", "#dc2626", "#475569"];
+const COLORS = ["#0a78ee", "#f2920c", "#0e9f6e", "#7c3aed", "#d6249f", "#dc2626", "#0891b2", "#475569", "#5b3df5", "#ff6a3d"];
 const PRESETS = {
   school: ["Mathe", "Deutsch", "Englisch", "Biologie", "Chemie", "Physik", "Geschichte", "Geografie", "Informatik", "Kunst", "Musik", "Sport", "Politik", "Französisch", "Latein", "Spanisch", "Religion/Ethik"],
   uni: ["Analysis", "Lineare Algebra", "Programmierung", "Statistik", "BWL", "VWL", "Recht", "Psychologie", "Medizin", "Chemie", "Physik", "Informatik", "Literatur", "Geschichte", "Seminar"],
@@ -328,9 +328,26 @@ function bindCommon(m) {
 /* ---------- views: documents (folders) ---------- */
 let docSort = "recent", docQuery = "";
 const FOLDER_SVG = `<svg viewBox="0 0 120 96" aria-hidden="true"><path class="fb" d="M10 18a12 12 0 0 1 12-12h22c3 0 5.600 1.300 7.300 3.500L57 15h41a12 12 0 0 1 12 12v50a12 12 0 0 1-12 12H22a12 12 0 0 1-12-12z"/><path class="ff" d="M10 34a12 12 0 0 1 12-12h76a12 12 0 0 1 12 12v43a12 12 0 0 1-12 12H22a12 12 0 0 1-12-12z"/><path class="fs" d="M22 22h76a12 12 0 0 1 12 12v2H10v-2a12 12 0 0 1 12-12z"/></svg>`;
-function folderSvg(np) {
-  const paper = [`<rect class="fp fp0" x="56" y="40" width="58" height="84" rx="8" transform="rotate(-7 85 124)"/>`, `<rect class="fp fp1" x="80" y="30" width="56" height="88" rx="8" transform="rotate(3 108 118)"/>`, `<rect class="fp fp2" x="104" y="42" width="52" height="80" rx="8" transform="rotate(9 130 122)"/>`].slice(0, np).join("");
-  return `<svg viewBox="0 0 227 190" aria-hidden="true"><path class="fb" d="M0 16A14 14 0 0 1 14 2H58c10 0 15 3 22 10l6 6c4 4 8 5 14 5h99a14 14 0 0 1 14 14v123a14 14 0 0 1-14 14H14A14 14 0 0 1 0 176z"/>${paper}<path class="ff" d="M0 94A14 14 0 0 1 14 80H100C110 80 116 74 124 66C130 60 136 54 146 52H213A14 14 0 0 1 227 66V176A14 14 0 0 1 213 190H14A14 14 0 0 1 0 176Z"/><ellipse class="fh" cx="112" cy="130" rx="74" ry="26"/></svg>`;
+let folderN = 0;
+const hexMix = (a, b, t) => { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const x = p(a), y = p(b); return "#" + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join(""); };
+function folderSvg(c) {
+  const k = "fg" + (folderN++), dk = t => hexMix(c, "#000000", t), lt = t => hexMix(c, "#ffffff", t);
+  const BACK = "M366.576 180C329.807 180 300 209.807 300 246.576V325.522V333.369V446.478C300 483.764 300 502.407 307.256 516.649C313.639 529.176 323.824 539.361 336.351 545.744C350.593 553 369.236 553 406.522 553H606.478C643.764 553 662.407 553 676.649 545.744C689.176 539.361 699.361 529.176 705.744 516.649C713 502.407 713 483.764 713 446.478V325.522C713 288.236 713 269.593 705.744 255.351C699.361 242.824 689.176 232.639 676.649 226.256C662.407 219 643.764 219 606.478 219H561.793C527.43 219 494.417 180 460.054 180H366.576Z";
+  const FRONT = "M300 380C300 342.663 299.74 323.261 307 309C313.386 296.456 323.466 286.392 336 280C350.249 272.734 369.693 273 407 273H606C643.307 273 662.751 272.734 677 280C689.534 286.392 699.614 296.456 706 309C713.26 323.261 713 342.663 713 380V446C713 483.337 713.26 502.739 706 517C699.614 529.544 689.534 539.608 677 546C662.751 553.266 643.307 553 606 553H407C369.693 553 350.249 553.266 336 546C323.466 539.608 313.386 529.544 307 517C299.74 502.739 300 483.337 300 446V380Z";
+  return `<svg viewBox="300 180 413 373" aria-hidden="true"><defs>
+    <filter id="${k}f" x="220" y="193" width="573" height="440" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="39.9"/></filter>
+    <radialGradient id="${k}b" cx="0" cy="0" r="1" gradientTransform="matrix(-399.677 -386.29 427.241 -412.931 713 553.414)" gradientUnits="userSpaceOnUse"><stop stop-color="${dk(.1)}"/><stop offset="1" stop-color="${lt(.12)}"/></radialGradient>
+    <radialGradient id="${k}r" cx="0" cy="0" r="1" gradientTransform="matrix(-413 -280 413 -467.157 713 553)" gradientUnits="userSpaceOnUse"><stop stop-color="${dk(.12)}"/><stop offset="1" stop-color="${lt(.2)}"/></radialGradient>
+    <linearGradient id="${k}s1" x1="300" y1="180" x2="699" y2="586" gradientUnits="userSpaceOnUse"><stop offset=".5" stop-color="${lt(.55)}"/><stop offset="1" stop-color="${dk(.4)}"/></linearGradient>
+    <linearGradient id="${k}s2" x1="300" y1="180" x2="761" y2="499" gradientUnits="userSpaceOnUse"><stop offset=".23" stop-color="${lt(.55)}"/><stop offset=".99" stop-color="${c}"/></linearGradient>
+    <linearGradient id="${k}s3" x1="300" y1="273" x2="669" y2="613" gradientUnits="userSpaceOnUse"><stop offset=".23" stop-color="${lt(.55)}"/><stop offset=".95" stop-color="${c}"/></linearGradient>
+    <path id="${k}p" d="${BACK}"/><path id="${k}q" d="${FRONT}"/>
+    <mask id="${k}m1"><use href="#${k}p" fill="#fff"/></mask><mask id="${k}m2"><use href="#${k}q" fill="#fff"/></mask></defs>
+    <use href="#${k}p" fill="url(#${k}b)"/>
+    <path d="${BACK}" fill="none" stroke="url(#${k}s1)" stroke-width="5.33" mask="url(#${k}m1)"/><path d="${BACK}" fill="none" stroke="url(#${k}s2)" stroke-width="5.33" mask="url(#${k}m1)"/>
+    <g filter="url(#${k}f)"><rect x="300" y="273" width="413" height="280" rx="66.6" fill="#000" fill-opacity=".42"/></g>
+    <use href="#${k}q" fill="url(#${k}r)"/>
+    <path d="${FRONT}" fill="none" stroke="url(#${k}s3)" stroke-width="5.33" mask="url(#${k}m2)"/></svg>`;
 }
 const FOLDER_SVG_UNUSED = 1;
 V.docs = (m, id) => {
@@ -344,7 +361,7 @@ V.docs = (m, id) => {
     <div class="ned-tools docs-tools"><div class="searchbox flat">${ic("search")}<input id="dq" placeholder="${path.length ? "In „" + esc(path[path.length - 1].name) + "“ und überall suchen …" : "Dokumente durchsuchen …"}" value="${esc(docQuery)}"></div><label class="sortl">${ic("filter")}<select class="field slim" id="ds"><option value="recent" ${docSort === "recent" ? "selected" : ""}>Neueste</option><option value="name" ${docSort === "name" ? "selected" : ""}>Name A–Z</option></select></label></div>
     <div class="nb-r"><button class="btn ghost small" id="up">${ic("upload")}<span class="hide-sm">Hochladen</span></button><button class="btn ghost small" id="nn">${ic("newnote")}<span class="hide-sm">Notiz</span></button><button class="btn ghost small" id="ndb">${ic("table")}<span class="hide-sm">Datenbank</span></button><button class="btn accent small" id="nf">${ic("plus")}<span class="hide-sm">Ordner</span></button></div></div>
   <article class="ned-paper docspaper" id="paperc">
-  ${folders.length || !q ? `<h2 class="sh2 sm">Ordner</h2><div class="foldgrid">${folders.map(f => { const n = folderCount(f.id), np = Math.min(3, D.docs.filter(x => x.folderId === f.id && x.type !== "draw").length); return `<div class="fold" data-f="${f.id}" style="--c:${f.color}" tabindex="0"><div class="f3d">${folderSvg(np)}<div class="ftxt"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; }).join("")}${q ? "" : `<button class="fold add" id="nf3"><div class="f3d">${folderSvg(0)}<div class="ftxt"><b>Neuer Ordner</b><small>&nbsp;</small></div></div></button>`}</div>` : ""}
+  ${folders.length || !q ? `<h2 class="sh2 sm">Ordner</h2><div class="foldgrid">${folders.map(f => { const n = folderCount(f.id); return `<div class="fold" data-f="${f.id}" style="--c:${f.color}" tabindex="0"><div class="f3d">${folderSvg(f.color)}<div class="ftxt"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; }).join("")}${q ? "" : `<button class="fold add" id="nf3"><div class="f3d">${folderSvg("#8b8ba3")}<div class="ftxt"><b>Neuer Ordner</b><small>&nbsp;</small></div></div></button>`}</div>` : ""}
   ${list.length ? `<h2 class="sh2 sm">${q ? "Treffer" : "Dateien"}</h2><div class="docgrid">${list.map(docCard).join("")}</div>` : (!folders.length ? `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>${q ? "Nichts gefunden" : path.length ? "Dieser Ordner ist leer" : "Noch nichts hier"}</h3><p>${q ? "Versuche einen anderen Suchbegriff." : "Lege Ordner an (z. B. Mathe oder Deutsch) und erstelle Notizen, Datenbanken oder lade PDFs hoch. Dateien kannst du auch einfach hierher ziehen."}</p>${q ? "" : `<div class="row" style="justify-content:center"><button class="btn accent" id="nf2">Ordner anlegen</button><button class="btn ghost" id="nn2">Neue Notiz</button></div>`}</div>` : "")}
   </article></div>`;
   setScroller($("#paperc", m));

@@ -1345,3 +1345,14 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .f3d>.fic{display:none!important}
 .f3d .fb{fill:color-mix(in srgb,var(--c) 92%,#fff 8%)!important}
 .f3d .ff{fill:color-mix(in srgb,var(--c) 60%,#fff 40%)!important;fill-opacity:.97!important}
+
+/* ======== v37: user-supplied folder artwork (dark glass, gradient rim) ======== */
+.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))!important;gap:30px 22px!important}
+.f3d{aspect-ratio:413/373!important;max-width:240px!important;filter:drop-shadow(0 16px 20px color-mix(in srgb,var(--c,#0a78ee) 30%,transparent))!important}
+.docspaper .fold:hover .f3d{filter:drop-shadow(0 22px 28px color-mix(in srgb,var(--c,#0a78ee) 42%,transparent))!important}
+.f3d>svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.ftxt{left:8%!important;right:8%!important;bottom:11%!important}
+.ftxt>b{font-size:20px!important;font-weight:600!important;color:#fff!important;text-shadow:0 1px 8px rgba(0,20,60,.35)!important;letter-spacing:-.015em!important}
+.ftxt>small{font-size:12.5px!important;font-weight:500!important;color:rgba(255,255,255,.72)!important;opacity:1!important}
+.docspaper .fold.add .f3d{--c:#8b8ba3;opacity:.7;filter:none!important}
+.docspaper .fold.add:hover .f3d{opacity:1;--c:#0a78ee;filter:drop-shadow(0 16px 20px rgba(10,120,238,.3))!important}
