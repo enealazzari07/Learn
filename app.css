@@ -2266,3 +2266,13 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .shbadge.on-card{right:10px;top:10px;bottom:auto;width:24px;height:24px;border:0;box-shadow:0 2px 6px rgba(0,0,0,.2)}.shbadge.on-card svg{width:13px;height:13px}
 .dr-i{position:relative}
 @media (max-width:1100px){.dside{display:none}}
+/* v83: Spalte sitzt in der grauen Box */
+.docsed .dbody{display:block}
+.docspaper{display:flex!important;gap:0;align-items:flex-start}
+.docspaper>.dmain{flex:1;min-width:0}
+.docspaper>.dside{position:sticky;top:0;align-self:flex-start;max-height:calc(100dvh - 96px);padding:6px 4px 30px 26px;margin-left:18px;width:clamp(230px,21vw,290px)}
+.docspaper>.dside::before{top:6px;bottom:6px}
+.docspaper .shbadge{border-color:#f1f1f5}
+.docspaper .sd-row:hover{background:#fff}
+@media (max-width:1100px){.docspaper>.dside{display:none}}
+.docspaper .sd-i{background:#fff}
