@@ -1838,3 +1838,15 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .aip-logo{width:40px;height:40px;flex:none;display:block;background:none!important}.aip-logo svg{width:100%;height:100%}
 .mark{background:url(logo-dark.png) center/contain no-repeat!important;border-radius:0!important}
 .nav-i .ic image.ld{transform-box:fill-box}
+
+/* v63: schönere Lumi-AI-Generierungs-Animation – Logo schwebt, kippt und wird von einem Lichtband durchlaufen */
+.m.think .ld,.aic-think .ld{animation:none!important;opacity:1}
+.m.think svg,.aic-think svg{width:28px;height:28px;overflow:visible;transform-origin:center;
+  animation:lgFloat 2.4s ease-in-out infinite,lgSweep 1.5s linear infinite;
+  -webkit-mask-image:linear-gradient(105deg,#000 32%,rgba(0,0,0,.22) 50%,#000 68%);mask-image:linear-gradient(105deg,#000 32%,rgba(0,0,0,.22) 50%,#000 68%);
+  -webkit-mask-size:260% 100%;mask-size:260% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.22))}
+@keyframes lgFloat{0%,100%{transform:translateY(1px) rotate(-7deg) scale(1)}50%{transform:translateY(-2px) rotate(7deg) scale(1.14)}}
+@keyframes lgSweep{from{-webkit-mask-position:115% 0;mask-position:115% 0}to{-webkit-mask-position:-15% 0;mask-position:-15% 0}}
+.m.think{gap:12px;padding:12px 18px 12px 14px}
+@media (prefers-reduced-motion:reduce){.m.think svg,.aic-think svg{animation:none;-webkit-mask-image:none;mask-image:none}}
