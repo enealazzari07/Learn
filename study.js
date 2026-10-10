@@ -70,7 +70,7 @@ function refreshNav() {
 }
 function newMenu(anchor) {
   menu(anchor, [
-    { label: "Neue Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
+    { label: "Mit KI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Neue Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
     { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-",
     { label: "Karteikarten-Stapel", icon: "cards", fn: () => newDeck() }, { label: "Aufgabe / Prüfung", icon: "todo", fn: () => taskModal() },
     { label: isUni() ? "Neues Modul" : "Neues Fach", icon: "star", fn: newSubject },
@@ -359,7 +359,7 @@ V.docs = (m, id) => {
   m.innerHTML = `<div class="ned dfull docsed"><div class="ned-bar">
     <div class="nb-l"><div class="nb-name docs-t"><b>Dokumente</b><nav class="path" aria-label="Pfad"><button data-p="" class="${path.length ? "" : "here"}">Home</button>${path.map((f, i) => `<span>/</span><button data-p="${f.id}" class="${i === path.length - 1 ? "here" : ""}">${esc(f.name)}</button>`).join("")}</nav></div></div>
     <div class="ned-tools docs-tools"><div class="searchbox flat">${ic("search")}<input id="dq" placeholder="${path.length ? "In „" + esc(path[path.length - 1].name) + "“ und überall suchen …" : "Dokumente durchsuchen …"}" value="${esc(docQuery)}"></div><label class="sortl">${ic("filter")}<select class="field slim" id="ds"><option value="recent" ${docSort === "recent" ? "selected" : ""}>Neueste</option><option value="name" ${docSort === "name" ? "selected" : ""}>Name A–Z</option></select></label></div>
-    <div class="nb-r"><button class="btn accent small" id="nw">${ic("plus")}<span>Neu</span></button></div></div>
+    <div class="nb-r"><button class="btn ghost small" id="aicb">${ic("spark")}<span>KI</span></button><button class="btn accent small" id="nw">${ic("plus")}<span>Neu</span></button></div></div>
   <article class="ned-paper docspaper" id="paperc">
   ${folders.length || list.length ? `<div class="items">${folders.map(f => { const n = folderCount(f.id); return `<div class="fold" data-f="${f.id}" style="--c:${f.color}" tabindex="0"><div class="f3d">${folderSvg(f.color)}<div class="ftxt"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; }).join("")}${list.map(docCard).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>${q ? "Nichts gefunden" : path.length ? "Dieser Ordner ist leer" : "Noch nichts hier"}</h3><p>${q ? "Versuche einen anderen Suchbegriff." : "Lege mit „Neu“ oben rechts Ordner, Notizen oder Datenbanken an oder lade Dateien hoch. Dateien kannst du auch einfach hierher ziehen."}</p></div>`}
   </article></div>`;
@@ -370,7 +370,8 @@ V.docs = (m, id) => {
   $$("[data-fm]", m).forEach(b => b.onclick = e => { e.stopPropagation(); folderMenu(b, folderOf(b.dataset.fm)); });
   $$(".doc", m).forEach(c => c.ondragstart = e => { e.dataTransfer.setData("text/lumi-doc", c.dataset.d); e.dataTransfer.effectAllowed = "move"; });
   function dropOn(e, fid) { const did = e.dataTransfer.getData("text/lumi-doc"); if (!did) return; e.preventDefault(); e.stopPropagation(); const d = D.docs.find(x => x.id === did); if (d) { moveDoc(d, fid); toast("Verschoben nach " + (folderOf(fid)?.name || "Dokumente")); refreshNav(); V.docs(m); } }
-  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
+  $("#aicb", m).onclick = () => openAiCommand();
+  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit KI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
   $("#dq", m).oninput = debounce(e => { docQuery = e.target.value; const p = e.target.selectionStart; V.docs(m); const i = $("#dq", m); i.focus(); i.setSelectionRange(p, p); }, 200);
   $("#ds", m).onchange = e => { docSort = e.target.value; V.docs(m); };
 };

@@ -9,18 +9,20 @@ Verfügbare Aktionen (Felder in Klammern sind optional):
 - rename_doc {doc, title} – Dokument umbenennen
 - move_doc {doc, folder} – Dokument in Ordner verschieben ("" = Home)
 - create_folder {name, (parent)} – neuen Ordner erstellen
+- create_database {title, (template:"plan"|"exams"|"read"|"blank"), (columns:[{name, type:"text"|"num"|"date"|"select"|"check", (options:[...])}]), (rows:[{"Spaltenname":"Wert"}]), (folder)} – Datenbank (Tabelle/Board/Kalender) anlegen
 - create_cards {deck, cards:[{q,a}], (subject)} – Karteikarten in einem Stapel (wird bei Bedarf erstellt)
 - add_task {title, type:"task"|"hw"|"exam", due:"JJJJ-MM-TT", (subject), (note)} – Aufgabe, Hausaufgabe oder Prüfung/Test eintragen
 - complete_task {task} – Aufgabe als erledigt markieren
 - add_grade {subject, title, value, (weight)} – Note eintragen
 - delete_doc {doc} – Dokument löschen (der Nutzer muss bestätigen)
 - open {view:"today"|"docs"|"cards"|"quiz"|"planner"|"grades"|"focus"|"settings"|"search"} oder {doc} – Bereich oder Dokument öffnen
-"doc", "task", "deck" und "subject" gibst du mit der ID oder dem Titel aus der Liste unten an. Rechne relative Datumsangaben („nächsten Freitag“) anhand von „Heute“ in ein echtes Datum um. Erfinde keine Dokumente, die nicht in der Liste stehen. Wenn nur eine Frage gestellt wird, antworte normal ohne Block. Frage kurz nach, wenn eine wichtige Angabe fehlt (z. B. das Datum einer Prüfung).`;
+"doc", "task", "deck" und "subject" gibst du mit der ID oder dem Titel aus der Liste unten an. Rechne relative Datumsangaben („nächsten Freitag“) anhand von „Heute“ in ein echtes Datum um. Erfinde keine Dokumente, die nicht in der Liste stehen. Neu erstellte Notizen, Datenbanken und Kartenstapel öffnet die App automatisch. Schreibe Notizen vollständig und gut strukturiert (kurze Absätze, Listen mit "- ", Überschriften als eigene kurze Zeile). "Aktuell geöffnet" in der Liste ist das Dokument, auf das sich „dieses Dokument“ bezieht. Wenn nur eine Frage gestellt wird, antworte normal ohne Block. Frage kurz nach, wenn eine wichtige Angabe fehlt (z. B. das Datum einer Prüfung).`;
 
 function agentContext() {
   const path = f => folderPath(f).map(x => x.name).join("/");
   const L = (t, a) => a.length ? `${t}:\n${a.join("\n")}\n` : "";
-  return `Heute: ${iso()} (${new Date().toLocaleDateString("de-DE", { weekday: "long" })})\n` +
+  const cur = (location.hash.match(/#\/app\/doc\/([^/]+)/) || [])[1], cd = cur && D.docs.find(x => x.id === cur);
+  return (cd ? `Aktuell geöffnet: [${cd.id}] ${cd.title}\n` : "") + `Heute: ${iso()} (${new Date().toLocaleDateString("de-DE", { weekday: "long" })})\n` +
     L("Fächer", D.subjects.map(s => `- ${s.name}`)) +
     L("Ordner", D.folders.slice(0, 60).map(f => `- ${path(f.id)}`)) +
     L("Dokumente", [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 50).map(d => `- [${d.id}] ${d.title}${d.folderId ? " (" + path(d.folderId) + ")" : ""}`)) +
@@ -42,7 +44,7 @@ function ensureFolderPath(p) {
 }
 
 const ACTIONS = {
-  async create_note(a) { const fid = ensureFolderPath(a.folder), sid = findSubject(a.subject)?.id || subjectOfFolder(fid), html = textToHtml(String(a.content || "")), id = uid(); D.docs.unshift({ id, type: "note", title: String(a.title || "Neue Notiz").slice(0, 120), subjectId: sid || "", folderId: fid, paper: D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) }); await KV.set("html:" + id, html); return { label: `Notiz „${D.docs[0].title}“ erstellt`, go: "doc/" + id }; },
+  async create_note(a) { const fid = ensureFolderPath(a.folder), sid = findSubject(a.subject)?.id || subjectOfFolder(fid), html = textToHtml(String(a.content || "")), id = uid(); D.docs.unshift({ id, type: "note", title: String(a.title || "Neue Notiz").slice(0, 120), subjectId: sid || "", folderId: fid, paper: D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) }); await KV.set("html:" + id, html); return { label: `Notiz „${D.docs[0].title}“ erstellt`, go: "doc/" + id, open: true }; },
   async append_to_note(a) { const d = findDoc(a.doc); if (!d || d.type !== "note") throw "Notiz nicht gefunden"; const h = ((await KV.get("html:" + d.id)) || "") + textToHtml(String(a.content || "")); await KV.set("html:" + d.id, h); d.text = htmlToText(h); d.updated = Date.now(); return { label: `Text zu „${d.title}“ hinzugefügt`, go: "doc/" + d.id }; },
   async rename_doc(a) { const d = findDoc(a.doc); if (!d || !String(a.title || "").trim()) throw "Dokument nicht gefunden"; const old = d.title; d.title = String(a.title).trim().slice(0, 120); d.updated = Date.now(); return { label: `„${old}“ umbenannt in „${d.title}“`, go: "doc/" + d.id }; },
   async move_doc(a) { const d = findDoc(a.doc); if (!d) throw "Dokument nicht gefunden"; d.folderId = ensureFolderPath(a.folder); d.subjectId = subjectOfFolder(d.folderId) || d.subjectId; d.updated = Date.now(); return { label: `„${d.title}“ verschoben nach ${["Home", ...folderPath(d.folderId).map(f => f.name)].join(" / ")}`, go: "docs/" + d.folderId }; },
@@ -50,7 +52,15 @@ const ACTIONS = {
   async create_cards(a) {
     const cards = (a.cards || []).filter(c => c && c.q && c.a); if (!cards.length) throw "Keine Karten";
     let k = pick(D.decks, "id", a.deck); if (!k) { k = { id: uid(), title: String(a.deck || "Neuer Stapel").slice(0, 80), subjectId: findSubject(a.subject)?.id || "", cards: [] }; D.decks.unshift(k); }
-    cards.forEach(c => k.cards.push({ id: uid(), q: String(c.q), a: String(c.a), box: 0, due: iso() })); return { label: `${cards.length} Karten in „${k.title}“`, go: "cards/" + k.id };
+    cards.forEach(c => k.cards.push({ id: uid(), q: String(c.q), a: String(c.a), box: 0, due: iso() })); return { label: `${cards.length} Karten in „${k.title}“`, go: "cards/" + k.id, open: true };
+  },
+  async create_database(a) {
+    const kinds = ["plan", "exams", "read", "blank"], tpl = DB_TPL[kinds.includes(a.template) ? a.template : "blank"](), fid = ensureFolderPath(a.folder), id = uid();
+    if (Array.isArray(a.columns) && a.columns.length) tpl.cols = a.columns.slice(0, 10).map((c, i) => ({ id: "c" + (i + 1), name: String(c.name || "Spalte " + (i + 1)).slice(0, 40), type: ["text", "num", "date", "select", "check"].includes(c.type) ? c.type : "text", ...(c.type === "select" ? { opts: (c.options || []).map((n, j) => ({ n: String(n), c: j % 8 })) } : {}) }));
+    if (tpl.view === "board" && !tpl.cols.some(c => c.id === tpl.group && c.type === "select")) { tpl.view = "table"; delete tpl.group; }
+    if (Array.isArray(a.rows)) tpl.rows = a.rows.slice(0, 40).map(r => ({ id: uid(), v: Object.fromEntries(tpl.cols.map(c => { let x = r?.[c.name]; if (x === undefined || x === null) return [c.id, undefined]; if (c.type === "select") { x = String(x); c.opts ||= []; if (!c.opts.some(o => o.n === x)) c.opts.push({ n: x, c: c.opts.length % 8 }); } else if (c.type === "num") x = +x || 0; else if (c.type === "check") x = !!x; else x = String(x); return [c.id, x]; }).filter(e => e[1] !== undefined)) }));
+    D.docs.unshift({ id, type: "db", title: String(a.title || "Neue Datenbank").slice(0, 100), subjectId: subjectOfFolder(fid) || "", folderId: fid, updated: Date.now(), created: Date.now(), text: "" }); await KV.set("db:" + id, tpl);
+    return { label: `Datenbank „${D.docs[0].title}“ erstellt`, go: "doc/" + id, open: true };
   },
   async add_task(a) { if (!String(a.title || "").trim()) throw "Kein Titel"; const due = /^\d{4}-\d{2}-\d{2}$/.test(a.due || "") ? a.due : ""; const t = { id: uid(), title: String(a.title).trim().slice(0, 140), type: ["task", "hw", "exam"].includes(a.type) ? a.type : "task", due, subjectId: findSubject(a.subject)?.id || "", note: String(a.note || "").slice(0, 500), done: false, source: "ki" }; D.tasks.push(t); return { label: `${t.type === "exam" ? "Prüfung" : "Aufgabe"} „${t.title}“${due ? " am " + fmtD(due) : ""} eingetragen`, go: "planner" }; },
   async complete_task(a) { const t = pick(D.tasks.filter(x => !x.done), "id", a.task); if (!t) throw "Aufgabe nicht gefunden"; t.done = true; t.doneAt = Date.now(); return { label: `„${t.title}“ erledigt`, go: "planner" }; },
@@ -71,6 +81,36 @@ async function runAgent(reply) {
     catch (e) { acts.push({ label: String(e?.message || e), err: true }); }
   }
   save(); refreshNav();
-  if (["docs", "planner", "cards", "grades"].includes(curView)) renderView();
+  const op = [...acts].reverse().find(x => x.open && x.go);
+  if (op) setTimeout(() => go(op.go), 700); else if (["docs", "planner", "cards", "grades"].includes(curView)) renderView();
   return { text: text || "Erledigt.", acts };
 }
+
+
+/* ---------- AI everywhere: command bar (Strg/Cmd + Umschalt + K, "Neu" menus, document bars) ---------- */
+async function agentAsk(text) {
+  const r = await ai(text, { system: sysBase(AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (typeof msContext === "function" && msContext() ? "\n" + msContext() : "")), max: 2000, quiet: true });
+  if (!r) return null; return runAgent(r);
+}
+function openAiCommand(prefill = "") {
+  document.getElementById("aicmd")?.remove();
+  const el = document.createElement("div"); el.id = "aicmd";
+  const SUG = ["Erstelle eine Notiz zur Zellatmung", "Erstelle einen Lernplan für die nächste Woche als Datenbank", "Trage morgen einen Vokabeltest ein", "Erstelle 10 Karteikarten zu diesem Dokument"];
+  el.innerHTML = `<div class="aic-bg"></div><div class="aic-box" role="dialog" aria-label="KI"><form class="aic-in">${ic("spark")}<input id="aic-i" autocomplete="off" placeholder="Was soll die KI für dich tun? z. B. „Erstelle eine Notiz zu …“" value="${esc(prefill)}"><button class="send" aria-label="Senden">${ic("up")}</button></form><div class="aic-sug">${SUG.map(x => `<button type="button">${esc(x)}</button>`).join("")}</div><div class="aic-out" hidden></div></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  const close = () => { el.classList.remove("on"); setTimeout(() => el.remove(), 250); document.removeEventListener("keydown", kd); }, kd = e => { if (e.key === "Escape") close(); };
+  document.addEventListener("keydown", kd); $(".aic-bg", el).onclick = close; const inp = $("#aic-i", el), out = $(".aic-out", el);
+  setTimeout(() => { inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }, 60);
+  $$(".aic-sug button", el).forEach(b => b.onclick = () => { inp.value = b.textContent; $(".aic-in", el).requestSubmit(); });
+  $(".aic-in", el).onsubmit = async e => {
+    e.preventDefault(); const q = inp.value.trim(); if (!q) return;
+    if (!hasKey()) { out.hidden = false; out.innerHTML = `<p class="note">Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.</p>`; return; }
+    $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="dots"><span></span><span></span><span></span></div>`;
+    const r = await agentAsk(q);
+    if (!r) { out.innerHTML = `<p class="note">Das hat leider nicht geklappt. Versuche es bitte noch einmal.</p>`; return; }
+    out.innerHTML = `<p>${esc(r.text)}</p>${r.acts.length ? `<div class="acts">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
+    $$("[data-ag]", out).forEach(b => b.onclick = () => { close(); go(b.dataset.ag); });
+    if (r.acts.some(a => a.open)) setTimeout(close, 900);
+  };
+}
+document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "k" && document.getElementById("app") && !document.getElementById("app").hidden) { e.preventDefault(); openAiCommand(); } });

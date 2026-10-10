@@ -1385,3 +1385,17 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .docsed .path button,.docsed .path button.here,.docsed .path button:hover,.docsed .path button.drop{background:none!important;box-shadow:none!important;border-radius:0!important;padding:0 2px!important;border:0!important}
 .docsed .path button:hover{color:var(--violet)}
 .docsed .path button.drop{color:var(--violet);text-decoration:underline}
+
+/* ======== AI command bar ======== */
+#aicmd{position:fixed;inset:0;z-index:260;display:grid;justify-items:center;align-items:start;padding-top:16vh;opacity:0;transition:opacity .2s}
+#aicmd.on{opacity:1}
+#aicmd .aic-bg{position:absolute;inset:0;background:rgba(28,22,70,.28);backdrop-filter:blur(6px)}
+#aicmd .aic-box{position:relative;width:min(660px,92vw);background:#fff;border-radius:30px;padding:14px 16px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06),0 30px 80px rgba(40,30,120,.3);transform:translateY(-12px) scale(.98);transition:transform .3s cubic-bezier(.2,.9,.3,1.1)}
+#aicmd.on .aic-box{transform:none}
+.aic-in{display:flex;align-items:center;gap:10px;background:#f4f4f8;border-radius:999px;padding:6px 6px 6px 18px}
+.aic-in>svg{width:20px;height:20px;color:var(--violet);flex:none}
+.aic-in input{flex:1;border:0;background:none;outline:0;font:inherit;font-size:16px;min-width:0;padding:10px 0}
+.aic-in .send{width:40px;height:40px;border-radius:50%;background:var(--violet);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}.aic-in .send svg{width:18px;height:18px}
+.aic-sug{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.aic-sug button{background:#f4f4f8;border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:500;color:#3b3b4f;cursor:pointer;transition:background .15s}.aic-sug button:hover{background:#ebe6ff}
+.aic-out{margin-top:14px;padding:4px 6px}.aic-out p{margin:0 0 8px;font-size:15.5px;line-height:1.5}
