@@ -44,7 +44,7 @@ function ensureFolderPath(p) {
 }
 
 const ACTIONS = {
-  async create_note(a) { const fid = ensureFolderPath(a.folder), sid = findSubject(a.subject)?.id || subjectOfFolder(fid), html = textToHtml(String(a.content || "")), id = uid(); D.docs.unshift({ id, type: "note", title: String(a.title || "Neue Notiz").slice(0, 120), subjectId: sid || "", folderId: fid, paper: D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) }); await KV.set("html:" + id, html); return { label: `Notiz „${D.docs[0].title}“ erstellt`, go: "doc/" + id, open: true }; },
+  async create_note(a) { const fid = ensureFolderPath(a.folder), sid = findSubject(a.subject)?.id || subjectOfFolder(fid), html = textToHtml(String(a.content || "")), id = uid(); D.docs.unshift({ id, type: "note", title: String(a.title || "Neue Notiz").slice(0, 120), subjectId: sid || "", folderId: fid, paper: D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) }); await KV.set("html:" + id, html); window.__aiReveal = id; return { label: `Notiz „${D.docs[0].title}“ erstellt`, go: "doc/" + id, open: true }; },
   async append_to_note(a) { const d = findDoc(a.doc); if (!d || d.type !== "note") throw "Notiz nicht gefunden"; const h = ((await KV.get("html:" + d.id)) || "") + textToHtml(String(a.content || "")); await KV.set("html:" + d.id, h); d.text = htmlToText(h); d.updated = Date.now(); return { label: `Text zu „${d.title}“ hinzugefügt`, go: "doc/" + d.id }; },
   async rename_doc(a) { const d = findDoc(a.doc); if (!d || !String(a.title || "").trim()) throw "Dokument nicht gefunden"; const old = d.title; d.title = String(a.title).trim().slice(0, 120); d.updated = Date.now(); return { label: `„${old}“ umbenannt in „${d.title}“`, go: "doc/" + d.id }; },
   async move_doc(a) { const d = findDoc(a.doc); if (!d) throw "Dokument nicht gefunden"; d.folderId = ensureFolderPath(a.folder); d.subjectId = subjectOfFolder(d.folderId) || d.subjectId; d.updated = Date.now(); return { label: `„${d.title}“ verschoben nach ${["Home", ...folderPath(d.folderId).map(f => f.name)].join(" / ")}`, go: "docs/" + d.folderId }; },
@@ -60,7 +60,7 @@ const ACTIONS = {
     if (tpl.view === "board" && !tpl.cols.some(c => c.id === tpl.group && c.type === "select")) { tpl.view = "table"; delete tpl.group; }
     if (Array.isArray(a.rows)) tpl.rows = a.rows.slice(0, 40).map(r => ({ id: uid(), v: Object.fromEntries(tpl.cols.map(c => { let x = r?.[c.name]; if (x === undefined || x === null) return [c.id, undefined]; if (c.type === "select") { x = String(x); c.opts ||= []; if (!c.opts.some(o => o.n === x)) c.opts.push({ n: x, c: c.opts.length % 8 }); } else if (c.type === "num") x = +x || 0; else if (c.type === "check") x = !!x; else x = String(x); return [c.id, x]; }).filter(e => e[1] !== undefined)) }));
     D.docs.unshift({ id, type: "db", title: String(a.title || "Neue Datenbank").slice(0, 100), subjectId: subjectOfFolder(fid) || "", folderId: fid, updated: Date.now(), created: Date.now(), text: "" }); await KV.set("db:" + id, tpl);
-    return { label: `Datenbank „${D.docs[0].title}“ erstellt`, go: "doc/" + id, open: true };
+    window.__aiReveal = id; return { label: `Datenbank „${D.docs[0].title}“ erstellt`, go: "doc/" + id, open: true };
   },
   async add_task(a) { if (!String(a.title || "").trim()) throw "Kein Titel"; const due = /^\d{4}-\d{2}-\d{2}$/.test(a.due || "") ? a.due : ""; const t = { id: uid(), title: String(a.title).trim().slice(0, 140), type: ["task", "hw", "exam"].includes(a.type) ? a.type : "task", due, subjectId: findSubject(a.subject)?.id || "", note: String(a.note || "").slice(0, 500), done: false, source: "ki" }; D.tasks.push(t); return { label: `${t.type === "exam" ? "Prüfung" : "Aufgabe"} „${t.title}“${due ? " am " + fmtD(due) : ""} eingetragen`, go: "planner" }; },
   async complete_task(a) { const t = pick(D.tasks.filter(x => !x.done), "id", a.task); if (!t) throw "Aufgabe nicht gefunden"; t.done = true; t.doneAt = Date.now(); return { label: `„${t.title}“ erledigt`, go: "planner" }; },
@@ -105,12 +105,24 @@ function openAiCommand(prefill = "") {
   $(".aic-in", el).onsubmit = async e => {
     e.preventDefault(); const q = inp.value.trim(); if (!q) return;
     if (!hasKey()) { out.hidden = false; out.innerHTML = `<p class="note">Die KI ist noch nicht eingerichtet – siehe Einstellungen → KI.</p>`; return; }
-    $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="dots"><span></span><span></span><span></span></div>`;
+    $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>KI schreibt …</span></div>`;
     const r = await agentAsk(q);
     if (!r) { out.innerHTML = `<p class="note">Das hat leider nicht geklappt. Versuche es bitte noch einmal.</p>`; return; }
-    out.innerHTML = `<p>${esc(r.text)}</p>${r.acts.length ? `<div class="acts">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
+    out.innerHTML = `<p>${streamHtml(r.text)}</p>${r.acts.length ? `<div class="acts" style="--base:${Math.min(2600, r.text.split(/\s+/).length * 30 + 200)}ms">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
     $$("[data-ag]", out).forEach(b => b.onclick = () => { close(); go(b.dataset.ag); });
     if (r.acts.some(a => a.open)) setTimeout(close, 900);
   };
 }
 document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "k" && document.getElementById("app") && !document.getElementById("app").hidden) { e.preventDefault(); openAiCommand(); } });
+
+/* word-by-word fade-in for AI text */
+function streamHtml(text) {
+  const parts = String(text || "").split(/(\s+)/); let n = 0; const total = parts.filter(p => p.trim()).length, step = Math.min(34, 2400 / Math.max(1, total));
+  return parts.map(p => p.trim() ? `<span class="sw" style="animation-delay:${Math.round(n++ * step)}ms">${esc(p)}</span>` : esc(p).replace(/\n/g, "<br>")).join("");
+}
+function wordReveal(root, maxMs = 4800) {
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = []; let n; while ((n = w.nextNode())) if (n.nodeValue.trim() && !n.parentElement.closest("table,pre,input")) nodes.push(n);
+  const total = nodes.reduce((a, t) => a + t.nodeValue.split(/\s+/).filter(Boolean).length, 0), step = Math.min(42, maxMs / Math.max(1, total)); let i = 0;
+  nodes.forEach(t => { const f = document.createDocumentFragment(); t.nodeValue.split(/(\s+)/).forEach(p => { if (!p) return; if (!p.trim()) f.appendChild(document.createTextNode(p)); else { const sp = document.createElement("span"); sp.className = "sw"; sp.textContent = p; sp.style.animationDelay = Math.round(i++ * step) + "ms"; f.appendChild(sp); } }); t.replaceWith(f); });
+  return Math.round(total * step) + 650;
+}

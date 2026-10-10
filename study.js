@@ -647,6 +647,11 @@ async function noteEditor(m, d) {
   LEAVE.push(() => { ink.destroy(); });
   try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch {}
   if (!body.innerHTML.trim()) body.innerHTML = "<p><br></p>";
+  if (window.__aiReveal === d.id && html && html.trim()) {
+    window.__aiReveal = ""; body.contentEditable = "false"; svEl.textContent = "KI schreibt …"; paper.classList.add("ai-writing");
+    const orig = body.innerHTML, ms = wordReveal(body);
+    setTimeout(() => { body.innerHTML = orig; body.contentEditable = "true"; paper.classList.remove("ai-writing"); svEl.textContent = "Gespeichert"; }, ms);
+  }
   count(); if (!html || !html.trim()) body.focus();
 }
 
