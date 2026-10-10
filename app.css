@@ -1813,3 +1813,6 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .timer-pill .tb-t{position:relative;font-size:21px!important;letter-spacing:-.03em;font-variant-numeric:tabular-nums;z-index:1}
 .timer-pill .tb-top,.timer-pill .tb-bar,.timer-pill .tb-act,.timer-pill .pd{display:none!important}
 @media (max-width:900px){.timer-pill{width:76px!important;height:76px;left:10px;bottom:calc(84px + env(safe-area-inset-bottom))}.timer-pill .tb-t{font-size:17px!important}}
+/* v59: Logo aus 3 Teilen – Animation pro Teil */
+.ld:nth-child(n){--k:0}
+g>.ld{transform-box:fill-box;transform-origin:center}
