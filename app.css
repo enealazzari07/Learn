@@ -1826,3 +1826,9 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .aipane .hai-h b{font-size:16px}
 @media (max-width:900px){.aipane .ai-ic{width:48px;height:48px}}
 .aip-logo{width:52px;height:52px;border-radius:17px;flex:none;display:block}@media (max-width:900px){.aip-logo{width:40px;height:40px;border-radius:13px}}
+/* v61: kleines Logo = Original mit 3D-Schleife (dunkle Version), auf dunklem Grund invertiert */
+.ic .ld,image.ld{transform-box:fill-box;transform-origin:center}
+.send .ic image,.btn.primary .ic image,.aip-new .ic image{filter:invert(1)}
+.nav-i .ic image{opacity:1}
+.nav-i .ic:has(image){width:28px;height:28px}
+.m.think svg,.aic-think svg{width:26px;height:26px}
