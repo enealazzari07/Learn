@@ -1369,3 +1369,9 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .docspaper .fold .dmore{background:transparent!important;box-shadow:none!important;color:#fff;top:calc(10% + 2px)!important;right:8%!important;width:24px!important;height:24px!important}
 .docspaper .fold .dmore svg{width:16px;height:16px;filter:drop-shadow(0 1px 2px rgba(0,20,60,.4))}
 .docspaper .fold.add:hover .f3d{opacity:.9;--c:#8b8ba3}
+/* v40: calm "add task" row – plain plus, no dashed circle */
+.todo-add .tc.add,.hero-body .todo-add .tc.add{border:0!important;background:transparent!important;box-shadow:none!important;width:28px;height:28px;border-radius:0}
+.todo-add .tc.add svg{width:20px!important;height:20px!important;stroke:#5b5b78!important;stroke-width:1.8!important;stroke-dasharray:none!important;stroke-dashoffset:0!important}
+.todo-add{border-top:1px solid rgba(80,70,170,.12)}
+.todo-add input::placeholder{color:#6b6b88}
+.todo-add:focus-within .tc.add svg{stroke:var(--violet)!important}
