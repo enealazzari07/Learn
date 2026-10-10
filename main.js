@@ -3,11 +3,22 @@
 const landingEl = $("#landing"), appEl = $("#app");
 let onboardShown = false;
 
+/* KI-Dock sitzt bündig unter der Karteikarten-Kachel (dritte Spalte, zweite Reihe); die Kachel ist nur so hoch, dass beides in die Reihe passt */
+function fitDock() {
+  const p = $("#aipane"), ex = $(".w-rec"), cards = $(".w-cards"); if (!p || !ex || !cards) return;
+  if (innerWidth < 901 || p.hidden) { cards.style.height = ""; ["bottom", "right", "width"].forEach(k => p.style.removeProperty(k)); return; }
+  const rr = ex.getBoundingClientRect(), cr = cards.getBoundingClientRect(), r = { bottom: rr.bottom, height: rr.height, right: cr.right, width: cr.width }; if (!r.height) return;
+  if (!p.classList.contains("open")) p.dataset.h = p.offsetHeight;
+  const dh = +p.dataset.h || 172, gap = 12;
+  p.style.setProperty("bottom", Math.round(innerHeight - r.bottom) + "px", "important"); p.style.setProperty("right", Math.round(innerWidth - r.right) + "px", "important"); p.style.setProperty("width", Math.round(r.width) + "px", "important");
+  cards.style.height = Math.max(110, Math.round(r.height - dh - gap)) + "px";
+}
+addEventListener("resize", () => { clearTimeout(fitDock.t); fitDock.t = setTimeout(fitDock, 80); });
 function renderView() {
   LEAVE.splice(0).forEach(f => { try { f(); } catch {} });
   const [, v = "today", x, y] = location.hash.replace(/^#\/?/, "").split("/");
   curView = V[v] ? v : "today";
-  buildShell(); const dock = curView === "today"; $("#app").classList.toggle("has-dock", dock); $(".shell").classList.toggle("with-ai", dock); const ap = $("#aipane"); ap.hidden = !dock; if (!dock) window.__dockFresh = false; if (dock) mountDock(); else ap.innerHTML = ""; refreshNav(); timerPaint();
+  buildShell(); const dock = curView === "today"; $("#app").classList.toggle("has-dock", dock); $(".shell").classList.toggle("with-ai", dock); const ap = $("#aipane"); ap.hidden = !dock; if (!dock) window.__dockFresh = false; if (dock) { mountDock(); requestAnimationFrame(() => { fitDock(); setTimeout(fitDock, 400); setTimeout(fitDock, 1200); }); } else ap.innerHTML = ""; refreshNav(); timerPaint();
   const m = $("#main"); m.className = "main"; m.removeAttribute("style"); window.scrollTo(0, 0); m.scrollTop = 0; setScroller(m);
   $("#cpanel") && curView === "ai" && ($("#cpanel").hidden = true);
   try { const r = V[curView](m, x, y); if (r?.catch) r.catch(e => console.error(e)); } catch (e) { console.error(e); m.innerHTML = `<div class="page"><div class="emptybox"><h3>Ups, da ist etwas schiefgelaufen</h3><p>${esc(e.message)}</p><button class="btn" data-go="today">Zur Startseite</button></div></div>`; bindCommon(m); }

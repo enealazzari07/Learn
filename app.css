@@ -2280,3 +2280,15 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .docspaper>.dside::before{top:28px;bottom:28px;width:2px;border-radius:2px;background:#d3d3dc}
 .docspaper>.dside{padding-top:28px}
 .co-h .co-st{font-style:normal;text-transform:none;letter-spacing:0;margin-left:8px;font-size:11.5px;color:#d97706}.co-h .co-st.ok{color:#16a34a}
+
+/* ======== v85: Prüfungen ↔ Karteikarten getauscht, KI-Dock bündig darunter ======== */
+@media (min-width:901px){
+  .bento .w-ex{grid-column:1!important;grid-row:2!important}
+  .bento .w-cards{grid-column:3!important;grid-row:2!important;align-self:start;display:grid!important;grid-template-columns:auto 1fr;grid-template-areas:"h h" "b p" "b g";column-gap:16px;align-content:center;row-gap:2px;padding:14px 20px!important}
+  .bento .w-cards h2{grid-area:h;margin:0 0 6px}
+  .bento .w-cards .w-big{grid-area:b;margin:0!important;align-self:center;font-size:clamp(38px,5.5vh,56px)}
+  .bento .w-cards p{grid-area:p;align-self:end;margin:0!important}
+  .bento .w-cards .w-go{grid-area:g;align-self:start}
+  .aipane{width:var(--dockw,380px)}
+  .aipane.open{width:var(--dockw,420px)}
+}
