@@ -240,30 +240,30 @@ V.today = m => {
   const thumb = d => `<div class="s-th" style="--h:${hue(d.id)}"><span>${ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note")}</span></div>`;
   const nextEx = exams[0];
   m.classList.add("homew");
-  m.innerHTML = `<div class="home-wrap ${first ? "first" : "again"}"><div class="page home sana">
-  <header class="hh rise" style="--i:0"><div><h1 class="greet-h">${words}</h1><p class="hsub">${open.length ? `Du hast ${todayN} ${todayN === 1 ? "Ding" : "Dinge"} heute zu erledigen.` : "Heute ist nichts offen – ein guter Moment zum Lernen."}</p></div>
-    </header>
-  <section class="s-ai rise" style="--i:1"><div class="s-aih"><span class="s-aik">${ic("spark")} Lumi KI</span><span class="s-aid">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</span></div>
-    <form class="s-aif" id="hs"><input id="hq" placeholder="Frag mich etwas, lass mich etwas erstellen oder suche …" autocomplete="off" aria-label="KI fragen"><button class="send" id="hs-ai" aria-label="Senden">${ic("up")}</button></form>
-    <div class="s-aia" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
-    <div class="s-aic"><span>Mehr entdecken</span>${["Lernplan für heute erstellen", "Quiz zu meinem letzten Dokument", "Karteikarten aus meiner letzten Notiz", "Was sollte ich zuerst lernen?"].map(x => `<button type="button">${x}</button>`).join("")}</div></section>
-  <div class="s-two">
-  <section class="s-tbl rise" style="--i:2"><div class="s-tr s-th0"><span>Aufgabe</span><span>Art</span><span>Fortschritt</span><span>Fällig</span><span>Priorität</span></div><div id="todos"></div>
-    <form class="todo-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Neue Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
-  
-  <aside class="s-side rise" style="--i:3"><div class="s-card s-goal">${ringSvg(Math.round(Math.min(100, mins / goal * 100)), "#0f0f12", mins, "Min.")}<div><span class="s-fk">Lernziel heute</span><b>${mins} von ${goal} Minuten</b><button class="link" data-go="focus">Fokus starten</button></div></div>
-    <div class="s-card s-list"><button class="s-li" data-go="cards"><span><small>Karteikarten</small><b>${due} ${due === 1 ? "Karte" : "Karten"} fällig</b></span>${ic("back")}</button>
-    <button class="s-li" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="planner"'}><span><small>${nextEx ? "Nächste Prüfung" : "Planer"}</small><b>${nextEx ? esc(nextEx.title) + " · " + daysUntil(nextEx.due) + " " + (daysUntil(nextEx.due) === 1 ? "Tag" : "Tage") : "Termin eintragen"}</b></span>${ic("back")}</button></div></aside></div>
-  ${recent.length ? `<section class="rise s-sec s-rec" style="--i:3"><div class="sech"><h2 class="sh2">Zuletzt <em>${D.docs.length}</em></h2><button class="link" data-go="docs">Alle Dokumente</button></div><div class="s-cards4">${recent.map(d => `<button class="s-rc" data-d="${d.id}">${thumb(d)}<b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></button>`).join("")}</div></section>` : ""}
+  const icn = d => ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note");
+  const SUGG = ["Lernplan für heute erstellen", "Quiz zu meinem letzten Dokument", "Was sollte ich zuerst lernen?"];
+  m.innerHTML = `<div class="home-wrap again"><div class="page home zen">
+  <p class="z-date rise" style="--i:0">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p>
+  <h1 class="greet-h z-h">${words}</h1>
+  <form class="z-ask rise" style="--i:3" id="hs"><span class="z-sp">${ic("spark")}</span><input id="hq" placeholder="Was möchtest du lernen oder erstellen?" autocomplete="off" aria-label="KI fragen"><button class="send" id="hs-ai" aria-label="Senden">${ic("up")}</button></form>
+  <div class="z-chips rise" style="--i:4">${SUGG.map(x => `<button type="button">${x}</button>`).join("")}</div>
+  <div class="z-ans" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
+  <div class="z-pills rise" style="--i:5">${nextEx ? `<button class="z-pill" data-ex="${nextEx.id}"><i></i>${esc(nextEx.title)} in ${daysUntil(nextEx.due)} ${daysUntil(nextEx.due) === 1 ? "Tag" : "Tagen"}</button>` : ""}<button class="z-pill" data-go="cards"><i></i>${due} ${due === 1 ? "Karte" : "Karten"} fällig</button><button class="z-pill" data-go="focus"><i></i>${mins} / ${goal} Min. gelernt</button></div>
+  <div class="z-cols rise" style="--i:6">
+    <section class="z-col"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos"></div>
+      <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
+    <section class="z-col"><h2>Zuletzt</h2>${recent.length ? recent.slice(0, 4).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</section>
+  </div>
+  <nav class="z-quick rise" style="--i:7"><button data-q="n">${ic("note")}<span>Neue Notiz</span></button><button data-go="cards">${ic("cards")}<span>Karteikarten</span></button><button data-go="quiz">${ic("help")}<span>Quiz</span></button><button data-go="focus">${ic("timer")}<span>Fokus</span></button><button data-go="planner">${ic("cal")}<span>Planer</span></button></nav>
   </div></div>`;
   bindCommon(m);
+  $$("[data-q]", m).forEach(b => b.onclick = () => docDialog("note"));
   $$("[data-ex]", m).forEach(b => b.onclick = () => practiceExam(D.tasks.find(x => x.id === b.dataset.ex)));
-  const todoRows = () => D.tasks.filter(x => !x.done).sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 6);
+  const todoRows = () => D.tasks.filter(x => !x.done && x.type !== "exam").sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 5);
   const dueLbl = x => !x.due ? "–" : daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due);
   const drawTodos = () => {
     const box = $("#todos", m), rows = todoRows();
-    box.innerHTML = rows.length ? rows.map(x => { const p = PR(x), pr = x.progress || 0; return `<div class="todo s-tr" data-id="${x.id}"><span class="s-tt"><i class="rt" style="--h:${hue(x.id)}"></i><button class="tc" role="checkbox" aria-checked="false" aria-label="${esc(x.title)} erledigt"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></button><b>${esc(x.title)}</b></span><span class="s-ty">${TY[x.type] || "Aufgabe"}</span><button class="s-pg" aria-label="Fortschritt ändern"><i style="width:${pr}%"></i></button><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${dueLbl(x)}</small><span class="s-pri p${p}">${p}</span></div>`; }).join("") : `<p class="empty sm">Alles erledigt – nichts offen.</p>`;
-    $$(".todo .s-pg", box).forEach(b => b.onclick = () => { const row = b.closest(".todo"), x = D.tasks.find(y => y.id === row.dataset.id); if (!x) return; x.progress = ((x.progress || 0) + 25) % 125; if (x.progress > 100) x.progress = 0; $("i", b).style.width = x.progress + "%"; save(); if (x.progress === 100) setTimeout(() => $(".tc", row)?.click(), 350); });
+    box.innerHTML = rows.length ? rows.map(x => `<div class="todo z-t" data-id="${x.id}"><button class="tc" role="checkbox" aria-checked="false" aria-label="${esc(x.title)} erledigt"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></button><b>${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${dueLbl(x)}</small></div>`).join("") : `<p class="empty sm">Alles erledigt – nichts offen.</p>`;
     $$(".todo .tc", box).forEach(b => b.onclick = () => { const row = b.closest(".todo"), x = D.tasks.find(y => y.id === row.dataset.id); if (!x || row.classList.contains("done")) return; x.done = true; x.progress = 100; x.doneAt = Date.now(); save(); b.setAttribute("aria-checked", "true"); row.classList.add("done"); setTimeout(() => { row.style.maxHeight = row.offsetHeight + "px"; requestAnimationFrame(() => row.classList.add("gone")); setTimeout(() => { drawTodos(); refreshNav(); }, 380); }, 520); });
   };
   drawTodos();
@@ -287,7 +287,7 @@ V.today = m => {
     out.innerHTML = `<p>${streamHtml(r.text)}</p>${r.acts.length ? `<div class="acts" style="--base:${Math.min(2600, r.text.split(/\s+/).length * 30 + 200)}ms">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
     $$("[data-ag]", out).forEach(b => b.onclick = () => go(b.dataset.ag));
   };
-  $$(".s-aic button", m).forEach(b => b.onclick = () => { $("#hq", m).value = b.textContent; $("#hs", m).requestSubmit(); });
+  $$(".z-chips button", m).forEach(b => b.onclick = () => { $("#hq", m).value = b.textContent; $("#hs", m).requestSubmit(); });
 };
 const msLogoSvg = () => `<svg viewBox="0 0 24 24" width="26" height="26"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="13" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="13" width="10" height="10" fill="#00a4ef"/><rect x="13" y="13" width="10" height="10" fill="#ffb900"/></svg>`;
 let quizPrefill = null;
