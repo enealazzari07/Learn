@@ -1381,3 +1381,7 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .docspaper .items>.fold{width:150px;flex:none}
 .docspaper .items>.doc{width:210px;flex:none}
 @media (max-width:900px){.docspaper .items{gap:18px 14px}.docspaper .items>.fold{width:120px}.docspaper .items>.doc{width:calc(50% - 8px)}}
+/* breadcrumb: plain text only */
+.docsed .path button,.docsed .path button.here,.docsed .path button:hover,.docsed .path button.drop{background:none!important;box-shadow:none!important;border-radius:0!important;padding:0 2px!important;border:0!important}
+.docsed .path button:hover{color:var(--violet)}
+.docsed .path button.drop{color:var(--violet);text-decoration:underline}
