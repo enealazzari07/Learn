@@ -2688,3 +2688,8 @@ body.hed-open{overflow:hidden}
 
 .dsn-panel[hidden]{display:none}
 .sbadge{}
+.cvwrap.inf{height:calc(100dvh - 190px);min-height:340px;max-height:none;overflow:hidden;touch-action:none;background:#fff}
+.cvwrap.inf canvas{display:block;touch-action:none}
+.bzoom{position:absolute;right:14px;bottom:14px;display:flex;align-items:center;background:#fff;border-radius:999px;box-shadow:0 4px 18px rgba(30,20,90,.16);padding:3px;z-index:6}
+.bzoom button{border:0;background:transparent;height:34px;min-width:34px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;color:#222;padding:0 8px}.bzoom button:hover{background:#f1f1f5}
+.bd-inf{margin:2px 0 10px;color:#6b6b78;font-size:13px}

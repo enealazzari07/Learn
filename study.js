@@ -96,20 +96,21 @@ const TEMPLATES = [
 const PAPERS = [["white", "Leer"], ["lines", "Liniert"], ["grid", "Kariert"], ["dots", "Punkte"]];
 function docDialog(kind = "note", pre = null) {
   if (kind === "draw") return boardDialog(pre);
-  const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank";
-  const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument A4</button><button type="button" role="tab" id="nd-swb">Whiteboard</button><button type="button" role="tab" id="nd-swd">Design</button></div><p class="eyebrow">Neues Dokument</p>
+  const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank", pages = D.profile.pageMode !== false;
+  const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument</button><button type="button" role="tab" id="nd-swb">Whiteboard</button><button type="button" role="tab" id="nd-swd">Design</button></div><p class="eyebrow">Neues Dokument</p>
   <input class="nd-name" id="nd-n" placeholder="Wie soll das Dokument heißen?" autocomplete="off" maxlength="80">
-  <label class="lbl">Format</label><div class="nd-fmt"><span class="chip on">A4 hochkant</span></div><label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
+  <label class="lbl">Format</label><div class="chips nd-fmt" id="nd-fm"><button type="button" class="chip ${(D.profile.pageMode !== false) ? "on" : ""}" data-k="a4">A4-Seiten</button><button type="button" class="chip ${D.profile.pageMode === false ? "on" : ""}" data-k="endless">Endlos</button></div><label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
   <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="nd-go">Dokument erstellen</button></div></div>`, "wide nd-modal");
   const nameIn = $("#nd-n", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); }; $("#nd-swd", el).onclick = () => { const n = nameIn.value, f = folder; close(); dsCreateDialog({ name: n, folder: f }); };
   const fname = () => { const fp = folderPath(folder); return fp.length ? fp[fp.length - 1].name : ""; };
   setTimeout(() => nameIn.focus(), 40);
+  $$("#nd-fm .chip", el).forEach(b => b.onclick = () => { pages = b.dataset.k === "a4"; $$("#nd-fm .chip", el).forEach(x => x.classList.toggle("on", x === b)); });
   $$("#nd-p .pp", el).forEach(b => b.onclick = () => { paper = b.dataset.k; $$("#nd-p .pp", el).forEach(x => x.classList.toggle("on", x === b)); });
   $$("#nd-t .chip", el).forEach(b => b.onclick = () => { tpl = b.dataset.t; $$("#nd-t .chip", el).forEach(x => x.classList.toggle("on", x === b)); const t = TEMPLATES.find(x => x[0] === tpl); if (!nameIn.value.trim() && tpl !== "blank") nameIn.placeholder = t[1]; });
   $("[data-c]", el).onclick = close;
   const go2 = async () => {
     const title = nameIn.value.trim() || (isNote ? (TEMPLATES.find(x => x[0] === tpl)[0] === "blank" ? "Unbenanntes Dokument" : TEMPLATES.find(x => x[0] === tpl)[1]) : "Neue Zeichnung"); close();
-    if (isNote) { D.profile.paper = paper; await newNote("", TEMPLATES.find(x => x[0] === tpl)[2], title, folder, paper); }
+    if (isNote) { D.profile.paper = paper; await newNote("", TEMPLATES.find(x => x[0] === tpl)[2], title, folder, paper, pages); }
     else { const id = uid(); D.docs.unshift({ id, type: "draw", title, subjectId: subjectOfFolder(folder), folderId: folder, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + id, { strokes: [], bg: paper === "white" ? "blank" : paper, H: 1000 }); save(); go("draw/" + id); }
   };
   $("#nd-go", el).onclick = go2; nameIn.onkeydown = e => { if (e.key === "Enter") go2(); };
@@ -151,8 +152,8 @@ function folderMenu(btn, f) {
 }
 
 /* ---------- documents CRUD ---------- */
-async function newNote(subjectId = "", html = "", title = "Unbenanntes Dokument", folderId = docFolder, paper = "") {
-  const id = uid(); D.docs.unshift({ id, type: "note", title, subjectId: subjectId || subjectOfFolder(folderId), folderId, paper: paper || D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) });
+async function newNote(subjectId = "", html = "", title = "Unbenanntes Dokument", folderId = docFolder, paper = "", pagesOn) {
+  const id = uid(); D.docs.unshift({ id, type: "note", ...(pagesOn === undefined ? {} : { pagesOn }), title, subjectId: subjectId || subjectOfFolder(folderId), folderId, paper: paper || D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) });
   await KV.set("html:" + id, html || ""); save(); go("doc/" + id);
 }
 async function thumbOf(file) {
