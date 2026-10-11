@@ -99,16 +99,11 @@ function docDialog(kind = "note", pre = null) {
   const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank";
   const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument A4</button><button type="button" role="tab" id="nd-swb">Whiteboard</button><button type="button" role="tab" id="nd-swd">Design</button></div><p class="eyebrow">Neues Dokument</p>
   <input class="nd-name" id="nd-n" placeholder="Wie soll das Dokument heißen?" autocomplete="off" maxlength="80">
-  <div class="nd-sugg" id="nd-s"></div>
-  <div class="nd-row"><div><label class="lbl">Ordner</label><button class="nd-folder" id="nd-f" type="button"></button></div></div>
-  <label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
-  ${isNote ? `<label class="lbl">Vorlage</label><div class="chips" id="nd-t">${TEMPLATES.map(([k, l]) => `<button type="button" class="chip ${k === tpl ? "on" : ""}" data-t="${k}">${l}</button>`).join("")}</div>` : ""}
+  <label class="lbl">Format</label><div class="nd-fmt"><span class="chip on">A4 hochkant</span></div><label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
   <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="nd-go">Dokument erstellen</button></div></div>`, "wide nd-modal");
-  const nameIn = $("#nd-n", el), fb = $("#nd-f", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); }; $("#nd-swd", el).onclick = () => { const n = nameIn.value, f = folder; close(); dsCreateDialog({ name: n, folder: f }); };
+  const nameIn = $("#nd-n", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); }; $("#nd-swd", el).onclick = () => { const n = nameIn.value, f = folder; close(); dsCreateDialog({ name: n, folder: f }); };
   const fname = () => { const fp = folderPath(folder); return fp.length ? fp[fp.length - 1].name : ""; };
-  const drawF = () => { fb.innerHTML = `${ic("folder")}<span>${["Home", ...folderPath(folder).map(f => f.name)].map(esc).join(" / ")}</span><em>Ändern</em>`; const base = fname(); const sugg = isNote ? [base ? base + " – Mitschrift" : "Mitschrift", "Zusammenfassung", "Lernzettel", "Hausaufgaben", "Ideen"] : [base ? base + " – Skizze" : "Skizze", "Mindmap", "Formelsammlung", "Tafelbild"]; $("#nd-s", el).innerHTML = sugg.map(x => `<button type="button" class="chip">${esc(x)}</button>`).join(""); $$("#nd-s .chip", el).forEach(b => b.onclick = () => { nameIn.value = b.textContent; nameIn.focus(); }); };
-  drawF(); setTimeout(() => nameIn.focus(), 40);
-  fb.onclick = async () => { const t = await pickFolder("Ordner wählen"); if (t !== null) { folder = t; drawF(); } };
+  setTimeout(() => nameIn.focus(), 40);
   $$("#nd-p .pp", el).forEach(b => b.onclick = () => { paper = b.dataset.k; $$("#nd-p .pp", el).forEach(x => x.classList.toggle("on", x === b)); });
   $$("#nd-t .chip", el).forEach(b => b.onclick = () => { tpl = b.dataset.t; $$("#nd-t .chip", el).forEach(x => x.classList.toggle("on", x === b)); const t = TEMPLATES.find(x => x[0] === tpl); if (!nameIn.value.trim() && tpl !== "blank") nameIn.placeholder = t[1]; });
   $("[data-c]", el).onclick = close;
