@@ -8,7 +8,7 @@ const PRESETS = {
   school: ["Mathe", "Deutsch", "Englisch", "Biologie", "Chemie", "Physik", "Geschichte", "Geografie", "Informatik", "Kunst", "Musik", "Sport", "Politik", "Französisch", "Latein", "Spanisch", "Religion/Ethik"],
   uni: ["Analysis", "Lineare Algebra", "Programmierung", "Statistik", "BWL", "VWL", "Recht", "Psychologie", "Medizin", "Chemie", "Physik", "Informatik", "Literatur", "Geschichte", "Seminar"],
 };
-const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["search", "Suche", "search"]];
+const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"], ["designs", "Design", "image"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["search", "Suche", "search"]];
 
 /* ---------- stats ---------- */
 const addMin = m => { const k = iso(); D.stats.days[k] = (D.stats.days[k] || 0) + m; save(); };
@@ -57,10 +57,10 @@ function applyRail() { const sh = $(".shell"); if (sh) sh.classList.toggle("coll
 function refreshNav() {
   const s = $("#side"); if (!s) return; applyRail();
   const mob = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"]];
-  const on = k => curView === k || (k === "docs" && curView === "doc") || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
+  const on = k => curView === k || (k === "designs" && curView === "design") || (k === "docs" && curView === "doc") || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
   s.innerHTML = `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand">Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
-  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
+  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
   <button class="nav-i prof hide-mob ${curView === "settings" ? "on" : ""}" id="profbtn" title="Profil"><span class="av">${esc((D.profile.name || (CLOUD.user?.email) || "L").trim()[0].toUpperCase())}</span><span class="nl pn"><b>${esc(D.profile.name || "Profil")}</b><small>${esc(CLOUD.user?.email || "Nicht angemeldet")}</small></span></button>`;
@@ -72,7 +72,7 @@ function refreshNav() {
 }
 function newMenu(anchor) {
   menu(anchor, [
-    { label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Neues Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Neues Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
+    { label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Neues Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Neues Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Neues Design (Plakat, Flyer …)", icon: "image", fn: () => dsCreateDialog() }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
     { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-",
     { label: "Karteikarten-Stapel", icon: "cards", fn: () => newDeck() }, { label: "Aufgabe / Prüfung", icon: "todo", fn: () => taskModal() },
     { label: isUni() ? "Neues Modul" : "Neues Fach", icon: "star", fn: newSubject },
@@ -416,7 +416,7 @@ V.docs = (m, id) => {
   $$("[data-e]", m).forEach(b => b.onclick = () => ({ n: () => docDialog("note"), u: () => $("#upl").click(), a: () => openAiCommand() })[b.dataset.e]());
   $$("[data-t]", m).forEach(b => b.onclick = () => { docType = b.dataset.t; V.docs(m); });
   $$("[data-v]", m).forEach(b => b.onclick = () => { docView = b.dataset.v; V.docs(m); });
-  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
+  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Design (Plakat, Flyer …)", icon: "image", fn: () => dsCreateDialog() }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
   $("#dq", m).oninput = debounce(e => { docQuery = e.target.value; const p = e.target.selectionStart; V.docs(m); const i = $("#dq", m); i.focus(); i.setSelectionRange(p, p); }, 200);
   $("#ds", m).onchange = e => { docSort = e.target.value; V.docs(m); };
 };
