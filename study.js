@@ -298,9 +298,9 @@ V.today = m => {
   const tfm = $("#todo-f", m); if (tfm) tfm.onsubmit = e => { e.preventDefault(); const i = $("#todo-i", m), v = i.value.trim(); if (!v) return; D.tasks.push({ id: uid(), title: v, type: "task", due: iso(), subjectId: "", note: "", done: false }); save(); i.value = ""; drawTodos(); };
   (async () => {
     const el = $("#sum-t", m), run = async force => {
-      const cache = D.daily && D.daily.date === iso() ? D.daily : null; if (cache && cache.ai && !force) { el.textContent = cache.text; return; } if (!hasKey()) return;
+      const okTxt = x => typeof x === "string" && x.trim().length >= 25 && /[.!?…]["“”)]?$/.test(x.trim()), cache = D.daily && D.daily.date === iso() && okTxt(D.daily.text) ? D.daily : null; if (cache && cache.ai && !force) { el.textContent = cache.text; return; } if (!hasKey()) return;
       el.classList.add("busy"); const ctx = dailyCtx({ lessons, evToday, exams, due, mins, goal }); const r = await ai(`Schreibe eine kurze, motivierende Tageszusammenfassung (höchstens 2 kurze Sätze, zusammen unter 30 Wörter, Du-Form) für heute. Nenne die wichtigsten Dinge und was zuerst angehen. Daten:\n${ctx}`, { system: sysBase(), max: 120, quiet: true });
-      el.classList.remove("busy"); if (r && r.trim()) { D.daily = { date: iso(), text: r.trim(), ai: true }; save(); el.textContent = D.daily.text; }
+      el.classList.remove("busy"); if (r && okTxt(r)) { D.daily = { date: iso(), text: r.trim(), ai: true }; save(); el.textContent = D.daily.text; }
     };
     run(false);
   })();
