@@ -2685,3 +2685,6 @@ body.hed-open{overflow:hidden}
 .dpop .dcp-g{width:268px}.dpop .dcp-gr{width:268px}
 .dfp{display:flex;flex-direction:column;max-height:340px;overflow:auto;min-width:210px}.dfp button{text-align:left;padding:9px 12px;border-radius:10px;font-size:17px}.dfp button:hover{background:#f3f3f7}.dfp button.on{background:#0f0f12;color:#fff}
 @media (max-width:900px){.dsn{height:calc(100dvh - 16px);margin:0}.dsn-main{flex-direction:column-reverse}.dsn-rail{width:auto;flex-direction:row;border-right:0;border-top:1px solid #ececf1;padding:6px;overflow-x:auto}.dsn-rail button{flex:1;min-width:64px;padding:8px 2px 6px}.dsn-panel{width:auto;height:34dvh;border-right:0;border-top:1px solid #ececf1}.dsn-sz,.hide-sm{display:none}.dsn-top{padding:8px 10px;gap:6px}.dsn-title{max-width:130px}.dsn-scroll{padding:12px}}
+
+.dsn-panel[hidden]{display:none}
+.sbadge{}

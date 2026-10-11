@@ -4,7 +4,8 @@
 
 const DS_FORMATS = [
   { k: "poster", n: "Plakat A3", d: "Hochformat", w: 1123, h: 1587 },
-  { k: "a4", n: "Flyer A4", d: "Hochformat", w: 794, h: 1123 },
+  { k: "a4", n: "A4 hochkant", d: "Flyer, Blatt", w: 794, h: 1123 },
+  { k: "a4l", n: "A4 quer", d: "Querformat", w: 1123, h: 794 },
   { k: "a5", n: "Flyer A5", d: "Hochformat", w: 559, h: 794 },
   { k: "ig", n: "Instagram-Post", d: "1080 × 1080", w: 1080, h: 1080 },
   { k: "story", n: "Story", d: "1080 × 1920", w: 1080, h: 1920 },

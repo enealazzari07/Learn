@@ -8,7 +8,7 @@ const PRESETS = {
   school: ["Mathe", "Deutsch", "Englisch", "Biologie", "Chemie", "Physik", "Geschichte", "Geografie", "Informatik", "Kunst", "Musik", "Sport", "Politik", "Französisch", "Latein", "Spanisch", "Religion/Ethik"],
   uni: ["Analysis", "Lineare Algebra", "Programmierung", "Statistik", "BWL", "VWL", "Recht", "Psychologie", "Medizin", "Chemie", "Physik", "Informatik", "Literatur", "Geschichte", "Seminar"],
 };
-const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"], ["designs", "Design", "image"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["search", "Suche", "search"]];
+const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["search", "Suche", "search"]];
 
 /* ---------- stats ---------- */
 const addMin = m => { const k = iso(); D.stats.days[k] = (D.stats.days[k] || 0) + m; save(); };
@@ -57,7 +57,7 @@ function applyRail() { const sh = $(".shell"); if (sh) sh.classList.toggle("coll
 function refreshNav() {
   const s = $("#side"); if (!s) return; applyRail();
   const mob = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"]];
-  const on = k => curView === k || (k === "designs" && curView === "design") || (k === "docs" && curView === "doc") || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
+  const on = k => curView === k || (k === "docs" && (curView === "doc" || curView === "design")) || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
   s.innerHTML = `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand">Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
   <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
@@ -97,14 +97,14 @@ const PAPERS = [["white", "Leer"], ["lines", "Liniert"], ["grid", "Kariert"], ["
 function docDialog(kind = "note", pre = null) {
   if (kind === "draw") return boardDialog(pre);
   const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank";
-  const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument A4</button><button type="button" role="tab" id="nd-swb">Whiteboard</button></div><p class="eyebrow">Neues Dokument</p>
+  const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument A4</button><button type="button" role="tab" id="nd-swb">Whiteboard</button><button type="button" role="tab" id="nd-swd">Design</button></div><p class="eyebrow">Neues Dokument</p>
   <input class="nd-name" id="nd-n" placeholder="Wie soll das Dokument heißen?" autocomplete="off" maxlength="80">
   <div class="nd-sugg" id="nd-s"></div>
   <div class="nd-row"><div><label class="lbl">Ordner</label><button class="nd-folder" id="nd-f" type="button"></button></div></div>
   <label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
   ${isNote ? `<label class="lbl">Vorlage</label><div class="chips" id="nd-t">${TEMPLATES.map(([k, l]) => `<button type="button" class="chip ${k === tpl ? "on" : ""}" data-t="${k}">${l}</button>`).join("")}</div>` : ""}
   <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="nd-go">Dokument erstellen</button></div></div>`, "wide nd-modal");
-  const nameIn = $("#nd-n", el), fb = $("#nd-f", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); };
+  const nameIn = $("#nd-n", el), fb = $("#nd-f", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); }; $("#nd-swd", el).onclick = () => { const n = nameIn.value, f = folder; close(); dsCreateDialog({ name: n, folder: f }); };
   const fname = () => { const fp = folderPath(folder); return fp.length ? fp[fp.length - 1].name : ""; };
   const drawF = () => { fb.innerHTML = `${ic("folder")}<span>${["Home", ...folderPath(folder).map(f => f.name)].map(esc).join(" / ")}</span><em>Ändern</em>`; const base = fname(); const sugg = isNote ? [base ? base + " – Mitschrift" : "Mitschrift", "Zusammenfassung", "Lernzettel", "Hausaufgaben", "Ideen"] : [base ? base + " – Skizze" : "Skizze", "Mindmap", "Formelsammlung", "Tafelbild"]; $("#nd-s", el).innerHTML = sugg.map(x => `<button type="button" class="chip">${esc(x)}</button>`).join(""); $$("#nd-s .chip", el).forEach(b => b.onclick = () => { nameIn.value = b.textContent; nameIn.focus(); }); };
   drawF(); setTimeout(() => nameIn.focus(), 40);
@@ -177,10 +177,10 @@ async function deleteDoc(d) {
   D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:", "db:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
 }
 const fileIcon = d => { const e = (d.title.split(".").pop() || "").toLowerCase(); return /pdf/.test(e) ? ["PDF", "#e5484d"] : /docx?/.test(e) ? ["DOC", "#2563eb"] : /pptx?/.test(e) ? ["PPT", "#f97316"] : /xlsx?|csv/.test(e) ? ["XLS", "#16a34a"] : /txt|md/.test(e) ? ["TXT", "#64748b"] : [e.slice(0, 4).toUpperCase() || "FILE", "#64748b"]; };
-const DTYPES = [["all", "Alle"], ["note", "Dokumente"], ["pdf", "PDFs"], ["db", "Datenbanken"], ["draw", "Whiteboards"], ["file", "Dateien"]];
-const docKind = d => d.type === "note" ? "note" : d.type === "db" ? "db" : d.type === "draw" ? "draw" : /pdf$/i.test(d.title) || d.mime === "application/pdf" ? "pdf" : "file";
-const KIND_L = { note: "Dokument", db: "Datenbank", draw: "Whiteboard", pdf: "PDF", file: "Datei" };
-const KIND_I = { note: "note", db: "table", draw: "brush", pdf: "file", file: "file" };
+const DTYPES = [["all", "Alle"], ["note", "Dokumente"], ["pdf", "PDFs"], ["db", "Datenbanken"], ["draw", "Whiteboards"], ["design", "Designs"], ["file", "Dateien"]];
+const docKind = d => d.type === "note" ? "note" : d.type === "db" ? "db" : d.type === "draw" ? "draw" : d.type === "design" ? "design" : /pdf$/i.test(d.title) || d.mime === "application/pdf" ? "pdf" : "file";
+const KIND_L = { note: "Dokument", db: "Datenbank", draw: "Whiteboard", design: "Design", pdf: "PDF", file: "Datei" };
+const KIND_I = { note: "note", db: "table", draw: "brush", design: "image", pdf: "file", file: "file" };
 function docRow(d) {
   const s = subj(d.subjectId), k = docKind(d);
   return `<div class="drow" data-d="${d.id}" draggable="true"><span class="dr-i">${ic(KIND_I[k])}${d.share ? `<i class="shbadge" title="Geteilt">${ic("link")}</i>` : ""}</span><span class="dr-t"><b>${d.pinned ? `<i class="pin">${ic("star")}</i>` : ""}${esc(d.title)}</b><small>${esc(docPath(d) || "Home")}</small></span><span class="dr-k">${KIND_L[k]}</span><span class="dr-s">${s ? `<i class="sdot" style="background:${s.color}"></i>${esc(s.name)}` : ""}</span><span class="dr-a">${fmtAgo(d.updated)}</span><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
@@ -190,6 +190,7 @@ function docCard(d) {
   let thumb;
   if (d.type === "note") thumb = `<div class="th note-th">${esc((d.text || "").slice(0, 150)) || `<span class="ph"></span>`}</div>`;
   else if (d.type === "db") thumb = `<div class="th file-th"><b style="background:#5b3df5">${ic("table")}</b></div>`;
+  else if (d.type === "design") thumb = `<div class="th" style="background:#eceef3 center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.type === "draw") thumb = `<div class="th" style="background:#fff center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.thumb) thumb = `<div class="th" style="background:#f3f3f5 center/cover url(${d.thumb})"></div>`;
   else { const [l, c] = fileIcon(d); thumb = `<div class="th file-th"><b style="background:${c}">${esc(l)}</b></div>`; }
@@ -356,8 +357,8 @@ const msLogoSvg = () => `<svg viewBox="0 0 24 24" width="26" height="26"><rect x
 let quizPrefill = null;
 function bindCommon(m) {
   $$("[data-go]", m).forEach(b => b.onclick = () => go(b.dataset.go));
-  $$("[data-d]", m).forEach(c => c.onclick = e => { if (e.target.closest(".dmore")) return; openDoc(D.docs.find(d => d.id === c.dataset.d)); });
-  $$("[data-m]", m).forEach(b => b.onclick = e => { e.stopPropagation(); docMenu(b, D.docs.find(d => d.id === b.dataset.m)); });
+  $$("[data-d]", m).forEach(c => c.onclick = e => { if (e.target.closest(".dmore")) return; const ds = (D.designs || []).find(d => d.id === c.dataset.d); if (ds) return go("design/" + ds.id); openDoc(D.docs.find(d => d.id === c.dataset.d)); });
+  $$("[data-m]", m).forEach(b => b.onclick = e => { e.stopPropagation(); const ds = (D.designs || []).find(d => d.id === b.dataset.m); if (ds) return dsItemMenu(b, ds, () => V.docs($("#main"))); docMenu(b, D.docs.find(d => d.id === b.dataset.m)); });
 }
 
 /* ---------- views: documents (folders) ---------- */
@@ -393,8 +394,9 @@ function docSide() {
 V.docs = (m, id) => {
   if (id !== undefined) docFolder = id || ""; if (docFolder && !folderOf(docFolder)) docFolder = "";
   const q = docQuery.trim().toLowerCase(), path = folderPath(docFolder);
+  const dsl = typeof dsDocs === "function" ? dsDocs() : [];
   const folders = (q ? D.folders.filter(f => f.name.toLowerCase().includes(q)) : D.folders.filter(f => (f.parent || "") === docFolder)).sort((a, b) => a.name.localeCompare(b.name));
-  const list = (q ? D.docs.filter(d => (d.title + " " + (d.text || "")).toLowerCase().includes(q)) : D.docs.filter(d => (d.folderId || "") === docFolder)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (docSort === "name" ? a.title.localeCompare(b.title) : b.updated - a.updated));
+  const list = (q ? [...D.docs, ...dsl].filter(d => (d.title + " " + (d.text || "")).toLowerCase().includes(q)) : [...D.docs, ...dsl].filter(d => (d.folderId || "") === docFolder)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (docSort === "name" ? a.title.localeCompare(b.title) : b.updated - a.updated));
   const base = list, cnt = k => k === "all" ? base.length : base.filter(d => docKind(d) === k).length;
   const shown = docType === "all" ? base : base.filter(d => docKind(d) === docType);
   m.classList.add("doc-full");
@@ -416,7 +418,7 @@ V.docs = (m, id) => {
   $$("[data-e]", m).forEach(b => b.onclick = () => ({ n: () => docDialog("note"), u: () => $("#upl").click(), a: () => openAiCommand() })[b.dataset.e]());
   $$("[data-t]", m).forEach(b => b.onclick = () => { docType = b.dataset.t; V.docs(m); });
   $$("[data-v]", m).forEach(b => b.onclick = () => { docView = b.dataset.v; V.docs(m); });
-  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Design (Plakat, Flyer …)", icon: "image", fn: () => dsCreateDialog() }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
+  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Design (Plakat, Flyer, A4 quer …)", icon: "image", fn: () => dsCreateDialog({ folder: docFolder }) }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
   $("#dq", m).oninput = debounce(e => { docQuery = e.target.value; const p = e.target.selectionStart; V.docs(m); const i = $("#dq", m); i.focus(); i.setSelectionRange(p, p); }, 200);
   $("#ds", m).onchange = e => { docSort = e.target.value; V.docs(m); };
 };

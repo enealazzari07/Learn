@@ -117,30 +117,17 @@ function dsReadImage(file, maxPx = 1800) {
   return new Promise(res => { const fr = new FileReader(); fr.onload = () => { const img = new Image(); img.onload = () => { const k = Math.min(1, maxPx / Math.max(img.naturalWidth, img.naturalHeight)), c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); const png = /png|svg|gif|webp/i.test(file.type); res({ src: c.toDataURL(png ? "image/png" : "image/jpeg", .9), w: c.width, h: c.height }); }; img.onerror = () => res(null); img.src = fr.result; }; fr.onerror = () => res(null); fr.readAsDataURL(file); });
 }
 
-/* ---------- Übersicht ---------- */
-V.designs = m => {
-  dsLoadFonts(); dsInit();
-  const list = [...D.designs].sort((a, b) => b.updated - a.updated); let cat = "Alle";
-  const draw = () => {
-    const tpls = DS_TEMPLATES.filter(t => cat === "Alle" || t.cat === cat);
-    m.innerHTML = `<div class="page dsh"><div class="hd"><div><p class="eyebrow">Plakate, Flyer, Social Media, Folien</p><h1>Design</h1></div><button class="btn accent" id="dn">${ic("plus")}Neues Design</button></div>
-    <div class="dsh-hero"><div><h2>Was möchtest du gestalten?</h2><p>Wähle ein Format – oder starte direkt mit einer Vorlage.</p></div><div class="dsh-fm">${DS_FORMATS.map(f => `<button data-fm="${f.k}"><span class="fs" style="aspect-ratio:${f.w}/${f.h}"></span><b>${f.n}</b><small>${f.d}</small></button>`).join("")}</div></div>
-    ${list.length ? `<section class="dsh-sec"><h3>Deine Designs</h3><div class="dsh-grid">${list.map(d => `<div class="dsh-card" data-id="${d.id}"><div class="dsh-th" style="aspect-ratio:${d.w}/${d.h}">${d.thumb ? `<img src="${d.thumb}" alt="">` : `<i></i>`}</div><div class="dsh-m"><b>${dsEsc(d.title)}</b><small>${dsFmt(d.fmt).n}${d.pagesN > 1 ? " · " + d.pagesN + " Seiten" : ""} · ${fmtAgo(d.updated)}</small></div><button class="dmore" data-dm="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`).join("")}</div></section>` : ""}
-    <section class="dsh-sec"><div class="dsh-sech"><h3>Vorlagen</h3><div class="dsh-cats">${DS_TPL_CATS.map(c => `<button class="${c === cat ? "on" : ""}" data-cat="${c}">${c}</button>`).join("")}</div></div><div class="dsh-tpl">${tpls.map(t => { const f = dsFmt(DS_TPL_FMT[t.k] || "poster"), pg = dsPageFromTemplate(t, f.w, f.h); return `<button class="dsh-t" data-t="${t.k}"><span class="dsh-tp" style="aspect-ratio:${f.w}/${f.h}">${dsMini(pg, f.w, f.h, 220, "t" + t.k)}</span><b>${t.n}</b><small>${f.n}</small></button>`; }).join("")}</div></section></div>`;
-    $("#dn", m).onclick = () => dsCreateDialog();
-    $$("[data-fm]", m).forEach(b => b.onclick = () => dsCreateDialog({ fmt: b.dataset.fm }));
-    $$("[data-t]", m).forEach(b => b.onclick = () => dsCreateDialog({ tpl: b.dataset.t, fmt: DS_TPL_FMT[b.dataset.t] }));
-    $$("[data-cat]", m).forEach(b => b.onclick = () => { cat = b.dataset.cat; draw(); });
-    $$(".dsh-card", m).forEach(c => c.onclick = e => { if (e.target.closest("[data-dm]")) return; go("design/" + c.dataset.id); });
-    $$("[data-dm]", m).forEach(b => b.onclick = e => { e.stopPropagation(); const d = D.designs.find(x => x.id === b.dataset.dm); menu(b, [{ label: "Öffnen", icon: "file", fn: () => go("design/" + d.id) }, { label: "Umbenennen", icon: "pen", fn: async () => { const n = await ask("Umbenennen", { value: d.title }); if (n?.trim()) { d.title = n.trim(); d.updated = Date.now(); save(); draw(); } } }, { label: "Duplizieren", icon: "copy", fn: async () => { const data = await KV.get("design:" + d.id), nid = uid(); const pages = dsClone(data?.pages || []); pages.forEach(p => { p.id = dsId(); p.objs.forEach(o => o.id = dsId()); }); await KV.set("design:" + nid, { pages }); D.designs.unshift({ ...d, id: nid, title: d.title + " (Kopie)", updated: Date.now() }); save(); draw(); toast("Dupliziert"); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { if (!await confirmBox(`„${d.title}“ löschen?`)) return; D.designs = D.designs.filter(x => x.id !== d.id); try { await KV.del?.("design:" + d.id); } catch {} save(); draw(); } }]); });
-  };
-  draw();
-};
+/* ---------- Übersicht: Designs erscheinen unter „Dokumente“ ---------- */
+function dsDocs() { dsInit(); return D.designs.map(d => ({ id: d.id, type: "design", title: d.title, updated: d.updated, thumb: d.thumb, folderId: d.folderId || "", text: "" })); }
+function dsItemMenu(b, d, refresh) {
+  menu(b, [{ label: "Öffnen", icon: "file", fn: () => go("design/" + d.id) }, { label: "Umbenennen", icon: "pen", fn: async () => { const n = await ask("Umbenennen", { value: d.title }); if (n?.trim()) { d.title = n.trim(); d.updated = Date.now(); save(); refresh(); } } }, { label: "Duplizieren", icon: "copy", fn: async () => { const data = await KV.get("design:" + d.id), nid = uid(); const pages = dsClone(data?.pages || []); pages.forEach(p => { p.id = dsId(); p.objs.forEach(o => o.id = dsId()); }); await KV.set("design:" + nid, { pages }); D.designs.unshift({ ...d, id: nid, title: d.title + " (Kopie)", updated: Date.now() }); save(); refresh(); toast("Dupliziert"); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { if (!await confirmBox(`„${d.title}“ löschen?`)) return; D.designs = D.designs.filter(x => x.id !== d.id); try { await KV.del?.("design:" + d.id); } catch {} save(); refresh(); } }]);
+}
+V.designs = () => go("docs");
 
 function dsCreateDialog(pre = {}) {
   dsInit();
   let fmt = pre.fmt || "poster", tpl = pre.tpl || "", cw = 1000, ch = 1000;
-  const { el, close } = modal(`<div class="nd dsc"><p class="eyebrow">Neues Design</p><input class="nd-name" id="dc-n" placeholder="Name des Designs" autocomplete="off" maxlength="80">
+  const { el, close } = modal(`<div class="nd dsc"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" role="tab" id="dc-swn">Dokument A4</button><button type="button" role="tab" id="dc-swb">Whiteboard</button><button type="button" class="on" role="tab">Design</button></div><p class="eyebrow">Neues Design</p><input class="nd-name" id="dc-n" placeholder="Name des Designs" autocomplete="off" maxlength="80">
   <label class="lbl">Format</label><div class="dsc-fm" id="dc-f">${DS_FORMATS.map(f => `<button type="button" data-k="${f.k}" class="${f.k === fmt ? "on" : ""}"><span style="aspect-ratio:${f.w}/${f.h}"></span><b>${f.n}</b></button>`).join("")}<button type="button" data-k="custom"><span style="aspect-ratio:1"></span><b>Eigene Größe</b></button></div>
   <div class="dsc-cs" id="dc-c" hidden><label>Breite<input class="field" id="dc-w" type="number" min="100" max="6000" value="1000"></label><label>Höhe<input class="field" id="dc-h" type="number" min="100" max="6000" value="1000"></label><small>Pixel (96 dpi)</small></div>
   <label class="lbl">Vorlage</label><div class="dsc-tp" id="dc-t"><button type="button" data-k="" class="${tpl ? "" : "on"}"><span class="dsc-blank"></span><b>Leer</b></button>${DS_TEMPLATES.map(t => `<button type="button" data-k="${t.k}" class="${t.k === tpl ? "on" : ""}"><span>${dsMini(dsPageFromTemplate(t, 800, 800), 800, 800, 84, "c" + t.k)}</span><b>${t.n}</b></button>`).join("")}</div>
@@ -149,20 +136,22 @@ function dsCreateDialog(pre = {}) {
   const pickRow = (id, set) => $$(`#${id} button`, el).forEach(b => b.onclick = () => { set(b.dataset.k); $$(`#${id} button`, el).forEach(x => x.classList.toggle("on", x === b)); });
   pickRow("dc-f", k => { fmt = k; $("#dc-c", el).hidden = k !== "custom"; }); pickRow("dc-t", k => tpl = k);
   setTimeout(() => $("#dc-n", el).focus(), 40); $("[data-c]", el).onclick = close;
+  const folder = pre.folder !== undefined ? pre.folder : (typeof docFolder === "string" ? docFolder : ""); if (pre.name) $("#dc-n", el).value = pre.name;
+  $("#dc-swn", el).onclick = () => { const n = $("#dc-n", el).value; close(); docDialog("note", { name: n, folder }); }; $("#dc-swb", el).onclick = () => { const n = $("#dc-n", el).value; close(); boardDialog({ name: n, folder }); };
   $("#dc-go", el).onclick = async () => {
     const f = fmt === "custom" ? { k: "custom", n: "Eigene Größe", w: Math.max(100, Math.min(6000, +$("#dc-w", el).value || 1000)), h: Math.max(100, Math.min(6000, +$("#dc-h", el).value || 1000)) } : dsFmt(fmt), topic = $("#dc-a", el).value.trim(), t = DS_TEMPLATES.find(x => x.k === tpl);
     const title = $("#dc-n", el).value.trim() || (t ? t.n : "Unbenanntes Design"); close();
     let texts = null;
     if (t && topic) { if (hasKey()) { toast("Lumi AI schreibt die Texte …"); const r = await ai(`Schreibe kurze deutsche Texte für ein ${f.n}-Design (Vorlage „${t.n}“) zum Thema: ${topic}\nAntworte NUR mit JSON: {"title":"max. 4 Wörter, kurz und stark","sub":"ein kurzer Untertitel","body":"1–2 kurze Zeilen mit Details","date":"Datum/Ort oder kurze Zeile","name":"Name falls passend"}`, { max: 400, quiet: true }); try { texts = parseJSON(r); } catch {} if (!texts) toast("Die KI hat nichts Brauchbares geliefert – Standardtexte"); } else toast("Lumi AI ist nicht eingerichtet – Standardtexte"); }
     const page = t ? dsPageFromTemplate(t, f.w, f.h, texts) : dsBlankPage(f.w, f.h), id = uid();
-    await KV.set("design:" + id, { pages: [page] }); D.designs.unshift({ id, title, fmt: f.k, w: f.w, h: f.h, updated: Date.now(), created: Date.now(), thumb: "", pagesN: 1 }); save(); go("design/" + id);
+    await KV.set("design:" + id, { pages: [page] }); D.designs.unshift({ id, folderId: folder, title, fmt: f.k, w: f.w, h: f.h, updated: Date.now(), created: Date.now(), thumb: "", pagesN: 1 }); save(); go("design/" + id);
   };
 }
 
 /* ---------- Editor ---------- */
 V.design = async (m, id) => {
   dsInit();
-  const meta = D.designs.find(d => d.id === id); if (!meta) { m.innerHTML = `<div class="page"><div class="emptybox"><h3>Design nicht gefunden</h3><button class="btn" data-go="designs">Zu den Designs</button></div></div>`; return bindCommon(m); }
+  const meta = D.designs.find(d => d.id === id); if (!meta) { m.innerHTML = `<div class="page"><div class="emptybox"><h3>Design nicht gefunden</h3><button class="btn" data-go="docs">Zu den Dokumenten</button></div></div>`; return bindCommon(m); }
   dsLoadFonts();
   const data = (await KV.get("design:" + id)) || { pages: [dsBlankPage(meta.w, meta.h)] }, W = meta.w, H = meta.h;
   const S = { pages: data.pages, pi: 0, sel: [], z: 1, auto: true, tab: "tpl", cat: "Alle", emo: "Schule", hist: [], redo: [], clip: [], assets: (await KV.get("design-assets")) || [], editing: false };
@@ -178,7 +167,7 @@ V.design = async (m, id) => {
   const $p = $("#d-panel", m), $c = $("#d-ctx", m), $sc = $("#d-sc", m), $pw = $("#d-pw", m), $pgEl = $("#d-pg", m), $pages = $("#d-pages", m), svEl = $("#d-sv", m);
 
   /* --- Speichern & Verlauf --- */
-  const persist = debounce(async () => { if (!D.designs.includes(meta)) return; meta.title = $("#d-title", m).value.trim() || "Unbenanntes Design"; meta.updated = Date.now(); meta.pagesN = S.pages.length; await KV.set("design:" + id, { pages: S.pages }); save(); svEl.textContent = "Gespeichert"; thumb(); }, 600);
+  const persist = debounce(async () => { if (!D.designs.includes(meta)) return; const ti = $("#d-title", m); meta.title = (ti ? ti.value.trim() : meta.title) || "Unbenanntes Design"; meta.updated = Date.now(); meta.pagesN = S.pages.length; await KV.set("design:" + id, { pages: S.pages }); save(); if (svEl.isConnected) svEl.textContent = "Gespeichert"; thumb(); }, 600);
   const thumb = debounce(async () => { try { const cv = await dsRenderCanvas(S.pages[0], W, H, 420 / Math.max(W, H)); meta.thumb = cv.toDataURL("image/jpeg", .72); save(); } catch {} }, 1800);
   const snap = () => JSON.stringify({ pages: S.pages, pi: S.pi });
   let last = snap();
@@ -344,7 +333,7 @@ V.design = async (m, id) => {
     $$(".ly", $p).forEach(r => r.onclick = e => { if (e.target.closest("button")) return; S.sel = [r.dataset.l]; drawOverlay(); drawCtx(); drawPanel(); });
     $$("[data-lv]", $p).forEach(b => b.onclick = () => { const o = objOf(b.dataset.lv); o.hidden = !o.hidden; commit(); }); $$("[data-ll]", $p).forEach(b => b.onclick = () => { const o = objOf(b.dataset.ll); o.lock = !o.lock; commit(); });
   }
-  $$("#d-rail button", m).forEach(b => b.onclick = () => { S.tab = b.dataset.tab; drawPanel(); });
+  $$("#d-rail button", m).forEach(b => b.onclick = () => { const was = S.tab === b.dataset.tab && !$p.hidden; S.tab = b.dataset.tab; $p.hidden = was; if (was) { $$("#d-rail button", m).forEach(x => x.classList.remove("on")); } else drawPanel(); });
 
   /* --- Seiten-Leiste --- */
   function drawPages() {
@@ -356,7 +345,7 @@ V.design = async (m, id) => {
   $pages.addEventListener("contextmenu", e => e.preventDefault());
 
   /* --- Kopfzeile --- */
-  $("#d-back", m).onclick = () => go("designs"); $("#d-done", m).onclick = async () => { await persist(); go("designs"); }; $("#d-title", m).oninput = () => { svEl.textContent = "Speichert…"; persist(); };
+  const backTo = () => go("docs/" + (meta.folderId || "")); $("#d-back", m).onclick = backTo; $("#d-done", m).onclick = async () => { try { meta.title = $("#d-title", m).value.trim() || "Unbenanntes Design"; meta.updated = Date.now(); meta.pagesN = S.pages.length; await KV.set("design:" + id, { pages: S.pages }); const cv = await dsRenderCanvas(S.pages[0], W, H, 420 / Math.max(W, H)); meta.thumb = cv.toDataURL("image/jpeg", .72); save(); } catch {} backTo(); }; $("#d-title", m).oninput = () => { svEl.textContent = "Speichert…"; persist(); };
   $("#d-un", m).onclick = undo; $("#d-re", m).onclick = redo; $("#d-zm", m).onclick = () => { S.auto = false; setZoom(S.z / 1.2); }; $("#d-zp2", m).onclick = () => { S.auto = false; setZoom(S.z * 1.2); }; $("#d-zf", m).onclick = fit;
   $("#d-dl", m).onclick = e => menu(e.currentTarget, [{ label: "PNG (diese Seite)", icon: "image", fn: () => exp("png", 1) }, { label: "PNG – hohe Qualität (2×)", icon: "image", fn: () => exp("png", 2) }, { label: "JPG (diese Seite)", icon: "image", fn: () => exp("jpg", 1) }, { label: S.pages.length > 1 ? "PDF (alle Seiten)" : "PDF", icon: "file", fn: () => exp("pdf", 1.5) }]);
   async function exp(kind, scale) {
