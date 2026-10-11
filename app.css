@@ -2579,3 +2579,15 @@ body.hed-open{overflow:hidden}
 .apf{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:#f5f5f9;margin-bottom:8px}.apf>i{width:10px;height:10px;border-radius:50%;flex:none}.apf span{flex:1;min-width:0;display:flex;flex-direction:column}.apf small{color:#8a8a98;font-size:12px}.apf .bad{color:#d92d20;font-style:normal}
 .apadd{display:grid;grid-template-columns:170px 1fr auto;gap:8px;margin-top:10px}
 @media (max-width:700px){.apadd{grid-template-columns:1fr}}
+
+/* ======== v102: optische Korrekturen ======== */
+.deck{border-top:0!important;box-shadow:0 1px 2px rgba(30,20,90,.04)}
+.tring{background:conic-gradient(#0f0f12 calc(var(--p)*1%),#ececf1 0)!important}
+.bars2 i{background:linear-gradient(#0f0f12,#55555f)!important}
+.ring{background:conic-gradient(#0f0f12 calc(var(--p)*1%),#ececf1 0)}
+.task input[type=checkbox],.lz input[type=checkbox]{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;border:2px solid #c9c9d6;background:#fff;display:grid;place-items:center;cursor:pointer;flex:none;transition:background .15s,border-color .15s;margin:0}
+.task input[type=checkbox]:hover,.lz input[type=checkbox]:hover{border-color:#0f0f12}
+.task input[type=checkbox]:checked,.lz input[type=checkbox]:checked{background:#0f0f12;border-color:#0f0f12}
+.task input[type=checkbox]:checked::after,.lz input[type=checkbox]:checked::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2.2px 2.2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.aip .modes,.aip .chatbox .modes{margin-top:16px}
+#modal-root .tt4,.mask .tt4{width:100%}
