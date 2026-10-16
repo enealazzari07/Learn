@@ -2696,3 +2696,10 @@ body.hed-open{overflow:hidden}
 .bzoom{position:absolute;right:14px;bottom:14px;display:flex;align-items:center;background:#fff;border-radius:999px;box-shadow:0 4px 18px rgba(30,20,90,.16);padding:3px;z-index:6}
 .bzoom button{border:0;background:transparent;height:34px;min-width:34px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;color:#222;padding:0 8px}.bzoom button:hover{background:#f1f1f5}
 .bd-inf{margin:2px 0 10px;color:#6b6b78;font-size:13px}
+.ink-stk{max-width:260px}.ink-stk .ink-chip{font-size:20px;padding:4px 8px;line-height:1.2}
+.aud-bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border:1px solid var(--line,#e4e4ea);border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.16);max-width:calc(100vw - 32px)}
+.aud-bar select{max-width:150px;border:0;background:var(--soft,#f3f3f6);border-radius:9px;padding:6px 8px;font:inherit}
+.aud-bar audio{height:34px;max-width:240px;min-width:0}
+.aud-dot{width:10px;height:10px;border-radius:50%;background:#e5484d;animation:audp 1s ease-in-out infinite}
+@keyframes audp{50%{opacity:.25}}
+#ip-mic.on{background:#e5484d!important;color:#fff!important}
