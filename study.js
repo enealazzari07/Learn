@@ -173,7 +173,7 @@ async function uploadFiles(files) {
 }
 async function deleteDoc(d) {
   if (!(await confirmBox(`„${d.title}“ wirklich löschen?`))) return;
-  D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:", "db:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
+  D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:", "db:", "aud:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
 }
 const fileIcon = d => { const e = (d.title.split(".").pop() || "").toLowerCase(); return /pdf/.test(e) ? ["PDF", "#e5484d"] : /docx?/.test(e) ? ["DOC", "#2563eb"] : /pptx?/.test(e) ? ["PPT", "#f97316"] : /xlsx?|csv/.test(e) ? ["XLS", "#16a34a"] : /txt|md/.test(e) ? ["TXT", "#64748b"] : [e.slice(0, 4).toUpperCase() || "FILE", "#64748b"]; };
 const DTYPES = [["all", "Alle"], ["note", "Notizen"], ["pdf", "PDFs"], ["db", "Datenbanken"], ["draw", "Skizzen"], ["file", "Dateien"]];
@@ -731,7 +731,8 @@ async function noteEditor(m, d) {
   /* ink layer: write and draw in the same document */
   const paper = $("#paperc", m); setScroller(paper); const inkSave = debounce(async () => { if (!D.docs.includes(d)) return; d.hasInk = ink.st.strokes.length > 0; d.updated = Date.now(); await KV.set("ink:" + d.id, ink.st.strokes); save(); svEl.textContent = "Gespeichert"; }, 600);
   const fitInk = mx => { paper.style.minHeight = mx > 0 ? Math.max(mx + 260, 0) + "px" : ""; };
-  const ink = createInk(paper, d, { grid: true, bar: $("#rib-draw", m), onChange: (strokes, mx) => { svEl.textContent = "Speichert…"; fitInk(mx); inkSave(); window.__co?.touch(); } });
+  const AUD = {};
+  const ink = createInk(paper, d, { grid: true, audio: AUD, bar: $("#rib-draw", m), onChange: (strokes, mx) => { svEl.textContent = "Speichert…"; fitInk(mx); inkSave(); window.__co?.touch(); } });
   const inkData = await KV.get("ink:" + d.id); if (inkData?.length) { ink.load(inkData); fitInk(Math.max(...inkData.flatMap(s => s.pts.map(q => q[1])))); } else ink.load([]);
   const tbSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); await KV.set("tb:" + d.id, TBX.get()); save(); svEl.textContent = "Gespeichert"; }, 500);
   const TBX = mountTextBoxes(paper, { onChange: () => { svEl.textContent = "Speichert…"; tbSave(); window.__co?.touch(); } }); TBX.load(await KV.get("tb:" + d.id)); LEAVE.push(() => TBX.destroy());
@@ -750,6 +751,7 @@ async function noteEditor(m, d) {
     $("#r-src", m)?.addEventListener("click", () => { D.profile.sources = !sourcesOn(); save(); paintR(); });
   }
   LEAVE.push(() => { ink.destroy(); });
+  attachAudio(m, d, ink, AUD).then(a => LEAVE.push(() => a.destroy())).catch(() => {});
   try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch {}
   if (!body.innerHTML.trim()) body.innerHTML = "<p><br></p>";
   if (window.__aiReveal === d.id && html && html.trim()) {
