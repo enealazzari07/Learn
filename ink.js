@@ -106,9 +106,15 @@ function createInk(paper, d, opts = {}) {
 
   /* hold still at the end of a stroke → perfect line / circle / rectangle (like GoodNotes shape snapping) */
   let holdT = 0, last = [0, 0];
+  let skipUp = false;
   const snapShape = () => {
     const c = st.cur; if (!c || c.type !== "pen" || c.pts.length < 8 || !S.snap) return; const p = c.pts, a = p[0], b = p[p.length - 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const xs = p.map(q => q[0]), ys = p.map(q => q[1]), bx = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], diag = Math.hypot(bx[2] - bx[0], bx[3] - bx[1]) || 1;
+    /* closed loop around existing ink + hold → lasso selection instead of a shape */
+    if (S.loopLasso !== false && diag > 30 && len < diag * .3) {
+      const poly = p.map(q => [q[0], q[1]]), got = st.strokes.filter(x => x.pts.some(q => inPoly(poly, q[0], q[1])));
+      if (got.length) { st.cur = null; st.pred = []; skipUp = true; setTool("lasso"); setSel(new Set(got)); if (navigator.vibrate) navigator.vibrate(8); sched(); return; }
+    }
     const dev = Math.max(...p.map(q => d2(q[0], q[1], a, b)));
     if (len > 24 && dev < Math.max(6, len * .09)) { c.type = "line"; c.pts = [[a[0], a[1]], [b[0], b[1]]]; c.pr = false; }
     else if (len < diag * .3 && diag > 30) { const ex = (bx[0] + bx[2]) / 2, ey = (bx[1] + bx[3]) / 2, rx = (bx[2] - bx[0]) / 2 || 1, ry = (bx[3] - bx[1]) / 2 || 1, rad = p.map(q => Math.hypot((q[0] - ex) / rx, (q[1] - ey) / ry)), m = rad.reduce((x, y) => x + y, 0) / rad.length, v = Math.sqrt(rad.reduce((x, y) => x + (y - m) ** 2, 0) / rad.length);
@@ -254,9 +260,21 @@ function createInk(paper, d, opts = {}) {
     hoverRing(e); sched();
     if (st.cur && st.cur.type === "pen" && S.snap) { const p = pos(e); if (Math.hypot(p[0] - last[0], p[1] - last[1]) > 2) { last = p; clearTimeout(holdT); holdT = setTimeout(snapShape, 520); } }
   });
+  /* scribble over ink (zigzag) → erases what it crosses, like GoodNotes "scribble to erase" */
+  function isScribble(s) {
+    const p = s.pts; if (s.type !== "pen" || p.length < 14) return false;
+    const xs = p.map(q => q[0]), ys = p.map(q => q[1]), w = Math.max(...xs) - Math.min(...xs), h = Math.max(...ys) - Math.min(...ys), m = Math.max(w, h);
+    if (m < 24 || m > 280) return false;
+    let L = 0; for (let i = 1; i < p.length; i++) L += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
+    if (L < m * 3.2) return false;
+    const k = w >= h ? 0 : 1; let dir = 0, ex = p[0][k], rev = 0;
+    for (const q of p) { const v = q[k]; if (dir <= 0 && v - ex > 10) { if (dir < 0) rev++; dir = 1; ex = v; } else if (dir >= 0 && ex - v > 10) { if (dir > 0) rev++; dir = -1; ex = v; } else if (dir > 0 && v > ex) ex = v; else if (dir < 0 && v < ex) ex = v; }
+    return rev >= 4;
+  }
   const up = e => {
     if (e.pointerType === "touch") touchUp(e);
     if (!drawing || (e.pointerId !== undefined && e.pointerId !== pid)) return; drawing = false; clearTimeout(holdT); const t = tl(); st.tmp = null; st.pred = [];
+    if (skipUp) { skipUp = false; st.cur = null; sched(); return; }
     if (t === "laser") { sched(); return; }
     if (t === "lasso") {
       if (st.scaling) { st.scaling = null; sched(); changed(); return; }
@@ -268,6 +286,10 @@ function createInk(paper, d, opts = {}) {
       const s = st.cur; st.cur = null;
       if (SHAPES.includes(s.type) && Math.hypot(s.pts[1][0] - s.pts[0][0], s.pts[1][1] - s.pts[0][1]) < 3) { sched(); return; }
       if (e.type === "pointerup" && !SHAPES.includes(s.type) && s.type !== "line" && s.pts.length > 1 && s.pts !== undefined) { const r = e.clientX !== undefined ? pos(e) : null; if (r) { const l = s.pts[s.pts.length - 1]; if (Math.hypot(r[0] - l[0], r[1] - l[1]) > .8) s.pts.push([r[0], r[1], l[2], l[3]]); } }
+      if (S.scribble !== false && isScribble(s)) {
+        const gone = new Set(st.strokes.filter(x => s.pts.some(q => hit(x, q[0], q[1], 4))));
+        if (gone.size) { snap(); st.strokes = st.strokes.filter(x => !gone.has(x)); render(); changed(); if (navigator.vibrate) navigator.vibrate(8); return; }
+      }
       snap(); st.strokes.push(s); if (!dirty) { bctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw(bctx, s); } sched(); changed();
     }
   };
@@ -292,8 +314,8 @@ function createInk(paper, d, opts = {}) {
     if (kind === "eraser") return `<b>Radierer</b><div class="ink-chips">${chip("eras", "stroke", S.eras === "stroke", "Ganzer Strich")}${chip("eras", "point", S.eras === "point", "Nur berührte Stelle")}</div>`;
     if (kind === "gear") return `<b>Zeichnen</b><label class="ink-rg"><span>Glättung</span><input type="range" min="0" max="100" value="${Math.round(S.smooth * 100)}" data-r="smooth"></label>
       <label class="ink-rg"><span>Druckempfindlichkeit</span><input type="range" min="0" max="100" value="${Math.round(S.press * 100)}" data-r="press"></label>
-      <div class="ink-chips">${chip("penOnly", S.penOnly ? "0" : "1", S.penOnly, "Nur Stift zeichnet")}${chip("snap", S.snap ? "0" : "1", S.snap, "Formen erkennen")}</div>
-      ${opts.grid ? `<b>Papier</b><div class="ink-chips">${[["none", "Leer"], ["grid", "Karo"], ["lines", "Linien"], ["dots", "Punkte"]].map(([v, t]) => chip("grid", v, S.grid === v, t)).join("")}</div>` : ""}
+      <div class="ink-chips">${chip("penOnly", S.penOnly ? "0" : "1", S.penOnly, "Nur Stift zeichnet")}${chip("snap", S.snap ? "0" : "1", S.snap, "Formen erkennen")}${chip("scribble", S.scribble === false ? "1" : "0", S.scribble !== false, "Kritzeln löscht")}${chip("loopLasso", S.loopLasso === false ? "1" : "0", S.loopLasso !== false, "Umkreisen wählt aus")}</div>
+      ${opts.grid ? `<b>Papier</b><div class="ink-chips">${[["none", "Leer"], ["grid", "Karo"], ["lines", "Linien"], ["dots", "Punkte"], ["cornell", "Cornell"], ["week", "Woche"]].map(([v, t]) => chip("grid", v, S.grid === v, t)).join("")}</div>` : ""}
       <small>Zwei-Finger-Tipp: Rückgängig · Drei-Finger-Tipp: Wiederholen · Stift-Radierer und Stift-Taste radieren</small>`;
     return "";
   }
@@ -304,7 +326,7 @@ function createInk(paper, d, opts = {}) {
     if (kind === "gear") anchor.classList.add("on");
     pop.addEventListener("pointerdown", ev => ev.stopPropagation());
     pop.addEventListener("click", ev => { const b = ev.target.closest("[data-k]"); if (!b) return; const [k, v] = b.dataset.k.split(":");
-      if (k === "brush") { S.brush = v; S.pens[S.pen].brush = v; paintPens(); } else if (k === "penadd") { S.pens.push({ ...S.pens[S.pen] }); S.pen = S.pens.length - 1; applyPen(); paintPens(); } else if (k === "penrm") { S.pens.splice(S.pen, 1); S.pen = 0; applyPen(); paintPens(); } else if (k === "shape") { S.shape = v; refreshShapeIc(); } else if (k === "eras") S.eras = v; else if (k === "penOnly") S.penOnly = v === "1"; else if (k === "snap") S.snap = v === "1"; else if (k === "grid") { S.grid = v; applyGrid(); }
+      if (k === "brush") { S.brush = v; S.pens[S.pen].brush = v; paintPens(); } else if (k === "penadd") { S.pens.push({ ...S.pens[S.pen] }); S.pen = S.pens.length - 1; applyPen(); paintPens(); } else if (k === "penrm") { S.pens.splice(S.pen, 1); S.pen = 0; applyPen(); paintPens(); } else if (k === "shape") { S.shape = v; refreshShapeIc(); } else if (k === "eras") S.eras = v; else if (k === "penOnly") S.penOnly = v === "1"; else if (k === "snap") S.snap = v === "1"; else if (k === "scribble") S.scribble = v === "1"; else if (k === "loopLasso") S.loopLasso = v === "1"; else if (k === "grid") { S.grid = v; applyGrid(); }
       saveS(); pop.innerHTML = popHtml(kind); rangeBind(); updUI(); });
     const rangeBind = () => pop?.querySelectorAll("[data-r]").forEach(i => i.oninput = () => { S[i.dataset.r] = +i.value / 100; saveS(); }); rangeBind();
   }

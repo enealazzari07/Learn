@@ -2137,6 +2137,8 @@ a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{w
 .ned-paper[data-grid=dots]{background-image:radial-gradient(#cfcfd8 1.2px,transparent 1.4px);background-size:26px 26px}
 .ned-paper[data-grid=grid]{background-image:linear-gradient(#e6e6ec 1px,transparent 1px),linear-gradient(90deg,#e6e6ec 1px,transparent 1px);background-size:28px 28px}
 .ned-paper[data-grid=lines]{background-image:repeating-linear-gradient(transparent 0 31px,#e6e6ec 31px 32px);background-position:0 8px}
+.ned-paper[data-grid=cornell]{background-image:linear-gradient(90deg,transparent calc(30% - 1px),#d6d6df calc(30% - 1px) 30%,transparent 30%),repeating-linear-gradient(transparent 0 31px,#e6e6ec 31px 32px);background-position:0 0,0 8px}
+.ned-paper[data-grid=week]{background-image:linear-gradient(90deg,transparent calc(100%/7 - 1px),#d6d6df calc(100%/7 - 1px) calc(100%/7),transparent calc(100%/7)),repeating-linear-gradient(transparent 0 31px,#e6e6ec 31px 32px);background-size:calc(100%/7) 100%,100% 32px;background-position:0 0,0 8px}
 
 /* ======== v75: Leiste immer gleich: feste Höhe/Position, AI-Umschalter rechts ======== */
 .rib{height:64px;min-height:64px;box-sizing:border-box;align-items:center}
