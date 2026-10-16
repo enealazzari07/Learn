@@ -2137,6 +2137,8 @@ a.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}a.src svg{w
 .ned-paper[data-grid=dots]{background-image:radial-gradient(#cfcfd8 1.2px,transparent 1.4px);background-size:26px 26px}
 .ned-paper[data-grid=grid]{background-image:linear-gradient(#e6e6ec 1px,transparent 1px),linear-gradient(90deg,#e6e6ec 1px,transparent 1px);background-size:28px 28px}
 .ned-paper[data-grid=lines]{background-image:repeating-linear-gradient(transparent 0 31px,#e6e6ec 31px 32px);background-position:0 8px}
+.ned-paper[data-grid=cornell]{background-image:linear-gradient(90deg,transparent calc(30% - 1px),#d6d6df calc(30% - 1px) 30%,transparent 30%),repeating-linear-gradient(transparent 0 31px,#e6e6ec 31px 32px);background-position:0 0,0 8px}
+.ned-paper[data-grid=week]{background-image:linear-gradient(90deg,transparent calc(100%/7 - 1px),#d6d6df calc(100%/7 - 1px) calc(100%/7),transparent calc(100%/7)),repeating-linear-gradient(transparent 0 31px,#e6e6ec 31px 32px);background-size:calc(100%/7) 100%,100% 32px;background-position:0 0,0 8px}
 
 /* ======== v75: Leiste immer gleich: feste Höhe/Position, AI-Umschalter rechts ======== */
 .rib{height:64px;min-height:64px;box-sizing:border-box;align-items:center}
@@ -2694,3 +2696,48 @@ body.hed-open{overflow:hidden}
 .bzoom{position:absolute;right:14px;bottom:14px;display:flex;align-items:center;background:#fff;border-radius:999px;box-shadow:0 4px 18px rgba(30,20,90,.16);padding:3px;z-index:6}
 .bzoom button{border:0;background:transparent;height:34px;min-width:34px;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;color:#222;padding:0 8px}.bzoom button:hover{background:#f1f1f5}
 .bd-inf{margin:2px 0 10px;color:#6b6b78;font-size:13px}
+.ink-stk{max-width:260px}.ink-stk .ink-chip{font-size:20px;padding:4px 8px;line-height:1.2}
+.aud-bar{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border:1px solid var(--line,#e4e4ea);border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.16);max-width:calc(100vw - 32px)}
+.aud-bar select{max-width:150px;border:0;background:var(--soft,#f3f3f6);border-radius:9px;padding:6px 8px;font:inherit}
+.aud-bar audio{height:34px;max-width:240px;min-width:0}
+.aud-dot{width:10px;height:10px;border-radius:50%;background:#e5484d;animation:audp 1s ease-in-out infinite}
+@keyframes audp{50%{opacity:.25}}
+#ip-mic.on{background:#e5484d!important;color:#fff!important}
+
+/* ======== PDF-Editor Redesign: ruhige Fläche, Seitenübersicht, Seitenzähler, schwarze aktive Icons (wie Home / Ordner) ======== */
+.pdfed .ned-bar{box-shadow:0 1px 0 #ececf1}
+.pdfed .icon-btn,.pdfed .ned-tools .tbtn,.ned-bar .inkpal .tbtn{color:#6b6b78;transition:background .15s,color .15s}
+.pdfed .icon-btn:hover,.pdfed .ned-tools .tbtn:hover,.ned-bar .inkpal .tbtn:hover{background:#f3f3f6;color:#0f0f12}
+.pdfed .icon-btn.on,.pdfed .tbtn.on,.inkpal .tbtn.on,.ned-bar .inkpal .tbtn.on{background:#ececf0;color:#0f0f12}
+.pdfed .icon-btn.on svg,.pdfed .tbtn.on svg,.inkpal .tbtn.on svg{stroke-width:2.1}
+.inkpal .tbtn.on svg [fill=none],.inkpal .tbtn.on svg{color:#0f0f12}
+.pdfed .modesw{background:#f1f1f5;padding:3px}
+.pdfed .modesw button{display:inline-flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;color:#6b6b78}
+.pdfed .modesw button svg{width:17px;height:17px;flex:none}
+.pdfed .modesw button.on{color:#0f0f12}
+.pdfed .modesw button.on svg{stroke-width:2.2}
+@media (max-width:1100px){.pdfed .modesw button span{display:none}.pdfed .modesw button{padding:8px 11px}}
+.pdfed .tt-lbl{color:#8a8a98;font-size:13px}
+.pdfed .pdfwrap{display:flex!important;flex-direction:row!important;align-items:stretch!important;position:relative;min-height:0;gap:0}
+.pdfed .pdfpaper{flex:1;min-width:0;background:#eef0f5!important;border-radius:0!important;margin-bottom:0!important}
+.pdfed .pdfpg{border-radius:10px;box-shadow:0 1px 2px rgba(20,20,40,.06),0 10px 30px rgba(20,20,60,.09)}
+.pdfthumbs{display:none;flex:none;width:148px;overflow-y:auto;padding:14px 12px 90px;background:#fff;border-right:1px solid #ececf1;scrollbar-width:thin;scrollbar-color:#d6d6de transparent;flex-direction:column;gap:12px}
+.pdfed.th-open .pdfthumbs{display:flex}
+.pdfth{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px;border-radius:12px;cursor:pointer;flex:none;color:#6b6b78;transition:background .15s}
+.pdfth:hover{background:#f3f3f6}
+.pdfth .th-c{display:block;width:100%;background:#fff;border-radius:6px;box-shadow:0 0 0 1px #e3e3ea,0 3px 10px rgba(20,20,60,.08);overflow:hidden}
+.pdfth canvas{display:block;width:100%;height:100%}
+.pdfth em{font-style:normal;font-size:12px;font-weight:600}
+.pdfth.on{background:#ececf0;color:#0f0f12}.pdfth.on .th-c{box-shadow:0 0 0 2px #0f0f12,0 4px 12px rgba(20,20,60,.14)}
+.pdfpager{position:absolute;right:22px;bottom:22px;z-index:30;display:flex;align-items:center;gap:2px;background:#fff;border-radius:999px;padding:4px;box-shadow:0 2px 6px rgba(0,0,0,.06),0 14px 36px rgba(30,20,90,.18)}
+.pdfpager[hidden]{display:none}
+.pdfpager .tbtn{width:34px;height:34px;border-radius:50%;color:#6b6b78}.pdfpager .tbtn:hover{background:#f3f3f6;color:#0f0f12}
+.pdfpager .tbtn:first-child svg{transform:rotate(90deg)}.pdfpager .tbtn:last-child svg{transform:rotate(-90deg)}
+.pdfpager .pgn{display:inline-flex;align-items:center;gap:5px;padding:0 6px;font-size:13px;color:#6b6b78}
+.pdfpager .pgn b{font-weight:600;color:#0f0f12}.pdfpager .pgn i{font-style:normal}
+.pdfpager input{width:38px;border:0;background:#f1f1f5;border-radius:8px;text-align:center;font:600 13px inherit;font-family:inherit;color:#0f0f12;padding:5px 2px;-moz-appearance:textfield;appearance:textfield}
+.pdfpager input::-webkit-outer-spin-button,.pdfpager input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+@media (max-width:900px){
+  .pdfed.th-open .pdfthumbs{position:fixed;left:8px;top:120px;bottom:12px;z-index:70;width:132px;border:0;border-radius:18px;box-shadow:0 10px 40px rgba(30,20,90,.28)}
+  .pdfpager{right:12px;bottom:12px}
+}
