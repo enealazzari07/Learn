@@ -2849,3 +2849,5 @@ body.hed-open{overflow:hidden}
 .hdock{z-index:90}
 .hdock .chatbox.flat,.hdock .hd-in{overflow:visible}
 .hdock:not(.open) .chatbox.flat{justify-content:flex-end}
+.hdock .hd-in{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+@media (min-width:901px){.bento .b-grid{padding-bottom:0}}
