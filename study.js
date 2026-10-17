@@ -575,6 +575,16 @@ async function noteEditor(m, d) {
     for (const it of list) { const r = Suggest.rangeAt(blk, it.start, it.end); if (r && r.comparePoint(sel.anchorNode, sel.anchorOffset) === 0) return openSpMenu(blk, it); }
     closeSpMenu();
   }, 0);
+  /* Antippen: Trefferprüfung über die Position des Fingers (unabhängig davon, ob/wo iPadOS den Cursor setzt) */
+  let tapAt = null;
+  const spHit = (x, y) => {
+    if (!underlineMode()) return; const el = document.elementFromPoint(x, y), blk = el && blockOf(el); if (!blk) return closeSpMenu();
+    refreshBlock(blk, false);
+    for (const it of SP.map.get(blk) || []) { const r = Suggest.rangeAt(blk, it.start, it.end); if (!r) continue; for (const rc of r.getClientRects()) if (x >= rc.left - 4 && x <= rc.right + 4 && y >= rc.top - 6 && y <= rc.bottom + 6) return openSpMenu(blk, it); }
+    closeSpMenu();
+  };
+  body.addEventListener("pointerdown", e => { tapAt = { x: e.clientX, y: e.clientY, t: Date.now() }; }, true);
+  body.addEventListener("pointerup", e => { const t = tapAt; tapAt = null; if (!t || Math.hypot(e.clientX - t.x, e.clientY - t.y) > 10 || Date.now() - t.t > 700) return; const x = e.clientX, y = e.clientY; setTimeout(() => spHit(x, y), 40); }, true);
   body.addEventListener("click", onSpClick); body.addEventListener("keyup", e => { if (/^Arrow/.test(e.key)) closeSpMenu(); });
   const spOut = e => { if (SP.menu && !SP.menu.contains(e.target) && !body.contains(e.target)) closeSpMenu(); };
   document.addEventListener("pointerdown", spOut, true);
