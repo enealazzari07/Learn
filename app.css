@@ -2753,7 +2753,7 @@ body.hed-open{overflow:hidden}
 @media (max-width:900px){.bento .b-grid>.w-ai{min-height:460px}.main.homew,.main.homew:not(.doc-full){padding-bottom:40px}}
 
 /* v103: Startseite ohne Kopfzeile; Raster wächst mit den Blöcken (max. 6 Spalten × 8 Reihen); Fokus-Timer: Kreis antippen = Start, Ziehen = Dauer */
-@media (min-width:901px){.bento .b-grid{grid-template-rows:repeat(var(--n,4),minmax(158px,1fr))!important;grid-auto-rows:minmax(158px,1fr)!important}}
+@media (min-width:901px){.bento .b-grid{grid-template-rows:repeat(var(--n,4),var(--rh))!important;grid-auto-rows:var(--rh)!important}}
 .bento .w-goal{container-type:size;padding:12px;align-items:center;justify-content:center;position:relative}
 .bento .w-goal h2{position:absolute;left:16px;top:12px;margin:0;z-index:1}
 .bento .w-goal .fd{flex:none;width:min(100cqw - 8px,100cqh - 8px);height:min(100cqw - 8px,100cqh - 8px);max-height:none;aspect-ratio:1;margin:0 auto}
@@ -2791,3 +2791,9 @@ body.hed-open{overflow:hidden}
 /* v105: Blöcke enden immer über der Chat-Eingabe (auch beim Scrollen auf Tablet/Handy) */
 @media (max-width:900px){.main.homew,.main.homew:not(.doc-full){padding-bottom:calc(var(--hdh,138px) + 96px + env(safe-area-inset-bottom))!important}}
 @media (min-width:901px){.bento .b-grid{padding-bottom:2px}}
+
+/* v106: feste Reihenhöhe – Startseite und Builder zeigen dieselben Reihen; vier Reihen passen, wenn der Bildschirm hoch genug ist (sonst scrollt es) */
+:root{--rh:clamp(142px,calc((100dvh - 194px - 36px) / 4),190px)}
+.hed-grid{grid-template-rows:repeat(var(--n,4),var(--rh))!important;grid-auto-rows:var(--rh)!important;align-content:start;position:relative}
+.hed-fold{position:absolute;left:12px;right:12px;border-top:2px dashed #ff6a3d;pointer-events:none;z-index:5}
+.hed-fold span{position:absolute;right:0;top:4px;font:600 11px/1 inherit;font-family:inherit;color:#ff6a3d;background:var(--appbg,#f3f3f8);padding:3px 8px;border-radius:99px}

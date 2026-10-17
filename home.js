@@ -74,7 +74,7 @@ function homeEditor() {
   const draw = () => {
     const N = rowsN(), cells = Array.from({ length: N * HOME_COLS }, (_, i) => `<i class="hc" style="grid-column:${i % HOME_COLS + 1};grid-row:${Math.floor(i / HOME_COLS) + 1}"></i>`).join("");
     root.innerHTML = `<div class="hed-top"><div><h2>Startseite bearbeiten</h2><p>Blöcke ziehen rastet auf das Raster ein · Ecke unten rechts ändert die Größe · „Ersetzen“ tauscht den Inhalt.</p></div><div class="hed-act"><button class="btn ghost" id="hd-t">${ic("table")}Vorlagen</button><button class="btn ghost" id="hd-a">${ic("plus")}Block</button><button class="btn ghost" id="hd-r">Zurücksetzen</button><button class="btn accent" id="hd-d">Fertig</button></div></div>
-    <div class="hed-stage"><div class="hed-grid" id="hd-g" style="--n:${N}">${cells}${L.map(blockEl).join("")}</div></div><p class="hed-note">Ganz unten bleibt immer Platz für die Lumi-AI-Eingabe. Auf dem Handy stehen die Blöcke untereinander – in der Reihenfolge von oben nach unten wie hier.</p>`;
+    <div class="hed-stage"><div class="hed-grid" id="hd-g" style="--n:${N}">${cells}${L.map(blockEl).join("")}<i class="hed-fold" style="top:${12 + Math.max(0, innerHeight - 194)}px"><span>Ab hier scrollt die Startseite</span></i></div></div><p class="hed-note">Ganz unten bleibt immer Platz für die Lumi-AI-Eingabe. Auf dem Handy stehen die Blöcke untereinander – in der Reihenfolge von oben nach unten wie hier.</p>`;
     bind();
   };
   const metrics = () => { const g = $("#hd-g", root), cs = $$(".hc", g), a = cs[0].getBoundingClientRect(), b = cs[1].getBoundingClientRect(), c = cs[HOME_COLS].getBoundingClientRect(); return { g, x0: a.left, y0: a.top, sx: b.left - a.left, sy: c.top - a.top }; };
