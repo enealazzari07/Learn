@@ -18,6 +18,21 @@ const Spell = (() => {
   };
   const ABBR = new Set(["z", "b", "d", "h", "u", "a", "o", "s", "v", "bzw", "usw", "ca", "vgl", "ggf", "evtl", "inkl", "nr", "dr", "prof", "etc", "bspw", "sog", "ggfs", "max", "min", "std", "fr", "hr", "tel", "str", "abs", "kap", "bd", "ev", "ref", "ff", "f", "al", "jh", "chr", "vs", "p", "pd", "mrd", "mio", "zb", "dh", "ua", "uvm", "usf", "i", "e", "g", "k", "l", "m", "n", "r", "t", "w", "x", "y", "c"]);
   const PARTS = new Set(["ab", "an", "auf", "aus", "bei", "ein", "mit", "nach", "vor", "zu", "zur", "um", "los", "hin", "her", "weg", "da", "so", "un", "be", "ge", "er", "ver", "zer", "ent", "wieder", "durch", "über", "unter", "zurück", "voran", "empor", "fest", "frei", "hoch", "nieder", "dar"]);
+  /* Verbform passend zum Subjekt (nur eindeutige Fälle) */
+  const V = (o) => o;
+  const AGR = {
+    ich: V({ bist: "bin", ist: "bin", sind: "bin", hast: "habe", hat: "habe", haben: "habe", kannst: "kann", können: "kann", musst: "muss", müssen: "muss", willst: "will", wollen: "will", sollst: "soll", sollen: "soll", wirst: "werde", wird: "werde", werden: "werde" }),
+    du: V({ bin: "bist", ist: "bist", sind: "bist", hat: "hast", habe: "hast", haben: "hast", kann: "kannst", können: "kannst", muss: "musst", müssen: "musst", will: "willst", wollen: "willst", soll: "sollst", sollen: "sollst", wird: "wirst", werde: "wirst", werden: "wirst" }),
+    er: V({ bin: "ist", bist: "ist", sind: "ist", habe: "hat", hast: "hat", haben: "hat", kannst: "kann", können: "kann", musst: "muss", müssen: "muss", willst: "will", wollen: "will", sollst: "soll", sollen: "soll", wirst: "wird", werde: "wird", werden: "wird" }),
+    es: V({ bin: "ist", bist: "ist", habe: "hat", hast: "hat", kannst: "kann", musst: "muss", willst: "will", sollst: "soll", wirst: "wird", werde: "wird" }),
+    wir: V({ bin: "sind", bist: "sind", ist: "sind", habe: "haben", hast: "haben", hat: "haben", kann: "können", kannst: "können", muss: "müssen", musst: "müssen", will: "wollen", willst: "wollen", soll: "sollen", sollst: "sollen", wird: "werden", wirst: "werden", werde: "werden" }),
+    ihr: V({ bin: "seid", bist: "seid", habe: "habt", hast: "habt", haben: "habt", kannst: "könnt", können: "könnt", musst: "müsst", müssen: "müsst", willst: "wollt", wollen: "wollt", sollst: "sollt", sollen: "sollt", wirst: "werdet", werde: "werdet", werden: "werdet" }),
+  };
+  const DASS_V = new Set(["weiss", "wusste", "denke", "dachte", "glaube", "glaubte", "meine", "meinte", "sage", "sagte", "hoffe", "hoffte", "finde", "fand", "sehe", "sah", "höre", "hörte", "merke", "merkte", "fürchte", "behaupte", "zeigt", "bedeutet", "heisst", "schade", "klar", "toll", "gut", "schön", "wichtig", "möglich", "sicher", "froh", "schlimm", "überzeugt", "wahrscheinlich", "sodass", "so", "erfahren", "vergessen", "gesehen", "gehört", "gesagt", "gewusst", "gedacht"]);
+  const SUBJ = new Set(["ich", "du", "er", "sie", "es", "wir", "ihr", "man", "dann", "nicht", "noch", "auch", "schon", "mein", "meine", "dein", "deine", "sein", "seine", "unser", "unsere", "euer", "eure", "jetzt", "heute", "morgen", "alle", "niemand", "jemand", "wenn", "wer"]);
+  const SEIT_T = new Set(["einem", "einer", "dem", "der", "gestern", "langem", "kurzem", "jahren", "monaten", "wochen", "tagen", "jahr", "montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag", "heute", "längerem", "kurzer", "langer", "mehreren", "zwei", "drei", "vier", "fünf", "sechs", "zehn", "gut"]);
+  const DET_ANY = new Set(["der", "die", "das", "den", "dem", "des", "ein", "eine", "einen", "einem", "einer", "eines", "kein", "keine", "keinen", "keinem", "keiner", "mein", "meine", "meinen", "meinem", "meiner", "dein", "deine", "deinen", "deinem", "deiner", "sein", "seine", "seinen", "seinem", "seiner", "unser", "unsere", "unseren", "unserem", "unserer", "ihre", "ihren", "ihrem", "ihrer", "im", "am", "vom", "zum", "zur", "beim", "ins", "ans", "diese", "dieser", "diesen", "diesem", "dieses", "jede", "jeder", "jeden", "jedem", "jedes"]);
+  const DET_SAFE = new Set(["ein", "eine", "einen", "einem", "einer", "eines", "kein", "keine", "keinen", "keinem", "keiner", "mein", "meine", "meinen", "meinem", "meiner", "dein", "deine", "deinen", "deinem", "deiner", "sein", "seine", "seinen", "seinem", "seiner", "unser", "unsere", "unseren", "unserem", "unserer", "im", "am", "vom", "zum", "zur", "beim", "ins", "ans", "diesem", "dieses", "jedem", "jedes"]);
   const FUGE = ["", "s", "es", "n", "en", "e", "er", "ens"];
   const NB = (() => { const rows = ["qwertzuiop", "asdfghjkl", "yxcvbnm"], m = {}; rows.forEach((r, y) => [...r].forEach((c, x) => { m[c] = rows.flatMap((rr, yy) => [...rr].map((cc, xx) => [cc, xx, yy])).filter(([cc, xx, yy]) => cc !== c && Math.abs(xx - x) <= 1 && Math.abs(yy - y) <= 1).map(a => a[0]); })); return m; })();
   const cap = w => w.charAt(0).toUpperCase() + w.slice(1), isUp = c => c !== c.toLowerCase() && c === c.toUpperCase();
@@ -118,7 +133,6 @@ const Spell = (() => {
     const ignore = opts.ignore || new Set();
     // — Regeln —
     for (const m of text.matchAll(/ß/g)) add(m.index, m.index + 1, "ss");                                                  // Schweiz: kein ß
-    for (const m of text.matchAll(/(\p{L}),(\p{L})/gu)) { if (!guard(m.index + 3) && !inMask(m.index)) add(m.index + 1, m.index + 2, ", "); }
     for (const m of text.matchAll(/(?<![\p{L}\p{N}])(\p{L}{2,})\s+\1(?![\p{L}\p{N}])/giu)) { const end = m.index + m[0].length; if (!guard(end)) add(m.index + m[1].length, end, ""); }
     for (const m of text.matchAll(/(^|[.!?…]\s+|\n)(\p{Ll})(\p{L}*)/gu)) {   // Satzanfang gross
       const s = m.index + m[1].length, w = m[2] + m[3]; if (w.length < 2 || guard(s + w.length) || inMask(s) || /^[a-z]+[A-Z]/.test(w)) continue;
@@ -126,11 +140,32 @@ const Spell = (() => {
       if (punct[0] === ".") { const prev = /(\p{L}+|\d+)$/u.exec(text.slice(0, m.index)); if (prev && (ABBR.has(prev[1].toLowerCase()) || /^\d+$/.test(prev[1]))) continue; }
       add(s, s + 1, m[2].toUpperCase());
     }
+    // — Grammatik-Regeln (eindeutige Fälle): Verbform zum Subjekt, das/dass, seit/seid, „Ich“ mitten im Satz —
+    const toks = [...text.matchAll(/\p{L}+/gu)].map(m => ({ w: m[0], s: m.index, e: m.index + m[0].length, l: m[0].toLowerCase() }));
+    const adj = (a, b) => text.slice(a.e, b.s) === " ";
+    const caseLike = (orig, r) => isUp(orig[0]) && !isUp(r[0]) ? cap(r) : r;
+    toks.forEach((t, i) => {
+      if (guard(t.e) || inMask(t.s)) return; const p = toks[i - 1], n = toks[i + 1];
+      if (p && adj(p, t) && AGR[p.l] && AGR[p.l][t.l] && !(p.l === "es" && /^(sind|haben|können|müssen|wollen|sollen|werden)$/.test(t.l))) { add(t.s, t.e, caseLike(t.w, AGR[p.l][t.l])); return; }
+      if (t.l === "das" && p && n && adj(p, t) && adj(t, n) && DASS_V.has(p.l) && SUBJ.has(n.l)) { add(t.s, t.e, caseLike(t.w, "dass")); return; }
+      if (t.l === "seit" && p && p.l === "ihr" && adj(p, t)) { add(t.s, t.e, caseLike(t.w, "seid")); return; }
+      if (t.l === "seid" && n && adj(t, n) && SEIT_T.has(n.l) && !(p && /^(ihr)$/.test(p.l))) { add(t.s, t.e, caseLike(t.w, "seit")); return; }
+      if (t.w === "Ich" && t.s > 0 && !/(^|[.!?…:\n"„«»“\-–]\s*)$/.test(text.slice(0, t.s))) add(t.s, t.e, "ich");
+    });
     let unknown = 0;
     if (!ready) return { edits, unknown: null, ready: false };
     // — Wörter —
     const counts = new Map(); for (const m of text.matchAll(/\p{L}+/gu)) counts.set(m[0].toLowerCase(), (counts.get(m[0].toLowerCase()) || 0) + 1);
     const total = opts.docCounts;
+    // Hauptwörter nach Artikel gross (das Schreiben, im Unterricht): nur wenn das Wort sicher als Hauptwort in Frage kommt
+    toks.forEach((t, i) => {
+      const p = toks[i - 1], n = toks[i + 1]; if (!p || guard(t.e) || inMask(t.s) || t.w[0] !== t.w[0].toLowerCase() || t.l.length < 4) return;
+      if (!adj(p, t) || !DET_ANY.has(p.l) || !capSet.has(cap(t.w))) return;
+      const both = lowSet.has(t.w);
+      if (both && !DET_SAFE.has(p.l)) return;
+      if (n && adj(t, n)) { const nn = n.w, nCap = isUp(nn[0]) || (capSet.has(cap(nn)) && !lowSet.has(nn)); if (nCap) return; if (lowSet.has(nn) && capSet.has(cap(nn))) return; }   // „die alte Frau“: alte ist Adjektiv
+      add(t.s, t.e, cap(t.w));
+    });
     for (const m of text.matchAll(/\p{L}+/gu)) {
       const w = m[0], s = m.index, e = s + w.length; if (w.length < 4 || w.length > 28) continue;
       if (inMask(s) || /^\p{Lu}{2,}$/u.test(w) || /\p{Ll}\p{Lu}/u.test(w)) continue;
