@@ -2,14 +2,14 @@
 /* Lumi – Startseite anpassen: echtes Raster (6 Spalten × 4 Reihen). Blöcke liegen auf festen Zellen, lassen sich ersetzen, verschieben und in der Größe ziehen.
    Unter dem Raster bleibt immer ein Bereich für die Lumi-AI-Eingabe frei. Layout liegt in D.profile.home = [{id,type,c,r,w,h}]. */
 const HB = {
-  tasks: { n: "Aufgaben", d: "Heutige Aufgaben abhaken", i: "list", w: 2, h: 2, mw: 2, mh: 2 },
+  tasks: { n: "Aufgaben", d: "Heutige Aufgaben abhaken", i: "list", w: 2, h: 2, mw: 2, mh: 1 },
   cal: { n: "Kalender", d: "Termine, Prüfungen, Abgaben", i: "cal", w: 2, h: 2, mw: 2, mh: 2 },
   goal: { n: "Fokus", d: "Timer zum Einstellen", i: "timer", w: 2, h: 2, mw: 1, mh: 1 },
   ring: { n: "Tagesziel", d: "Lernzeit heute als Ring", i: "timer", w: 2, h: 2, mw: 1, mh: 1 },
   ex: { n: "Prüfungen", d: "Die nächsten Prüfungen", i: "book", w: 2, h: 2, mw: 2, mh: 1 },
   hw: { n: "Hausaufgaben", d: "Offene Hausaufgaben", i: "list", w: 2, h: 2, mw: 2, mh: 2 },
   tt: { n: "Stundenplan", d: "Die Stunden von heute", i: "cal", w: 2, h: 2, mw: 2, mh: 2 },
-  rec: { n: "Zuletzt", d: "Zuletzt bearbeitete Dokumente", i: "folder", w: 2, h: 2, mw: 2, mh: 2 },
+  rec: { n: "Zuletzt", d: "Zuletzt bearbeitete Dokumente", i: "folder", w: 2, h: 2, mw: 2, mh: 1 },
   pinned: { n: "Angeheftet", d: "Deine angehefteten Dokumente", i: "star", w: 2, h: 2, mw: 2, mh: 2 },
   cards: { n: "Karteikarten", d: "Fällige Karten", i: "cards", w: 2, h: 1, mw: 2, mh: 1 },
   grades: { n: "Noten", d: "Gesamtschnitt", i: "award", w: 1, h: 1, mw: 1, mh: 1 },
