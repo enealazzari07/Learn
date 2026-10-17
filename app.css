@@ -2825,3 +2825,22 @@ body.hed-open{overflow:hidden}
 /* v109: Fächer ohne Farbe – überall nur der Name */
 .sdot,.gr-d,.w-sj .sj-l i,.subjed input[type=color]{display:none!important}
 .w-grades .gr-r{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto}
+
+/* v110: Kalender zeigt unten, was am gewählten Tag ansteht (Prüfung, Aufgabe, Termin) – ohne Buttons */
+.w-cal .w-cd{margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f4;display:flex;flex-direction:column;gap:3px;min-height:0;flex:none}
+.w-cal .w-cd:empty{display:none}
+.w-cal .cd-dt{font-size:12px;font-weight:600;color:#8a8a98}
+.w-cal .cd-i{display:flex;align-items:center;gap:7px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.w-cal .cd-i i{width:6px;height:6px;border-radius:50%;background:#0f0f12;flex:none}
+.w-cal .cd-i.kexam i{background:#e5484d}.w-cal .cd-i.kexam b{color:#e5484d}
+.w-cal .cd-i b{font-weight:700}
+.w-cal .cd-i.more{color:#8a8a98;font-size:12px}.w-cal .cd-i.more i{display:none}
+.bento .w-cal .cal-g{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:auto repeat(var(--wk,5),minmax(0,1fr))}
+.bento .w-cal .cal-g .cd{height:auto!important;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;padding:0}
+.bento .w-cal .cal-g .cd span{width:auto;line-height:1;display:block}
+.bento .w-cal .cal-g .cd em{position:absolute;bottom:2px;left:0;right:0;display:flex;justify-content:center;height:5px}
+.w-cal .cd-t{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.w-cal .cd-i.kexam .cd-t b{color:#e5484d}
+.w-cal .w-cd{margin-top:6px;padding-top:6px}
+.w-cal .cd-i{line-height:18px}
+.w-cal .cd-i .cd-m{font-style:normal;margin-left:auto;font-size:12px;font-weight:600;color:#8a8a98;flex:none;padding-left:6px}
