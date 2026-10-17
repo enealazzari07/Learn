@@ -2797,3 +2797,7 @@ body.hed-open{overflow:hidden}
 .hed-grid{grid-template-rows:repeat(var(--n,4),var(--rh))!important;grid-auto-rows:var(--rh)!important;align-content:start;position:relative}
 .hed-fold{position:absolute;left:12px;right:12px;border-top:2px dashed #ff6a3d;pointer-events:none;z-index:5}
 .hed-fold span{position:absolute;right:0;top:4px;font:600 11px/1 inherit;font-family:inherit;color:#ff6a3d;background:var(--appbg,#f3f3f8);padding:3px 8px;border-radius:99px}
+
+/* v107: Chat-Eingabe unten komplett sichtbar (kein Verlauf-Rest über der Leiste, kein Abschneiden unten, Platz für den Home-Balken) */
+.hdock:not(.open) .msgs{padding-top:0;padding-bottom:0;margin:0;min-height:0}
+.hdock .hd-in{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
