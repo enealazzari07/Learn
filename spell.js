@@ -112,25 +112,36 @@ const Spell = (() => {
       best.push({ f: e.f, s: e.r * pen + 1, t }); bestD = 1;
     }
     if (!best.length && L >= 8) for (let l = L - 2; l <= L + 2; l++) for (const e of buckets[l] || []) { if (e.lc[0] !== lc[0] || lev2(lc, e.lc) !== 2) continue; best.push({ f: e.f, s: (e.r + 1) * 2, t: 5 }); bestD = 2; }
-    if (!best.length) return { cand: null, close: false };
+    if (!best.length) return { cand: null, close: false, list: [] };
     const byLc = new Map(); for (const c of best) { const k = c.f.toLowerCase(), o = byLc.get(k); if (!o || (isUp(c.f[0]) === isUp(w[0]) && isUp(o.f[0]) !== isUp(w[0])) || (isUp(c.f[0]) === isUp(o.f[0]) && c.s < o.s)) byLc.set(k, c); }
     best = [...byLc.values()].sort((a, b) => a.s - b.s);
     const a = best[0], b = best[1];
-    if (a.s > 90000) return { cand: null, close: true };                       // nur geläufige Wörter vorschlagen
-    if (b && b.s < a.s * 3 && b.f !== a.f) return { cand: null, close: true };    // mehrdeutig → nicht raten
-    let f = a.f; if (!atStart && isUp(w[0]) && !isUp(f[0])) return { cand: null, close: true };
+    const list = best.slice(0, 4).map(x => (atStart && isUp(w[0]) && !isUp(x.f[0]) ? cap(x.f) : x.f));
+    if (a.s > 90000) return { cand: null, close: true, list: [] };                       // nur geläufige Wörter vorschlagen
+    if (b && b.s < a.s * 3 && b.f !== a.f) return { cand: null, close: true, list };    // mehrdeutig → nicht raten
+    let f = a.f; if (!atStart && isUp(w[0]) && !isUp(f[0])) return { cand: null, close: true, list };
     if (atStart && isUp(w[0]) && !isUp(f[0])) f = cap(f);
-    return { cand: f, close: true };
+    return { cand: f, close: true, list };
   }
 
   /* Analyse eines Textes: edits = sichere Korrekturen, unknown = Wörter, bei denen die KI helfen könnte */
   function analyze(text, opts = {}) {
-    const edits = [], used = [];
+    const edits = [], used = [], extra = [];
     const add = (start, end, replace) => { if (replace === text.slice(start, end)) return; if (used.some(([s, e]) => start < e && end > s)) return; used.push([start, end]); edits.push({ start, end, replace }); };
     const skipTail = opts.skipTail !== false, guard = (end) => skipTail && end >= text.length;
     const mask = []; for (const m of text.matchAll(/(?:https?:\/\/|www\.)\S+|\S+@\S+|[#@]\w+/g)) mask.push([m.index, m.index + m[0].length]);
     const inMask = i => mask.some(([s, e]) => i >= s && i < e);
     const ignore = opts.ignore || new Set();
+    const toIssues = () => {   // Fundstellen für die Unterstreichung: ganzes Wort + Vorschläge
+      const out = [], wordAt = a => { let ws = a, we = a; while (ws > 0 && /\p{L}/u.test(text[ws - 1])) ws--; while (we < text.length && /\p{L}/u.test(text[we])) we++; return [ws, we]; };
+      for (const e of [...edits].sort((x, y) => x.start - y.start)) {
+        if (e.replace === "") { const m = /\S+/.exec(text.slice(e.start, e.end)); if (m) out.push({ start: e.start + m.index, end: e.start + m.index + m[0].length, word: m[0], suggestions: [""], kind: "dup" }); continue; }
+        const [ws, we] = wordAt(Math.min(e.start, Math.max(0, text.length - 1))), lo = Math.min(ws, e.start), hi = Math.max(we, e.end);
+        out.push({ start: lo, end: hi, word: text.slice(lo, hi), suggestions: [text.slice(lo, e.start) + e.replace + text.slice(e.end, hi)], kind: "fix" });
+      }
+      for (const x of extra) if (!out.some(o => x.start < o.end && x.end > o.start)) out.push(x);
+      return out.sort((x, y) => x.start - y.start);
+    };
     // — Regeln —
     for (const m of text.matchAll(/ß/g)) add(m.index, m.index + 1, "ss");                                                  // Schweiz: kein ß
     for (const m of text.matchAll(/(?<![\p{L}\p{N}])(\p{L}{2,})\s+\1(?![\p{L}\p{N}])/giu)) { const end = m.index + m[0].length; if (!guard(end)) add(m.index + m[1].length, end, ""); }
@@ -153,7 +164,7 @@ const Spell = (() => {
       if (t.w === "Ich" && t.s > 0 && !/(^|[.!?…:\n"„«»“\-–]\s*)$/.test(text.slice(0, t.s))) add(t.s, t.e, "ich");
     });
     let unknown = 0;
-    if (!ready) return { edits, unknown: null, ready: false };
+    if (!ready) return { edits, issues: toIssues(), unknown: null, ready: false };
     // — Wörter —
     const counts = new Map(); for (const m of text.matchAll(/\p{L}+/gu)) counts.set(m[0].toLowerCase(), (counts.get(m[0].toLowerCase()) || 0) + 1);
     const total = opts.docCounts;
@@ -183,9 +194,9 @@ const Spell = (() => {
         const sg = suggest(w, false); if (sg.cand && sg.close && within1(lc, sg.cand.toLowerCase()) === 2 && isUp(sg.cand[0])) add(s, e, sg.cand); continue;
       }
       const sg = suggest(w, atStart);
-      if (sg.cand) add(s, e, sg.cand); else if (!up || sg.close) unknown++;
+      if (sg.cand) add(s, e, sg.cand); else if (!up || sg.close) { unknown++; extra.push({ start: s, end: e, word: w, suggestions: (sg.list || []).slice(0, 3), kind: "unknown" }); }
     }
-    return { edits: edits.sort((a, b) => a.start - b.start), unknown, ready: true };
+    return { edits: edits.sort((a, b) => a.start - b.start), issues: toIssues(), unknown, ready: true };
   }
   return { load, analyze, isReady: () => ready, _build: build };
 })();

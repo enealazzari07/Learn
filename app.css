@@ -2875,3 +2875,13 @@ body.hed-open{overflow:hidden}
 .m blockquote{margin:.4em 0;padding:.1em .8em;border-left:3px solid #d7d7e0;color:#55555f}
 .m table{border-collapse:collapse;margin:.4em 0;font-size:.93em}.m th,.m td{border:1px solid #e4e4ec;padding:4px 8px;text-align:left}
 .m>:first-child{margin-top:0}.m>:last-child{margin-bottom:0}
+
+/* v116: Rechtschreibung wie in Word – Fehler unterstrichen, Antippen öffnet Vorschläge */
+::highlight(lumi-spell){text-decoration:underline wavy #e5484d;text-decoration-thickness:1.5px;text-underline-offset:3px}
+.spm{position:fixed;z-index:500;min-width:190px;max-width:290px;background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(20,20,40,.18),0 0 0 1px rgba(0,0,0,.05);padding:6px;display:flex;flex-direction:column;animation:fadeUp .15s ease both}
+.spm button{text-align:left;padding:9px 12px;border-radius:10px;font-size:14px;font-weight:500;color:#0f0f12;background:none;cursor:pointer}
+.spm button:hover,.spm button:active{background:#f3f3f7}
+.spm .spm-s{font-weight:700}
+.spm .spm-a{color:#55555f;font-size:13px}
+.spm .spm-n{padding:9px 12px;font-size:13px;color:#8a8a98}
+.spm .spm-l{display:block;height:1px;background:#eeeef2;margin:4px 6px}

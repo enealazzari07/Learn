@@ -530,9 +530,60 @@ async function noteEditor(m, d) {
     if (typeof Spell !== "undefined" && Spell.isReady()) for (const e of Spell.analyze(txt, { skipTail: tailOpen, ignore: ignoreSet(), docCounts: docCounts() }).edits) if (!out.some(o => e.start < o.end && e.end > o.start)) out.push(e);
     return out.sort((a, b) => a.start - b.start);
   };
+  /* ---- Rechtschreibung wie in Word: Fehler werden unterstrichen, Antippen zeigt Vorschläge (Modus „Vorschläge“) ---- */
+  const HL = window.CSS && CSS.highlights && window.Highlight ? new Highlight() : null; if (HL) CSS.highlights.set("lumi-spell", HL);
+  const SP = { map: new Map(), ai: new Map(), sess: new Set(), menu: null };
+  const underlineMode = () => !!HL && acMode() === "suggest";
+  const leafBlocks = () => [...body.querySelectorAll("p,h1,h2,h3,li,blockquote,td,th")].filter(b => !b.querySelector("p,h1,h2,h3,li,blockquote,td,th") && !/^(PRE|CODE)$/.test(b.tagName));
+  const issuesOf = (blk, tailOpen) => {
+    const txt = Suggest.textOf(blk).s, out = [], free = x => !out.some(o => x.start < o.end && x.end > o.start);
+    if (typeof Spell !== "undefined" && Spell.isReady()) for (const it of Spell.analyze(txt, { skipTail: tailOpen, ignore: new Set([...ignoreSet(), ...SP.sess]), docCounts: docCounts() }).issues) out.push(it);
+    const dict = acDict(); for (const m of txt.matchAll(/\p{L}+/gu)) { const r = dict[m[0]]; if (r && r !== m[0] && !(tailOpen && m.index + m[0].length >= txt.length)) { const x = { start: m.index, end: m.index + m[0].length, word: m[0], suggestions: [r], kind: "fix" }; if (free(x)) out.push(x); } }
+    const ai = (SP.ai.get(blk) || []).filter(a => { const at = txt.indexOf(a.word); if (at < 0) return false; const x = { start: at, end: at + a.word.length, word: a.word, suggestions: [a.replace], kind: "ki" }; if (free(x)) out.push(x); return true; });
+    SP.ai.set(blk, ai); return out.sort((a, b) => a.start - b.start);
+  };
+  const repaint = () => {
+    if (!HL) return; HL.clear();
+    for (const [blk, list] of [...SP.map]) { if (!blk.isConnected) { SP.map.delete(blk); continue; } for (const it of list) { const r = Suggest.rangeAt(blk, it.start, it.end); if (r) HL.add(r); } }
+  };
+  const refreshBlock = (blk, tailOpen = false) => { if (!blk || !blk.isConnected || /^(PRE|CODE)$/.test(blk.tagName)) return; SP.map.set(blk, issuesOf(blk, tailOpen)); };
+  const refreshAll = () => { if (!underlineMode()) return; leafBlocks().forEach(b => refreshBlock(b, false)); repaint(); };
+  const closeSpMenu = () => { if (SP.menu) { SP.menu.remove(); SP.menu = null; } };
+  const fixIssue = (blk, it, repl) => {
+    const r = Suggest.rangeAt(blk, it.kind === "dup" && it.start > 0 ? it.start - 1 : it.start, it.end); if (!r) return; closeSpMenu();
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand(repl === "" ? "delete" : "insertText", false, repl);
+    if (it.kind === "ki") { const a = SP.ai.get(blk) || []; SP.ai.set(blk, a.filter(x => x.word !== it.word)); learnAC(it.word, [{ start: 0, end: it.word.length, replace: repl }]); }
+    refreshBlock(blk, false); repaint(); dirty();
+  };
+  const openSpMenu = (blk, it) => {
+    closeSpMenu(); const r = Suggest.rangeAt(blk, it.start, it.end); if (!r) return; const b = r.getBoundingClientRect(), el = document.createElement("div"); el.className = "spm";
+    const sug = it.suggestions.filter(x => x !== undefined);
+    el.innerHTML = (sug.length ? sug.map((x, i) => `<button type="button" class="spm-s" data-i="${i}">${x === "" ? "Doppeltes Wort entfernen" : esc(x)}</button>`).join("") : `<span class="spm-n">Keine Vorschläge</span>`) + `<i class="spm-l"></i><button type="button" class="spm-a" data-a="ign">Ignorieren</button><button type="button" class="spm-a" data-a="add">Zum Wörterbuch hinzufügen</button>`;
+    document.body.appendChild(el); SP.menu = el; const w = el.offsetWidth, h = el.offsetHeight;
+    el.style.left = Math.max(8, Math.min(innerWidth - w - 8, b.left)) + "px"; el.style.top = (b.bottom + 8 + h > innerHeight - 8 ? Math.max(8, b.top - h - 8) : b.bottom + 8) + "px";
+    el.addEventListener("pointerdown", e => e.preventDefault());
+    el.onclick = e => {
+      const bt = e.target.closest("button"); if (!bt) return;
+      if (bt.dataset.i !== undefined) return fixIssue(blk, it, sug[+bt.dataset.i]);
+      const wd = it.word.toLowerCase(); if (bt.dataset.a === "add") { const ig = (D.profile.spellIgnore ||= []); if (!ig.includes(wd)) ig.push(wd); save(); toast("„" + it.word + "“ zum Wörterbuch hinzugefügt"); } else SP.sess.add(wd);
+      SP.ai.set(blk, (SP.ai.get(blk) || []).filter(x => x.word !== it.word)); closeSpMenu(); refreshAll();
+    };
+  };
+  const onSpClick = () => setTimeout(() => {
+    if (!underlineMode()) return; const sel = getSelection(); if (!sel.rangeCount || !sel.isCollapsed || !body.contains(sel.anchorNode)) return closeSpMenu();
+    const blk = blockOf(sel.anchorNode), list = blk && SP.map.get(blk); if (!list || !list.length) return closeSpMenu();
+    for (const it of list) { const r = Suggest.rangeAt(blk, it.start, it.end); if (r && r.comparePoint(sel.anchorNode, sel.anchorOffset) === 0) return openSpMenu(blk, it); }
+    closeSpMenu();
+  }, 0);
+  body.addEventListener("click", onSpClick); body.addEventListener("keyup", e => { if (/^Arrow/.test(e.key)) closeSpMenu(); });
+  const spOut = e => { if (SP.menu && !SP.menu.contains(e.target) && !body.contains(e.target)) closeSpMenu(); };
+  document.addEventListener("pointerdown", spOut, true);
+  LEAVE.push(() => { closeSpMenu(); document.removeEventListener("pointerdown", spOut, true); try { CSS.highlights?.delete("lumi-spell"); } catch {} });
+  if (typeof Spell !== "undefined" && acMode() !== "off") Spell.load().then(() => { refreshAll(); setTimeout(refreshAll, 700); });
   const localAC = () => {
     if (acMode() === "off") return; const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
     const blk = blockOf(sel.anchorNode); if (!blk || /^(PRE|CODE)$/.test(blk.tagName)) return;
+    if (underlineMode()) { closeSpMenu(); refreshBlock(blk, /\p{L}$/u.test(blk.textContent || "")); repaint(); return; }
     const orig0 = Suggest.textOf(blk).s, marked = !!blk.querySelector(".sg-del,.sg-ins");
     let ed = localEdits(orig0, /\p{L}$/u.test(blk.textContent || ""));
     if (marked) ed = ed.filter(e => { const r = Suggest.rangeAt(blk, e.start, e.end), el = r && (r.startContainer.nodeType === 3 ? r.startContainer.parentElement : r.startContainer); return r && !(el && el.closest(".sg-del,.sg-ins")); });   // schon markierte Stellen nicht doppelt vorschlagen
@@ -568,7 +619,8 @@ async function noteEditor(m, d) {
     edits.forEach(e => { const o = orig.slice(e.start, e.end), hit = AC.log.find(l => l.to === o && l.from.toLowerCase() === e.replace.toLowerCase()); if (hit && /^\p{L}+$/u.test(hit.from)) { const ig = (D.profile.spellIgnore ||= []); if (!ig.includes(hit.from.toLowerCase())) ig.push(hit.from.toLowerCase()); save(); } });   // KI widerruft Algorithmus → Wort künftig in Ruhe lassen
     const reverted = new Set(edits.filter(e => AC.log.some(l => l.to === orig.slice(e.start, e.end) && l.from.toLowerCase() === e.replace.toLowerCase())));
     AC.log = [];
-    learnAC(orig, edits.filter(e => !reverted.has(e)));
+    if (!underlineMode()) learnAC(orig, edits.filter(e => !reverted.has(e)));
+    if (underlineMode()) { SP.ai.set(blk, [...(SP.ai.get(blk) || []), ...edits.map(e => ({ word: orig.slice(e.start, e.end), replace: e.replace }))]); refreshBlock(blk, false); repaint(); AC.seen.set(blk, Suggest.textOf(blk).s); if (AC.dirty.size) scheduleAC(); return; }
     const n = SG.suggestAt(blk, edits, { avoidCaret: true, direct: acMode() === "auto", mini: true });
     if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`);
     AC.seen.set(blk, Suggest.textOf(blk).s); if (AC.dirty.size) scheduleAC();
@@ -792,8 +844,8 @@ async function noteEditor(m, d) {
     const show = (t, init) => { cur = t; tabs.forEach(b => { b.classList.toggle("on", b.dataset.t === t); b.setAttribute("aria-selected", b.dataset.t === t); }); panels.forEach(p => p.classList.toggle("on", p.dataset.pn === t)); if (!init) setMode(t === "draw" ? "draw" : "write"); };
     tabs.forEach(b => b.onclick = () => { if (b.dataset.t === cur) return; show(b.dataset.t); });
     show("start", true);
-    const paintR = () => { $("#r-acv", m).textContent = { suggest: "Vorschläge", auto: "Automatisch", off: "Aus" }[D.profile.autoCorrect || "suggest"]; const sv = $("#r-srcv", m); if (sv) sv.textContent = sourcesOn() ? "An" : "Aus"; };
-    paintR(); $("#r-ac", m).onclick = () => { const o = ["suggest", "auto", "off"], i = o.indexOf(D.profile.autoCorrect || "suggest"); D.profile.autoCorrect = o[(i + 1) % 3]; save(); paintR(); toast("Auto-Korrektur: " + { suggest: "Vorschläge", auto: "automatisch übernehmen", off: "aus" }[D.profile.autoCorrect]); };
+    const paintR = () => { $("#r-acv", m).textContent = { suggest: "Unterstreichen", auto: "Automatisch", off: "Aus" }[D.profile.autoCorrect || "suggest"]; const sv = $("#r-srcv", m); if (sv) sv.textContent = sourcesOn() ? "An" : "Aus"; };
+    paintR(); $("#r-ac", m).onclick = () => { const o = ["suggest", "auto", "off"], i = o.indexOf(D.profile.autoCorrect || "suggest"); D.profile.autoCorrect = o[(i + 1) % 3]; save(); paintR(); toast("Auto-Korrektur: " + { suggest: "Unterstreichen", auto: "automatisch übernehmen", off: "aus" }[D.profile.autoCorrect]); };
     $("#r-src", m)?.addEventListener("click", () => { D.profile.sources = !sourcesOn(); save(); paintR(); });
   }
   LEAVE.push(() => { ink.destroy(); });
