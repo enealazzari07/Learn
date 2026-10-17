@@ -321,7 +321,9 @@ V.today = m => {
       $("#cal-m", m).textContent = new Date(cy, cm, 1).toLocaleDateString("de-CH", { month: "long", year: "numeric" });
       const f0 = (new Date(cy, cm, 1).getDay() + 6) % 7, today = iso();
       let h = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(w => `<span class="wd">${w}</span>`).join("");
-      for (let i = 0; i < 42; i++) {
+      /* nur die Wochen des Monats; ist heute in der letzten Woche, rutscht oben die erste Reihe weg und unten kommt die nächste Woche dazu */
+      const wk = Math.ceil((f0 + new Date(cy, cm + 1, 0).getDate()) / 7), isNow = cy === now.getFullYear() && cm === now.getMonth(), inLast = isNow && Math.floor((f0 + now.getDate() - 1) / 7) === wk - 1, from = inLast ? 7 : 0;
+      for (let i = from; i < from + wk * 7; i++) {
         const dt = new Date(cy, cm, 1 - f0 + i), ds = iso(dt), out = dt.getMonth() !== cm, it = itemsOn(ds);
         h += `<button class="cd ${out ? "out" : ""} ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><span>${dt.getDate()}</span><em>${it.length ? "<u></u>" : ""}</em></button>`;
       }
