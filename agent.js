@@ -28,6 +28,7 @@ function agentContext() {
   const cur = (location.hash.match(/#\/app\/doc\/([^/]+)/) || [])[1], cd = cur && D.docs.find(x => x.id === cur);
   const edTxt = cd && window.__lumiEd ? (window.__lumiFmt ? `Format: ${window.__lumiFmt.state()}\n` : "") + `Text des geöffneten Dokuments (für suggest_edits):\n"""\n${window.__lumiEd.text().slice(0, 7000)}\n"""\n` : "";
   return (cd ? `Aktuell geöffnet: [${cd.id}] ${cd.title}\n` : "") + edTxt + `Heute: ${iso()} (${new Date().toLocaleDateString("de-DE", { weekday: "long" })})\n` +
+    `Notenskala: ${SC().n}${(D.profile.scale || "ch") === "ch" ? " (Schweiz: 4 = genügend, Dezimalpunkt)" : ""}\n` +
     L("Fächer", D.subjects.map(s => `- ${s.name}`)) +
     L("Ordner", D.folders.slice(0, 60).map(f => `- ${path(f.id)}`)) +
     L("Dokumente", [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 50).map(d => `- [${d.id}] ${d.title}${d.folderId ? " (" + path(d.folderId) + ")" : ""}`)) +
@@ -72,7 +73,7 @@ const ACTIONS = {
   },
   async add_task(a) { if (!String(a.title || "").trim()) throw "Kein Titel"; const due = /^\d{4}-\d{2}-\d{2}$/.test(a.due || "") ? a.due : ""; const t = { id: uid(), title: String(a.title).trim().slice(0, 140), type: ["task", "hw", "exam"].includes(a.type) ? a.type : "task", due, subjectId: findSubject(a.subject)?.id || "", note: String(a.note || "").slice(0, 500), done: false, source: "ki" }; D.tasks.push(t); return { label: `${t.type === "exam" ? "Prüfung" : "Aufgabe"} „${t.title}“${due ? " am " + fmtD(due) : ""} eingetragen`, go: "planner" }; },
   async complete_task(a) { const t = pick(D.tasks.filter(x => !x.done), "id", a.task); if (!t) throw "Aufgabe nicht gefunden"; t.done = true; t.doneAt = Date.now(); return { label: `„${t.title}“ erledigt`, go: "planner" }; },
-  async add_grade(a) { const s = findSubject(a.subject), v = parseFloat(String(a.value).replace(",", ".")); if (isNaN(v)) throw "Ungültige Note"; D.grades.push({ id: uid(), subjectId: s?.id || "", title: String(a.title || "Note").slice(0, 80), value: v, weight: parseFloat(a.weight) || 1, date: iso() }); return { label: `Note ${v}${s ? " in " + s.name : ""} eingetragen`, go: "grades" }; },
+  async add_grade(a) { const s = findSubject(a.subject), v = parseFloat(String(a.value).replace(",", ".")); if (isNaN(v) || v < SC().min || v > SC().max) throw `Ungültige Note (erlaubt: ${SC().min}–${SC().max})`; D.grades.push({ id: uid(), subjectId: s?.id || "", title: String(a.title || "Note").slice(0, 80), value: v, weight: parseFloat(a.weight) || 1, date: iso() }); return { label: `Note ${v}${s ? " in " + s.name : ""} eingetragen`, go: "grades" }; },
   async delete_doc(a) { const d = findDoc(a.doc); if (!d) throw "Dokument nicht gefunden"; if (!(await confirmBox(`„${d.title}“ wirklich löschen?`, "Löschen"))) return { label: "Löschen abgebrochen" }; await deleteDoc(d); return { label: `„${d.title}“ gelöscht` }; },
   async open(a) { if (a.doc) { const d = findDoc(a.doc); if (!d) throw "Dokument nicht gefunden"; return { label: `„${d.title}“ öffnen`, go: (d.type === "draw" ? "draw/" : "doc/") + d.id }; } const v = String(a.view || ""); if (!V[v]) throw "Bereich unbekannt"; return { label: "Öffnen: " + (NAVS.find(n => n[0] === v)?.[1] || v), go: v }; },
 };
