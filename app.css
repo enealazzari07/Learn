@@ -2801,3 +2801,23 @@ body.hed-open{overflow:hidden}
 /* v107: Chat-Eingabe unten komplett sichtbar (kein Verlauf-Rest über der Leiste, kein Abschneiden unten, Platz für den Home-Balken) */
 .hdock:not(.open) .msgs{padding-top:0;padding-bottom:0;margin:0;min-height:0}
 .hdock .hd-in{padding-bottom:calc(14px + env(safe-area-inset-bottom))}
+
+/* v108: Noten-Block – ab 2 × 2 mit Schnitt oben und allen Fächern übersichtlich darunter */
+.bento .w-grades{container-type:size;justify-content:flex-start;gap:0}
+.w-grades .gr-top{display:flex;flex-direction:column;gap:2px;margin-top:auto}
+.w-grades .gr-top .w-big{font-size:clamp(34px,15cqmin,64px);line-height:1;letter-spacing:-.04em}
+.w-grades .gr-top small{font-size:12.5px;color:#8a8a98;font-weight:500}
+.w-grades .gr-list{display:none;flex-direction:column;gap:9px;margin:14px 0 6px;overflow:auto;min-height:0;flex:1;scrollbar-width:none}
+.w-grades .gr-list::-webkit-scrollbar{display:none}
+.w-grades .gr-r{display:grid;grid-template-columns:10px minmax(0,1.1fr) minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px}
+.w-grades .gr-d{width:10px;height:10px;border-radius:50%}
+.w-grades .gr-n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.w-grades .gr-n small{color:#a9a9b6;font-weight:500;margin-left:6px;font-size:11.5px}
+.w-grades .gr-b{height:8px;border-radius:99px;background:#eeeef2;overflow:hidden}.w-grades .gr-b i{display:block;height:100%;border-radius:99px}
+.w-grades .gr-r>b{font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+@container (min-height:215px){
+  .w-grades .gr-top{flex-direction:row;align-items:baseline;gap:12px;margin-top:2px}
+  .w-grades .gr-top .w-big{font-size:clamp(30px,13cqmin,52px)}
+  .w-grades .gr-list{display:flex}
+}
+@container (max-height:214px){.w-grades .gr-list{display:none}}
+@container (min-height:215px){.w-grades .w-go{display:none}.w-grades .gr-list{gap:7px;margin:10px 0 0}.w-grades .gr-r{font-size:13px}.w-grades .gr-top small{font-size:11.5px}}
