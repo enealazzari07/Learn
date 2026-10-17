@@ -105,7 +105,16 @@ const Format = (() => {
     const BLK = "p,h1,h2,h3,li,blockquote,pre,td,th", nrm = s => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
     const blocksOf = scope => [...body.querySelectorAll(scope === "headings" ? "h1,h2,h3" : BLK)].filter(b => !b.querySelector(BLK));
     const ALIGN = { left: "left", links: "left", linksbuendig: "left", center: "center", zentriert: "center", mitte: "center", right: "right", rechts: "right", rechtsbuendig: "right", justify: "justify", blocksatz: "justify" };
+    /* Rückgängig/Wiederholen für KI-Formatierung: ein Schritt = Text-HTML + Design/Breite; gilt, bis der Nutzer selbst etwas tippt */
+    let hist = null; const snap = () => JSON.stringify(F);
+    const setF = j => { Object.keys(F).forEach(k => delete F[k]); Object.assign(F, JSON.parse(j)); };
+    const undo = () => { if (!hist || hist.undone || body.innerHTML !== hist.after) return false; body.innerHTML = hist.before; setF(hist.f0); hist.undone = true; persist(); dirty(); window.__lumiEd?.refresh?.(); upd(); return true; };
+    const redo = () => { if (!hist || !hist.undone || body.innerHTML !== hist.before) return false; body.innerHTML = hist.after; setF(hist.f1); hist.undone = false; persist(); dirty(); window.__lumiEd?.refresh?.(); upd(); return true; };
+    const onKey = e => { if (!(e.ctrlKey || e.metaKey) || e.altKey) return; const k = e.key.toLowerCase(); if ((k === "z" && !e.shiftKey && undo()) || ((k === "y" || (k === "z" && e.shiftKey)) && redo())) { e.preventDefault(); e.stopPropagation(); } };
+    const onIn = () => { hist = null; };
+    body.addEventListener("keydown", onKey, true); body.addEventListener("input", onIn);
     function apply(s = {}) {
+      const before = body.innerHTML, f0 = snap();
       const done = [], bad = [];
       const scope = s.scope === "selection" ? "selection" : s.scope === "headings" ? "headings" : "all";
       let bl; if (scope === "selection") { restore(); bl = blocksInSel(); } else bl = blocksOf(scope);
@@ -117,17 +126,17 @@ const Format = (() => {
       if (s.lineHeight !== undefined && s.lineHeight !== "") { const v = parseFloat(String(s.lineHeight).replace(",", ".")); if (v >= 1 && v <= 3) { each(b => { b.style.lineHeight = String(v); }); done.push("Zeilenabstand " + v); } else bad.push("Zeilenabstand ungültig"); }
       if (s.design) { const x = DESIGNS.find(y => y[0] === nrm(s.design) || nrm(y[1]) === nrm(s.design)); if (x) { F.ds = x[0]; done.push("Design " + x[1]); } else bad.push("Design „" + s.design + "“ unbekannt"); }
       if (s.width) { const x = WIDTHS.find(y => y[0] === nrm(s.width) || nrm(y[1]) === nrm(s.width)); if (x) { F.w = x[0]; done.push("Breite " + x[1]); } else bad.push("Breite „" + s.width + "“ unbekannt"); }
-      if (done.length) { persist(); dirty(); upd(); }
+      if (done.length) { persist(); dirty(); upd(); hist = { before, after: body.innerHTML, f0, f1: snap(), undone: false }; }
       return { done, bad };
     }
     function setBlock(find, as) {
       const tag = ["p", "h1", "h2", "h3", "blockquote", "pre"].includes(as) ? as : null, q = nrm(find); if (!tag || !q) return false;
       const b = blocksOf("all").filter(x => x.tagName !== "LI" && !/^(TD|TH)$/.test(x.tagName)).find(x => nrm(x.textContent) === q) || blocksOf("all").filter(x => x.tagName !== "LI" && !/^(TD|TH)$/.test(x.tagName)).find(x => nrm(x.textContent).includes(q));
       if (!b) return false;
-      const n = document.createElement(tag); n.innerHTML = b.innerHTML; if (b.style.textAlign) n.style.textAlign = b.style.textAlign; b.replaceWith(n); dirty(); return true;
+      const n = document.createElement(tag); n.innerHTML = b.innerHTML; if (b.style.textAlign) n.style.textAlign = b.style.textAlign; const before = body.innerHTML, f0 = snap(); b.replaceWith(n); dirty(); hist = { before, after: body.innerHTML, f0, f1: snap(), undone: false }; return true;
     }
     const state = () => { const ds = DESIGNS.find(x => x[0] === (F.ds || "std")) || DESIGNS[0], w = WIDTHS.find(x => x[0] === (F.w || "normal")) || WIDTHS[1]; return `Design ${ds[1]}, Breite ${w[1]}`; };
-    return { destroy() { document.removeEventListener("selectionchange", onSel); closePop(); }, update: upd, apply, setBlock, state };
+    return { destroy() { document.removeEventListener("selectionchange", onSel); body.removeEventListener("keydown", onKey, true); body.removeEventListener("input", onIn); closePop(); }, update: upd, apply, setBlock, state, undo, redo };
   }
   return { attach };
 })();

@@ -279,8 +279,9 @@ V.today = m => {
 </header>
   <div class="z-ans" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
   <div class="b-grid" id="b-grid">${homeLayout().map(blockHtml).join("")}
+  <section class="wg w-ai" id="aipane-blk" style="--c:${HOME_DOCK.c};--r:${HOME_DOCK.r};--w:${HOME_DOCK.w};--h:${HOME_DOCK.h}"></section>
   </div></div></div>`;
-  bindCommon(m);
+  bindCommon(m); mountDock();
   { const hn = $("#hnote", m); if (hn) { let tm; hn.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { D.profile.homeNote = hn.value; save(); }, 400); }; } }
   $$("[data-q]", m).forEach(b => b.onclick = () => docDialog("note"));
   $$("[data-ex]", m).forEach(b => b.onclick = () => go("exam/" + b.dataset.ex));
@@ -582,7 +583,7 @@ async function noteEditor(m, d) {
     toc: () => { const hs = $$("h1,h2,h3", body); if (!hs.length) return toast("Füge zuerst Überschriften hinzu"); exec("insertHTML", `<p><b>Inhalt</b></p><ul>${hs.map(h => `<li>${esc(h.textContent.trim())}</li>`).join("")}</ul><p><br></p>`); },
     ul: () => exec("insertUnorderedList"), ol: () => exec("insertOrderedList"), todo: () => exec("insertHTML", '<ul class="chk"><li><input type="checkbox">&nbsp;</li></ul>'),
     quote: () => exec("formatBlock", document.queryCommandValue("formatBlock") === "blockquote" ? "p" : "blockquote"), code: () => exec("formatBlock", document.queryCommandValue("formatBlock") === "pre" ? "p" : "pre"),
-    hr: () => exec("insertHorizontalRule"), left: () => exec("justifyLeft"), center: () => exec("justifyCenter"), clear: () => exec("removeFormat"), undo: () => exec("undo"), redo: () => exec("redo"),
+    hr: () => exec("insertHorizontalRule"), left: () => exec("justifyLeft"), center: () => exec("justifyCenter"), clear: () => exec("removeFormat"), undo: () => { if (!FM.undo()) exec("undo"); }, redo: () => { if (!FM.redo()) exec("redo"); },
     link: async () => { const u = await ask("Link-Adresse", { value: "https://", ok: "Einfügen" }); if (u) exec("createLink", u); },
     image: () => $("#imgin", m).click(), table: () => exec("insertHTML", `<table><tbody>${"<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>".repeat(3)}</tbody></table><p><br></p>`),
     formula: () => { const { el } = modal(`<h3>Formeln & Symbole</h3><div class="syms">${SYMS.map(s => `<button>${s}</button>`).join("")}</div><p class="note">Tipp: „x²“ und „x₂“ findest du unter Einfügen.</p>`); $$(".syms button", el).forEach(sb => sb.onclick = () => { restore(); document.execCommand("insertText", false, sb.textContent); dirty(); }); },

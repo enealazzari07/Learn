@@ -2741,3 +2741,13 @@ body.hed-open{overflow:hidden}
   .pdfed.th-open .pdfthumbs{position:fixed;left:8px;top:120px;bottom:12px;z-index:70;width:132px;border:0;border-radius:18px;box-shadow:0 10px 40px rgba(30,20,90,.28)}
   .pdfpager{right:12px;bottom:12px}
 }
+
+/* v102: Lumi AI ist ein fester Block im Raster (wie die anderen: weiß, ohne Schatten, 2 × 2), im Editor gesperrt */
+.bento .w-ai{padding:0;gap:0}
+.w-ai .hai-h{display:flex;gap:12px;align-items:center;padding:18px 20px 8px;flex:none}
+.w-ai .hai-h b{font-size:15px;display:block;letter-spacing:-.02em}.w-ai .hai-h small{font-size:12px;color:var(--muted);display:block}
+.w-ai .chatbox.flat{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 14px 14px;background:transparent;border-radius:0;height:auto}
+.w-ai .msgs{flex:1;min-height:0;max-height:none;overflow:auto}
+.w-ai .modes{display:none}
+.w-ai .t-in{padding:0;margin-top:auto}.w-ai .tin{background:#f6f6fa;border-color:transparent}
+@media (max-width:900px){.bento .b-grid>.w-ai{min-height:460px}.main.homew,.main.homew:not(.doc-full){padding-bottom:40px}}

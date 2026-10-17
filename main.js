@@ -3,36 +3,11 @@
 const landingEl = $("#landing"), appEl = $("#app");
 let onboardShown = false;
 
-/* KI-Dock sitzt bündig unter der Karteikarten-Kachel (dritte Spalte, zweite Reihe); die Kachel ist nur so hoch, dass beides in die Reihe passt */
-/* Aufgeklappt reicht das Dock genau bis zur Oberkante des Blocks direkt darüber (z. B. „Woche“) */
-function dockOpenH() {
-  const p = $("#aipane"), grid = $("#b-grid"); if (!p || !grid) return 0;
-  const g = grid.getBoundingClientRect(), ch = +p.dataset.ch || 172, closedTop = g.bottom - ch, dr = innerWidth - parseFloat(p.style.right || 0), dl = dr - parseFloat(p.style.width || 0);
-  let top = null; $$("#b-grid > .wg").forEach(b => { const r = b.getBoundingClientRect(); if (r.left < dr - 1 && r.right > dl + 1 && r.bottom <= closedTop + 6 && (top === null || r.bottom > top.bottom)) top = r; });
-  return Math.round(g.bottom - (top ? top.top : closedTop - 300));
-}
-function fitDock() {
-  const p = $("#aipane"), grid = $("#b-grid");
-  if (p && grid && innerWidth >= 901 && !p.hidden) {   // Raster-Startseite: Dock sitzt auf den Zellen unten rechts (Spalte 5–6) und klappt nach oben über den Block darüber auf
-    const g = grid.getBoundingClientRect(), gap = 12, col = (g.width + gap) / 6;
-    p.style.setProperty("bottom", Math.round(innerHeight - g.bottom) + "px", "important"); p.style.setProperty("right", Math.round(innerWidth - g.right) + "px", "important"); p.style.setProperty("width", Math.round(col * 2 - gap) + "px", "important");
-    if (!p.classList.contains("open")) p.dataset.ch = p.offsetHeight; else p.style.setProperty("height", dockOpenH() + "px", "important");
-    return;
-  }
-  const ex = $(".w-rec"), cards = $(".w-cards"); if (!p || !ex || !cards) return;
-  if (innerWidth < 901 || p.hidden) { cards.style.height = ""; ["bottom", "right", "width"].forEach(k => p.style.removeProperty(k)); return; }
-  const rr = ex.getBoundingClientRect(), cr = cards.getBoundingClientRect(), r = { bottom: rr.bottom, height: rr.height, right: cr.right, width: cr.width }; if (!r.height) return;
-  if (!p.classList.contains("open")) p.dataset.h = p.offsetHeight;
-  const dh = +p.dataset.h || 172, gap = 12;
-  p.style.setProperty("bottom", Math.round(innerHeight - r.bottom) + "px", "important"); p.style.setProperty("right", Math.round(innerWidth - r.right) + "px", "important"); p.style.setProperty("width", Math.round(r.width) + "px", "important");
-  cards.style.height = Math.max(110, Math.round(r.height - dh - gap)) + "px";
-}
-addEventListener("resize", () => { clearTimeout(fitDock.t); fitDock.t = setTimeout(fitDock, 80); });
 function renderView() {
   LEAVE.splice(0).forEach(f => { try { f(); } catch {} });
   const [, v = "today", x, y] = location.hash.replace(/^#\/?/, "").split("/");
   curView = V[v] ? v : "today";
-  buildShell(); const dock = curView === "today"; $("#app").classList.toggle("has-dock", dock); $(".shell").classList.toggle("with-ai", dock); const ap = $("#aipane"); ap.hidden = !dock; if (!dock) window.__dockFresh = false; if (dock) { mountDock(); requestAnimationFrame(() => { fitDock(); setTimeout(fitDock, 400); setTimeout(fitDock, 1200); }); } else ap.innerHTML = ""; refreshNav(); timerPaint();
+  buildShell(); const dock = curView === "today"; $("#app").classList.toggle("has-dock", dock); if (!dock) window.__dockFresh = false; refreshNav(); timerPaint();
   const m = $("#main"); m.className = "main"; m.removeAttribute("style"); window.scrollTo(0, 0); m.scrollTop = 0; setScroller(m);
   $("#cpanel") && curView === "ai" && ($("#cpanel").hidden = true);
   try { const r = V[curView](m, x, y); if (r?.catch) r.catch(e => console.error(e)); } catch (e) { console.error(e); m.innerHTML = `<div class="page"><div class="emptybox"><h3>Ups, da ist etwas schiefgelaufen</h3><p>${esc(e.message)}</p><button class="btn" data-go="today">Zur Startseite</button></div></div>`; bindCommon(m); }

@@ -1,6 +1,6 @@
 "use strict";
 /* Lumi – Startseite anpassen: echtes Raster (6 Spalten × 4 Reihen). Blöcke liegen auf festen Zellen, lassen sich ersetzen, verschieben und in der Größe ziehen.
-   Der Platz unten rechts gehört Lumi AI und ist gesperrt. Layout liegt in D.profile.home = [{id,type,c,r,w,h}]. */
+   Der Platz unten rechts (2 × 2) gehört dem Lumi-AI-Block und ist gesperrt. Layout liegt in D.profile.home = [{id,type,c,r,w,h}]. */
 const HB = {
   tasks: { n: "Aufgaben", d: "Heutige Aufgaben abhaken", i: "list", w: 2, h: 2 },
   cal: { n: "Kalender", d: "Termine, Prüfungen, Abgaben", i: "cal", w: 2, h: 2 },
@@ -20,16 +20,16 @@ const HB = {
   note: { n: "Notizzettel", d: "Schneller Notizzettel auf der Startseite", i: "note", w: 2, h: 2 },
   clock: { n: "Uhr & Datum", d: "Uhrzeit und heutiges Datum", i: "timer", w: 2, h: 1 },
 };
-const HOME_COLS = 6, HOME_ROWS = 4, HOME_MAXROW = 8, HOME_DOCK = { c: 5, r: 4, w: 2, h: 1 };
+const HOME_COLS = 6, HOME_ROWS = 4, HOME_MAXROW = 8, HOME_DOCK = { c: 5, r: 3, w: 2, h: 2 };
 const HOME_TPL = {
-  std: { n: "Standard", d: "Uhr, Aufgaben, Kalender, Fokus, Woche", l: [["clock", 1, 1, 2, 1], ["tasks", 1, 2, 2, 2], ["ex", 1, 4, 2, 1], ["cal", 3, 1, 2, 2], ["rec", 3, 3, 2, 2], ["goal", 5, 1, 2, 2], ["week", 5, 3, 2, 1]] },
-  classic: { n: "Klassisch", d: "Aufgaben, Kalender, Fokus, Prüfungen, Zuletzt", l: [["tasks", 1, 1, 2, 2], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["rec", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
-  focus: { n: "Fokus", d: "Großer Timer, dazu Aufgaben und Kalender", l: [["goal", 1, 1, 2, 4], ["tasks", 3, 1, 2, 2], ["cal", 5, 1, 2, 2], ["ex", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
-  plan: { n: "Planer", d: "Großer Kalender mit Aufgaben und Prüfungen", l: [["cal", 1, 1, 3, 4], ["tasks", 4, 1, 3, 2], ["ex", 4, 3, 3, 1], ["cards", 4, 4, 1, 1]] },
-  learn: { n: "Lernen", d: "Karteikarten, Fokus und Wochenverlauf", l: [["cards", 1, 1, 2, 2], ["goal", 3, 1, 2, 2], ["week", 5, 1, 2, 2], ["rec", 1, 3, 2, 2], ["tasks", 3, 3, 2, 2], ["ex", 5, 3, 2, 1]] },
-  school: { n: "Schule", d: "Stundenplan, Hausaufgaben, Prüfungen, Noten", l: [["tt", 1, 1, 2, 2], ["hw", 3, 1, 2, 2], ["ex", 5, 1, 2, 2], ["tasks", 1, 3, 2, 2], ["grades", 3, 3, 1, 2], ["streak", 4, 3, 1, 2], ["cards", 5, 3, 2, 1]] },
-  over: { n: "Übersicht", d: "Uhr, Serie, Noten, Tagesziel und Aufgaben", l: [["clock", 1, 1, 2, 1], ["streak", 3, 1, 1, 1], ["grades", 4, 1, 1, 1], ["ring", 5, 1, 2, 2], ["tasks", 1, 2, 4, 2], ["ex", 1, 4, 4, 1], ["rec", 5, 3, 2, 1]] },
-  mini: { n: "Minimal", d: "Nur Aufgaben und Kalender", l: [["tasks", 1, 1, 3, 4], ["cal", 4, 1, 3, 3], ["quick", 4, 4, 1, 1]] },
+  std: { n: "Standard", d: "Uhr, Aufgaben, Kalender, Fokus, Woche", l: [["clock", 1, 1, 2, 1], ["tasks", 1, 2, 2, 2], ["ex", 1, 4, 2, 1], ["cal", 3, 1, 2, 2], ["rec", 3, 3, 2, 2], ["goal", 5, 1, 2, 2]] },
+  classic: { n: "Klassisch", d: "Aufgaben, Kalender, Fokus, Prüfungen, Zuletzt", l: [["tasks", 1, 1, 2, 2], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["rec", 3, 3, 2, 2]] },
+  focus: { n: "Fokus", d: "Großer Timer, dazu Aufgaben und Kalender", l: [["goal", 1, 1, 2, 4], ["tasks", 3, 1, 2, 2], ["cal", 5, 1, 2, 2], ["ex", 3, 3, 2, 2]] },
+  plan: { n: "Planer", d: "Großer Kalender mit Aufgaben und Prüfungen", l: [["cal", 1, 1, 3, 4], ["tasks", 4, 1, 3, 2], ["streak", 4, 3, 1, 1], ["grades", 4, 4, 1, 1]] },
+  learn: { n: "Lernen", d: "Karteikarten, Fokus und Wochenverlauf", l: [["cards", 1, 1, 2, 2], ["goal", 3, 1, 2, 2], ["week", 5, 1, 2, 2], ["rec", 1, 3, 2, 2], ["tasks", 3, 3, 2, 2]] },
+  school: { n: "Schule", d: "Stundenplan, Hausaufgaben, Prüfungen, Noten", l: [["tt", 1, 1, 2, 2], ["hw", 3, 1, 2, 2], ["ex", 5, 1, 2, 2], ["tasks", 1, 3, 2, 2], ["grades", 3, 3, 1, 2], ["streak", 4, 3, 1, 2]] },
+  over: { n: "Übersicht", d: "Uhr, Serie, Noten, Tagesziel und Aufgaben", l: [["clock", 1, 1, 2, 1], ["streak", 3, 1, 1, 1], ["grades", 4, 1, 1, 1], ["ring", 5, 1, 2, 2], ["tasks", 1, 2, 4, 2], ["ex", 1, 4, 4, 1]] },
+  mini: { n: "Minimal", d: "Nur Aufgaben und Kalender", l: [["tasks", 1, 1, 3, 4], ["cal", 4, 1, 3, 2]] },
 };
 const homeUid = () => "b" + Math.random().toString(36).slice(2, 7);
 const homeOv = (a, b) => a.c < b.c + b.w && b.c < a.c + a.w && a.r < b.r + b.h && b.r < a.r + a.h;
