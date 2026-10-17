@@ -517,36 +517,46 @@ async function noteEditor(m, d) {
   const dirty = () => { svEl.textContent = "Speichert…"; count(); doSave(); };
   const SG = Suggest.attach(body, dirty); window.__lumiEd = SG; SG.refresh(); LEAVE.push(() => { SG.destroy(); if (window.__lumiEd === SG) window.__lumiEd = null; });
   /* Automatische Korrektur beim Schreiben (Groq/Gemini): nach kurzer Pause wird der aktuelle Absatz geprüft; Korrekturen erscheinen als Vorschläge oder werden direkt übernommen */
-  const AC = { busy: false, last: 0, seen: new WeakMap(), timer: null }, acMode = () => D.profile.autoCorrect || "suggest";
+  const AC = { busy: false, last: 0, seen: new WeakMap(), timer: null, log: [] }, acMode = () => D.profile.autoCorrect || "suggest";
   AC.dirty = new Set(); AC.lt = null;
   /* gelernte Korrekturen: ein Fehler, den die KI einmal gefunden hat, wird danach sofort und zuverlässig auch ohne KI erkannt */
   const acDict = () => (D.profile.acDict ||= {}), capLike = (o, r) => o[0] !== o[0].toLowerCase() && r[0] === r[0].toLowerCase() ? r[0].toUpperCase() + r.slice(1) : r;
   const learnAC = (orig, edits) => { const dict = acDict(); let n = 0; for (const e of edits) { const o = orig.slice(e.start, e.end); if (/^\p{L}{2,}$/u.test(o) && /^\p{L}{2,}$/u.test(e.replace) && o !== e.replace) { dict[o] = e.replace; n++; } } if (n) { const k = Object.keys(dict); if (k.length > 400) k.slice(0, k.length - 400).forEach(x => delete dict[x]); save(); } };
   const docCounts = () => { const c = new Map(); for (const m of (body.innerText || "").matchAll(/\p{L}+/gu)) { const k = m[0].toLowerCase(); c.set(k, (c.get(k) || 0) + 1); } return c; };
   const ignoreSet = () => new Set((D.profile.spellIgnore || []).map(x => String(x).toLowerCase()));
-  const localEdits = txt => {
+  const localEdits = (txt, tailOpen = true) => {
     const dict = acDict(), out = [];
-    for (const m of txt.matchAll(/\p{L}+/gu)) { const w = m[0], end = m.index + w.length; if (end >= txt.length) continue; let r = dict[w]; if (!r && dict[w.toLowerCase()]) r = capLike(w, dict[w.toLowerCase()]); if (r && r !== w) out.push({ start: m.index, end, replace: r }); }
-    if (typeof Spell !== "undefined" && Spell.isReady()) for (const e of Spell.analyze(txt, { ignore: ignoreSet(), docCounts: docCounts() }).edits) if (!out.some(o => e.start < o.end && e.end > o.start)) out.push(e);
+    for (const m of txt.matchAll(/\p{L}+/gu)) { const w = m[0], end = m.index + w.length; if (tailOpen && end >= txt.length) continue; let r = dict[w]; if (!r && dict[w.toLowerCase()]) r = capLike(w, dict[w.toLowerCase()]); if (r && r !== w) out.push({ start: m.index, end, replace: r }); }
+    if (typeof Spell !== "undefined" && Spell.isReady()) for (const e of Spell.analyze(txt, { skipTail: tailOpen, ignore: ignoreSet(), docCounts: docCounts() }).edits) if (!out.some(o => e.start < o.end && e.end > o.start)) out.push(e);
     return out.sort((a, b) => a.start - b.start);
   };
   const localAC = () => {
     if (acMode() === "off") return; const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
-    const blk = blockOf(sel.anchorNode); if (!blk || /^(PRE|CODE)$/.test(blk.tagName) || blk.querySelector(".sg-del,.sg-ins")) return;
-    const ed = localEdits(Suggest.textOf(blk).s); if (ed.length) { const n = SG.suggestAt(blk, ed, { avoidCaret: true, direct: acMode() === "auto", mini: true }); if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`); }
+    const blk = blockOf(sel.anchorNode); if (!blk || /^(PRE|CODE)$/.test(blk.tagName)) return;
+    const orig0 = Suggest.textOf(blk).s, marked = !!blk.querySelector(".sg-del,.sg-ins");
+    let ed = localEdits(orig0, /\p{L}$/u.test(blk.textContent || ""));
+    if (marked) ed = ed.filter(e => { const r = Suggest.rangeAt(blk, e.start, e.end), el = r && (r.startContainer.nodeType === 3 ? r.startContainer.parentElement : r.startContainer); return r && !(el && el.closest(".sg-del,.sg-ins")); });   // schon markierte Stellen nicht doppelt vorschlagen
+    if (ed.length) { const n = SG.suggestAt(blk, ed, { avoidCaret: true, fast: true, direct: acMode() === "auto", mini: true }); if (n && acMode() === "auto") { ed.forEach(e => AC.log.push({ from: orig0.slice(e.start, e.end), to: e.replace })); AC.log = AC.log.slice(-20); } if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`); }
   };
-  const scheduleAC = () => { clearTimeout(AC.lt); AC.lt = setTimeout(localAC, 450); { const s = getSelection(), b = s.rangeCount && body.contains(s.anchorNode) ? blockOf(s.anchorNode) : null; if (b) AC.dirty.add(b); } clearTimeout(AC.timer); if (acMode() === "off" || !hasKey()) return; AC.timer = setTimeout(runAC, 1700); };
+  /* Lokale Korrektur fast sofort (nach Leerzeichen/Satzzeichen ohne Verzögerung); KI-Prüfung höchstens etwa einmal pro Minute bei Änderungen – früher (5 s), wenn der Algorithmus unsicher ist */
+  const AI_EVERY = 60000, AI_FAST = 5000;
+  const scheduleAC = e => {
+    clearTimeout(AC.lt); const fast = e && e.data && /[\s.,;:!?)\]"„“]/.test(e.data); AC.lt = setTimeout(localAC, fast ? 0 : 140);
+    const sl = getSelection(), b = sl.rangeCount && body.contains(sl.anchorNode) ? blockOf(sl.anchorNode) : null; if (b) AC.dirty.add(b);
+    clearTimeout(AC.timer); if (acMode() === "off" || !hasKey()) return;
+    let urgent = false; if (b && typeof Spell !== "undefined" && Spell.isReady()) { try { const u = Spell.analyze(Suggest.textOf(b).s, { skipTail: false, ignore: ignoreSet(), docCounts: docCounts() }).unknown; urgent = u > 0; } catch {} }
+    const gap = urgent ? AI_FAST : AI_EVERY; AC.timer = setTimeout(runAC, Math.max(urgent ? 1500 : 4000, gap - (Date.now() - AC.last)));
+  };
   async function runAC() {
     if (AC.busy || acMode() === "off" || !hasKey() || !body.isConnected) return;
     const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
     const cb = blockOf(sel.anchorNode), ok = b => b && b.isConnected && !/^(PRE|CODE)$/.test(b.tagName) && !b.querySelector(".sg-del,.sg-ins") && Suggest.textOf(b).s.trim().length >= 14 && AC.seen.get(b) !== Suggest.textOf(b).s;
     const blk = [cb, ...AC.dirty].find(ok); AC.dirty.forEach(b => { if (!b.isConnected || b === blk) AC.dirty.delete(b); }); if (!blk) return;
     const orig = Suggest.textOf(blk).s;
-    if (typeof Spell !== "undefined" && Spell.isReady()) { const an = Spell.analyze(orig, { skipTail: false, ignore: ignoreSet(), docCounts: docCounts() }); const done = /[.!?…]["“”)]?\s*$/.test(orig.trim()) && orig.trim().split(/\s+/).length >= 6; if (an.ready && an.unknown === 0 && !done) { AC.seen.set(blk, orig); return; } }   // nur gefragt, wenn Wörter unklar sind oder ein Satz fertig ist (Grammatik)
-    if (Date.now() - AC.last < 2500) return scheduleAC();
+    if (Date.now() - AC.last < 2500) return;
     AC.busy = true; AC.last = Date.now();
     let res = null;
-    try { res = await ai(orig, { system: "Du bist eine zurückhaltende Korrektur für Rechtschreibung und Grammatik (Schweizer Hochdeutsch, kein ß, immer „ss“). Korrigiere NUR eindeutige Fehler: Tippfehler, fehlende, vertauschte oder doppelte Buchstaben, Gross-/Kleinschreibung (Satzanfang, Hauptwörter, Namen), das/dass, Artikel und Fälle (Kasus), Verbformen und Zeiten, Übereinstimmung von Subjekt und Verb, Wortendungen. Ändere NICHT: Kommas und andere Satzzeichen, Stil, Wortwahl, Satzbau, Fachbegriffe, Namen, Zahlen, Abkürzungen, Umgangssprache, Zeilenumbrüche. Formuliere nichts um und füge nichts hinzu." + (swissOn() ? " Schweizer Rechtschreibung: Das Zeichen „ß“ gibt es nicht, immer „ss“ schreiben." : "") + " Antworte NUR mit dem Text, ohne Erklärung, ohne Anführungszeichen. Wenn nichts eindeutig falsch ist, gib den Text exakt unverändert zurück.", max: Math.min(1500, Math.ceil(orig.length / 2) + 120), model: autoModelId(), temperature: 0.1, quiet: true }); } catch {}
+    try { res = await ai(orig, { system: "Du bist eine zurückhaltende Korrektur für Rechtschreibung und Grammatik (Schweizer Hochdeutsch, kein ß, immer „ss“). Korrigiere NUR eindeutige Fehler: Tippfehler, fehlende, vertauschte oder doppelte Buchstaben, Gross-/Kleinschreibung (Satzanfang, Hauptwörter, Namen), das/dass, Artikel und Fälle (Kasus), Verbformen und Zeiten, Übereinstimmung von Subjekt und Verb, Wortendungen. Ändere NICHT: Kommas und andere Satzzeichen, Stil, Wortwahl, Satzbau, Fachbegriffe, Namen, Zahlen, Abkürzungen, Umgangssprache, Zeilenumbrüche. Formuliere nichts um und füge nichts hinzu." + (AC.log.length ? "\n\nEin einfacher Algorithmus hat bereits automatisch geändert: " + AC.log.filter(l => orig.includes(l.to)).map(l => `„${l.from}“ → „${l.to}“`).join(", ") + ". Prüfe diese Änderungen: War eine falsch (z. B. ein Name oder Fachbegriff), stelle das Original wieder her." : "") + (swissOn() ? " Schweizer Rechtschreibung: Das Zeichen „ß“ gibt es nicht, immer „ss“ schreiben." : "") + " Antworte NUR mit dem Text, ohne Erklärung, ohne Anführungszeichen. Wenn nichts eindeutig falsch ist, gib den Text exakt unverändert zurück.", max: Math.min(1500, Math.ceil(orig.length / 2) + 120), model: autoModelId(), temperature: 0.1, quiet: true }); } catch {}
     AC.busy = false; AC.seen.set(blk, orig);
     if (!res || !blk.isConnected) return;
     let fixed = res.trim(); if (!/^["„“]/.test(orig)) fixed = fixed.replace(/^["„“]|["“”]$/g, "");
@@ -555,7 +565,10 @@ async function noteEditor(m, d) {
     let edits = Suggest.wordDiff(orig, fixed);
     edits = edits.filter(e => { const o = orig.slice(e.start, e.end), strip = x => x.replace(/[\s.,;:!?„“"'()\-–]/g, ""); return strip(o) !== strip(e.replace) && e.replace.split(/\s+/).length <= 4 && o.split(/\s+/).length <= 4; });   // nur kleine, echte Wortkorrekturen
     if (!edits.length || edits.length > 6) { if (AC.dirty.size) scheduleAC(); return; }
-    learnAC(orig, edits);
+    edits.forEach(e => { const o = orig.slice(e.start, e.end), hit = AC.log.find(l => l.to === o && l.from.toLowerCase() === e.replace.toLowerCase()); if (hit && /^\p{L}+$/u.test(hit.from)) { const ig = (D.profile.spellIgnore ||= []); if (!ig.includes(hit.from.toLowerCase())) ig.push(hit.from.toLowerCase()); save(); } });   // KI widerruft Algorithmus → Wort künftig in Ruhe lassen
+    const reverted = new Set(edits.filter(e => AC.log.some(l => l.to === orig.slice(e.start, e.end) && l.from.toLowerCase() === e.replace.toLowerCase())));
+    AC.log = [];
+    learnAC(orig, edits.filter(e => !reverted.has(e)));
     const n = SG.suggestAt(blk, edits, { avoidCaret: true, direct: acMode() === "auto", mini: true });
     if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`);
     AC.seen.set(blk, Suggest.textOf(blk).s); if (AC.dirty.size) scheduleAC();
