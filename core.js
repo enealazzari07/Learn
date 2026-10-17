@@ -217,7 +217,7 @@ const KV = {
     return new Promise(res => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").delete(k); t.oncomplete = () => res(); t.onerror = () => res(); });
   },
 };
-const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "de", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], folders: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
+const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "ch", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], folders: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
 let D = DEFAULT();
 let _st;
 function save() { clearTimeout(_st); _st = setTimeout(() => KV.set("data", D), 250); }
@@ -262,7 +262,6 @@ async function aiCore(prompt, { system = "", history = [], max = 1500, image = n
       const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(r.status === 429 ? "Das kostenlose Lumi-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
-      if (j.model && j.model !== (model || aiModelId()) && !quiet) toast(`${aiModelName(model || aiModelId())} ist gerade ausgelastet – ${aiModelName(j.model)} hat geantwortet.`);
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
     } catch (e) { if (!quiet) toast("Lumi-AI-Fehler: " + e.message); return null; }

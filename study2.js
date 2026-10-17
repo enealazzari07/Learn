@@ -130,10 +130,11 @@ function taskModal(task, date = "", preset = {}) {
   const { el, close } = modal(`<h3>${task ? "Aufgabe bearbeiten" : "Neue Aufgabe"}</h3><label class="lbl">Titel</label><input class="field" id="tt1" value="${esc(t.title)}" placeholder="z. B. Aufgaben S. 54 Nr. 3–7">
   <div class="row"><div><label class="lbl">Art</label><select class="field" id="tt2">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${k === t.type ? "selected" : ""}>${v}</option>`).join("")}</select></div><div><label class="lbl">Fällig am</label><input type="date" class="field" id="tt3" value="${t.due || ""}"></div></div>
   <label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(t.subjectId, "tt4")}<label class="lbl">Lernmaterial (zum Üben & für Lernziele)</label><select class="field" id="tt6"><option value="">– keins –</option>${D.docs.filter(d => d.type !== "draw").map(d => `<option value="${d.id}" ${d.id === t.docId ? "selected" : ""}>${esc(d.title)}</option>`).join("")}</select>
+  <label class="lbl">Wiederholen</label><select class="field" id="tt7">${[["", "Nie"], ["daily", "Täglich"], ["weekly", "Jede Woche"], ["monthly", "Jeden Monat"]].map(([k, l]) => `<option value="${k}" ${(t.repeat || "") === k ? "selected" : ""}>${l}</option>`).join("")}</select>
   <label class="lbl">Notiz / Lernziele</label><textarea class="field" id="tt5" rows="4">${esc(t.note || "")}</textarea><button class="btn ghost small" id="lz" type="button" style="margin-top:8px">${ic("star")}Lernziele ermitteln (Lumi AI)</button>
   <div class="row end">${task && task.type === "exam" ? `<button class="btn ghost" id="exo">${ic("book")}Prüfungsmappe</button>` : ""}${task ? `<button class="btn danger ghost" id="tdel">Löschen</button>` : ""}<button class="btn accent" id="tsv">Speichern</button></div>`);
   setTimeout(() => $("#tt1", el).focus(), 30);
-  $("#tsv", el).onclick = () => { const title = $("#tt1", el).value.trim(); if (!title) return toast("Bitte einen Titel eingeben"); Object.assign(t, { title, type: $("#tt2", el).value, due: $("#tt3", el).value, subjectId: $(".tt4", el).value, note: $("#tt5", el).value, docId: $("#tt6", el).value }); let nt = task; if (!task) { nt = { id: uid(), done: false, ...t }; D.tasks.push(nt); } if (nt.type === "exam") exAfterSave(nt, !task && !preset.quiet); save(); close(); if (nt.type !== "exam" || task) toast("Gespeichert"); refreshNav(); renderView(); };
+  $("#tsv", el).onclick = () => { const title = $("#tt1", el).value.trim(); if (!title) return toast("Bitte einen Titel eingeben"); Object.assign(t, { title, type: $("#tt2", el).value, due: $("#tt3", el).value, subjectId: $(".tt4", el).value, note: $("#tt5", el).value, docId: $("#tt6", el).value, repeat: $("#tt7", el).value }); let nt = task; if (!task) { nt = { id: uid(), done: false, ...t }; D.tasks.push(nt); } if (nt.type === "exam") exAfterSave(nt, !task && !preset.quiet); save(); close(); if (nt.type !== "exam" || task) toast("Gespeichert"); refreshNav(); renderView(); };
   $("#lz", el).onclick = async () => { const doc = D.docs.find(x => x.id === $("#tt6", el).value); const src = doc ? await docText(doc) : $("#tt5", el).value; if (!src || src.length < 15) return toast("Wähle zuerst Lernmaterial (z. B. OneNote-Seite) oder schreibe etwas in die Notiz."); $("#lz", el).disabled = true; const g = await extractGoals(src, $("#tt1", el).value || "die Prüfung"); $("#lz", el).disabled = false; const cur = $("#tt5", el).value.replace(/\n*Lernziele:[\s\S]*$/, ""); $("#tt5", el).value = (cur ? cur + "\n\n" : "") + "Lernziele:\n" + g; toast("Lernziele ergänzt"); };
   $("#exo", el) && ($("#exo", el).onclick = () => { close(); go("exam/" + task.id); });
   $("#tdel", el) && ($("#tdel", el).onclick = () => { D.tasks = D.tasks.filter(x => x !== task); save(); close(); renderView(); });
@@ -154,11 +155,11 @@ V.planner = m => {
   if (plTab === "tasks") {
     const gs = [["Überfällig", x => x.due && daysUntil(x.due) < 0], ["Heute", x => x.due && daysUntil(x.due) === 0], ["Morgen", x => x.due && daysUntil(x.due) === 1], ["Diese Woche", x => x.due && daysUntil(x.due) > 1 && daysUntil(x.due) <= 7], ["Später", x => x.due && daysUntil(x.due) > 7], ["Ohne Datum", x => !x.due]];
     const evs = (D.ms?.events || []).filter(e => e.date >= iso() && daysUntil(e.date) <= 14).slice(0, 8);
-    const open = D.tasks.filter(x => !x.done), row = x => `<label class="li task" data-e="${x.id}"><input type="checkbox" data-c="${x.id}" ${x.done ? "checked" : ""}><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#bbb"}"></span><div class="tm2"><b class="${x.done ? "strike" : ""}">${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small>${esc(subj(x.subjectId)?.name || "")}${x.note ? " · " + esc(x.note) : ""}</small></div><small class="${x.due && daysUntil(x.due) < 0 && !x.done ? "red" : ""}">${x.due ? fmtD(x.due) : ""}</small></label>`;
+    const open = D.tasks.filter(x => !x.done), row = x => `<label class="li task" data-e="${x.id}"><input type="checkbox" data-c="${x.id}" ${x.done ? "checked" : ""}><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#bbb"}"></span><div class="tm2"><b class="${x.done ? "strike" : ""}">${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small>${x.repeat ? "↻ " + ({ daily: "täglich", weekly: "wöchentlich", monthly: "monatlich" }[x.repeat] || "") + (subj(x.subjectId) ? " · " : "") : ""}${esc(subj(x.subjectId)?.name || "")}${x.note ? " · " + esc(x.note) : ""}</small></div><small class="${x.due && daysUntil(x.due) < 0 && !x.done ? "red" : ""}">${x.due ? fmtD(x.due) : ""}</small></label>`;
     const html = gs.map(([n, f]) => { const l = open.filter(f).sort((a, b) => (a.due || "").localeCompare(b.due || "")); return l.length ? `<section class="panel"><h2 class="${n === "Überfällig" ? "red" : ""}">${n}<small>${l.length}</small></h2>${l.map(row).join("")}</section>` : ""; }).join("");
     const done = D.tasks.filter(x => x.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)).slice(0, 15);
     pb.innerHTML = (evs.length ? `<section class="panel tint2"><h2>${msLogoSvg()} Outlook-Termine<small>${evs.length}</small></h2>${evs.map(e => `<div class="li"><span class="tm">${e.date.slice(8)}.${e.date.slice(5, 7)}.<br><small>${e.time || "ganztägig"}</small></span><div class="tm2"><b>${esc(e.title)}</b><small>${esc(e.loc)}</small></div></div>`).join("")}</section>` : "") + (html || `<div class="emptybox"><div class="big-ic">${ic("todo")}</div><h3>Keine offenen Aufgaben</h3><p>Trage Hausaufgaben, Referate und Prüfungen ein – Lumi erinnert dich im Dashboard.</p></div>`) + (done.length ? `<details class="panel"><summary>Erledigt (${done.length})</summary>${done.map(row).join("")}</details>` : "");
-    $$("[data-c]", pb).forEach(c => { c.onclick = e => e.stopPropagation(); c.onchange = () => { const x = D.tasks.find(y => y.id === c.dataset.c); x.done = c.checked; x.doneAt = Date.now(); save(); renderView(); }; });
+    $$("[data-c]", pb).forEach(c => { c.onclick = e => e.stopPropagation(); c.onchange = () => { const x = D.tasks.find(y => y.id === c.dataset.c); completeTask(x, c.checked); renderView(); }; });
     $$("[data-e]", pb).forEach(r => r.onclick = e => { if (e.target.matches("input")) return; e.preventDefault(); taskModal(D.tasks.find(x => x.id === r.dataset.e)); });
   } else if (plTab === "tt") {
     const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], n = D.tt.some(e => e.day >= 5) ? 7 : 5;
@@ -173,12 +174,12 @@ V.planner = m => {
 };
 
 /* ---------- grades ---------- */
-const SCALES = { de: { n: "Noten 1–6", min: 1, max: 6, lowGood: true, step: .1 }, pts: { n: "Punkte 0–15", min: 0, max: 15, lowGood: false, step: 1 }, pct: { n: "Prozent", min: 0, max: 100, lowGood: false, step: 1 } };
-const SC = () => SCALES[D.profile.scale] || SCALES.de;
+const SCALES = { ch: { n: "Noten 1–6 (Schweiz, 6 = beste)", min: 1, max: 6, lowGood: false, step: .25 }, de: { n: "Noten 1–6 (Deutschland, 1 = beste)", min: 1, max: 6, lowGood: true, step: .1 }, pts: { n: "Punkte 0–15", min: 0, max: 15, lowGood: false, step: 1 }, pct: { n: "Prozent", min: 0, max: 100, lowGood: false, step: 1 } };
+const SC = () => SCALES[D.profile.scale] || (swissOn() ? SCALES.ch : SCALES.de);
 const gnorm = v => { const s = SC(); return s.lowGood ? (s.max - v) / (s.max - s.min) : (v - s.min) / (s.max - s.min); };
 const gcol = v => { const n = gnorm(v); return n >= .7 ? "#0e9f6e" : n >= .45 ? "#f59e0b" : "#e5484d"; };
 const wavg = l => { const w = l.reduce((a, g) => a + g.weight, 0); return w ? l.reduce((a, g) => a + g.value * g.weight, 0) / w : null; };
-const gfmt = v => v == null ? "–" : (D.profile.scale === "de" ? v.toFixed(2).replace(".", ",") : Math.round(v * 10) / 10 + "");
+const gfmt = v => v == null ? "–" : (D.profile.scale === "de" ? v.toFixed(2).replace(".", ",") : D.profile.scale === "ch" ? v.toFixed(2) : Math.round(v * 10) / 10 + "");
 function gradeModal(g) {
   const x = g || { subjectId: D.subjects[0]?.id || "", title: "", value: "", weight: 1, date: iso() };
   const { el, close } = modal(`<h3>${g ? "Note bearbeiten" : "Note eintragen"}</h3><label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(x.subjectId, "gm1")}<label class="lbl">Bezeichnung</label><input class="field" id="gm2" value="${esc(x.title)}" placeholder="Klassenarbeit, Test, mündlich, Klausur…">
@@ -296,7 +297,7 @@ function mountChat(box, compact) {
     { const cc = chatState(); cc.msgs.push({ role: "user", text: text || "Bitte erkläre das Bild.", img: img?.url }); cc.updated = Date.now(); if (cc.title === "Neuer Chat" && text) cc.title = text.slice(0, 40); } draw(); window.onChatsChanged && window.onChatsChanged();
     const msgs = $(".msgs", box); const tkEl = document.createElement("div"); tkEl.className = "m a think tkb"; tkEl.innerHTML = `<div class="tk-row on">${ic("spark")}<span class="shim">Lumi AI denkt nach …</span></div>`; msgs.appendChild(tkEl); thinkSeq(tkEl, msgs); msgs.scrollTop = msgs.scrollHeight;
     const c = await ctxText(), hist = chatHistory(); let r;
-    if (hasKey()) r = await ai(text || "Bitte erkläre das Bild.", { sources: sourcesOn() && !img, history: hist, system: sysBase(MODES[chatMode][1] + (chatInstr() ? "\n\n" + chatInstr() : "") + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (msContext() ? `\nDaten des Lernenden aus Microsoft 365 (Kalender, Teams, OneNote) – nutze sie, wenn nach Terminen, Prüfungen oder Aufgaben gefragt wird. Heute ist ${iso()}.\n${msContext()}` : "") + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), max: 2000, image: img ? { data: img.data, type: "image/jpeg" } : null });
+    if (hasKey()) r = await ai(text || "Bitte erkläre das Bild.", { sources: sourcesOn() && !img && aiModelProv(aiModelId()) === "Gemini", history: hist, system: sysBase(MODES[chatMode][1] + (chatInstr() ? "\n\n" + chatInstr() : "") + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (msContext() ? `\nDaten des Lernenden aus Microsoft 365 (Kalender, Teams, OneNote) – nutze sie, wenn nach Terminen, Prüfungen oder Aufgaben gefragt wird. Heute ist ${iso()}.\n${msContext()}` : "") + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), max: 2000, image: img ? { data: img.data, type: "image/jpeg" } : null });
     else { await new Promise(r => setTimeout(r, 500)); r = msContext() && /prüfung|klausur|test|termin|kalender|aufgabe|hausaufgabe|lernziel/i.test(text) ? "Das steht aktuell in deinem Microsoft-Konto:\n\n" + msContext() + "\n\n(Demo-Modus – mit eingerichteter Lumi AI beantworte ich gezielte Fragen dazu.)" : c && chatMode === "sum" ? "Zusammenfassung (lokal):\n" + localSummary(c) : "Lumi AI ist noch nicht eingerichtet, deshalb kann ich keine echten Antworten erzeugen. Hinterlege unter Einstellungen → Lumi AI den Gemini-Key (Vercel) – dann erkläre ich Themen, frage dich ab und helfe bei Hausaufgaben. Zusammenfassungen, Karteikarten und Quiz aus Dokumenten funktionieren schon jetzt auch offline."; }
     const srcs = (window.lastAiSources || []).slice(); let acts = []; if (r && hasKey()) { try { const o = await runAgent(r); r = o.text; acts = o.acts; } catch (e) { r = r.replace(/<lumi-actions>[\s\S]*/i, "").trim(); } }
     { const cc = chatState(); cc.msgs.push({ role: "assistant", text: r || "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts, sources: srcs, fresh: true }); cc.msgs = cc.msgs.slice(-80); cc.updated = Date.now(); draw(); cc.msgs.forEach(x => delete x.fresh); }
@@ -326,6 +327,7 @@ function mountChat(box, compact) {
   });
   $("[data-close]", box)?.addEventListener("click", () => box.hidden = true); $("[data-full]", box)?.addEventListener("click", () => { box.hidden = true; go("ai"); });
   draw();
+  phCycle($(".tin", box));
   if (chatPrefill) { const p = chatPrefill; chatPrefill = ""; send(p); }
 }
 V.ai = m => {
@@ -380,7 +382,11 @@ function mountDock() {
   p.innerHTML = `<button class="hai-h" id="hai-t" aria-expanded="${wasOpen}"><span class="ai-ic">${ic("spark")}</span><div><b>Lumi AI</b><small>Frag etwas zu deinen Unterlagen</small></div><i class="hai-chev">${ic("chev")}</i></button><div class="chatbox flat" id="hcb"></div>`;
   if (!window.__dockFresh) { window.__dockFresh = true; if (chatMsgs().length) newChat(); }
   mountChat($("#hcb", p), false);
-  const tog = o => { p.classList.toggle("open", o); $("#hai-t", p).setAttribute("aria-expanded", o); };
+  const tog = o => {
+    const grid = innerWidth >= 901 && $("#b-grid"), h0 = p.offsetHeight; if (grid && o === p.classList.contains("open")) return;
+    p.classList.toggle("open", o); $("#hai-t", p).setAttribute("aria-expanded", o);
+    if (grid) { const ch = +p.dataset.ch || 172, H = v => p.style.setProperty("height", v + "px", "important"); H(h0); void p.offsetHeight; H(o ? dockOpenH() : ch); if (!o) setTimeout(() => { if (!p.classList.contains("open")) p.style.removeProperty("height"); }, 480); }
+  };
   $("#hai-t", p).onclick = () => tog(!p.classList.contains("open"));
   $(".t-in", p).addEventListener("submit", () => tog(true), true); $(".tin", p).addEventListener("focus", () => tog(true));
 }
@@ -415,7 +421,8 @@ async function importAll(file) {
 V.settings = m => {
   const p = D.profile;
   m.innerHTML = `<div class="page narrow"><div class="hd"><div><p class="eyebrow">Persönlich</p><h1>Einstellungen</h1></div></div>
-  <div class="panel"><h2>${ic("adduser")}Profil</h2><label class="lbl">Name</label><input class="field" id="sn" value="${esc(p.name)}"><label class="chk" style="display:flex;gap:10px;align-items:center;margin:12px 0 2px;font-size:14px"><input type="checkbox" id="swz" ${swissOn() ? "checked" : ""}> Ich komme aus der Schweiz – Lumi AI schreibt ohne „ß“ (immer „ss“)</label><label class="lbl">Ich bin</label><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div><label class="lbl">Tagesziel (Minuten Lernzeit)</label><input class="field" id="sg" type="number" min="5" max="600" value="${p.goalMin || 45}"><label class="lbl">Notensystem</label><select class="field" id="ss">${Object.entries(SCALES).map(([k, v]) => `<option value="${k}" ${p.scale === k ? "selected" : ""}>${v.n}</option>`).join("")}</select></div>
+  <div class="panel"><h2>${ic("adduser")}Profil</h2><label class="lbl">Name</label><input class="field" id="sn" value="${esc(p.name)}"><label class="chk" style="display:flex;gap:10px;align-items:center;margin:12px 0 2px;font-size:14px"><input type="checkbox" id="swz" ${swissOn() ? "checked" : ""}> Ich komme aus der Schweiz – Noten 1–6 (6 = beste) und Lumi AI schreibt ohne „ß“</label><label class="lbl">Ich bin</label><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div><label class="lbl">Tagesziel (Minuten Lernzeit)</label><input class="field" id="sg" type="number" min="5" max="600" value="${p.goalMin || 45}"><label class="lbl">Notensystem</label><select class="field" id="ss">${Object.entries(SCALES).map(([k, v]) => `<option value="${k}" ${p.scale === k ? "selected" : ""}>${v.n}</option>`).join("")}</select></div>
+  <div class="panel"><h2>${ic("table")}Startseite</h2><p class="note">Ordne deine Startseite neu: Blöcke ersetzen, verschieben und größer oder kleiner ziehen – mit fertigen Vorlagen.</p><button class="btn" id="hed-open">${ic("pen")}Startseite bearbeiten</button></div>
   <div class="panel"><h2>${SUBJ()}</h2><div class="subjed">${D.subjects.map(s => `<div class="li"><input type="color" value="${s.color}" data-c="${s.id}"><input class="field slim" value="${esc(s.name)}" data-n="${s.id}"><button class="icon-btn" data-x="${s.id}" aria-label="Löschen">${ic("trash")}</button></div>`).join("")}</div><button class="btn ghost" id="as">${ic("plus")}${isUni() ? "Modul" : "Fach"} hinzufügen</button></div>
   <div class="panel"><h2>${ic("spark")}Lumi AI</h2>
   ${serverAI ? `<div class="msstate ok"><b><i class="ldot on"></i>Lumi AI aktiv – ${[serverInfo?.gemini ? "Google Gemini" : "", serverInfo?.groq ? "Groq" : ""].filter(Boolean).join(" + ") || "Server-KI"}</b><span>Läuft serverseitig über Vercel, du musst nichts eintragen.${serverInfo?.groq ? "" : " Für schnelle Auto-Korrektur zusätzlich <code>GROQ_API_KEY</code> in Vercel setzen."}</span></div>` : `<div class="msstate"><b><i class="ldot"></i>Server-KI noch nicht aktiv</b><span>Hinterlege in Vercel die Variable GEMINI_API_KEY und/oder GROQ_API_KEY und deploye neu – oder nutze unten einen eigenen Key.</span></div>`}
@@ -430,6 +437,7 @@ V.settings = m => {
   <details class="msh"><summary>Erweitert: eigenen Anthropic-API-Key nutzen</summary><p class="note">Nur nötig, wenn die Server-KI nicht aktiv ist. Der Key wird nur in diesem Browser gespeichert.</p><label class="lbl">API-Key</label><input class="field" id="sk" type="password" placeholder="sk-ant-…" value="${esc(p.apiKey)}" autocomplete="off"><label class="lbl">Modell</label><input class="field" id="sm" value="${esc(p.model)}"></details></div>
   ${cloudPanelHtml()}
   ${msPanelHtml()}
+  ${applePanelHtml()}
   <div class="panel"><h2>Daten</h2><p class="note">Alles liegt lokal auf diesem Gerät (IndexedDB) und funktioniert offline. Erstelle regelmäßig ein Backup – z. B. um auf Handy, iPad und PC dieselben Daten zu nutzen.</p><div class="row"><button class="btn ghost" id="ex">${ic("download")}Backup exportieren</button><button class="btn ghost" id="im">${ic("upload")}Backup importieren</button><input type="file" id="imf" accept="application/json" hidden><button class="btn ghost danger" id="rs">${ic("trash")}Alles löschen</button></div></div>
   <div class="row end"><button class="btn accent big" id="sv">Speichern</button></div></div>`;
   $$("#sl button", m).forEach(b => b.onclick = () => { $$("#sl button", m).forEach(x => x.classList.toggle("on", x === b)); });
@@ -438,9 +446,10 @@ V.settings = m => {
   $$("[data-c]", m).forEach(i => i.oninput = () => { subj(i.dataset.c).color = i.value; save(); }); $$("[data-n]", m).forEach(i => i.onchange = () => { subj(i.dataset.n).name = i.value.trim() || subj(i.dataset.n).name; save(); });
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
   $("#rs", m).onclick = async () => { if (await confirmBox("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.", "Alles löschen")) { indexedDB.deleteDatabase("lumi"); localStorage.clear(); setTimeout(() => location.hash = "#/", 100); setTimeout(() => location.reload(), 300); } };
-  bindMsPanel(m); cloudBindPanel(m);
+  bindMsPanel(m); bindApplePanel(m); cloudBindPanel(m);
   $("#srcs", m)?.addEventListener("change", e => { p.sources = e.target.checked; save(); });
-  $("#swz", m)?.addEventListener("change", e => { p.swiss = e.target.checked; save(); toast(e.target.checked ? "Lumi AI schreibt jetzt mit „ss“ statt „ß“" : "„ß“ ist wieder erlaubt"); });
+  $("#hed-open", m)?.addEventListener("click", () => homeEditor());
+  $("#swz", m)?.addEventListener("change", e => { p.swiss = e.target.checked; const ss = $("#ss", m); if (p.swiss && p.scale !== "ch" && ss && ["de", "ch"].includes(ss.value)) p.scale = ss.value = "ch"; else if (!p.swiss && p.scale === "ch" && ss) p.scale = ss.value = "de"; save(); toast(p.swiss ? "Schweiz: „ss“ statt „ß“ und Noten 1–6 (6 = beste)" : "Deutschland: „ß“ erlaubt, Noten 1–6 (1 = beste)"); });
   $$("#ac-m button", m).forEach(b => b.onclick = () => { p.autoCorrect = b.dataset.v; save(); $$("#ac-m button", m).forEach(x => x.classList.toggle("on", x === b)); });
   $("#ac-s", m) && ($("#ac-s", m).onchange = e => { p.autoModel = e.target.value; save(); });
   $("#sv", m).onclick = () => { p.goalMin = Math.max(5, parseInt($("#sg", m).value) || 45); p.name = $("#sn", m).value.trim(); p.level = $("#sl .on", m)?.dataset.l || p.level; p.scale = $("#ss", m).value; p.apiKey = $("#sk", m).value.trim(); p.model = $("#sm", m).value.trim() || "claude-sonnet-5-5"; save(); refreshNav(); toast("Gespeichert"); };
@@ -475,4 +484,31 @@ function bindMsPanel(m) {
   $("#ms-in", m) && ($("#ms-in", m).onclick = async () => { rd(); if (await msQuickLogin()) V.settings(m); });
   $("#ms-sync", m) && ($("#ms-sync", m).onclick = sync);
   $("#ms-out", m) && ($("#ms-out", m).onclick = async () => { await msLogout(); toast("Abgemeldet"); V.settings(m); });
+}
+
+/* Platzhalter im Chat-Eingabefeld: tippt nacheinander verschiedene Beispiel-Fragen (nur solange das Feld leer und nicht fokussiert ist) */
+const PH_LIST = ["Frag Lumi AI etwas …", "Erkläre mir die Zellatmung …", "Erstelle 10 Karteikarten zu Mathe …", "Fasse mein letztes Dokument zusammen …", "Mach ein Quiz zu meiner nächsten Prüfung …", "Was soll ich heute zuerst lernen? …", "Erstelle einen Lernplan für diese Woche …", "Hilf mir bei dieser Aufgabe …"];
+function phCycle(inp) {
+  if (!inp || inp.dataset.ph) return; inp.dataset.ph = "1"; const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; let i = 0, tm;
+  const idle = () => document.activeElement !== inp && !inp.value;
+  const step = (txt, n, dir) => {
+    if (!inp.isConnected) return;
+    if (!idle()) { inp.placeholder = PH_LIST[0]; return void (tm = setTimeout(() => step(PH_LIST[i % PH_LIST.length], PH_LIST[i % PH_LIST.length].length, 0), 600)); }
+    if (dir === 1) { n++; inp.placeholder = txt.slice(0, n) + "▏"; if (n < txt.length) tm = setTimeout(() => step(txt, n, 1), 38 + Math.random() * 30); else tm = setTimeout(() => { inp.placeholder = txt; tm = setTimeout(() => step(txt, n, -1), 2300); }, 120); }
+    else if (dir === -1) { n -= 2; inp.placeholder = txt.slice(0, Math.max(0, n)) + "▏"; if (n > 0) tm = setTimeout(() => step(txt, n, -1), 16); else { i++; tm = setTimeout(() => { const nx = PH_LIST[i % PH_LIST.length]; step(nx, 0, 1); }, 260); } }
+    else { tm = setTimeout(() => step(txt, txt.length, -1), 1200); }
+  };
+  if (reduce) { tm = setInterval(() => { if (!inp.isConnected) return clearInterval(tm); if (idle()) inp.placeholder = PH_LIST[++i % PH_LIST.length]; }, 4000); return; }
+  tm = setTimeout(() => step(PH_LIST[0], PH_LIST[0].length, -1), 2500);
+}
+
+/* Aufgabe abhaken – wiederkehrende Aufgaben erzeugen automatisch den nächsten Termin */
+function completeTask(x, done = true) {
+  x.done = done; if (done) { x.progress = 100; x.doneAt = Date.now(); } else { x.doneAt = undefined; }
+  if (done && x.repeat && !x.spawned) {
+    const base = x.due ? parseISO(x.due) : new Date(), step = d => { const n = new Date(d); if (x.repeat === "daily") n.setDate(n.getDate() + 1); else if (x.repeat === "weekly") n.setDate(n.getDate() + 7); else n.setMonth(n.getMonth() + 1); return n; };
+    let nx = step(base), guard = 0; const today = parseISO(iso()); while (nx <= today && guard++ < 400) nx = step(nx);
+    D.tasks.push({ ...x, id: uid(), done: false, progress: 0, doneAt: undefined, spawned: false, due: iso(nx) }); x.spawned = true; toast("Nächste Wiederholung: " + fmtD(iso(nx)));
+  }
+  save(); refreshNav();
 }

@@ -31,6 +31,7 @@ function withCitations(text, meta) {
   [...ins.entries()].sort((x, y) => y[0] - x[0]).forEach(([pos, m]) => { buf = Buffer.concat([buf.subarray(0, pos), Buffer.from(" " + m), buf.subarray(pos)]); });
   return { text: buf.toString("utf8"), sources: srcs };
 }
+/* Gemini denkt intern: diese Token zaehlen zu maxOutputTokens. Ohne Reserve bleibt bei kurzen Antworten oft nur das erste Wort uebrig. */
 async function callGemini(model, key, { system, messages, max, image, signal, sources }) {
   const contents = messages.slice(-24).map((m, i, arr) => {
     const role = m.role === "assistant" ? "model" : "user", parts = [{ text: String(m.content ?? "").slice(0, 80000) || " " }];
@@ -40,7 +41,7 @@ async function callGemini(model, key, { system, messages, max, image, signal, so
   while (contents.length && contents[0].role !== "user") contents.shift();
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST", signal, headers: { "content-type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.max(64, Math.min(2048, +max || 1024)), temperature: 0.6 }, ...(sources ? { tools: [{ google_search: {} }] } : {}) }),
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.min(8192, Math.max(64, Math.min(2048, +max || 1024)) + 1500), temperature: 0.6 }, ...(sources ? { tools: [{ google_search: {} }] } : {}) }),
   });
   const j = await r.json().catch(() => ({}));
   let text = r.ok ? (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("") : "", src = [];
@@ -76,7 +77,7 @@ module.exports = async function handler(req, res) {
   const geminiList = h.gemini ? CHAIN().map(m => ({ id: m, p: "gemini", m })) : [];
   const groqList = h.groq ? MODELS.filter(x => x.p === "groq") : [];
   let cands = [want, ...(want?.p === "groq" ? [...groqList, ...geminiList] : [...geminiList, ...groqList])].filter(Boolean);
-  if (image || (sources && h.gemini)) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
+  if (image || (sources && h.gemini && want?.p !== "groq")) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
   const seen = new Set(); cands = cands.filter(c => !seen.has(c.id) && seen.add(c.id));
   if (!cands.length) return res.status(422).json({ error: "Für Bilder wird GEMINI_API_KEY benötigt." });
 

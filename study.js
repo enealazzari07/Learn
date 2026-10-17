@@ -57,10 +57,10 @@ function applyRail() { const sh = $(".shell"); if (sh) sh.classList.toggle("coll
 function refreshNav() {
   const s = $("#side"); if (!s) return; applyRail();
   const mob = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"]];
-  const on = k => curView === k || (k === "docs" && curView === "doc") || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
+  const on = k => curView === k || (k === "docs" && (curView === "doc" || curView === "design")) || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
   s.innerHTML = `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand">Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
-  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
+  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
   <button class="nav-i prof hide-mob ${curView === "settings" ? "on" : ""}" id="profbtn" title="Profil"><span class="av">${esc((D.profile.name || (CLOUD.user?.email) || "L").trim()[0].toUpperCase())}</span><span class="nl pn"><b>${esc(D.profile.name || "Profil")}</b><small>${esc(CLOUD.user?.email || "Nicht angemeldet")}</small></span></button>`;
@@ -72,7 +72,7 @@ function refreshNav() {
 }
 function newMenu(anchor) {
   menu(anchor, [
-    { label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Neue Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
+    { label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Neues Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Neues Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Neues Design (Plakat, Flyer …)", icon: "image", fn: () => dsCreateDialog() }, { label: "Neue Datenbank", icon: "table", fn: () => newDatabaseMenu($("#newbtn")) }, { label: "Neuer Ordner", icon: "folder", fn: () => newFolder() },
     { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-",
     { label: "Karteikarten-Stapel", icon: "cards", fn: () => newDeck() }, { label: "Aufgabe / Prüfung", icon: "todo", fn: () => taskModal() },
     { label: isUni() ? "Neues Modul" : "Neues Fach", icon: "star", fn: newSubject },
@@ -94,26 +94,23 @@ const TEMPLATES = [
   ["protocol", "Protokoll", "<h1>Protokoll</h1><p>Datum · Teilnehmende</p><h2>Ziel</h2><p><br></p><h2>Durchführung</h2><p><br></p><h2>Ergebnis</h2><p><br></p>"],
 ];
 const PAPERS = [["white", "Leer"], ["lines", "Liniert"], ["grid", "Kariert"], ["dots", "Punkte"]];
-function docDialog(kind = "note") {
-  const isNote = kind === "note"; let folder = docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank";
-  const { el, close } = modal(`<div class="nd"><p class="eyebrow">${isNote ? "Neue Notiz" : "Neue Zeichnung"}</p>
-  <input class="nd-name" id="nd-n" placeholder="${isNote ? "Wie soll die Notiz heißen?" : "Wie soll die Zeichnung heißen?"}" autocomplete="off" maxlength="80">
-  <div class="nd-sugg" id="nd-s"></div>
-  <div class="nd-row"><div><label class="lbl">Ordner</label><button class="nd-folder" id="nd-f" type="button"></button></div></div>
-  <label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
-  ${isNote ? `<label class="lbl">Vorlage</label><div class="chips" id="nd-t">${TEMPLATES.map(([k, l]) => `<button type="button" class="chip ${k === tpl ? "on" : ""}" data-t="${k}">${l}</button>`).join("")}</div>` : ""}
-  <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="nd-go">${isNote ? "Notiz erstellen" : "Zeichnung erstellen"}</button></div></div>`, "wide nd-modal");
-  const nameIn = $("#nd-n", el), fb = $("#nd-f", el);
+function docDialog(kind = "note", pre = null) {
+  if (kind === "draw") return boardDialog(pre);
+  const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank", pages = D.profile.pageMode !== false;
+  const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument</button><button type="button" role="tab" id="nd-swb">Whiteboard</button><button type="button" role="tab" id="nd-swd">Design</button></div><p class="eyebrow">Neues Dokument</p>
+  <input class="nd-name" id="nd-n" placeholder="Wie soll das Dokument heißen?" autocomplete="off" maxlength="80">
+  <label class="lbl">Format</label><div class="chips nd-fmt" id="nd-fm"><button type="button" class="chip ${(D.profile.pageMode !== false) ? "on" : ""}" data-k="a4">A4-Seiten</button><button type="button" class="chip ${D.profile.pageMode === false ? "on" : ""}" data-k="endless">Endlos</button></div><label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
+  <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="nd-go">Dokument erstellen</button></div></div>`, "wide nd-modal");
+  const nameIn = $("#nd-n", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); }; $("#nd-swd", el).onclick = () => { const n = nameIn.value, f = folder; close(); dsCreateDialog({ name: n, folder: f }); };
   const fname = () => { const fp = folderPath(folder); return fp.length ? fp[fp.length - 1].name : ""; };
-  const drawF = () => { fb.innerHTML = `${ic("folder")}<span>${["Home", ...folderPath(folder).map(f => f.name)].map(esc).join(" / ")}</span><em>Ändern</em>`; const base = fname(); const sugg = isNote ? [base ? base + " – Mitschrift" : "Mitschrift", "Zusammenfassung", "Lernzettel", "Hausaufgaben", "Ideen"] : [base ? base + " – Skizze" : "Skizze", "Mindmap", "Formelsammlung", "Tafelbild"]; $("#nd-s", el).innerHTML = sugg.map(x => `<button type="button" class="chip">${esc(x)}</button>`).join(""); $$("#nd-s .chip", el).forEach(b => b.onclick = () => { nameIn.value = b.textContent; nameIn.focus(); }); };
-  drawF(); setTimeout(() => nameIn.focus(), 40);
-  fb.onclick = async () => { const t = await pickFolder("Ordner wählen"); if (t !== null) { folder = t; drawF(); } };
+  setTimeout(() => nameIn.focus(), 40);
+  $$("#nd-fm .chip", el).forEach(b => b.onclick = () => { pages = b.dataset.k === "a4"; $$("#nd-fm .chip", el).forEach(x => x.classList.toggle("on", x === b)); });
   $$("#nd-p .pp", el).forEach(b => b.onclick = () => { paper = b.dataset.k; $$("#nd-p .pp", el).forEach(x => x.classList.toggle("on", x === b)); });
   $$("#nd-t .chip", el).forEach(b => b.onclick = () => { tpl = b.dataset.t; $$("#nd-t .chip", el).forEach(x => x.classList.toggle("on", x === b)); const t = TEMPLATES.find(x => x[0] === tpl); if (!nameIn.value.trim() && tpl !== "blank") nameIn.placeholder = t[1]; });
   $("[data-c]", el).onclick = close;
   const go2 = async () => {
-    const title = nameIn.value.trim() || (isNote ? (TEMPLATES.find(x => x[0] === tpl)[0] === "blank" ? "Unbenannte Notiz" : TEMPLATES.find(x => x[0] === tpl)[1]) : "Neue Zeichnung"); close();
-    if (isNote) { D.profile.paper = paper; await newNote("", TEMPLATES.find(x => x[0] === tpl)[2], title, folder, paper); }
+    const title = nameIn.value.trim() || (isNote ? (TEMPLATES.find(x => x[0] === tpl)[0] === "blank" ? "Unbenanntes Dokument" : TEMPLATES.find(x => x[0] === tpl)[1]) : "Neue Zeichnung"); close();
+    if (isNote) { D.profile.paper = paper; await newNote("", TEMPLATES.find(x => x[0] === tpl)[2], title, folder, paper, pages); }
     else { const id = uid(); D.docs.unshift({ id, type: "draw", title, subjectId: subjectOfFolder(folder), folderId: folder, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + id, { strokes: [], bg: paper === "white" ? "blank" : paper, H: 1000 }); save(); go("draw/" + id); }
   };
   $("#nd-go", el).onclick = go2; nameIn.onkeydown = e => { if (e.key === "Enter") go2(); };
@@ -155,8 +152,8 @@ function folderMenu(btn, f) {
 }
 
 /* ---------- documents CRUD ---------- */
-async function newNote(subjectId = "", html = "", title = "Unbenannte Notiz", folderId = docFolder, paper = "") {
-  const id = uid(); D.docs.unshift({ id, type: "note", title, subjectId: subjectId || subjectOfFolder(folderId), folderId, paper: paper || D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) });
+async function newNote(subjectId = "", html = "", title = "Unbenanntes Dokument", folderId = docFolder, paper = "", pagesOn) {
+  const id = uid(); D.docs.unshift({ id, type: "note", ...(pagesOn === undefined ? {} : { pagesOn }), title, subjectId: subjectId || subjectOfFolder(folderId), folderId, paper: paper || D.profile.paper || "white", updated: Date.now(), created: Date.now(), text: htmlToText(html) });
   await KV.set("html:" + id, html || ""); save(); go("doc/" + id);
 }
 async function thumbOf(file) {
@@ -173,26 +170,27 @@ async function uploadFiles(files) {
 }
 async function deleteDoc(d) {
   if (!(await confirmBox(`„${d.title}“ wirklich löschen?`))) return;
-  D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:", "db:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
+  D.docs = D.docs.filter(x => x.id !== d.id); ["html:", "blob:", "draw:", "ink:", "ann:", "db:", "aud:"].forEach(p => KV.del(p + d.id)); save(); toast("Gelöscht"); refreshNav();
 }
 const fileIcon = d => { const e = (d.title.split(".").pop() || "").toLowerCase(); return /pdf/.test(e) ? ["PDF", "#e5484d"] : /docx?/.test(e) ? ["DOC", "#2563eb"] : /pptx?/.test(e) ? ["PPT", "#f97316"] : /xlsx?|csv/.test(e) ? ["XLS", "#16a34a"] : /txt|md/.test(e) ? ["TXT", "#64748b"] : [e.slice(0, 4).toUpperCase() || "FILE", "#64748b"]; };
-const DTYPES = [["all", "Alle"], ["note", "Notizen"], ["pdf", "PDFs"], ["db", "Datenbanken"], ["draw", "Skizzen"], ["file", "Dateien"]];
-const docKind = d => d.type === "note" ? "note" : d.type === "db" ? "db" : d.type === "draw" ? "draw" : /pdf$/i.test(d.title) || d.mime === "application/pdf" ? "pdf" : "file";
-const KIND_L = { note: "Notiz", db: "Datenbank", draw: "Skizze", pdf: "PDF", file: "Datei" };
-const KIND_I = { note: "note", db: "table", draw: "brush", pdf: "file", file: "file" };
+const DTYPES = [["all", "Alle"], ["note", "Dokumente"], ["pdf", "PDFs"], ["db", "Datenbanken"], ["draw", "Whiteboards"], ["design", "Designs"], ["file", "Dateien"]];
+const docKind = d => d.type === "note" ? "note" : d.type === "db" ? "db" : d.type === "draw" ? "draw" : d.type === "design" ? "design" : /pdf$/i.test(d.title) || d.mime === "application/pdf" ? "pdf" : "file";
+const KIND_L = { note: "Dokument", db: "Datenbank", draw: "Whiteboard", design: "Design", pdf: "PDF", file: "Datei" };
+const KIND_I = { note: "note", db: "table", draw: "brush", design: "image", pdf: "file", file: "file" };
 function docRow(d) {
   const s = subj(d.subjectId), k = docKind(d);
-  return `<div class="drow" data-d="${d.id}" draggable="true"><span class="dr-i">${ic(KIND_I[k])}${d.share ? `<i class="shbadge" title="Geteilt">${ic("adduser")}</i>` : ""}</span><span class="dr-t"><b>${d.pinned ? `<i class="pin">${ic("star")}</i>` : ""}${esc(d.title)}</b><small>${esc(docPath(d) || "Home")}</small></span><span class="dr-k">${KIND_L[k]}</span><span class="dr-s">${s ? `<i class="sdot" style="background:${s.color}"></i>${esc(s.name)}` : ""}</span><span class="dr-a">${fmtAgo(d.updated)}</span><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
+  return `<div class="drow" data-d="${d.id}" draggable="true"><span class="dr-i">${ic(KIND_I[k])}${d.share ? `<i class="shbadge" title="Geteilt">${ic("link")}</i>` : ""}</span><span class="dr-t"><b>${d.pinned ? `<i class="pin">${ic("star")}</i>` : ""}${esc(d.title)}</b><small>${esc(docPath(d) || "Home")}</small></span><span class="dr-k">${KIND_L[k]}</span><span class="dr-s">${s ? `<i class="sdot" style="background:${s.color}"></i>${esc(s.name)}` : ""}</span><span class="dr-a">${fmtAgo(d.updated)}</span><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
 }
 function docCard(d) {
   const s = subj(d.subjectId);
   let thumb;
-  if (d.type === "note") thumb = `<div class="th note-th">${esc((d.text || "").slice(0, 150)) || "<i>Leer</i>"}</div>`;
+  if (d.type === "note") thumb = `<div class="th note-th">${esc((d.text || "").slice(0, 150)) || `<span class="ph"></span>`}</div>`;
   else if (d.type === "db") thumb = `<div class="th file-th"><b style="background:#5b3df5">${ic("table")}</b></div>`;
+  else if (d.type === "design") thumb = `<div class="th" style="background:#eceef3 center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.type === "draw") thumb = `<div class="th" style="background:#fff center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.thumb) thumb = `<div class="th" style="background:#f3f3f5 center/cover url(${d.thumb})"></div>`;
   else { const [l, c] = fileIcon(d); thumb = `<div class="th file-th"><b style="background:${c}">${esc(l)}</b></div>`; }
-  return `<div class="doc" data-d="${d.id}" draggable="true"><span class="tbadge">${ic(KIND_I[docKind(d)])}${KIND_L[docKind(d)]}</span>${d.share ? `<span class="shbadge on-card" title="Geteilt">${ic("adduser")}</span>` : ""}${thumb}<div class="dm"><div class="dt">${d.pinned ? `<span class="pin">${ic("star")}</span>` : ""}${esc(d.title)}</div><div class="ds">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)} · ` : ""}${fmtAgo(d.updated)}</div></div><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
+  return `<div class="doc" data-d="${d.id}" draggable="true"><span class="tbadge">${ic(KIND_I[docKind(d)])}${KIND_L[docKind(d)]}</span>${thumb}<div class="dm"><div class="dt">${d.pinned ? `<span class="pin">${ic("star")}</span>` : ""}${esc(d.title)}</div><div class="ds">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)} · ` : ""}${fmtAgo(d.updated)}${d.share ? `<span class="shi" title="Geteilt">${ic("link")}</span>` : ""}</div></div><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
 }
 function docMenu(btn, d) {
   menu(btn, [
@@ -233,9 +231,10 @@ V.today = m => {
   const t = iso(), wd = (new Date().getDay() + 6) % 7, h = new Date().getHours(), goal = D.profile.goalMin || 45;
   const lessons = D.tt.filter(e => e.day === wd).sort((a, b) => a.start.localeCompare(b.start));
   const open = D.tasks.filter(x => !x.done).sort((a, b) => (a.due || "9").localeCompare(b.due || "9"));
-  const exams = open.filter(x => x.type === "exam" && x.due && daysUntil(x.due) >= 0).slice(0, 2);
+  const allEx = open.filter(x => x.type === "exam" && x.due && daysUntil(x.due) >= 0).sort((a, b) => a.due.localeCompare(b.due)), exams = allEx.slice(0, 2);
   const mins = D.stats.days[t] || 0, due = dueCardCount(), evToday = msEventsOn(t), todayTasks = open.filter(x => x.due && daysUntil(x.due) <= 0);
   const recent = [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 6);
+  try { appleAuto(); } catch {}
   let first = true; try { first = !sessionStorage.getItem("lumi-welcomed"); sessionStorage.setItem("lumi-welcomed", "1"); } catch {}
   const greet = (h < 11 ? "Guten Morgen" : h < 18 ? "Hallo" : "Guten Abend") + (D.profile.name ? ", " + D.profile.name.split(" ")[0] : "");
   const words = greet.split(" ").map((w, i) => `<span class="w" style="--i:${i}">${esc(w)}</span>`).join(" ");
@@ -251,44 +250,60 @@ V.today = m => {
   const icn = d => ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note");
   const SUGG = ["Lernplan für heute", "Quiz zum letzten Dokument", "Was zuerst lernen?"];
   const pct = Math.round(Math.min(100, mins / goal * 100)), exDays = nextEx ? daysUntil(nextEx.due) : null;
+  const BLK = {
+    tasks: () => `<section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
+      <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>`,
+    cal: () => `<section class="wg w-cal rise" style="--i:3"><div class="cal-t"><h2 id="cal-m"></h2><span class="cal-nav"><button class="cal-today" id="cal-t">Heute</button><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></span></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>`,
+    goal: () => `<section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
+      <div class="fd" id="fd"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><small id="fd-s">Ziehen zum Einstellen</small></div></div>
+      <div class="fd-row"><button class="fd-go" id="fd-go">Starten</button><button class="fd-rs" id="fd-rs" hidden>Zurücksetzen</button></div>
+      <p class="fd-g"><b>${mins}</b> von ${goal} Min. heute</p></section>`,
+    cards: () => `<button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>`,
+    rec: () => `<section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 6).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>`,
+    ex: () => `<section class="wg w-ex rise" style="--i:7"><h2>Prüfungen${allEx.length ? ` <em>${allEx.length}</em>` : ""}</h2>${allEx.length ? `<div class="w-scroll">${allEx.slice(0, 6).map(x => { const sj = subj(x.subjectId), dd = daysUntil(x.due); return `<button class="z-doc ex-r" data-ex="${x.id}"><span class="z-di ex-d" style="--c:${sj ? sj.color : "#0f0f12"}">${dd}</span><span><b>${esc(x.title)}</b><small>${sj ? esc(sj.name) + " · " : ""}${dd <= 0 ? "Heute" : dd === 1 ? "Morgen" : "in " + dd + " Tagen"}</small></span></button>`; }).join("")}</div><button class="link" data-go="exams">Alle Prüfungen</button>` : `<p class="empty sm">Keine Prüfung eingetragen.</p><button class="link" data-go="exams">Eintragen</button>`}</section>`,
+    week: () => { const wd = Array.from({ length: 7 }, (_, n) => { const dd = new Date(); dd.setDate(dd.getDate() - (6 - n)); const k = iso(dd); return { l: dd.toLocaleDateString("de-DE", { weekday: "short" }).replace(".", ""), m: D.stats.days[k] || 0, r: D.stats.reviews[k] || 0, today: n === 6 }; }), mx = Math.max(goal, ...wd.map(x => x.m)), tot = wd.reduce((a, x) => a + x.m, 0), rev = wd.reduce((a, x) => a + x.r, 0), act = wd.filter(x => x.m || x.r).length; return `<section class="wg w-week rise" style="--i:3"><h2>Woche</h2><div class="wk">${wd.map(x => `<div class="wk-c ${x.today ? "now" : ""} ${x.m >= goal ? "hit" : ""}" title="${x.m} Min. Lernzeit · ${x.r} Karten"><em>${x.m || ""}</em><span class="wk-b"><i style="height:${x.m ? Math.max(6, Math.round(x.m / mx * 100)) : 0}%"></i></span><small>${x.l}</small></div>`).join("")}</div><p class="wk-s"><b>${tot}</b> Min. · Ø <b>${Math.round(tot / 7)}</b>/Tag · <b>${rev}</b> Karten · ${act}/7 Tage aktiv</p></section>`; },
+    quick: () => `<section class="wg w-quick rise" style="--i:3"><h2>Schnellstart</h2><div class="qk"><button data-q="n">${ic("note")}<span>Neues Dokument</span></button><button data-go="cards">${ic("cards")}<span>Karteikarten</span></button><button data-go="quiz">${ic("help")}<span>Quiz</span></button><button data-go="docs">${ic("folder")}<span>Dokumente</span></button></div></section>`,
+    note: () => `<section class="wg w-note rise" style="--i:3"><h2>Notizzettel</h2><textarea id="hnote" placeholder="Schnelle Notiz …" maxlength="4000">${esc(D.profile.homeNote || "")}</textarea></section>`,
+    tt: () => `<section class="wg w-tt rise" style="--i:3"><h2>Stundenplan <em>heute</em></h2>${lessons.length ? `<div class="w-scroll">${lessons.map(e => { const sj = subj(e.subjectId); return `<div class="tt-r"><span class="tt-t">${esc(e.start || "")}</span><i style="background:${sj ? sj.color : "#0f0f12"}"></i><span><b>${esc(e.title || (sj && sj.name) || "Stunde")}</b><small>${esc(e.room || "")}${e.room && e.end ? " · " : ""}${e.end ? "bis " + esc(e.end) : ""}</small></span></div>`; }).join("")}</div>` : `<p class="empty sm">Heute keine Stunden eingetragen.</p>`}</section>`,
+    streak: () => `<section class="wg w-stat rise" style="--i:3"><h2>Lernserie</h2><b class="w-big">${streak()}</b><p>${streak() === 1 ? "Tag" : "Tage"} in Folge</p></section>`,
+    grades: () => `<button class="wg w-stat rise" style="--i:3" data-go="grades"><h2>Noten</h2><b class="w-big">${gfmt(wavg(D.grades))}</b><p>Gesamtschnitt · ${D.grades.length} ${D.grades.length === 1 ? "Eintrag" : "Einträge"}</p><span class="w-go">Zu den Noten ${ic("back")}</span></button>`,
+    pinned: () => `<section class="wg w-pin rise" style="--i:3"><h2>Angeheftet</h2><div class="w-scroll">${D.docs.filter(d => d.pinned).slice(0, 8).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note")}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")}</small></span></button>`).join("") || `<p class="empty sm">Hefte Dokumente mit dem Stern an – sie erscheinen hier.</p>`}</div></section>`,
+    ring: () => `<section class="wg w-ringb rise" style="--i:3"><h2>Tagesziel</h2><div class="rb">${ringSvg(pct, "#0f0f12", mins, "von " + goal + " Min.")}</div></section>`,
+    clock: () => { const lm = n => n > 1 ? `<div class="ck-r more">+ ${n - 1} weitere</div>` : ""; const rows = [...msEventsOn(t).map(e => ({ tm: e.allDay ? "Ganztägig" : e.time || "", c: e.color || "#2563eb", n: e.title, o: e.allDay ? "00:00" : e.time || "00:00" })), ...D.tasks.filter(x => !x.done && x.due === t).map(x => ({ tm: x.type === "exam" ? "Prüfung" : "Fällig", c: x.type === "exam" ? "#d93a3a" : "#0f0f12", n: x.title, o: "00:00" }))].sort((a, b) => a.o.localeCompare(b.o) || a.n.localeCompare(b.n)); const conn = !!((D.apple && D.apple.feeds && D.apple.feeds.length) || msConnected()); return `<section class="wg w-clock rise" style="--i:3"><div class="ck-in"><div class="ck-t"><b id="hclock">${new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}</b><p>${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p></div>${conn ? `<div class="ck-ev"><h3>Heute im Kalender</h3>${rows.length ? rows.slice(0, 3).map(r => `<div class="ck-r"><i style="background:${r.c}"></i><span class="ck-tm">${esc(r.tm)}</span><b>${esc(r.n)}</b></div>`).join("") + lm(rows.length - 2 > 1 && rows.length > 3 ? rows.length - 2 : 0) : `<p class="ck-none">Heute nichts eingetragen</p>`}</div>` : ""}</div></section>`; },
+    subjects: () => `<section class="wg w-sj rise" style="--i:3"><h2>${SUBJ()}</h2><div class="sj-l">${D.subjects.map(sj => { const n = D.tasks.filter(x => !x.done && x.subjectId === sj.id).length; return `<button data-go="docs"><i style="background:${sj.color}"></i><b>${esc(sj.name)}</b><small>${n ? n + " offen" : "frei"}</small></button>`; }).join("") || `<p class="empty sm">Noch keine Fächer – in den Einstellungen anlegen.</p>`}</div></section>`,
+    hw: () => `<section class="wg w-hw rise" style="--i:3"><h2>Hausaufgaben</h2><div class="w-scroll">${open.filter(x => x.type === "hw").slice(0, 8).map(x => { const dd = x.due ? daysUntil(x.due) : null; return `<div class="hw-r"><b>${esc(x.title)}</b><small class="${dd != null && dd < 0 ? "red" : ""}">${dd == null ? "–" : dd < 0 ? "Überfällig" : dd === 0 ? "Heute" : dd === 1 ? "Morgen" : "in " + dd + " Tagen"}</small></div>`; }).join("") || `<p class="empty sm">Keine offenen Hausaufgaben.</p>`}</div></section>`,
+  };
+  const blockHtml = b => { const v = `--c:${b.c};--r:${b.r};--w:${b.w};--h:${b.h};`, h = BLK[b.type]().replace(/^<(section|button|div) class="wg /, `<$1 data-bid="${b.id}" class="wg `); return /style="--i:/.test(h) ? h.replace('style="--i:', `style="${v}--i:`) : h.replace('class="wg ', `style="${v}" class="wg `); };
   m.innerHTML = `<div class="home-wrap again"><div class="page home zen bento">
   <header class="b-head rise" style="--i:0"><div class="b-hl"><p class="z-date">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1 class="greet-h z-h">${words}</h1></div>
 </header>
   <div class="z-ans" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
-  <div class="b-grid">
-    <section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
-      <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>
-    <section class="wg w-cal rise" style="--i:3"><div class="cal-t"><h2 id="cal-m"></h2><span class="cal-nav"><button class="cal-today" id="cal-t">Heute</button><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></span></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>
-    <section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
-      <div class="fd" id="fd"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><small id="fd-s">Ziehen zum Einstellen</small></div></div>
-      <div class="fd-row"><button class="fd-go" id="fd-go">Starten</button><button class="fd-rs" id="fd-rs" hidden>Zurücksetzen</button></div>
-      <p class="fd-g"><b>${mins}</b> von ${goal} Min. heute</p></section>
-    <button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>
-    <section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 4).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>
-    <button class="wg w-ex rise" style="--i:7" ${nextEx ? `data-ex="${nextEx.id}"` : 'data-go="exams"'}><h2>${nextEx ? "Nächste Prüfung" : "Prüfungen"}</h2>${nextEx ? `<b class="w-big">${exDays}</b><p>${exDays === 1 ? "Tag" : "Tage"} bis ${esc(nextEx.title)}</p><span class="w-go">Prüfungsmappe ${ic("back")}</span>` : `<p>Keine Prüfung eingetragen.</p><span class="w-go">Eintragen ${ic("back")}</span>`}</button>
+  <div class="b-grid" id="b-grid">${homeLayout().map(blockHtml).join("")}
   </div></div></div>`;
   bindCommon(m);
+  { const hn = $("#hnote", m); if (hn) { let tm; hn.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { D.profile.homeNote = hn.value; save(); }, 400); }; } }
   $$("[data-q]", m).forEach(b => b.onclick = () => docDialog("note"));
   $$("[data-ex]", m).forEach(b => b.onclick = () => go("exam/" + b.dataset.ex));
   const todoRows = () => D.tasks.filter(x => !x.done && x.type !== "exam").sort((p, q) => (p.due || "9").localeCompare(q.due || "9")).slice(0, 5);
   const dueLbl = x => !x.due ? "–" : daysUntil(x.due) === 0 ? "Heute" : daysUntil(x.due) === 1 ? "Morgen" : daysUntil(x.due) < 0 ? "Überfällig" : fmtD(x.due);
   const drawTodos = () => {
-    const box = $("#todos", m), rows = todoRows();
+    const box = $("#todos", m); if (!box) return; const rows = todoRows();
     box.innerHTML = rows.length ? rows.map(x => `<div class="todo z-t" data-id="${x.id}"><button class="tc" role="checkbox" aria-checked="false" aria-label="${esc(x.title)} erledigt"><svg viewBox="0 0 24 24"><path d="M6 12.5l4 4 8-9"/></svg></button><b>${esc(x.title)}</b><small class="${x.due && daysUntil(x.due) < 0 ? "red" : ""}">${dueLbl(x)}</small></div>`).join("") : `<p class="empty sm">Alles erledigt – nichts offen.</p>`;
-    $$(".todo .tc", box).forEach(b => b.onclick = () => { const row = b.closest(".todo"), x = D.tasks.find(y => y.id === row.dataset.id); if (!x || row.classList.contains("done")) return; x.done = true; x.progress = 100; x.doneAt = Date.now(); save(); b.setAttribute("aria-checked", "true"); row.classList.add("done"); setTimeout(() => { row.style.maxHeight = row.offsetHeight + "px"; requestAnimationFrame(() => row.classList.add("gone")); setTimeout(() => { drawTodos(); refreshNav(); }, 380); }, 520); });
+    $$(".todo .tc", box).forEach(b => b.onclick = () => { const row = b.closest(".todo"), x = D.tasks.find(y => y.id === row.dataset.id); if (!x || row.classList.contains("done")) return; completeTask(x, true); b.setAttribute("aria-checked", "true"); row.classList.add("done"); setTimeout(() => { row.style.maxHeight = row.offsetHeight + "px"; requestAnimationFrame(() => row.classList.add("gone")); setTimeout(() => { drawTodos(); refreshNav(); }, 380); }, 520); });
   };
   drawTodos();
-  $("#todo-f", m).onsubmit = e => { e.preventDefault(); const i = $("#todo-i", m), v = i.value.trim(); if (!v) return; D.tasks.push({ id: uid(), title: v, type: "task", due: iso(), subjectId: "", note: "", done: false }); save(); i.value = ""; drawTodos(); };
+  const tfm = $("#todo-f", m); if (tfm) tfm.onsubmit = e => { e.preventDefault(); const i = $("#todo-i", m), v = i.value.trim(); if (!v) return; D.tasks.push({ id: uid(), title: v, type: "task", due: iso(), subjectId: "", note: "", done: false }); save(); i.value = ""; drawTodos(); };
   (async () => {
     const el = $("#sum-t", m), run = async force => {
-      const cache = D.daily && D.daily.date === iso() ? D.daily : null; if (cache && cache.ai && !force) { el.textContent = cache.text; return; } if (!hasKey()) return;
+      const okTxt = x => typeof x === "string" && x.trim().length >= 25 && /[.!?…]["“”)]?$/.test(x.trim()), cache = D.daily && D.daily.date === iso() && okTxt(D.daily.text) ? D.daily : null; if (cache && cache.ai && !force) { el.textContent = cache.text; return; } if (!hasKey()) return;
       el.classList.add("busy"); const ctx = dailyCtx({ lessons, evToday, exams, due, mins, goal }); const r = await ai(`Schreibe eine kurze, motivierende Tageszusammenfassung (höchstens 2 kurze Sätze, zusammen unter 30 Wörter, Du-Form) für heute. Nenne die wichtigsten Dinge und was zuerst angehen. Daten:\n${ctx}`, { system: sysBase(), max: 120, quiet: true });
-      el.classList.remove("busy"); if (r && r.trim()) { D.daily = { date: iso(), text: r.trim(), ai: true }; save(); el.textContent = D.daily.text; }
+      el.classList.remove("busy"); if (r && okTxt(r)) { D.daily = { date: iso(), text: r.trim(), ai: true }; save(); el.textContent = D.daily.text; }
     };
     run(false);
   })();
-  $("#addt", m).onclick = () => taskModal();
-  {
+  if ($("#addt", m)) $("#addt", m).onclick = () => taskModal();
+  { const ck = $("#hclock", m); if (ck) { const tk = () => { ck.textContent = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); }; const iv = setInterval(() => { if (!ck.isConnected) return clearInterval(iv); tk(); }, 10000); } }
+  if ($("#fd", m)) {
     const fd = $("#fd", m), C = 2 * Math.PI * 84, MAXM = 120, STEP = 5;
     const busy = () => T.running || T.left < T.total;
     const paint = () => {
@@ -311,7 +326,7 @@ V.today = m => {
     $("#fd-rs", m).onclick = () => { timerReset(); paint(); };
     paint(); const iv = setInterval(() => { if (!fd.isConnected) return clearInterval(iv); paint(); }, 500); LEAVE.push(() => clearInterval(iv));
   }
-  {
+  if ($("#cal-g", m)) {
     const now = new Date(); let cy = now.getFullYear(), cm = now.getMonth(), sel = iso();
     const itemsOn = d => [...D.tasks.filter(x => !x.done && x.due === d).map(x => ({ k: x.type === "exam" ? "exam" : "task", t: x.title })), ...msEventsOn(d).map(e => ({ k: "ev", t: e.title }))];
     const drawCal = () => {
@@ -338,8 +353,8 @@ const msLogoSvg = () => `<svg viewBox="0 0 24 24" width="26" height="26"><rect x
 let quizPrefill = null;
 function bindCommon(m) {
   $$("[data-go]", m).forEach(b => b.onclick = () => go(b.dataset.go));
-  $$("[data-d]", m).forEach(c => c.onclick = e => { if (e.target.closest(".dmore")) return; openDoc(D.docs.find(d => d.id === c.dataset.d)); });
-  $$("[data-m]", m).forEach(b => b.onclick = e => { e.stopPropagation(); docMenu(b, D.docs.find(d => d.id === b.dataset.m)); });
+  $$("[data-d]", m).forEach(c => c.onclick = e => { if (e.target.closest(".dmore")) return; const ds = (D.designs || []).find(d => d.id === c.dataset.d); if (ds) return go("design/" + ds.id); openDoc(D.docs.find(d => d.id === c.dataset.d)); });
+  $$("[data-m]", m).forEach(b => b.onclick = e => { e.stopPropagation(); const ds = (D.designs || []).find(d => d.id === b.dataset.m); if (ds) return dsItemMenu(b, ds, () => V.docs($("#main"))); docMenu(b, D.docs.find(d => d.id === b.dataset.m)); });
 }
 
 /* ---------- views: documents (folders) ---------- */
@@ -367,7 +382,7 @@ function folderSvg(c) {
     <path d="${FRONT}" fill="none" stroke="url(#${k}s3)" stroke-width="5.33" mask="url(#${k}m2)"/></svg>`;
 }
 const FOLDER_SVG_UNUSED = 1;
-const sideRow = d => `<div class="sd-row" data-d="${d.id}" tabindex="0"><span class="sd-i">${ic(KIND_I[docKind(d)])}${d.share ? `<i class="shbadge" title="Geteilt">${ic("adduser")}</i>` : ""}</span><span class="sd-t"><b>${esc(d.title)}</b><small>${d.share ? (d.shareOwner ? "Von dir geteilt" : "Mit dir geteilt") + " · " : ""}${fmtAgo(d.updated)}</small></span></div>`;
+const sideRow = d => `<div class="sd-row" data-d="${d.id}" tabindex="0"><span class="sd-i">${ic(KIND_I[docKind(d)])}${d.share ? `<i class="shbadge" title="Geteilt">${ic("link")}</i>` : ""}</span><span class="sd-t"><b>${esc(d.title)}</b><small>${d.share ? (d.shareOwner ? "Von dir geteilt" : "Mit dir geteilt") + " · " : ""}${fmtAgo(d.updated)}</small></span></div>`;
 function docSide() {
   const recent = [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 7), shared = D.docs.filter(d => d.share).sort((a, b) => b.updated - a.updated).slice(0, 12);
   return `<aside class="dside" aria-label="Zuletzt genutzt und geteilt"><section><h4>${ic("timer")}Zuletzt genutzt</h4>${recent.map(sideRow).join("") || `<p class="sd-empty">Noch nichts geöffnet.</p>`}</section><section><h4>${ic("adduser")}Geteilt</h4>${shared.map(sideRow).join("") || `<p class="sd-empty">Noch nichts geteilt. Im Dokument oben auf das Teilen-Symbol tippen, um andere einzuladen.</p>`}</section></aside>`;
@@ -375,8 +390,9 @@ function docSide() {
 V.docs = (m, id) => {
   if (id !== undefined) docFolder = id || ""; if (docFolder && !folderOf(docFolder)) docFolder = "";
   const q = docQuery.trim().toLowerCase(), path = folderPath(docFolder);
+  const dsl = typeof dsDocs === "function" ? dsDocs() : [];
   const folders = (q ? D.folders.filter(f => f.name.toLowerCase().includes(q)) : D.folders.filter(f => (f.parent || "") === docFolder)).sort((a, b) => a.name.localeCompare(b.name));
-  const list = (q ? D.docs.filter(d => (d.title + " " + (d.text || "")).toLowerCase().includes(q)) : D.docs.filter(d => (d.folderId || "") === docFolder)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (docSort === "name" ? a.title.localeCompare(b.title) : b.updated - a.updated));
+  const list = (q ? [...D.docs, ...dsl].filter(d => (d.title + " " + (d.text || "")).toLowerCase().includes(q)) : [...D.docs, ...dsl].filter(d => (d.folderId || "") === docFolder)).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (docSort === "name" ? a.title.localeCompare(b.title) : b.updated - a.updated));
   const base = list, cnt = k => k === "all" ? base.length : base.filter(d => docKind(d) === k).length;
   const shown = docType === "all" ? base : base.filter(d => docKind(d) === docType);
   m.classList.add("doc-full");
@@ -386,7 +402,7 @@ V.docs = (m, id) => {
     <div class="nb-r"><button class="btn accent small" id="nw">${ic("plus")}<span>Neu</span></button></div></div>
   <article class="ned-paper docspaper" id="paperc"><div class="dmain">
   ${folders.length || base.length ? `<div class="dtools"><div class="dchips">${DTYPES.filter(([k]) => k === "all" || cnt(k) || docType === k).map(([k, l]) => `<button class="${docType === k ? "on" : ""}" data-t="${k}">${l}<em>${cnt(k)}</em></button>`).join("")}</div><div class="dview"><button class="${docView === "grid" ? "on" : ""}" data-v="grid" aria-label="Kacheln">${ic("table")}</button><button class="${docView === "list" ? "on" : ""}" data-v="list" aria-label="Liste">${ic("list")}</button></div></div>` : ""}
-  ${folders.length || shown.length ? `<div class="items ${docView === "list" ? "as-list" : ""}">${folders.map(f => { const n = folderCount(f.id); if (docView === "list") return `<div class="drow frow" data-f="${f.id}" tabindex="0"><span class="dr-i" style="background:${f.color}22;color:${f.color}">${ic("folder")}</span><span class="dr-t"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}</small></span><span class="dr-k">Ordner</span><span class="dr-s"></span><span class="dr-a"></span><button class="dmore" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; return `<div class="fold" data-f="${f.id}" style="--c:${f.color}" tabindex="0"><div class="f3d">${folderSvg(f.color)}<div class="ftxt"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; }).join("")}${shown.map(docView === "list" ? docRow : docCard).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>${q ? "Nichts gefunden" : path.length ? "Dieser Ordner ist leer" : "Noch nichts hier"}</h3><p>${q ? "Versuche einen anderen Suchbegriff." : "Lege mit „Neu“ oben rechts Ordner, Notizen oder Datenbanken an oder lade Dateien hoch. Dateien kannst du auch einfach hierher ziehen."}</p>${q ? "" : `<div class="row" style="justify-content:center;gap:8px;margin-top:14px"><button class="btn primary small" data-e="n">${ic("newnote")}Notiz</button><button class="btn small" data-e="u">${ic("upload")}Hochladen</button><button class="btn small" data-e="a">${ic("spark")}Mit Lumi AI</button></div>`}</div>`}
+  ${folders.length || shown.length ? `${docView !== "list" && folders.length ? `<h3 class="dsec">Ordner</h3>` : ""}<div class="items ${docView === "list" ? "as-list" : "fgrid"}">${folders.map(f => { const n = folderCount(f.id); if (docView === "list") return `<div class="drow frow" data-f="${f.id}" tabindex="0"><span class="dr-i" style="background:${f.color}22;color:${f.color}">${ic("folder")}</span><span class="dr-t"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}</small></span><span class="dr-k">Ordner</span><span class="dr-s"></span><span class="dr-a"></span><button class="dmore" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; return `<div class="fold" data-f="${f.id}" style="--c:${f.color}" tabindex="0"><div class="f3d">${folderSvg(f.color)}<div class="ftxt"><b>${esc(f.name)}</b><small>${n} ${n === 1 ? "Datei" : "Dateien"}${q && f.parent ? " · " + esc(folderPath(f.parent).map(x => x.name).join(" › ")) : ""}</small></div></div><button class="dmore on" data-fm="${f.id}" aria-label="Mehr">${ic("more")}</button></div>`; }).join("")}${docView === "list" ? shown.map(docRow).join("") : ""}</div>${docView !== "list" && shown.length ? `<h3 class="dsec">Dokumente</h3><div class="items dgrid">${shown.map(docCard).join("")}</div>` : ""}` : `<div class="emptybox"><div class="big-ic">${ic("folder")}</div><h3>${q ? "Nichts gefunden" : path.length ? "Dieser Ordner ist leer" : "Noch nichts hier"}</h3><p>${q ? "Versuche einen anderen Suchbegriff." : "Lege mit „Neu“ oben rechts Ordner, Notizen oder Datenbanken an oder lade Dateien hoch. Dateien kannst du auch einfach hierher ziehen."}</p>${q ? "" : `<div class="row" style="justify-content:center;gap:8px;margin-top:14px"><button class="btn primary small" data-e="n">${ic("newnote")}Notiz</button><button class="btn small" data-e="u">${ic("upload")}Hochladen</button><button class="btn small" data-e="a">${ic("spark")}Mit Lumi AI</button></div>`}</div>`}
   </div>${docSide()}</article></div>`;
   setScroller($("#paperc", m));
   bindCommon(m);
@@ -398,7 +414,7 @@ V.docs = (m, id) => {
   $$("[data-e]", m).forEach(b => b.onclick = () => ({ n: () => docDialog("note"), u: () => $("#upl").click(), a: () => openAiCommand() })[b.dataset.e]());
   $$("[data-t]", m).forEach(b => b.onclick = () => { docType = b.dataset.t; V.docs(m); });
   $$("[data-v]", m).forEach(b => b.onclick = () => { docView = b.dataset.v; V.docs(m); });
-  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Notiz", icon: "newnote", fn: () => docDialog("note") }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
+  $("#nw", m).onclick = e => menu(e.currentTarget, [{ label: "Mit Lumi AI erstellen …", icon: "spark", fn: () => openAiCommand() }, "-", { label: "Dokument (A4)", icon: "newnote", fn: () => docDialog("note") }, { label: "Whiteboard", icon: "brush", fn: () => docDialog("draw") }, { label: "Design (Plakat, Flyer, A4 quer …)", icon: "image", fn: () => dsCreateDialog({ folder: docFolder }) }, { label: "Ordner", icon: "folder", fn: () => newFolder() }, { label: "Datei hochladen", icon: "upload", fn: () => $("#upl").click() }, "-", { label: "Datenbank: Lernplan", icon: "todo", fn: () => newDatabase(docFolder, "plan") }, { label: "Datenbank: Prüfungen & Noten", icon: "award", fn: () => newDatabase(docFolder, "exams") }, { label: "Datenbank: Leseliste", icon: "book", fn: () => newDatabase(docFolder, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(docFolder, "blank") }]);
   $("#dq", m).oninput = debounce(e => { docQuery = e.target.value; const p = e.target.selectionStart; V.docs(m); const i = $("#dq", m); i.focus(); i.setSelectionRange(p, p); }, 200);
   $("#ds", m).onchange = e => { docSort = e.target.value; V.docs(m); };
 };
@@ -480,7 +496,7 @@ async function noteEditor(m, d) {
     <div class="rp on" data-pn="start"><span class="rgp" id="fx-text"></span><i class="fsep"></i><span class="rgp">${BTN("bold", "bold", "Fett (Strg+B)")}${BTN("italic", "italic", "Kursiv (Strg+I)")}${BTN("underline", "underline", "Unterstrichen")}${BTN("strike", "strike", "Durchgestrichen")}</span><i class="fsep"></i><span class="rgp">${BTN("hilite", "hl", "Markieren")}<button class="tbtn mini" id="hl-m" title="Markierfarbe" aria-label="Markierfarbe">${ic("chev")}</button><button class="tbtn" id="cl-b" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #5b3df5;line-height:1">A</b></button><input type="color" id="cin" value="#5b3df5" hidden></span><i class="fsep"></i><span class="rgp">${BTN("ul", "list", "Aufzählung")}${BTN("ol", "listnum", "Nummerierung")}${BTN("todo", "todo", "Checkliste")}</span><i class="fsep"></i><span class="rgp" id="fx-par"></span><i class="fsep"></i><span class="rgp">${BTN("undo", "undo", "Rückgängig")}${BTN("redo", "redo", "Wiederholen")}</span></div>
     <div class="rp" data-pn="ins">${[["table", "table", "Tabelle"], ["image", "image", "Bild"], ["link", "link", "Link"], ["plink", "file", "Seite verlinken"], ["formula", "text", "Formel"], ["hr", "hrule", "Trennlinie"], ["textbox", "text", "Textfeld"], ["callout", "note", "Hinweis"], ["toggle", "chev", "Aufklappliste"], ["quote", "quote", "Zitat"], ["code", "code", "Code"], ["date", "cal", "Datum"], ["toc", "list", "Inhalt"]].map(([c, i, t]) => `<button type="button" class="tbtn lbl" data-c="${c}" title="${t}">${ic(i)}<span>${t}</span></button>`).join("")}</div>
     <div class="rp" data-pn="draw" id="rib-draw"></div>
-    <div class="rp" data-pn="design"><span class="rgp" id="fx-design"></span><i class="fsep"></i><button class="tt" id="t-paper" title="Papier">${ic("note")}<span>Papier</span>${ic("chev")}</button></div>
+    <div class="rp" data-pn="design"><span class="rgp" id="fx-design"></span><i class="fsep"></i><button class="tt" id="t-paper" title="Papier">${ic("note")}<span>Papier</span>${ic("chev")}</button><i class="fsep"></i><button class="tt" id="t-pages" title="Seiten im A4-Format anzeigen">${ic("file")}<span>Seiten (A4)</span></button><span class="pg-s" id="pg-s"></span></div>
     <div class="rp" data-pn="ai">${[["ai-edit", "Text schreiben / ändern"], ["ai-summary", "Zusammenfassen"], ["ai-cards", "Karteikarten"], ["ai-quiz", "Quiz"], ["ai-goals", "Lernziele"]].map(([c, t]) => `<button type="button" class="tbtn lbl" data-c="${c}" title="${t}">${ic(c === "ai-edit" ? "spark" : c === "ai-summary" ? "list" : c === "ai-cards" ? "cards" : c === "ai-quiz" ? "help" : "award")}<span>${t}</span></button>`).join("")}<i class="fsep"></i><button type="button" class="tbtn lbl" id="r-ac" title="Automatische Korrektur beim Schreiben">${ic("check")}<span>Auto-Korrektur</span><em id="r-acv"></em></button>${serverInfo && serverInfo.gemini ? `<button type="button" class="tbtn lbl" id="r-src" title="Quellen mit Google-Suche">${ic("globe")}<span>Quellen</span><em id="r-srcv"></em></button>` : ""}</div>
     <span id="fx-view" hidden></span>
   </div>
@@ -490,7 +506,7 @@ async function noteEditor(m, d) {
   document.addEventListener("selectionchange", onSel); LEAVE.push(() => document.removeEventListener("selectionchange", onSel));
   const restore = () => { const s = getSelection(); if (saved && body.contains(saved.startContainer)) { s.removeAllRanges(); s.addRange(saved); } else { const r = document.createRange(); r.selectNodeContents(body); r.collapse(false); s.removeAllRanges(); s.addRange(r); } body.focus(); };
   const count = () => { const t = body.innerText.trim(), w = t ? t.split(/\s+/).length : 0; stat = `${w} Wörter · ${Math.max(1, Math.round(w / 200))} Min. Lesezeit`; const ds = $("#dstat", m); if (ds) ds.textContent = `${w} Wörter · ${t.length} Zeichen · ${Math.max(1, Math.round(w / 200))} Min.`; };
-  const doSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); d.text = Suggest.plainText(body).slice(0, 60000); await KV.set("html:" + d.id, body.innerHTML); save(); svEl.textContent = "Gespeichert"; }, 500);
+  const doSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); d.text = Suggest.plainText(body).slice(0, 60000); await KV.set("html:" + d.id, lumiHtml(body)); save(); svEl.textContent = "Gespeichert"; }, 500);
   const dirty = () => { svEl.textContent = "Speichert…"; count(); doSave(); };
   const SG = Suggest.attach(body, dirty); window.__lumiEd = SG; SG.refresh(); LEAVE.push(() => { SG.destroy(); if (window.__lumiEd === SG) window.__lumiEd = null; });
   /* Automatische Korrektur beim Schreiben (Groq/Gemini): nach kurzer Pause wird der aktuelle Absatz geprüft; Korrekturen erscheinen als Vorschläge oder werden direkt übernommen */
@@ -531,7 +547,7 @@ async function noteEditor(m, d) {
   }
   if (acMode() !== "off" && hasKey()) body.spellcheck = false;
   body.addEventListener("input", scheduleAC); LEAVE.push(() => clearTimeout(AC.timer));
-  body.addEventListener("input", () => { dirty(); slashCheck(); });
+  body.addEventListener("input", () => { dirty(); slashCheck(); PGV.refresh(); });
   body.addEventListener("click", e => { if (e.target.matches("input[type=checkbox]")) { e.target.checked ? e.target.setAttribute("checked", "") : e.target.removeAttribute("checked"); dirty(); } });
   body.addEventListener("paste", e => { const f = [...(e.clipboardData?.files || [])].find(x => x.type.startsWith("image/")); if (f) { e.preventDefault(); insertImage(f); } });
   async function insertImage(f) { const bmp = await createImageBitmap(f), s = Math.min(1, 1100 / bmp.width), c = document.createElement("canvas"); c.width = bmp.width * s; c.height = bmp.height * s; c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); restore(); document.execCommand("insertImage", false, c.toDataURL("image/jpeg", .8)); dirty(); }
@@ -559,6 +575,7 @@ async function noteEditor(m, d) {
     "ai-edit": () => openAiBar(), "ai-summary": () => run("summary"), "ai-cards": () => run("cards"), "ai-quiz": () => run("quiz"), "ai-goals": () => run("goals"),
   };
   const FM = Format.attach({ m, body, exec, restore, dirty, d, save }); LEAVE.push(() => FM.destroy());
+  const PGV = PageView.attach({ m, body, paper: $("#paperc", m), d, dirty }); LEAVE.push(() => PGV.destroy()); $("#t-pages", m).onclick = () => PGV.set(!PGV.on);
   const noFocus = e => e.preventDefault();
   $$(".tbtn[data-c], .tt", m).forEach(b => b.onmousedown = noFocus);
   $$(".tbtn[data-c]", m).forEach(b => b.onclick = () => CMD[b.dataset.c]?.());
@@ -620,8 +637,8 @@ async function noteEditor(m, d) {
   $$("[data-p]", m).forEach(b => b.onclick = () => go("docs/" + b.dataset.p));
   $("#eb", m).onclick = () => go("docs/" + (d.folderId || ""));
   const rename = () => {
-    const b = $("#cr", m); if (!b) return; const inp = document.createElement("input"); inp.className = "nb-in"; inp.value = d.title === "Unbenannte Notiz" ? "" : d.title; inp.placeholder = "Name der Notiz"; inp.maxLength = 80; b.replaceWith(inp); inp.focus(); inp.select();
-    let done = false; const fin = ok => { if (done) return; done = true; if (ok) { d.title = inp.value.trim() || "Unbenannte Notiz"; d.updated = Date.now(); save(); } const nb = document.createElement("b"); nb.id = "cr"; nb.title = "Zum Umbenennen klicken"; nb.textContent = d.title; inp.replaceWith(nb); nb.onclick = rename; };
+    const b = $("#cr", m); if (!b) return; const inp = document.createElement("input"); inp.className = "nb-in"; inp.value = /^Unbenannte[sr]? (Notiz|Dokument)$/.test(d.title) ? "" : d.title; inp.placeholder = "Name der Notiz"; inp.maxLength = 80; b.replaceWith(inp); inp.focus(); inp.select();
+    let done = false; const fin = ok => { if (done) return; done = true; if (ok) { d.title = inp.value.trim() || "Unbenanntes Dokument"; d.updated = Date.now(); save(); } const nb = document.createElement("b"); nb.id = "cr"; nb.title = "Zum Umbenennen klicken"; nb.textContent = d.title; inp.replaceWith(nb); nb.onclick = rename; };
     inp.onblur = () => fin(true); inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); inp.blur(); } else if (e.key === "Escape") { fin(false); } };
   };
   $("#cr", m).title = "Zum Umbenennen klicken"; $("#cr", m).onclick = rename;
@@ -725,13 +742,15 @@ async function noteEditor(m, d) {
   async function handToText() { if (!hasKey()) return toast("Handschrift-Erkennung braucht die eingerichtete Lumi AI (Einstellungen → Lumi AI)."); toast("Lumi AI liest deine Handschrift …"); const r = await ai("Transkribiere die handschriftlichen Notizen auf dem Bild möglichst exakt als Text. Behalte Zeilenumbrüche und Listen bei (Listen mit „- “). Gib NUR den Text zurück, ohne Erklärung.", { image: { data: ink.snapshot(), type: "image/jpeg" }, max: 1500 }); if (r?.trim()) { body.insertAdjacentHTML("beforeend", textToHtml(r.trim())); dirty(); toast("Text eingefügt – die Handschrift bleibt erhalten"); } }
   async function explainInk() { if (!hasKey()) return toast("Bild-Analyse braucht die eingerichtete Lumi AI (Einstellungen → Lumi AI)."); toast("Lumi AI schaut hin…"); const r = await ai("Erkläre, was auf dieser Skizze zu sehen ist. Bei Mathematik oder Naturwissenschaft: erkläre Schritt für Schritt.", { image: { data: ink.snapshot(), type: "image/jpeg" } }); if (r) { const { el } = modal(`<h3>Lumi AI</h3><textarea class="field" rows="12">${esc(r)}</textarea>`, "wide"); } }
   const dl = (name, mime, data) => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: mime })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };
-  const printIt = () => { const w = open("", "_blank"); if (!w) return toast("Pop-up erlaubt?"); w.document.write(`<title>${esc(d.title)}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:760px;margin:30px auto;padding:0 20px}table{border-collapse:collapse}td,th{border:1px solid #bbb;padding:6px 10px}img{max-width:100%}pre{background:#f3f3f3;padding:12px;border-radius:8px}blockquote{border-left:4px solid #ccc;margin:0;padding-left:14px;color:#555}ul.chk{list-style:none;padding-left:4px}</style><h1>${esc(d.title)}</h1>${body.innerHTML}`); w.document.close(); setTimeout(() => w.print(), 400); };
+  const printIt = () => { const w = open("", "_blank"); if (!w) return toast("Pop-up erlaubt?"); const sj = subj(d.subjectId), dt = new Date(d.updated || Date.now()).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
+    w.document.write(`<!doctype html><meta charset="utf-8"><title>${esc(d.title)}</title><style>@page{size:A4;margin:20mm 18mm 22mm}*{box-sizing:border-box}body{font:11.5pt/1.6 "Inter",system-ui,-apple-system,"Segoe UI",sans-serif;color:#15151c;margin:0}header.doc{border-bottom:1.5pt solid #15151c;padding-bottom:8pt;margin-bottom:16pt}header.doc h1{font-size:22pt;letter-spacing:-.02em;margin:0}header.doc small{color:#6b6b78;font-size:9.5pt}h1,h2,h3{break-after:avoid;line-height:1.25}h2{font-size:15pt;margin:18pt 0 6pt}h3{font-size:12.5pt;margin:14pt 0 4pt}p,li,blockquote,tr,pre,img,table{break-inside:avoid}p{margin:0 0 7pt}table{border-collapse:collapse;width:100%;margin:8pt 0}td,th{border:.75pt solid #b9b9c6;padding:5pt 8pt;text-align:left}th{background:#f1f1f5}img{max-width:100%;height:auto;border-radius:3pt}pre{background:#f3f3f7;padding:9pt;border-radius:4pt;white-space:pre-wrap;font-size:9.5pt}blockquote{border-left:3pt solid #c9c9d6;margin:8pt 0;padding-left:11pt;color:#4b4b58}ul.chk{list-style:none;padding-left:2pt}mark{background:#fff3a3;color:inherit}footer{position:fixed;bottom:-14mm;left:0;right:0;text-align:center;font-size:8.5pt;color:#9a9aa8}@media screen{body{max-width:190mm;margin:20px auto;padding:0 12px}}</style><header class="doc"><h1>${esc(d.title)}</h1><small>${sj ? esc(sj.name) + " · " : ""}${dt}</small></header>${lumiHtml(body)}<footer>${esc(d.title)} · Lumi</footer>`); w.document.close(); toast("Im Druckdialog „Als PDF sichern“ wählen"); setTimeout(() => w.print(), 500); };
   const outlineModal = () => { const hs = $$("h1,h2,h3", body); const { el, close } = modal(`<h3>Gliederung</h3><div class="outline">${hs.length ? hs.map((h, i) => `<button class="o${h.tagName[1]}" data-o="${i}">${esc(h.textContent.trim() || "…")}</button>`).join("") : `<p class="note">Noch keine Überschriften. Tippe „/“ → Überschrift.</p>`}</div>`); $$("[data-o]", el).forEach(b => b.onclick = () => { close(); hs[+b.dataset.o].scrollIntoView({ behavior: "smooth", block: "center" }); }); };
   $("#mo-m", m).onclick = e => menu(e.currentTarget, [{ label: stat, icon: "note", fn: () => {} }, "-", { label: "Umbenennen", icon: "pen", fn: rename }, { label: "Fach zuordnen…", icon: "star", fn: () => { const { el, close } = modal(`<h3>Fach zuordnen</h3><div class="chips">${[{ id: "", name: "Kein Fach", color: "#999" }, ...D.subjects].map(x => `<button class="chip ${x.id === d.subjectId ? "on" : ""}" data-s="${x.id}"><i class="sdot" style="background:${x.color}"></i>${esc(x.name)}</button>`).join("")}</div>`); $$("[data-s]", el).forEach(b => b.onclick = () => { d.subjectId = b.dataset.s; save(); close(); refreshNav(); toast("Zugeordnet"); }); } }, ...(d.msLink ? [{ label: "In OneNote öffnen", icon: "link", fn: () => window.open(d.msLink, "_blank", "noopener") }] : []), { label: "Suchen & Ersetzen", icon: "search", fn: openFind }, { label: "Verlinkt von …", icon: "link", fn: backlinks }, { label: "Gliederung", icon: "list", fn: outlineModal }, { label: "Als PDF drucken", icon: "file", fn: printIt }, { label: "Als Textdatei (.txt)", icon: "note", fn: () => dl(d.title + ".txt", "text/plain", body.innerText) }, { label: "Als HTML-Datei", icon: "code", fn: () => dl(d.title + ".html", "text/html", `<meta charset="utf-8"><title>${esc(d.title)}</title>${body.innerHTML}`) }, "-", { label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); toast(d.pinned ? "Angeheftet" : "Gelöst"); } }, { label: "Duplizieren", icon: "copy", fn: async () => { const id = uid(); D.docs.unshift({ ...d, id, title: d.title + " (Kopie)", created: Date.now(), updated: Date.now(), msId: undefined, source: undefined, pinned: false }); await KV.set("html:" + id, body.innerHTML); if (ink.st.strokes.length) await KV.set("ink:" + id, ink.st.strokes); save(); go("doc/" + id); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); go("docs/" + (d.folderId || "")); } }]);
   /* ink layer: write and draw in the same document */
   const paper = $("#paperc", m); setScroller(paper); const inkSave = debounce(async () => { if (!D.docs.includes(d)) return; d.hasInk = ink.st.strokes.length > 0; d.updated = Date.now(); await KV.set("ink:" + d.id, ink.st.strokes); save(); svEl.textContent = "Gespeichert"; }, 600);
   const fitInk = mx => { paper.style.minHeight = mx > 0 ? Math.max(mx + 260, 0) + "px" : ""; };
-  const ink = createInk(paper, d, { grid: true, bar: $("#rib-draw", m), onChange: (strokes, mx) => { svEl.textContent = "Speichert…"; fitInk(mx); inkSave(); window.__co?.touch(); } });
+  const AUD = {};
+  const ink = createInk(paper, d, { grid: true, audio: AUD, bar: $("#rib-draw", m), onChange: (strokes, mx) => { svEl.textContent = "Speichert…"; fitInk(mx); inkSave(); window.__co?.touch(); } });
   const inkData = await KV.get("ink:" + d.id); if (inkData?.length) { ink.load(inkData); fitInk(Math.max(...inkData.flatMap(s => s.pts.map(q => q[1])))); } else ink.load([]);
   const tbSave = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); await KV.set("tb:" + d.id, TBX.get()); save(); svEl.textContent = "Gespeichert"; }, 500);
   const TBX = mountTextBoxes(paper, { onChange: () => { svEl.textContent = "Speichert…"; tbSave(); window.__co?.touch(); } }); TBX.load(await KV.get("tb:" + d.id)); LEAVE.push(() => TBX.destroy());
@@ -750,6 +769,7 @@ async function noteEditor(m, d) {
     $("#r-src", m)?.addEventListener("click", () => { D.profile.sources = !sourcesOn(); save(); paintR(); });
   }
   LEAVE.push(() => { ink.destroy(); });
+  attachAudio(m, d, ink, AUD).then(a => LEAVE.push(() => a.destroy())).catch(() => {});
   try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch {}
   if (!body.innerHTML.trim()) body.innerHTML = "<p><br></p>";
   if (window.__aiReveal === d.id && html && html.trim()) {
