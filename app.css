@@ -2821,3 +2821,7 @@ body.hed-open{overflow:hidden}
 }
 @container (max-height:214px){.w-grades .gr-list{display:none}}
 @container (min-height:215px){.w-grades .w-go{display:none}.w-grades .gr-list{gap:7px;margin:10px 0 0}.w-grades .gr-r{font-size:13px}.w-grades .gr-top small{font-size:11.5px}}
+
+/* v109: Fächer ohne Farbe – überall nur der Name */
+.sdot,.gr-d,.w-sj .sj-l i,.subjed input[type=color]{display:none!important}
+.w-grades .gr-r{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto}

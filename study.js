@@ -31,7 +31,7 @@ function onboarding() {
   $$("#ob-l button", el).forEach(b => b.onclick = () => { level = b.dataset.l; picked.clear(); $$("#ob-l button", el).forEach(x => x.classList.toggle("on", x === b)); drawChips(); });
   $("#ob-go", el).onclick = () => {
     D.profile.name = $("#ob-n", el).value.trim(); D.profile.level = level; D.profile.onboarded = true;
-    [...picked].forEach((n, i) => { const sid = uid(), c = COLORS[i % COLORS.length]; D.subjects.push({ id: sid, name: n, color: c }); D.folders.push({ id: uid(), name: n, parent: "", color: c, subjectId: sid }); }); D.foldersInit = true;
+    [...picked].forEach((n, i) => { const sid = uid(), c = "#0f0f12"; D.subjects.push({ id: sid, name: n, color: c }); D.folders.push({ id: uid(), name: n, parent: "", color: c, subjectId: sid }); }); D.foldersInit = true;
     const wid = uid(); D.docs.unshift({ id: wid, type: "note", title: "Willkommen bei Lumi", subjectId: "", folderId: "", paper: "white", updated: Date.now(), created: Date.now(), text: "" });
     const w = `<h1>Willkommen bei Lumi</h1><p>Das ist deine erste Notiz. Probiere die Werkzeuge oben aus:</p><ul class="chk"><li><input type="checkbox"> Text <b>fett</b>, <i>kursiv</i> oder <mark>markiert</mark> machen</li><li><input type="checkbox"> Eine Tabelle oder ein Bild einfügen</li><li><input type="checkbox"> Mit <b>Lumi AI</b> eine Zusammenfassung oder Karteikarten erstellen</li><li><input type="checkbox"> Oben rechts auf <b>Zeichnen</b> wechseln und Skizzen direkt in die Notiz malen</li><li><input type="checkbox"> Im <b>Planer</b> Hausaufgaben und Prüfungen eintragen</li></ul><p>Tipp: Mit Strg/Cmd + K findest du alles blitzschnell.</p>`;
     KV.set("html:" + wid, w); D.docs[0].text = htmlToText(w);
@@ -80,7 +80,7 @@ function newMenu(anchor) {
 }
 async function newSubject() {
   const n = await ask(isUni() ? "Neues Modul" : "Neues Fach", { placeholder: "z. B. Biologie", ok: "Hinzufügen" }); if (!n || !n.trim()) return;
-  const sub = { id: uid(), name: n.trim(), color: COLORS[D.subjects.length % COLORS.length] }; D.subjects.push(sub); D.folders.push({ id: uid(), name: sub.name, parent: "", color: sub.color, subjectId: sub.id }); save(); refreshNav(); renderView();
+  const sub = { id: uid(), name: n.trim(), color: "#0f0f12" }; D.subjects.push(sub); D.folders.push({ id: uid(), name: sub.name, parent: "", color: sub.color, subjectId: sub.id }); save(); refreshNav(); renderView();
 }
 function subjectSelect(id = "", cls = "") { return `<select class="field slim ${cls}">${`<option value="">Kein ${isUni() ? "Modul" : "Fach"}</option>`}${D.subjects.map(s => `<option value="${s.id}" ${s.id === id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>`; }
 
