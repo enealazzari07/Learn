@@ -1047,7 +1047,7 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 @media (min-width:901px){
   .main:has(.welcome){display:flex;flex-direction:column}
   .main:has(.welcome) .home-wrap{flex:1;display:flex;flex-direction:column;min-height:0}
-  .page.home.calm{flex:1;display:flex;flex-direction:column;padding-bottom:148px!important}
+  .page.home.calm{flex:1;display:flex;flex-direction:column;padding-bottom:134px!important}
   .page.home.calm>.welcome{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center}
 }
 @media (min-width:901px){
@@ -1068,7 +1068,7 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 @media (min-width:901px){
   .page.home.calm>.welcome{flex:0 0 auto!important;padding-bottom:clamp(44px,4vw,60px)!important;-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 56px),transparent 100%);mask-image:linear-gradient(to bottom,#000 calc(100% - 56px),transparent 100%)}
   .page.home.calm>.welcome+*{margin-top:-18px!important}
-  .page.home.calm{padding-bottom:148px!important}
+  .page.home.calm{padding-bottom:134px!important}
 }
 
 /* ======== v29: richer document editor ======== */
@@ -2753,7 +2753,7 @@ body.hed-open{overflow:hidden}
 @media (max-width:900px){.bento .b-grid>.w-ai{min-height:460px}.main.homew,.main.homew:not(.doc-full){padding-bottom:40px}}
 
 /* v103: Startseite ohne Kopfzeile; Raster wächst mit den Blöcken (max. 6 Spalten × 8 Reihen); Fokus-Timer: Kreis antippen = Start, Ziehen = Dauer */
-@media (min-width:901px){.bento .b-grid{grid-template-rows:repeat(var(--n,4),var(--rh))!important;grid-auto-rows:var(--rh)!important}}
+@media (min-width:901px){.bento .b-grid{grid-template-rows:repeat(var(--n,4),minmax(96px,1fr))!important;grid-auto-rows:minmax(96px,1fr)!important}}
 .bento .w-goal{container-type:size;padding:12px;align-items:center;justify-content:center;position:relative}
 .bento .w-goal h2{position:absolute;left:16px;top:12px;margin:0;z-index:1}
 .bento .w-goal .fd{flex:none;width:min(100cqw - 8px,100cqh - 8px);height:min(100cqw - 8px,100cqh - 8px);max-height:none;aspect-ratio:1;margin:0 auto}
@@ -2768,14 +2768,14 @@ body.hed-open{overflow:hidden}
 @media (max-width:900px){.bento .w-goal{min-height:300px}.bento .w-goal .fd{width:min(100cqw - 8px,250px);height:min(100cqw - 8px,250px)}}
 
 /* v104: unten freier Bereich nur mit Eingabe; beim Schreiben wird alles weiß und der Chat groß */
-@media (min-width:901px){.main.homew,.main.homew:not(.doc-full){padding-bottom:148px!important}}
-.hdock{position:fixed;z-index:60;left:var(--dl,0);width:var(--dw,100%);top:var(--dtc,calc(100dvh - 138px));bottom:var(--db,0);display:flex;justify-content:center;pointer-events:none;transition:top .55s cubic-bezier(.3,.9,.3,1)}
+@media (min-width:901px){.main.homew,.main.homew:not(.doc-full){padding-bottom:134px!important}}
+.hdock{position:fixed;z-index:60;left:var(--dl,0);width:var(--dw,100%);top:var(--dtc,calc(100dvh - 126px));bottom:var(--db,0);display:flex;justify-content:center;pointer-events:none;transition:top .55s cubic-bezier(.3,.9,.3,1)}
 .hdock.open{top:var(--dt,0);pointer-events:auto}
 .hd-bg{position:absolute;inset:0;background:#fff;border-radius:40px;opacity:0;transition:opacity .45s ease}
 .hd-bg::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to bottom,rgba(242,242,247,0),var(--appbg,#f2f2f7) 38%);opacity:0;transition:opacity .3s}
 .hdock:not(.open) .hd-bg{opacity:1;background:transparent}.hdock:not(.open) .hd-bg::before{opacity:1}
 .hdock.open .hd-bg{opacity:1;background:#fff}
-.hd-in{position:relative;width:min(800px,calc(100% - 32px));height:100%;display:flex;flex-direction:column;pointer-events:auto;padding-bottom:24px}
+.hd-in{position:relative;width:min(800px,calc(100% - 32px));height:100%;display:flex;flex-direction:column;pointer-events:auto;padding-bottom:14px}
 .hd-top{display:flex;justify-content:flex-end;gap:8px;padding:0;flex:none;opacity:0;pointer-events:none;transition:opacity .3s ease;height:0;overflow:hidden}
 .hdock.open .hd-top{opacity:1;pointer-events:auto;height:auto;overflow:visible;padding:18px 0 4px}
 .hdock .chatbox.flat{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;background:transparent;border-radius:0;height:auto}
@@ -2786,14 +2786,14 @@ body.hed-open{overflow:hidden}
 .hdock .m{font-size:16px;max-width:92%}
 .hdock .t-in{margin-top:auto;padding:0}
 .hdock:not(.open) .ctxbar{display:none}
-@media (max-width:900px){.hdock{--db:calc(86px + env(safe-area-inset-bottom))!important}.hdock.open{--db:0px!important}.hdock:not(.open){top:calc(100dvh - 86px - env(safe-area-inset-bottom) - 138px)!important}.hdock.open{top:var(--dt,0)!important}.hd-bg{border-radius:30px}}
+@media (max-width:900px){.hdock{--db:calc(86px + env(safe-area-inset-bottom))!important}.hdock.open{--db:0px!important}.hdock:not(.open){top:calc(100dvh - 86px - env(safe-area-inset-bottom) - 126px)!important}.hdock.open{top:var(--dt,0)!important}.hd-bg{border-radius:30px}}
 
 /* v105: Blöcke enden immer über der Chat-Eingabe (auch beim Scrollen auf Tablet/Handy) */
-@media (max-width:900px){.main.homew,.main.homew:not(.doc-full){padding-bottom:calc(var(--hdh,138px) + 96px + env(safe-area-inset-bottom))!important}}
+@media (max-width:900px){.main.homew,.main.homew:not(.doc-full){padding-bottom:calc(var(--hdh,126px) + 96px + env(safe-area-inset-bottom))!important}}
 @media (min-width:901px){.bento .b-grid{padding-bottom:2px}}
 
 /* v106: feste Reihenhöhe – Startseite und Builder zeigen dieselben Reihen; vier Reihen passen, wenn der Bildschirm hoch genug ist (sonst scrollt es) */
-:root{--rh:clamp(142px,calc((100dvh - 194px - 36px) / 4),190px)}
+:root{--rh:clamp(96px,calc((100dvh - 180px - 36px) / 4),190px)}
 .hed-grid{grid-template-rows:repeat(var(--n,4),var(--rh))!important;grid-auto-rows:var(--rh)!important;align-content:start;position:relative}
 .hed-fold{position:absolute;left:12px;right:12px;border-top:2px dashed #ff6a3d;pointer-events:none;z-index:5}
 .hed-fold span{position:absolute;right:0;top:4px;font:600 11px/1 inherit;font-family:inherit;color:#ff6a3d;background:var(--appbg,#f3f3f8);padding:3px 8px;border-radius:99px}
