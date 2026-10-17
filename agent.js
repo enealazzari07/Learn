@@ -27,8 +27,8 @@ function agentContext() {
   const L = (t, a) => a.length ? `${t}:\n${a.join("\n")}\n` : "";
   const cur = (location.hash.match(/#\/app\/doc\/([^/]+)/) || [])[1], cd = cur && D.docs.find(x => x.id === cur);
   const edTxt = cd && window.__lumiEd ? (window.__lumiFmt ? `Format: ${window.__lumiFmt.state()}\n` : "") + `Text des geöffneten Dokuments (für suggest_edits):\n"""\n${window.__lumiEd.text().slice(0, 7000)}\n"""\n` : "";
-  return (cd ? `Aktuell geöffnet: [${cd.id}] ${cd.title}\n` : "") + edTxt + `Heute: ${iso()} (${new Date().toLocaleDateString("de-DE", { weekday: "long" })})\n` +
-    `Notenskala: ${SC().n}${(D.profile.scale || "ch") === "ch" ? " (Schweiz: 4 = genügend, Dezimalpunkt)" : ""}\n` +
+  return (cd ? `Aktuell geöffnet: [${cd.id}] ${cd.title}\n` : "") + edTxt + `Heute: ${iso()} (${new Date().toLocaleDateString("de-CH", { weekday: "long" })})\n` +
+    `Notenskala: ${SC().n}${gradeKey() === "ch" ? " (Schweiz: 4 = genügend, Dezimalpunkt)" : ""}\n` +
     L("Fächer", D.subjects.map(s => `- ${s.name}`)) +
     L("Ordner", D.folders.slice(0, 60).map(f => `- ${path(f.id)}`)) +
     L("Dokumente", [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 50).map(d => `- [${d.id}] ${d.title}${d.folderId ? " (" + path(d.folderId) + ")" : ""}`)) +
