@@ -72,6 +72,13 @@ const Spell = (() => {
     }
     return false;
   }
+  const SUF = ["e", "er", "en", "em", "es", "n", "s", "st", "t", "te", "ten", "tet", "est", "et", "ig", "ige", "iger", "igen", "ung", "ungen"];
+  function inflected(lc) {   // gebeugte Formen, die im Wörterbuch fehlen (fleissiger, gearbeitet …), gelten als gültig
+    if (lc.length < 6) return false;
+    for (const x of SUF) if (lc.endsWith(x) && lc.length - x.length >= 4 && knownLow(lc.slice(0, -x.length))) return true;
+    if (lc.startsWith("ge") && lc.length >= 7) for (const x of ["t", "et", "en"]) if (lc.endsWith(x) && knownLow(lc.slice(2, -x.length) + "en")) return true;
+    return false;
+  }
   const UM = [["ae", "ä"], ["oe", "ö"], ["ue", "ü"]];
   function umlautFix(w) {   // Maedchen → Mädchen
     const lc = w.toLowerCase(); if (!/(ae|oe|ue)/.test(lc)) return null;
@@ -91,7 +98,8 @@ const Spell = (() => {
     }
     if (!best.length && L >= 8) for (let l = L - 2; l <= L + 2; l++) for (const e of buckets[l] || []) { if (e.lc[0] !== lc[0] || lev2(lc, e.lc) !== 2) continue; best.push({ f: e.f, s: (e.r + 1) * 2, t: 5 }); bestD = 2; }
     if (!best.length) return { cand: null, close: false };
-    best.sort((a, b) => a.s - b.s);
+    const byLc = new Map(); for (const c of best) { const k = c.f.toLowerCase(), o = byLc.get(k); if (!o || (isUp(c.f[0]) === isUp(w[0]) && isUp(o.f[0]) !== isUp(w[0])) || (isUp(c.f[0]) === isUp(o.f[0]) && c.s < o.s)) byLc.set(k, c); }
+    best = [...byLc.values()].sort((a, b) => a.s - b.s);
     const a = best[0], b = best[1];
     if (a.s > 90000) return { cand: null, close: true };                       // nur geläufige Wörter vorschlagen
     if (b && b.s < a.s * 3 && b.f !== a.f) return { cand: null, close: true };    // mehrdeutig → nicht raten
@@ -134,7 +142,7 @@ const Spell = (() => {
       if (forms.has(w) || (up && lowSet.has(lc))) continue;                   // bekanntes Wort (auch am Satzanfang gross)
       if (!up && capSet.has(cap(w)) && !lowSet.has(w)) { add(s, e, cap(w)); continue; }   // Hauptwort klein → gross
       if (up && forms.has(w.toLowerCase())) continue;
-      if (compound(lc)) continue;
+      if (compound(lc) || inflected(lc)) continue;
       const um = umlautFix(w); if (um) { add(s, e, up && !isUp(um[0]) ? cap(um) : um); continue; }
       if (up && !atStart) {   // grossgeschriebene unbekannte Wörter sind meist Namen/Hauptwörter – nur bei klarem Vertauscher korrigieren
         const sg = suggest(w, false); if (sg.cand && sg.close && within1(lc, sg.cand.toLowerCase()) === 2 && isUp(sg.cand[0])) add(s, e, sg.cand); continue;
