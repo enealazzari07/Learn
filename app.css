@@ -2787,3 +2787,7 @@ body.hed-open{overflow:hidden}
 .hdock .t-in{margin-top:auto;padding:0}
 .hdock:not(.open) .ctxbar{display:none}
 @media (max-width:900px){.hdock{--db:calc(86px + env(safe-area-inset-bottom))!important}.hdock.open{--db:0px!important}.hdock:not(.open){top:calc(100dvh - 86px - env(safe-area-inset-bottom) - 138px)!important}.hdock.open{top:var(--dt,0)!important}.hd-bg{border-radius:30px}}
+
+/* v105: Blöcke enden immer über der Chat-Eingabe (auch beim Scrollen auf Tablet/Handy) */
+@media (max-width:900px){.main.homew,.main.homew:not(.doc-full){padding-bottom:calc(var(--hdh,138px) + 96px + env(safe-area-inset-bottom))!important}}
+@media (min-width:901px){.bento .b-grid{padding-bottom:2px}}
