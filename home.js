@@ -1,6 +1,6 @@
 "use strict";
 /* Lumi – Startseite anpassen: echtes Raster (6 Spalten × 4 Reihen). Blöcke liegen auf festen Zellen, lassen sich ersetzen, verschieben und in der Größe ziehen.
-   Der Platz unten rechts (2 × 2) gehört dem Lumi-AI-Block und ist gesperrt. Layout liegt in D.profile.home = [{id,type,c,r,w,h}]. */
+   Unter dem Raster bleibt immer ein Bereich für die Lumi-AI-Eingabe frei. Layout liegt in D.profile.home = [{id,type,c,r,w,h}]. */
 const HB = {
   tasks: { n: "Aufgaben", d: "Heutige Aufgaben abhaken", i: "list", w: 2, h: 2, mw: 2, mh: 2 },
   cal: { n: "Kalender", d: "Termine, Prüfungen, Abgaben", i: "cal", w: 2, h: 2, mw: 2, mh: 2 },
@@ -20,16 +20,16 @@ const HB = {
   note: { n: "Notizzettel", d: "Schneller Notizzettel auf der Startseite", i: "note", w: 2, h: 2, mw: 2, mh: 2 },
   clock: { n: "Uhr & Datum", d: "Uhrzeit und heutiges Datum", i: "timer", w: 2, h: 1, mw: 2, mh: 1 },
 };
-const HOME_COLS = 6, HOME_ROWS = 4, HOME_MAXROW = 8, HOME_DOCK = { c: 5, r: 3, w: 2, h: 2 };
+const HOME_COLS = 6, HOME_ROWS = 4, HOME_MAXROW = 8, HOME_DOCK = null;
 const HOME_TPL = {
-  std: { n: "Standard", d: "Uhr, Aufgaben, Kalender, Fokus, Woche", l: [["clock", 1, 1, 2, 1], ["tasks", 1, 2, 2, 2], ["ex", 1, 4, 2, 1], ["cal", 3, 1, 2, 2], ["rec", 3, 3, 2, 2], ["goal", 5, 1, 2, 2]] },
-  classic: { n: "Klassisch", d: "Aufgaben, Kalender, Fokus, Prüfungen, Zuletzt", l: [["tasks", 1, 1, 2, 2], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["rec", 3, 3, 2, 2]] },
-  focus: { n: "Fokus", d: "Großer Timer, dazu Aufgaben und Kalender", l: [["goal", 1, 1, 2, 4], ["tasks", 3, 1, 2, 2], ["cal", 5, 1, 2, 2], ["ex", 3, 3, 2, 2]] },
-  plan: { n: "Planer", d: "Großer Kalender mit Aufgaben und Prüfungen", l: [["cal", 1, 1, 3, 4], ["tasks", 4, 1, 3, 2], ["streak", 4, 3, 1, 1], ["grades", 4, 4, 1, 1]] },
-  learn: { n: "Lernen", d: "Karteikarten, Fokus und Wochenverlauf", l: [["cards", 1, 1, 2, 2], ["goal", 3, 1, 2, 2], ["week", 5, 1, 2, 2], ["rec", 1, 3, 2, 2], ["tasks", 3, 3, 2, 2]] },
-  school: { n: "Schule", d: "Stundenplan, Hausaufgaben, Prüfungen, Noten", l: [["tt", 1, 1, 2, 2], ["hw", 3, 1, 2, 2], ["ex", 5, 1, 2, 2], ["tasks", 1, 3, 2, 2], ["grades", 3, 3, 1, 2], ["streak", 4, 3, 1, 2]] },
-  over: { n: "Übersicht", d: "Uhr, Serie, Noten, Tagesziel und Aufgaben", l: [["clock", 1, 1, 2, 1], ["streak", 3, 1, 1, 1], ["grades", 4, 1, 1, 1], ["ring", 5, 1, 2, 2], ["tasks", 1, 2, 4, 2], ["ex", 1, 4, 4, 1]] },
-  mini: { n: "Minimal", d: "Nur Aufgaben und Kalender", l: [["tasks", 1, 1, 3, 4], ["cal", 4, 1, 3, 2]] },
+  std: { n: "Standard", d: "Uhr, Aufgaben, Kalender, Fokus, Woche", l: [["clock", 1, 1, 2, 1], ["tasks", 1, 2, 2, 2], ["ex", 1, 4, 2, 1], ["cal", 3, 1, 2, 2], ["rec", 3, 3, 2, 2], ["goal", 5, 1, 2, 2], ["week", 5, 3, 2, 1]] },
+  classic: { n: "Klassisch", d: "Aufgaben, Kalender, Fokus, Prüfungen, Zuletzt", l: [["tasks", 1, 1, 2, 2], ["cal", 3, 1, 2, 2], ["goal", 5, 1, 2, 2], ["ex", 1, 3, 2, 2], ["rec", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
+  focus: { n: "Fokus", d: "Großer Timer, dazu Aufgaben und Kalender", l: [["goal", 1, 1, 2, 4], ["tasks", 3, 1, 2, 2], ["cal", 5, 1, 2, 2], ["ex", 3, 3, 2, 2], ["cards", 5, 3, 2, 1]] },
+  plan: { n: "Planer", d: "Großer Kalender mit Aufgaben und Prüfungen", l: [["cal", 1, 1, 3, 4], ["tasks", 4, 1, 3, 2], ["ex", 4, 3, 3, 1], ["cards", 4, 4, 1, 1]] },
+  learn: { n: "Lernen", d: "Karteikarten, Fokus und Wochenverlauf", l: [["cards", 1, 1, 2, 2], ["goal", 3, 1, 2, 2], ["week", 5, 1, 2, 2], ["rec", 1, 3, 2, 2], ["tasks", 3, 3, 2, 2], ["ex", 5, 3, 2, 1]] },
+  school: { n: "Schule", d: "Stundenplan, Hausaufgaben, Prüfungen, Noten", l: [["tt", 1, 1, 2, 2], ["hw", 3, 1, 2, 2], ["ex", 5, 1, 2, 2], ["tasks", 1, 3, 2, 2], ["grades", 3, 3, 1, 2], ["streak", 4, 3, 1, 2], ["cards", 5, 3, 2, 1]] },
+  over: { n: "Übersicht", d: "Uhr, Serie, Noten, Tagesziel und Aufgaben", l: [["clock", 1, 1, 2, 1], ["streak", 3, 1, 1, 1], ["grades", 4, 1, 1, 1], ["ring", 5, 1, 2, 2], ["tasks", 1, 2, 4, 2], ["ex", 1, 4, 4, 1], ["rec", 5, 3, 2, 1]] },
+  mini: { n: "Minimal", d: "Nur Aufgaben und Kalender", l: [["tasks", 1, 1, 3, 4], ["cal", 4, 1, 3, 3], ["quick", 4, 4, 1, 1]] },
 };
 const homeUid = () => "b" + Math.random().toString(36).slice(2, 7);
 const homeOv = (a, b) => a.c < b.c + b.w && b.c < a.c + a.w && a.r < b.r + b.h && b.r < a.r + a.h;
@@ -37,7 +37,7 @@ const homeMin = b => ({ w: HB[b.type]?.mw || 1, h: HB[b.type]?.mh || 1 });
 const homeClamp = (b) => { const mn = homeMin(b); b.w = Math.max(mn.w, Math.min(HOME_COLS, b.w | 0 || 2)); b.h = Math.max(mn.h, Math.min(HOME_ROWS, b.h | 0 || 2)); b.c = Math.max(1, Math.min(HOME_COLS + 1 - b.w, b.c | 0 || 1)); b.r = Math.max(1, Math.min(HOME_MAXROW + 1 - b.h, b.r | 0 || 1)); return b; };
 /* Kollisionen auflösen: der bewegte Block behält seinen Platz, andere rutschen nach unten (Lumi-AI-Platz bleibt frei) */
 function homeResolve(L, firstId) {
-  const placed = [{ ...HOME_DOCK }], order = [...L].sort((a, b) => (a.id === firstId ? -1 : b.id === firstId ? 1 : 0) || a.r - b.r || a.c - b.c);
+  const placed = [], order = [...L].sort((a, b) => (a.id === firstId ? -1 : b.id === firstId ? 1 : 0) || a.r - b.r || a.c - b.c);
   for (const b of order) {
     homeClamp(b);
     if (placed.some(p => homeOv(p, b))) {   // nächstgelegene freie Stelle (z. B. der Platz, den der bewegte Block verlassen hat)
@@ -50,7 +50,7 @@ function homeResolve(L, firstId) {
   return L;
 }
 function homeFree(L, w, h) {
-  const all = [{ ...HOME_DOCK }, ...L];
+  const all = [...L];
   for (let r = 1; r <= HOME_MAXROW; r++) for (let c = 1; c + w - 1 <= HOME_COLS; c++) { const t = { c, r, w, h }; if (!all.some(p => homeOv(p, t))) return { c, r }; }
   return { c: 1, r: HOME_MAXROW };
 }
@@ -74,7 +74,7 @@ function homeEditor() {
   const draw = () => {
     const N = rowsN(), cells = Array.from({ length: N * HOME_COLS }, (_, i) => `<i class="hc" style="grid-column:${i % HOME_COLS + 1};grid-row:${Math.floor(i / HOME_COLS) + 1}"></i>`).join("");
     root.innerHTML = `<div class="hed-top"><div><h2>Startseite bearbeiten</h2><p>Blöcke ziehen rastet auf das Raster ein · Ecke unten rechts ändert die Größe · „Ersetzen“ tauscht den Inhalt.</p></div><div class="hed-act"><button class="btn ghost" id="hd-t">${ic("table")}Vorlagen</button><button class="btn ghost" id="hd-a">${ic("plus")}Block</button><button class="btn ghost" id="hd-r">Zurücksetzen</button><button class="btn accent" id="hd-d">Fertig</button></div></div>
-    <div class="hed-stage"><div class="hed-grid" id="hd-g" style="--n:${N}">${cells}${L.map(blockEl).join("")}<div class="hb hb-lock" style="--c:${HOME_DOCK.c};--r:${HOME_DOCK.r};--w:${HOME_DOCK.w};--h:${HOME_DOCK.h}"><div class="hb-in"><span class="hb-i">${ic("sparkO")}</span><b>Lumi AI</b><small>Fester Platz – kann nicht verschoben werden</small></div></div></div></div><p class="hed-note">Auf dem Handy stehen die Blöcke untereinander – in der Reihenfolge von oben nach unten wie hier.</p>`;
+    <div class="hed-stage"><div class="hed-grid" id="hd-g" style="--n:${N}">${cells}${L.map(blockEl).join("")}</div></div><p class="hed-note">Ganz unten bleibt immer Platz für die Lumi-AI-Eingabe. Auf dem Handy stehen die Blöcke untereinander – in der Reihenfolge von oben nach unten wie hier.</p>`;
     bind();
   };
   const metrics = () => { const g = $("#hd-g", root), cs = $$(".hc", g), a = cs[0].getBoundingClientRect(), b = cs[1].getBoundingClientRect(), c = cs[HOME_COLS].getBoundingClientRect(); return { g, x0: a.left, y0: a.top, sx: b.left - a.left, sy: c.top - a.top }; };

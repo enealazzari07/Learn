@@ -275,9 +275,8 @@ V.today = m => {
   const blockHtml = b => { const v = `--c:${b.c};--r:${b.r};--w:${b.w};--h:${b.h};`, h = BLK[b.type]().replace(/^<(section|button|div) class="wg /, `<$1 data-bid="${b.id}" class="wg `); return /style="--i:/.test(h) ? h.replace('style="--i:', `style="${v}--i:`) : h.replace('class="wg ', `style="${v}" class="wg `); };
   m.innerHTML = `<div class="home-wrap again"><div class="page home zen bento">
   <div class="b-grid" id="b-grid" style="--n:${Math.max(HOME_ROWS, ...homeLayout().map(b => b.r + b.h - 1))}">${homeLayout().map(blockHtml).join("")}
-  <section class="wg w-ai" id="aipane-blk" style="--c:${HOME_DOCK.c};--r:${HOME_DOCK.r};--w:${HOME_DOCK.w};--h:${HOME_DOCK.h}"></section>
   </div></div></div>`;
-  bindCommon(m); mountDock();
+  bindCommon(m); mountDock(m);
   { const hn = $("#hnote", m); if (hn) { let tm; hn.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { D.profile.homeNote = hn.value; save(); }, 400); }; } }
   $$("[data-q]", m).forEach(b => b.onclick = () => docDialog("note"));
   $$("[data-ex]", m).forEach(b => b.onclick = () => go("exam/" + b.dataset.ex));

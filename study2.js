@@ -376,11 +376,21 @@ V.ai = m => {
   };
   page();
 };
-function mountDock() {
-  const p = $("#aipane-blk"); if (!p) return;
-  p.innerHTML = `<div class="hai-h"><span class="ai-ic">${ic("spark")}</span><div><b>Lumi AI</b><small>Frag etwas zu deinen Unterlagen</small></div></div><div class="chatbox flat" id="hcb"></div>`;
+/* Unten auf der Startseite bleibt ein Bereich frei: nur die Eingabe. Beim Schreiben wird der ganze Bereich weiß und der Chat groß. */
+function mountDock(m) {
+  document.getElementById("hdock")?.remove();
+  const el = document.createElement("div"); el.id = "hdock"; el.className = "hdock";
+  el.innerHTML = `<div class="hd-bg"></div><div class="hd-in"><div class="hd-top"><button type="button" class="btn small hd-new">${ic("plus")}Neuer Chat</button><button type="button" class="icon-btn hd-x" aria-label="Schließen">${ic("x")}</button></div><div class="chatbox flat" id="hcb"></div></div>`;
+  document.body.appendChild(el);
   if (!window.__dockFresh) { window.__dockFresh = true; if (chatMsgs().length) newChat(); }
-  mountChat($("#hcb", p), false);
+  const mount = () => { mountChat($("#hcb", el), false); const t = $(".tin", el); t.addEventListener("input", () => tog(true)); $(".t-in", el).addEventListener("submit", () => tog(true), true); };
+  const fit = () => { const r0 = m.getBoundingClientRect(), r = { left: r0.left, width: r0.width, top: Math.max(0, r0.top), bottom: Math.min(innerHeight, r0.bottom) }; el.style.setProperty("--dl", r.left + "px"); el.style.setProperty("--dw", r.width + "px"); el.style.setProperty("--dt", r.top + "px"); el.style.setProperty("--dtc", r.bottom - 138 + "px"); el.style.setProperty("--db", innerHeight - r.bottom + "px"); };
+  const tog = o => { if (o === el.classList.contains("open")) return; fit(); el.classList.toggle("open", o); document.body.classList.toggle("hd-open2", o); if (!o) { document.activeElement?.blur?.(); $(".msgs", el).scrollTop = 1e9; } else setTimeout(() => { const ms = $(".msgs", el); ms.scrollTop = ms.scrollHeight; }, 60); };
+  const key = e => { if (e.key === "Escape" && el.classList.contains("open") && !document.querySelector(".popmenu,.mpop,.modal")) tog(false); };
+  $(".hd-x", el).onclick = () => tog(false);
+  $(".hd-new", el).onclick = () => { newChat(); mount(); $(".tin", el).focus(); };
+  addEventListener("resize", fit); document.addEventListener("keydown", key); fit(); mount();
+  LEAVE.push(() => { el.remove(); document.body.classList.remove("hd-open2"); removeEventListener("resize", fit); document.removeEventListener("keydown", key); });
 }
 function toggleChatPanel() { const p = $("#cpanel"); if (p.hidden) { p.hidden = false; mountChat(p, true); } else p.hidden = true; }
 
