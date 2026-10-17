@@ -2860,3 +2860,9 @@ body.hed-open{overflow:hidden}
 /* v113: keine Apple-/Browser-Hilfen im Chat-Feld (Kontakte-/Passwort-Symbol, Korrekturleiste) */
 .tin::-webkit-contacts-auto-fill-button,.tin::-webkit-credentials-auto-fill-button{visibility:hidden;display:none!important;pointer-events:none;position:absolute;right:0}
 .tin{-webkit-text-size-adjust:100%}
+
+/* v114: Startseite und Prüfungen ohne Fachfarben */
+.main.homew .gr-d,.main.homew .tt-r>i,.main.homew .sdot,.exams-page .sdot,.exr .sdot{display:none!important}
+.w-grades .gr-r{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto}
+.main.homew .z-di.ex-d,.exr{--c:#0f0f12!important}
+.page.exdet .sdot,.main:has(.exr) .sdot{display:none!important}
