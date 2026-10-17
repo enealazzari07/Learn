@@ -100,7 +100,34 @@ const Format = (() => {
     }
     const onSel = () => { if (body.contains(getSelection().anchorNode)) upd(); };
     document.addEventListener("selectionchange", onSel);
-    return { destroy() { document.removeEventListener("selectionchange", onSel); closePop(); }, update: upd };
+
+    /* ---- API für die KI (agent.js): Formatierung per Anweisung ---- */
+    const BLK = "p,h1,h2,h3,li,blockquote,pre,td,th", nrm = s => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
+    const blocksOf = scope => [...body.querySelectorAll(scope === "headings" ? "h1,h2,h3" : BLK)].filter(b => !b.querySelector(BLK));
+    const ALIGN = { left: "left", links: "left", linksbuendig: "left", center: "center", zentriert: "center", mitte: "center", right: "right", rechts: "right", rechtsbuendig: "right", justify: "justify", blocksatz: "justify" };
+    function apply(s = {}) {
+      const done = [], bad = [];
+      const scope = s.scope === "selection" ? "selection" : s.scope === "headings" ? "headings" : "all";
+      let bl; if (scope === "selection") { restore(); bl = blocksInSel(); } else bl = blocksOf(scope);
+      if (!bl.length && (s.font || s.size || s.align || s.lineHeight)) bad.push("Kein Text zum Formatieren");
+      const each = fn => { bl.forEach(fn); };
+      if (s.font) { const f = FONTS.find(x => nrm(x[0]) === nrm(s.font) || nrm(x[1]) === nrm(s.font)); if (f) { each(b => { b.style.fontFamily = f[2] === FONTS[0][2] ? "" : f[2]; b.querySelectorAll("[style*=font-family]").forEach(x => x.style.removeProperty("font-family")); }); done.push("Schrift " + f[0]); } else bad.push("Schrift „" + s.font + "“ unbekannt"); }
+      if (s.size !== undefined && s.size !== "") { const v = parseFloat(String(s.size).replace(",", ".")); if (v >= 6 && v <= 96) { const px = (v / 0.75).toFixed(2) + "px"; each(b => { b.style.fontSize = px; b.querySelectorAll("[style*=font-size]").forEach(x => x.style.fontSize = px); }); done.push("Grösse " + v + " pt"); } else bad.push("Grösse ungültig"); }
+      if (s.align) { const a = ALIGN[nrm(s.align).replace(/ü/g, "ue")]; if (a) { each(b => { b.style.textAlign = a; }); done.push("Ausrichtung " + a); } else bad.push("Ausrichtung unbekannt"); }
+      if (s.lineHeight !== undefined && s.lineHeight !== "") { const v = parseFloat(String(s.lineHeight).replace(",", ".")); if (v >= 1 && v <= 3) { each(b => { b.style.lineHeight = String(v); }); done.push("Zeilenabstand " + v); } else bad.push("Zeilenabstand ungültig"); }
+      if (s.design) { const x = DESIGNS.find(y => y[0] === nrm(s.design) || nrm(y[1]) === nrm(s.design)); if (x) { F.ds = x[0]; done.push("Design " + x[1]); } else bad.push("Design „" + s.design + "“ unbekannt"); }
+      if (s.width) { const x = WIDTHS.find(y => y[0] === nrm(s.width) || nrm(y[1]) === nrm(s.width)); if (x) { F.w = x[0]; done.push("Breite " + x[1]); } else bad.push("Breite „" + s.width + "“ unbekannt"); }
+      if (done.length) { persist(); dirty(); upd(); }
+      return { done, bad };
+    }
+    function setBlock(find, as) {
+      const tag = ["p", "h1", "h2", "h3", "blockquote", "pre"].includes(as) ? as : null, q = nrm(find); if (!tag || !q) return false;
+      const b = blocksOf("all").filter(x => x.tagName !== "LI" && !/^(TD|TH)$/.test(x.tagName)).find(x => nrm(x.textContent) === q) || blocksOf("all").filter(x => x.tagName !== "LI" && !/^(TD|TH)$/.test(x.tagName)).find(x => nrm(x.textContent).includes(q));
+      if (!b) return false;
+      const n = document.createElement(tag); n.innerHTML = b.innerHTML; if (b.style.textAlign) n.style.textAlign = b.style.textAlign; b.replaceWith(n); dirty(); return true;
+    }
+    const state = () => { const ds = DESIGNS.find(x => x[0] === (F.ds || "std")) || DESIGNS[0], w = WIDTHS.find(x => x[0] === (F.w || "normal")) || WIDTHS[1]; return `Design ${ds[1]}, Breite ${w[1]}`; };
+    return { destroy() { document.removeEventListener("selectionchange", onSel); closePop(); }, update: upd, apply, setBlock, state };
   }
   return { attach };
 })();

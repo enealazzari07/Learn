@@ -423,9 +423,23 @@ V.docs = (m, id) => {
 let pendingQuiz = null;
 const clip = (t, n = 14000) => t.length > n ? t.slice(0, n) : t;
 function textToHtml(t) {
-  const lines = t.split("\n"); let out = "", inList = false;
-  for (const l of lines) { const b = l.match(/^\s*[-•*]\s+(.*)/); if (b) { if (!inList) { out += "<ul>"; inList = true; } out += `<li>${esc(b[1])}</li>`; } else { if (inList) { out += "</ul>"; inList = false; } if (l.trim()) out += `<p>${esc(l)}</p>`; } }
-  return out + (inList ? "</ul>" : "");
+  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/__(.+?)__/g, "<u>$1</u>").replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, "$1<i>$2</i>");
+  const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+  const lines = String(t).split("\n"); let out = "", list = "", tbl = null;
+  const endList = () => { if (list) { out += `</${list}>`; list = ""; } };
+  const endTbl = () => { if (tbl) { out += "<table><tbody>" + tbl.map((r, i) => `<tr>${r.map(c => i ? `<td>${inl(c)}</td>` : `<th>${inl(c)}</th>`).join("")}</tr>`).join("") + "</tbody></table>"; tbl = null; } };
+  for (const l of lines) {
+    let m;
+    if (/^\s*\|.*\|\s*$/.test(l)) { endList(); if (/^[\s|:-]+$/.test(l)) continue; (tbl ||= []).push(cells(l)); continue; }
+    endTbl();
+    if ((m = l.match(/^\s*[-•*]\s+(.*)/))) { if (list !== "ul") { endList(); out += "<ul>"; list = "ul"; } out += `<li>${inl(m[1])}</li>`; continue; }
+    if ((m = l.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== "ol") { endList(); out += "<ol>"; list = "ol"; } out += `<li>${inl(m[1])}</li>`; continue; }
+    endList();
+    if ((m = l.match(/^\s{0,3}(#{1,3})\s+(.*)/))) out += `<h${m[1].length}>${inl(m[2])}</h${m[1].length}>`;
+    else if ((m = l.match(/^\s*>\s?(.*)/))) out += `<blockquote>${inl(m[1])}</blockquote>`;
+    else if (l.trim()) out += `<p>${inl(l)}</p>`;
+  }
+  endList(); endTbl(); return out;
 }
 async function aiTool(kind, text, ctx = {}) {
   text = (text || "").trim();
@@ -574,7 +588,7 @@ async function noteEditor(m, d) {
     formula: () => { const { el } = modal(`<h3>Formeln & Symbole</h3><div class="syms">${SYMS.map(s => `<button>${s}</button>`).join("")}</div><p class="note">Tipp: „x²“ und „x₂“ findest du unter Einfügen.</p>`); $$(".syms button", el).forEach(sb => sb.onclick = () => { restore(); document.execCommand("insertText", false, sb.textContent); dirty(); }); },
     "ai-edit": () => openAiBar(), "ai-summary": () => run("summary"), "ai-cards": () => run("cards"), "ai-quiz": () => run("quiz"), "ai-goals": () => run("goals"),
   };
-  const FM = Format.attach({ m, body, exec, restore, dirty, d, save }); LEAVE.push(() => FM.destroy());
+  const FM = Format.attach({ m, body, exec, restore, dirty, d, save }); window.__lumiFmt = FM; LEAVE.push(() => { FM.destroy(); if (window.__lumiFmt === FM) window.__lumiFmt = null; });
   const PGV = PageView.attach({ m, body, paper: $("#paperc", m), d, dirty }); LEAVE.push(() => PGV.destroy()); $("#t-pages", m).onclick = () => PGV.set(!PGV.on);
   const noFocus = e => e.preventDefault();
   $$(".tbtn[data-c], .tt", m).forEach(b => b.onmousedown = noFocus);
