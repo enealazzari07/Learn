@@ -253,7 +253,7 @@ V.today = m => {
   const BLK = {
     tasks: () => `<section class="wg w-tasks rise" style="--i:2"><h2>Heute <em>${open.filter(x => x.type !== "exam").length}</em></h2><div id="todos" class="w-scroll"></div>
       <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>`,
-    cal: () => `<section class="wg w-cal rise" style="--i:3"><div class="cal-t"><h2 id="cal-m"></h2><span class="cal-nav"><button class="cal-today" id="cal-t">Heute</button><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></span></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>`,
+    cal: () => `<section class="wg w-cal rise" style="--i:3"><h2 id="cal-m" title="Zu heute"></h2><div class="cal-g" id="cal-g"></div></section>`,
     goal: () => `<section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
       <div class="fd" id="fd" role="button" aria-label="Fokus-Timer: tippen zum Starten, ziehen zum Einstellen"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><svg class="fd-p" id="fd-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></div></div>
       <button class="fd-rs" id="fd-rs" hidden aria-label="Zurücksetzen" title="Zurücksetzen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button></section>`,
@@ -328,14 +328,15 @@ V.today = m => {
         h += `<button class="cd ${out ? "out" : ""} ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><span>${dt.getDate()}</span><em>${it.length ? "<u></u>" : ""}</em></button>`;
       }
       $("#cal-g", m).innerHTML = h;
-      $$("[data-cd]", $("#cal-g", m)).forEach(b => b.onclick = () => { sel = b.dataset.cd; const d = parseISO(sel); if (d.getMonth() !== cm) { cm = d.getMonth(); cy = d.getFullYear(); } drawCal(); });
-      const l = itemsOn(sel);
-      $("#cal-d", m).innerHTML = `<div class="cd-h"><b>${sel === today ? "Heute" : fmtD(sel)}</b><button class="link" id="cal-a">+ Eintragen</button></div>` + (l.length ? l.slice(0, 2).map(x => `<span class="cd-i k${x.k}"><i></i>${esc(x.t)}</span>`).join("") : `<span class="none">Nichts eingetragen</span>`);
-      $("#cal-a", m).onclick = () => taskModal(null, sel);
+      $$("[data-cd]", $("#cal-g", m)).forEach(b => b.onclick = () => { if (swiped) return; sel = b.dataset.cd; taskModal(null, sel); });
     };
-    $("#cal-t", m).onclick = () => { const n = new Date(); cy = n.getFullYear(); cm = n.getMonth(); sel = iso(); drawCal(); };
-    $("#cal-p", m).onclick = () => { cm--; if (cm < 0) { cm = 11; cy--; } drawCal(); };
-    $("#cal-n", m).onclick = () => { cm++; if (cm > 11) { cm = 0; cy++; } drawCal(); };
+    const shift = d => { cm += d; if (cm < 0) { cm = 11; cy--; } if (cm > 11) { cm = 0; cy++; } drawCal(); };
+    $("#cal-m", m).onclick = () => { const n = new Date(); cy = n.getFullYear(); cm = n.getMonth(); sel = iso(); drawCal(); };
+    let swiped = false, sx = 0, sy = 0, down = false; const g = $("#cal-g", m);
+    g.addEventListener("pointerdown", e => { down = true; swiped = false; sx = e.clientX; sy = e.clientY; });
+    g.addEventListener("pointerup", e => { if (!down) return; down = false; const dx = e.clientX - sx, dy = e.clientY - sy; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { swiped = true; shift(dx < 0 ? 1 : -1); setTimeout(() => { swiped = false; }, 50); } });
+    g.addEventListener("pointercancel", () => { down = false; });
+    g.addEventListener("wheel", e => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20) { e.preventDefault(); shift(e.deltaX > 0 ? 1 : -1); } }, { passive: false });
     drawCal();
   }
 };
