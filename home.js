@@ -2,23 +2,23 @@
 /* Lumi – Startseite anpassen: echtes Raster (6 Spalten × 4 Reihen). Blöcke liegen auf festen Zellen, lassen sich ersetzen, verschieben und in der Größe ziehen.
    Der Platz unten rechts (2 × 2) gehört dem Lumi-AI-Block und ist gesperrt. Layout liegt in D.profile.home = [{id,type,c,r,w,h}]. */
 const HB = {
-  tasks: { n: "Aufgaben", d: "Heutige Aufgaben abhaken", i: "list", w: 2, h: 2 },
-  cal: { n: "Kalender", d: "Termine, Prüfungen, Abgaben", i: "cal", w: 2, h: 2 },
-  goal: { n: "Fokus", d: "Timer zum Einstellen", i: "timer", w: 2, h: 2 },
-  ring: { n: "Tagesziel", d: "Lernzeit heute als Ring", i: "timer", w: 2, h: 2 },
-  ex: { n: "Prüfungen", d: "Die nächsten Prüfungen", i: "book", w: 2, h: 2 },
-  hw: { n: "Hausaufgaben", d: "Offene Hausaufgaben", i: "list", w: 2, h: 2 },
-  tt: { n: "Stundenplan", d: "Die Stunden von heute", i: "cal", w: 2, h: 2 },
-  rec: { n: "Zuletzt", d: "Zuletzt bearbeitete Dokumente", i: "folder", w: 2, h: 2 },
-  pinned: { n: "Angeheftet", d: "Deine angehefteten Dokumente", i: "star", w: 2, h: 2 },
-  cards: { n: "Karteikarten", d: "Fällige Karten", i: "cards", w: 2, h: 1 },
-  grades: { n: "Noten", d: "Gesamtschnitt", i: "award", w: 1, h: 1 },
-  streak: { n: "Lernserie", d: "Tage in Folge", i: "flame", w: 1, h: 1 },
-  week: { n: "Woche", d: "Lernzeit der letzten 7 Tage", i: "chart", w: 2, h: 2 },
-  subjects: { n: "Fächer", d: "Deine Fächer mit offenen Aufgaben", i: "folder", w: 2, h: 1 },
-  quick: { n: "Schnellstart", d: "Dokument, Quiz, Karteikarten", i: "spark", w: 2, h: 1 },
-  note: { n: "Notizzettel", d: "Schneller Notizzettel auf der Startseite", i: "note", w: 2, h: 2 },
-  clock: { n: "Uhr & Datum", d: "Uhrzeit und heutiges Datum", i: "timer", w: 2, h: 1 },
+  tasks: { n: "Aufgaben", d: "Heutige Aufgaben abhaken", i: "list", w: 2, h: 2, mw: 2, mh: 2 },
+  cal: { n: "Kalender", d: "Termine, Prüfungen, Abgaben", i: "cal", w: 2, h: 2, mw: 2, mh: 2 },
+  goal: { n: "Fokus", d: "Timer zum Einstellen", i: "timer", w: 2, h: 2, mw: 1, mh: 1 },
+  ring: { n: "Tagesziel", d: "Lernzeit heute als Ring", i: "timer", w: 2, h: 2, mw: 1, mh: 1 },
+  ex: { n: "Prüfungen", d: "Die nächsten Prüfungen", i: "book", w: 2, h: 2, mw: 2, mh: 1 },
+  hw: { n: "Hausaufgaben", d: "Offene Hausaufgaben", i: "list", w: 2, h: 2, mw: 2, mh: 2 },
+  tt: { n: "Stundenplan", d: "Die Stunden von heute", i: "cal", w: 2, h: 2, mw: 2, mh: 2 },
+  rec: { n: "Zuletzt", d: "Zuletzt bearbeitete Dokumente", i: "folder", w: 2, h: 2, mw: 2, mh: 2 },
+  pinned: { n: "Angeheftet", d: "Deine angehefteten Dokumente", i: "star", w: 2, h: 2, mw: 2, mh: 2 },
+  cards: { n: "Karteikarten", d: "Fällige Karten", i: "cards", w: 2, h: 1, mw: 2, mh: 1 },
+  grades: { n: "Noten", d: "Gesamtschnitt", i: "award", w: 1, h: 1, mw: 1, mh: 1 },
+  streak: { n: "Lernserie", d: "Tage in Folge", i: "flame", w: 1, h: 1, mw: 1, mh: 1 },
+  week: { n: "Woche", d: "Lernzeit der letzten 7 Tage", i: "chart", w: 2, h: 2, mw: 2, mh: 2 },
+  subjects: { n: "Fächer", d: "Deine Fächer mit offenen Aufgaben", i: "folder", w: 2, h: 1, mw: 2, mh: 1 },
+  quick: { n: "Schnellstart", d: "Dokument, Quiz, Karteikarten", i: "spark", w: 2, h: 1, mw: 2, mh: 1 },
+  note: { n: "Notizzettel", d: "Schneller Notizzettel auf der Startseite", i: "note", w: 2, h: 2, mw: 2, mh: 2 },
+  clock: { n: "Uhr & Datum", d: "Uhrzeit und heutiges Datum", i: "timer", w: 2, h: 1, mw: 2, mh: 1 },
 };
 const HOME_COLS = 6, HOME_ROWS = 4, HOME_MAXROW = 8, HOME_DOCK = { c: 5, r: 3, w: 2, h: 2 };
 const HOME_TPL = {
@@ -33,7 +33,8 @@ const HOME_TPL = {
 };
 const homeUid = () => "b" + Math.random().toString(36).slice(2, 7);
 const homeOv = (a, b) => a.c < b.c + b.w && b.c < a.c + a.w && a.r < b.r + b.h && b.r < a.r + a.h;
-const homeClamp = (b) => { b.w = Math.max(1, Math.min(HOME_COLS, b.w | 0 || 2)); b.h = Math.max(1, Math.min(HOME_ROWS, b.h | 0 || 2)); b.c = Math.max(1, Math.min(HOME_COLS + 1 - b.w, b.c | 0 || 1)); b.r = Math.max(1, Math.min(HOME_MAXROW + 1 - b.h, b.r | 0 || 1)); return b; };
+const homeMin = b => ({ w: HB[b.type]?.mw || 1, h: HB[b.type]?.mh || 1 });
+const homeClamp = (b) => { const mn = homeMin(b); b.w = Math.max(mn.w, Math.min(HOME_COLS, b.w | 0 || 2)); b.h = Math.max(mn.h, Math.min(HOME_ROWS, b.h | 0 || 2)); b.c = Math.max(1, Math.min(HOME_COLS + 1 - b.w, b.c | 0 || 1)); b.r = Math.max(1, Math.min(HOME_MAXROW + 1 - b.h, b.r | 0 || 1)); return b; };
 /* Kollisionen auflösen: der bewegte Block behält seinen Platz, andere rutschen nach unten (Lumi-AI-Platz bleibt frei) */
 function homeResolve(L, firstId) {
   const placed = [{ ...HOME_DOCK }], order = [...L].sort((a, b) => (a.id === firstId ? -1 : b.id === firstId ? 1 : 0) || a.r - b.r || a.c - b.c);
@@ -56,7 +57,7 @@ function homeFree(L, w, h) {
 const homeFromTpl = k => HOME_TPL[k].l.map(([type, c, r, w, h]) => ({ id: homeUid(), type, c, r, w, h }));
 function homeLayout() {
   const raw = Array.isArray(D.profile.home) ? D.profile.home : [], seen = new Set(), L = [];
-  for (const b of raw) { if (!b || !HB[b.type] || seen.has(b.type)) continue; seen.add(b.type); const x = { id: b.id || homeUid(), type: b.type, w: b.w, h: b.h, c: b.c, r: b.r }; homeClamp({ ...x, c: 1, r: 1 }); x.w = Math.max(1, Math.min(HOME_COLS, x.w | 0 || HB[b.type].w)); x.h = Math.max(1, Math.min(HOME_ROWS, x.h | 0 || HB[b.type].h)); if (!x.c || !x.r) { const f = homeFree(L, x.w, x.h); x.c = f.c; x.r = f.r; } L.push(x); }
+  for (const b of raw) { if (!b || !HB[b.type] || seen.has(b.type)) continue; seen.add(b.type); const x = { id: b.id || homeUid(), type: b.type, w: b.w, h: b.h, c: b.c, r: b.r }; homeClamp({ ...x, c: 1, r: 1 }); x.w = Math.max(HB[b.type].mw || 1, Math.min(HOME_COLS, x.w | 0 || HB[b.type].w)); x.h = Math.max(HB[b.type].mh || 1, Math.min(HOME_ROWS, x.h | 0 || HB[b.type].h)); if (!x.c || !x.r) { const f = homeFree(L, x.w, x.h); x.c = f.c; x.r = f.r; } L.push(x); }
   if (!L.length) return homeFromTpl("std");
   return homeResolve(L);
 }
@@ -69,7 +70,7 @@ function homeEditor() {
   const used = () => new Set(L.map(b => b.type));
   const rowsN = () => Math.max(HOME_ROWS, ...L.map(b => b.r + b.h - 1));
   const pos = b => `--c:${b.c};--r:${b.r};--w:${b.w};--h:${b.h}`;
-  const blockEl = b => `<div class="hb" data-b="${b.id}" style="${pos(b)}"><div class="hb-in"><span class="hb-i">${ic(HB[b.type].i)}</span><b>${HB[b.type].n}</b><small>${HB[b.type].d}</small></div><span class="hb-sz">${b.w} × ${b.h}</span><div class="hb-bar"><button data-sw="${b.id}" title="Block ersetzen">${ic("pen")}<span>Ersetzen</span></button><button data-rm="${b.id}" title="Entfernen" aria-label="Entfernen">${ic("trash")}</button></div><i class="hb-rz" data-rz="${b.id}" title="Größe ändern"></i></div>`;
+  const blockEl = b => `<div class="hb" data-b="${b.id}" style="${pos(b)}"><div class="hb-in"><span class="hb-i">${ic(HB[b.type].i)}</span><b>${HB[b.type].n}</b><small>${HB[b.type].d}</small></div><span class="hb-sz">${b.w} × ${b.h}${homeMin(b).w > 1 || homeMin(b).h > 1 ? " · min " + homeMin(b).w + " × " + homeMin(b).h : ""}</span><div class="hb-bar"><button data-sw="${b.id}" title="Block ersetzen">${ic("pen")}<span>Ersetzen</span></button><button data-rm="${b.id}" title="Entfernen" aria-label="Entfernen">${ic("trash")}</button></div><i class="hb-rz" data-rz="${b.id}" title="Größe ändern"></i></div>`;
   const draw = () => {
     const N = rowsN(), cells = Array.from({ length: N * HOME_COLS }, (_, i) => `<i class="hc" style="grid-column:${i % HOME_COLS + 1};grid-row:${Math.floor(i / HOME_COLS) + 1}"></i>`).join("");
     root.innerHTML = `<div class="hed-top"><div><h2>Startseite bearbeiten</h2><p>Blöcke ziehen rastet auf das Raster ein · Ecke unten rechts ändert die Größe · „Ersetzen“ tauscht den Inhalt.</p></div><div class="hed-act"><button class="btn ghost" id="hd-t">${ic("table")}Vorlagen</button><button class="btn ghost" id="hd-a">${ic("plus")}Block</button><button class="btn ghost" id="hd-r">Zurücksetzen</button><button class="btn accent" id="hd-d">Fertig</button></div></div>
@@ -83,12 +84,12 @@ function homeEditor() {
     $("#hd-t", root).onclick = e => menu(e.currentTarget, Object.entries(HOME_TPL).map(([k, t]) => ({ label: t.n + " – " + t.d, icon: "table", fn: () => { L = homeFromTpl(k); commit(); draw(); } })));
     $("#hd-a", root).onclick = e => { const free = Object.keys(HB).filter(t => !used().has(t)); if (!free.length) return toast("Alle Blöcke sind schon auf der Startseite"); menu(e.currentTarget, free.map(t => ({ label: HB[t].n + " – " + HB[t].d, icon: HB[t].i, fn: () => { const f = homeFree(L, HB[t].w, HB[t].h); L.push({ id: homeUid(), type: t, c: f.c, r: f.r, w: HB[t].w, h: HB[t].h }); homeResolve(L); commit(); draw(); } }))); };
     $$("[data-rm]", root).forEach(b => b.onclick = () => { L = L.filter(x => x.id !== b.dataset.rm); commit(); draw(); });
-    $$("[data-sw]", root).forEach(b => b.onclick = () => { const cur = L.find(x => x.id === b.dataset.sw), items = Object.keys(HB).filter(t => !used().has(t)).map(t => ({ label: HB[t].n + " – " + HB[t].d, icon: HB[t].i, fn: () => { cur.type = t; commit(); draw(); } })); if (!items.length) return toast("Alle anderen Blöcke sind schon in Benutzung"); menu(b, items); });
+    $$("[data-sw]", root).forEach(b => b.onclick = () => { const cur = L.find(x => x.id === b.dataset.sw), items = Object.keys(HB).filter(t => !used().has(t)).map(t => ({ label: HB[t].n + " – " + HB[t].d, icon: HB[t].i, fn: () => { cur.type = t; homeClamp(cur); homeResolve(L, cur.id); commit(); draw(); } })); if (!items.length) return toast("Alle anderen Blöcke sind schon in Benutzung"); menu(b, items); });
     /* Größe ändern – rastet pro Zelle ein */
     $$("[data-rz]", root).forEach(h => h.onpointerdown = e => {
       e.preventDefault(); e.stopPropagation(); const b = L.find(x => x.id === h.dataset.rz), el = h.closest(".hb"), M = metrics(), x0 = e.clientX, y0 = e.clientY, w0 = b.w, h0 = b.h;
       const ghost = document.createElement("div"); ghost.className = "hb-ghost"; M.g.appendChild(ghost); el.classList.add("rzing");
-      const calc = ev => ({ w: Math.max(1, Math.min(HOME_COLS + 1 - b.c, w0 + Math.round((ev.clientX - x0) / M.sx))), h: Math.max(1, Math.min(HOME_ROWS, h0 + Math.round((ev.clientY - y0) / M.sy))) });
+      const calc = ev => ({ w: Math.max(homeMin(b).w, Math.min(HOME_COLS + 1 - b.c, w0 + Math.round((ev.clientX - x0) / M.sx))), h: Math.max(homeMin(b).h, Math.min(HOME_ROWS, h0 + Math.round((ev.clientY - y0) / M.sy))) });
       const mv = ev => { const n = calc(ev); el.style.setProperty("--w", n.w); el.style.setProperty("--h", n.h); $(".hb-sz", el).textContent = n.w + " × " + n.h; ghost.style.cssText = `grid-column:${b.c}/span ${n.w};grid-row:${b.r}/span ${n.h}`; };
       const up = ev => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); const n = calc(ev); b.w = n.w; b.h = n.h; homeResolve(L, b.id); commit(); draw(); };
       mv(e); addEventListener("pointermove", mv); addEventListener("pointerup", up);

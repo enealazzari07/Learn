@@ -2751,3 +2751,18 @@ body.hed-open{overflow:hidden}
 .w-ai .modes{display:none}
 .w-ai .t-in{padding:0;margin-top:auto}.w-ai .tin{background:#f6f6fa;border-color:transparent}
 @media (max-width:900px){.bento .b-grid>.w-ai{min-height:460px}.main.homew,.main.homew:not(.doc-full){padding-bottom:40px}}
+
+/* v103: Startseite ohne Kopfzeile; Raster wächst mit den Blöcken (max. 6 Spalten × 8 Reihen); Fokus-Timer: Kreis antippen = Start, Ziehen = Dauer */
+@media (min-width:901px){.bento .b-grid{grid-template-rows:repeat(var(--n,4),minmax(158px,1fr))!important;grid-auto-rows:minmax(158px,1fr)!important}}
+.bento .w-goal{container-type:size;padding:12px;align-items:center;justify-content:center;position:relative}
+.bento .w-goal h2{position:absolute;left:16px;top:12px;margin:0;z-index:1}
+.bento .w-goal .fd{flex:none;width:min(100cqw - 8px,100cqh - 8px);height:min(100cqw - 8px,100cqh - 8px);max-height:none;aspect-ratio:1;margin:0 auto}
+.bento .w-goal .fd-c b{font-size:clamp(14px,18cqmin,44px)}
+.bento .w-goal .fd svg.fd-p{position:static;inset:auto;overflow:visible;width:clamp(12px,9cqmin,26px);height:auto;fill:#0f0f12;margin-top:2px}
+.bento .z-add .link{white-space:nowrap;flex:none}.bento .z-add input{min-width:0}
+.bento .w-goal .fd-bg,.bento .w-goal .fd-fg{stroke-width:16}
+.bento .w-goal .fd-rs{position:absolute;right:10px;top:10px;width:30px;height:30px;padding:0;display:grid;place-items:center;border-radius:50%;background:#f1f1f4;z-index:2}
+.bento .w-goal .fd-rs[hidden]{display:none}
+.bento .w-goal .fd-rs svg{width:14px;height:14px;fill:none;stroke:#0f0f12;stroke-width:2.4;stroke-linecap:round}
+@container (max-height:170px){.bento .w-goal h2{display:none}}
+@media (max-width:900px){.bento .w-goal{min-height:300px}.bento .w-goal .fd{width:min(100cqw - 8px,250px);height:min(100cqw - 8px,250px)}}

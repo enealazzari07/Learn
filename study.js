@@ -255,9 +255,8 @@ V.today = m => {
       <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>`,
     cal: () => `<section class="wg w-cal rise" style="--i:3"><div class="cal-t"><h2 id="cal-m"></h2><span class="cal-nav"><button class="cal-today" id="cal-t">Heute</button><button class="icon-btn sm" id="cal-p" aria-label="Voriger Monat">${ic("back")}</button><button class="icon-btn sm nx" id="cal-n" aria-label="Nächster Monat">${ic("back")}</button></span></div><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>`,
     goal: () => `<section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
-      <div class="fd" id="fd"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><small id="fd-s">Ziehen zum Einstellen</small></div></div>
-      <div class="fd-row"><button class="fd-go" id="fd-go">Starten</button><button class="fd-rs" id="fd-rs" hidden>Zurücksetzen</button></div>
-      <p class="fd-g"><b>${mins}</b> von ${goal} Min. heute</p></section>`,
+      <div class="fd" id="fd" role="button" aria-label="Fokus-Timer: tippen zum Starten, ziehen zum Einstellen"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><svg class="fd-p" id="fd-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></div></div>
+      <button class="fd-rs" id="fd-rs" hidden aria-label="Zurücksetzen" title="Zurücksetzen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button></section>`,
     cards: () => `<button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>`,
     rec: () => `<section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 6).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>`,
     ex: () => `<section class="wg w-ex rise" style="--i:7"><h2>Prüfungen${allEx.length ? ` <em>${allEx.length}</em>` : ""}</h2>${allEx.length ? `<div class="w-scroll">${allEx.slice(0, 6).map(x => { const sj = subj(x.subjectId), dd = daysUntil(x.due); return `<button class="z-doc ex-r" data-ex="${x.id}"><span class="z-di ex-d" style="--c:${sj ? sj.color : "#0f0f12"}">${dd}</span><span><b>${esc(x.title)}</b><small>${sj ? esc(sj.name) + " · " : ""}${dd <= 0 ? "Heute" : dd === 1 ? "Morgen" : "in " + dd + " Tagen"}</small></span></button>`; }).join("")}</div><button class="link" data-go="exams">Alle Prüfungen</button>` : `<p class="empty sm">Keine Prüfung eingetragen.</p><button class="link" data-go="exams">Eintragen</button>`}</section>`,
@@ -275,10 +274,7 @@ V.today = m => {
   };
   const blockHtml = b => { const v = `--c:${b.c};--r:${b.r};--w:${b.w};--h:${b.h};`, h = BLK[b.type]().replace(/^<(section|button|div) class="wg /, `<$1 data-bid="${b.id}" class="wg `); return /style="--i:/.test(h) ? h.replace('style="--i:', `style="${v}--i:`) : h.replace('class="wg ', `style="${v}" class="wg `); };
   m.innerHTML = `<div class="home-wrap again"><div class="page home zen bento">
-  <header class="b-head rise" style="--i:0"><div class="b-hl"><p class="z-date">${new Date().toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" })}</p><h1 class="greet-h z-h">${words}</h1></div>
-</header>
-  <div class="z-ans" id="ai-out"><p id="sum-t">${esc(dailyLocal({ lessons, evToday, open: open.filter(x => x.type !== "exam"), exams, due, mins, goal }))}</p></div>
-  <div class="b-grid" id="b-grid">${homeLayout().map(blockHtml).join("")}
+  <div class="b-grid" id="b-grid" style="--n:${Math.max(HOME_ROWS, ...homeLayout().map(b => b.r + b.h - 1))}">${homeLayout().map(blockHtml).join("")}
   <section class="wg w-ai" id="aipane-blk" style="--c:${HOME_DOCK.c};--r:${HOME_DOCK.r};--w:${HOME_DOCK.w};--h:${HOME_DOCK.h}"></section>
   </div></div></div>`;
   bindCommon(m); mountDock();
@@ -294,14 +290,6 @@ V.today = m => {
   };
   drawTodos();
   const tfm = $("#todo-f", m); if (tfm) tfm.onsubmit = e => { e.preventDefault(); const i = $("#todo-i", m), v = i.value.trim(); if (!v) return; D.tasks.push({ id: uid(), title: v, type: "task", due: iso(), subjectId: "", note: "", done: false }); save(); i.value = ""; drawTodos(); };
-  (async () => {
-    const el = $("#sum-t", m), run = async force => {
-      const okTxt = x => typeof x === "string" && x.trim().length >= 25 && /[.!?…]["“”)]?$/.test(x.trim()), cache = D.daily && D.daily.date === iso() && okTxt(D.daily.text) ? D.daily : null; if (cache && cache.ai && !force) { el.textContent = cache.text; return; } if (!hasKey()) return;
-      el.classList.add("busy"); const ctx = dailyCtx({ lessons, evToday, exams, due, mins, goal }); const r = await ai(`Schreibe eine kurze, motivierende Tageszusammenfassung (höchstens 2 kurze Sätze, zusammen unter 30 Wörter, Du-Form) für heute. Nenne die wichtigsten Dinge und was zuerst angehen. Daten:\n${ctx}`, { system: sysBase(), max: 120, quiet: true });
-      el.classList.remove("busy"); if (r && okTxt(r)) { D.daily = { date: iso(), text: r.trim(), ai: true }; save(); el.textContent = D.daily.text; }
-    };
-    run(false);
-  })();
   if ($("#addt", m)) $("#addt", m).onclick = () => taskModal();
   { const ck = $("#hclock", m); if (ck) { const tk = () => { ck.textContent = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); }; const iv = setInterval(() => { if (!ck.isConnected) return clearInterval(iv); tk(); }, 10000); } }
   if ($("#fd", m)) {
@@ -312,18 +300,18 @@ V.today = m => {
       $("#fd-fg", m).style.strokeDasharray = `${Math.max(0.001, frac) * C} ${C}`; $("#fd-k", m).setAttribute("transform", `rotate(${ang} 100 100)`);
       $("#fd-k", m).style.display = b ? "none" : ""; fd.classList.toggle("run", T.running);
       $("#fd-t", m).textContent = b ? fmtT(T.left) : String(T.focusLen).padStart(2, "0") + ":00";
-      $("#fd-s", m).textContent = b ? (T.mode === "focus" ? "Fokus läuft" : "Pause") : "Ziehen zum Einstellen";
-      $("#fd-go", m).textContent = T.running ? "Pausieren" : b ? "Weiter" : "Starten"; $("#fd-rs", m).hidden = !b;
+      $("#fd-s", m).innerHTML = T.running ? '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>' : '<path d="M8 5.5v13l11-6.5z"/>'; $("#fd-rs", m).hidden = !b;
     };
     const setLen = v => { v = Math.max(STEP, Math.min(MAXM, v)); if (v !== T.focusLen) { timerSet(v, T.breakLen); paint(); timerPaint(); } };
     let drag = false;
     const fromPt = e => { const r = fd.getBoundingClientRect(), dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2); let a = Math.atan2(dx, -dy) * 180 / Math.PI; if (a < 0) a += 360; let v = Math.round(a / 360 * MAXM / STEP) * STEP; if (v === 0) v = T.focusLen > MAXM / 2 ? MAXM : STEP; if (T.focusLen >= 100 && v <= 20) v = MAXM; if (T.focusLen <= 20 && v >= 100) v = STEP; setLen(v); };
-    fd.addEventListener("pointerdown", e => { if (busy()) return; drag = true; fd.setPointerCapture(e.pointerId); fromPt(e); });
-    fd.addEventListener("pointermove", e => { if (drag) fromPt(e); });
-    const end = () => { drag = false; }; fd.addEventListener("pointerup", end); fd.addEventListener("pointercancel", end);
+    let sx = 0, sy = 0, moved = false;
+    fd.addEventListener("pointerdown", e => { sx = e.clientX; sy = e.clientY; moved = false; drag = true; fd.setPointerCapture(e.pointerId); });
+    fd.addEventListener("pointermove", e => { if (!drag || busy()) return; if (!moved && Math.hypot(e.clientX - sx, e.clientY - sy) < 8) return; moved = true; fromPt(e); });
+    const end = () => { drag = false; }; fd.addEventListener("pointercancel", end);
+    fd.addEventListener("pointerup", () => { if (!drag) return; end(); if (!moved) { timerToggle(); paint(); } });
     fd.addEventListener("wheel", e => { if (busy()) return; e.preventDefault(); setLen(T.focusLen + (e.deltaY < 0 ? STEP : -STEP)); }, { passive: false });
-    fd.tabIndex = 0; fd.addEventListener("keydown", e => { if (busy()) return; if (e.key === "ArrowUp" || e.key === "ArrowRight") { e.preventDefault(); setLen(T.focusLen + STEP); } if (e.key === "ArrowDown" || e.key === "ArrowLeft") { e.preventDefault(); setLen(T.focusLen - STEP); } });
-    $("#fd-go", m).onclick = () => { timerToggle(); paint(); };
+    fd.tabIndex = 0; fd.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); timerToggle(); paint(); return; } if (busy()) return; if (e.key === "ArrowUp" || e.key === "ArrowRight") { e.preventDefault(); setLen(T.focusLen + STEP); } if (e.key === "ArrowDown" || e.key === "ArrowLeft") { e.preventDefault(); setLen(T.focusLen - STEP); } });
     $("#fd-rs", m).onclick = () => { timerReset(); paint(); };
     paint(); const iv = setInterval(() => { if (!fd.isConnected) return clearInterval(iv); paint(); }, 500); LEAVE.push(() => clearInterval(iv));
   }
