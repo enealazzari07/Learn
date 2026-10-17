@@ -522,9 +522,16 @@ async function noteEditor(m, d) {
   /* gelernte Korrekturen: ein Fehler, den die KI einmal gefunden hat, wird danach sofort und zuverlässig auch ohne KI erkannt */
   const acDict = () => (D.profile.acDict ||= {}), capLike = (o, r) => o[0] !== o[0].toLowerCase() && r[0] === r[0].toLowerCase() ? r[0].toUpperCase() + r.slice(1) : r;
   const learnAC = (orig, edits) => { const dict = acDict(); let n = 0; for (const e of edits) { const o = orig.slice(e.start, e.end); if (/^\p{L}{2,}$/u.test(o) && /^\p{L}{2,}$/u.test(e.replace) && o !== e.replace) { dict[o] = e.replace; n++; } } if (n) { const k = Object.keys(dict); if (k.length > 400) k.slice(0, k.length - 400).forEach(x => delete dict[x]); save(); } };
-  const localEdits = txt => { const dict = acDict(), out = []; for (const m of txt.matchAll(/\p{L}+/gu)) { const w = m[0], end = m.index + w.length; if (end >= txt.length) continue; let r = dict[w]; if (!r && dict[w.toLowerCase()]) r = capLike(w, dict[w.toLowerCase()]); if (r && r !== w) out.push({ start: m.index, end, replace: r }); } return out; };
+  const docCounts = () => { const c = new Map(); for (const m of (body.innerText || "").matchAll(/\p{L}+/gu)) { const k = m[0].toLowerCase(); c.set(k, (c.get(k) || 0) + 1); } return c; };
+  const ignoreSet = () => new Set((D.profile.spellIgnore || []).map(x => String(x).toLowerCase()));
+  const localEdits = txt => {
+    const dict = acDict(), out = [];
+    for (const m of txt.matchAll(/\p{L}+/gu)) { const w = m[0], end = m.index + w.length; if (end >= txt.length) continue; let r = dict[w]; if (!r && dict[w.toLowerCase()]) r = capLike(w, dict[w.toLowerCase()]); if (r && r !== w) out.push({ start: m.index, end, replace: r }); }
+    if (typeof Spell !== "undefined" && Spell.isReady()) for (const e of Spell.analyze(txt, { ignore: ignoreSet(), docCounts: docCounts() }).edits) if (!out.some(o => e.start < o.end && e.end > o.start)) out.push(e);
+    return out.sort((a, b) => a.start - b.start);
+  };
   const localAC = () => {
-    if (acMode() === "off" || !Object.keys(acDict()).length) return; const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
+    if (acMode() === "off") return; const sel = getSelection(); if (!sel.rangeCount || !body.contains(sel.anchorNode)) return;
     const blk = blockOf(sel.anchorNode); if (!blk || /^(PRE|CODE)$/.test(blk.tagName) || blk.querySelector(".sg-del,.sg-ins")) return;
     const ed = localEdits(Suggest.textOf(blk).s); if (ed.length) { const n = SG.suggestAt(blk, ed, { avoidCaret: true, direct: acMode() === "auto", mini: true }); if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`); }
   };
@@ -535,6 +542,7 @@ async function noteEditor(m, d) {
     const cb = blockOf(sel.anchorNode), ok = b => b && b.isConnected && !/^(PRE|CODE)$/.test(b.tagName) && !b.querySelector(".sg-del,.sg-ins") && Suggest.textOf(b).s.trim().length >= 14 && AC.seen.get(b) !== Suggest.textOf(b).s;
     const blk = [cb, ...AC.dirty].find(ok); AC.dirty.forEach(b => { if (!b.isConnected || b === blk) AC.dirty.delete(b); }); if (!blk) return;
     const orig = Suggest.textOf(blk).s;
+    if (typeof Spell !== "undefined" && Spell.isReady()) { const an = Spell.analyze(orig, { skipTail: false, ignore: ignoreSet(), docCounts: docCounts() }); if (an.ready && an.unknown === 0) { AC.seen.set(blk, orig); return; } }   // alle Wörter bekannt → keine KI-Anfrage nötig
     if (Date.now() - AC.last < 2500) return scheduleAC();
     AC.busy = true; AC.last = Date.now();
     let res = null;
@@ -552,7 +560,7 @@ async function noteEditor(m, d) {
     if (n && acMode() === "auto") toast(`${n} ${n === 1 ? "Korrektur" : "Korrekturen"} übernommen – Strg+Z macht es rückgängig`);
     AC.seen.set(blk, Suggest.textOf(blk).s); if (AC.dirty.size) scheduleAC();
   }
-  if (acMode() !== "off" && hasKey()) body.spellcheck = false;
+  if (acMode() !== "off") { body.spellcheck = false; if (typeof Spell !== "undefined") Spell.load(); }
   body.addEventListener("input", scheduleAC); LEAVE.push(() => clearTimeout(AC.timer));
   body.addEventListener("input", () => { dirty(); slashCheck(); PGV.refresh(); });
   body.addEventListener("click", e => { if (e.target.matches("input[type=checkbox]")) { e.target.checked ? e.target.setAttribute("checked", "") : e.target.removeAttribute("checked"); dirty(); } });
