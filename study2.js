@@ -178,7 +178,7 @@ const SCALES = { ch: { n: "Noten 1–6 (Schweiz, 6 = beste)", min: 1, max: 6, lo
 const gradeKey = () => D.profile.scale === "pts" || D.profile.scale === "pct" ? D.profile.scale : "ch";
 const SC = () => SCALES[gradeKey()];
 const gnorm = v => { const s = SC(); return s.lowGood ? (s.max - v) / (s.max - s.min) : (v - s.min) / (s.max - s.min); };
-const gcol = v => { const k = gradeKey(); if (k === "ch") return v >= 5 ? "#0e9f6e" : v >= 4 ? "#f59e0b" : "#e5484d"; const n = gnorm(v); return n >= .7 ? "#0e9f6e" : n >= .45 ? "#f59e0b" : "#e5484d"; };
+const gcol = v => { const k = gradeKey(); if (k === "ch") return v >= 5.25 ? "#0e9f6e" : v >= 4.5 ? "#7cc23a" : v >= 4 ? "#f59e0b" : "#e5484d"; const n = gnorm(v); return n >= .7 ? "#0e9f6e" : n >= .45 ? "#f59e0b" : "#e5484d"; };
 const wavg = l => { const w = l.reduce((a, g) => a + g.weight, 0); return w ? l.reduce((a, g) => a + g.value * g.weight, 0) / w : null; };
 const gfmt = v => { if (v == null || isNaN(v)) return "–"; const k = gradeKey(); if (k === "ch") { let t = v.toFixed(2); if (t.endsWith("0")) t = t.slice(0, -1); return t; } return Math.round(v * 10) / 10 + ""; };
 function gradeModal(g) {
