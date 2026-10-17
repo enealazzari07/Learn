@@ -224,8 +224,8 @@ function save() { clearTimeout(_st); _st = setTimeout(() => KV.set("data", D), 2
 async function loadData() {
   const d = (await KV.get("data")) || {}; const base = DEFAULT();
   D = Object.assign(base, d); D.profile = Object.assign(base.profile, d.profile || {}); D.stats = Object.assign(base.stats, d.stats || {});
-  /* Fächer haben keine Farbe mehr – überall nur der Fachname */
-  (D.subjects || []).forEach(s => { s.color = "#0f0f12"; }); (D.folders || []).forEach(f => { if (f.subjectId) f.color = "#0f0f12"; });
+  /* Fächer behalten ihre Farbe; wer durch die kurze Neutral-Phase schwarz wurde, bekommt wieder eine Farbe */
+  (D.subjects || []).forEach((s, i) => { if (!s.color || s.color === "#0f0f12") s.color = COLORS[i % COLORS.length]; }); (D.folders || []).forEach(f => { const sj = f.subjectId && (D.subjects || []).find(x => x.id === f.subjectId); if (sj && (!f.color || f.color === "#0f0f12")) f.color = sj.color; });
 }
 addEventListener("pagehide", () => KV.set("data", D));
 const blobToDataURL = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); });

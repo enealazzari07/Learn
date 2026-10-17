@@ -2823,8 +2823,8 @@ body.hed-open{overflow:hidden}
 @container (min-height:215px){.w-grades .w-go{display:none}.w-grades .gr-list{gap:7px;margin:10px 0 0}.w-grades .gr-r{font-size:13px}.w-grades .gr-top small{font-size:11.5px}}
 
 /* v109: Fächer ohne Farbe – überall nur der Name */
-.sdot,.gr-d,.w-sj .sj-l i,.subjed input[type=color]{display:none!important}
-.w-grades .gr-r{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto}
+/* nur im Fächer-Block keine Farbpunkte */
+.w-sj .sj-l i{display:none!important}
 
 /* v110: Kalender zeigt unten, was am gewählten Tag ansteht (Prüfung, Aufgabe, Termin) – ohne Buttons */
 .w-cal .w-cd{margin-top:8px;padding-top:8px;border-top:1px solid #f0f0f4;display:flex;flex-direction:column;gap:3px;min-height:0;flex:none}
