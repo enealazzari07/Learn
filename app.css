@@ -2844,3 +2844,8 @@ body.hed-open{overflow:hidden}
 .w-cal .w-cd{margin-top:6px;padding-top:6px}
 .w-cal .cd-i{line-height:18px}
 .w-cal .cd-i .cd-m{font-style:normal;margin-left:auto;font-size:12px;font-weight:600;color:#8a8a98;flex:none;padding-left:6px}
+
+/* v111: Chat-Eingabe liegt im Vordergrund und wird nie abgeschnitten */
+.hdock{z-index:90}
+.hdock .chatbox.flat,.hdock .hd-in{overflow:visible}
+.hdock:not(.open) .chatbox.flat{justify-content:flex-end}

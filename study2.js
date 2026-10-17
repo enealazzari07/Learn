@@ -385,12 +385,12 @@ function mountDock(m) {
   document.body.appendChild(el);
   if (!window.__dockFresh) { window.__dockFresh = true; if (chatMsgs().length) newChat(); }
   const mount = () => { mountChat($("#hcb", el), false); const t = $(".tin", el); t.addEventListener("input", () => tog(true)); $(".t-in", el).addEventListener("submit", () => tog(true), true); };
-  const fit = () => { const r0 = m.getBoundingClientRect(), r = { left: r0.left, width: r0.width, top: Math.max(0, r0.top), bottom: Math.min(innerHeight, r0.bottom) }; el.style.setProperty("--dl", r.left + "px"); el.style.setProperty("--dw", r.width + "px"); el.style.setProperty("--dt", r.top + "px"); el.style.setProperty("--dtc", r.bottom - 126 + "px"); el.style.setProperty("--db", innerHeight - r.bottom + "px"); };
+  const fit = () => { const r0 = m.getBoundingClientRect(), r = { left: r0.left, width: r0.width, top: Math.max(0, r0.top), bottom: Math.min(innerHeight, r0.bottom) }; el.style.setProperty("--dl", r.left + "px"); el.style.setProperty("--dw", r.width + "px"); el.style.setProperty("--dt", r.top + "px"); const tin = $(".t-in", el), bh = Math.max(126, (tin ? tin.offsetHeight : 100) + 30); el.style.setProperty("--dtc", r.bottom - bh + "px"); el.style.setProperty("--db", innerHeight - r.bottom + "px"); };
   const tog = o => { if (o === el.classList.contains("open")) return; fit(); el.classList.toggle("open", o); document.body.classList.toggle("hd-open2", o); if (!o) { document.activeElement?.blur?.(); $(".msgs", el).scrollTop = 1e9; } else setTimeout(() => { const ms = $(".msgs", el); ms.scrollTop = ms.scrollHeight; }, 60); };
   const key = e => { if (e.key === "Escape" && el.classList.contains("open") && !document.querySelector(".popmenu,.mpop,.modal")) tog(false); };
   $(".hd-x", el).onclick = () => tog(false);
   $(".hd-new", el).onclick = () => { newChat(); mount(); $(".tin", el).focus(); };
-  addEventListener("resize", fit); document.addEventListener("keydown", key); fit(); mount();
+  addEventListener("resize", fit); document.addEventListener("keydown", key); mount(); fit(); setTimeout(fit, 300);
   LEAVE.push(() => { el.remove(); document.body.classList.remove("hd-open2"); removeEventListener("resize", fit); document.removeEventListener("keydown", key); });
 }
 function toggleChatPanel() { const p = $("#cpanel"); if (p.hidden) { p.hidden = false; mountChat(p, true); } else p.hidden = true; }
