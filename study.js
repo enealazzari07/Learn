@@ -416,7 +416,7 @@ V.docs = (m, id) => {
 let pendingQuiz = null;
 const clip = (t, n = 14000) => t.length > n ? t.slice(0, n) : t;
 function textToHtml(t) {
-  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/__(.+?)__/g, "<u>$1</u>").replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, "$1<i>$2</i>");
+  const inl = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/__(.+?)__/g, "<u>$1</u>").replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, "$1<i>$2</i>").replace(/`([^`]+)`/g, "<code>$1</code>");
   const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
   const lines = String(t).split("\n"); let out = "", list = "", tbl = null;
   const endList = () => { if (list) { out += `</${list}>`; list = ""; } };
