@@ -107,4 +107,26 @@ async function sb(method, path, body, extra = {}) {
 const getSubscription = async uid => (await sb("GET", `lumi_subscriptions?user_id=eq.${encodeURIComponent(uid)}&select=*&limit=1`))?.[0] || null;
 const isPlusRow = s => !!s && ["active", "trialing", "past_due"].includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5);
 
-module.exports = { SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb, getSubscription, isPlusRow };
+/* Abo-Zeile in Supabase schreiben (Webhook und Abgleich nutzen dieselbe Funktion) */
+async function saveSubscription(sub, fallbackUser) {
+  let uid = sub.metadata?.user_id || fallbackUser;
+  if (!uid) { const r = await sb("GET", `lumi_subscriptions?stripe_customer_id=eq.${encodeURIComponent(sub.customer)}&select=user_id&limit=1`); uid = r?.[0]?.user_id; }
+  if (!uid) return null;   // gehört nicht zu Lumi
+  const item = sub.items?.data?.[0], end = sub.status === "trialing" && sub.trial_end ? sub.trial_end : (sub.current_period_end || item?.current_period_end);
+  await sb("POST", "lumi_subscriptions?on_conflict=user_id", {
+    user_id: uid, stripe_customer_id: sub.customer, stripe_subscription_id: sub.id, status: sub.status, price_id: item?.price?.id || null,
+    interval: item?.price?.recurring?.interval || null, current_period_end: end ? new Date(end * 1000).toISOString() : null,
+    cancel_at_period_end: !!sub.cancel_at_period_end, updated_at: new Date().toISOString(),
+  }, { Prefer: "resolution=merge-duplicates,return=minimal" });
+  return uid;
+}
+/* Abgleich ohne Webhook: neueste abgeschlossene Checkout-Sitzung dieses Kontos suchen und sein Abo laden */
+async function syncUserSubscription(uid) {
+  const j = await stripe("GET", "/checkout/sessions", { limit: 50 });
+  const s = (j.data || []).filter(x => x.mode === "subscription" && x.status === "complete" && x.subscription && (x.client_reference_id === uid || x.metadata?.user_id === uid)).sort((a, b) => b.created - a.created)[0];
+  if (!s) return null;
+  const sub = await stripe("GET", "/subscriptions/" + (typeof s.subscription === "string" ? s.subscription : s.subscription.id));
+  await saveSubscription(sub, uid); return sub;
+}
+
+module.exports = { saveSubscription, syncUserSubscription, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb, getSubscription, isPlusRow };
