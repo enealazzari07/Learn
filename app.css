@@ -3424,3 +3424,17 @@ body.noscroll{overflow:hidden}
 .obx-cap div.on{opacity:1;transform:none}
 .obx-cap b{font-size:16px;letter-spacing:-.02em}.obx-cap small{color:#7a7a82;font-size:13px;line-height:1.45}
 .obx-hero-s{height:130px}
+
+/* iPad quer: Planauswahl ca. 1/3, Bezahlbereich ca. 2/3 */
+@media (min-width:901px) and (max-width:1400px) and (pointer:coarse), (min-width:901px) and (max-width:1100px){
+  .setpage .setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:16px;zoom:1}
+  .setpage .setsec.paying .pp-card{grid-template-columns:auto 1fr;padding:12px 12px;gap:9px;border-radius:16px}
+  .setpage .setsec.paying .pp-pr{grid-column:2;margin-top:-2px;font-size:13px}
+  .setpage .setsec.paying .pp-t b{font-size:13.5px}.setpage .setsec.paying .pp-t small{font-size:11.5px;line-height:1.4}
+  .setpage .setsec.paying .propanel.proside h2{font-size:22px}
+  .setpage .setsec.paying .ps-lead{font-size:13px}
+  .setpage .setsec.paying .proemb-box{max-width:none;margin:0}
+  .setpage .setsec.paying .proemb-box .embk-m{zoom:1}
+  .setpage .setsec.paying .ps-fine{font-size:10.5px}
+  .setpage .setsec.paying .pp-card em{font-size:10px;padding:2px 7px;right:10px;top:-8px}
+}
