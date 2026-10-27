@@ -3549,3 +3549,17 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .docspaper .dtl .items.fgrid>.fold.add{position:absolute;top:10px;right:0;width:auto!important;height:auto!important;min-height:0;flex-direction:row;gap:6px;padding:6px 12px 6px 10px;border:0;border-radius:999px;background:#f3f3f5;font-size:12.5px}
 .docspaper .dtl .items.fgrid>.fold.add:hover{background:#e9e9ec}
 .dtl .fold.add svg{width:14px;height:14px}
+
+/* Seitenleiste: Dokumente mit Pfeil, Ordner als Dropdown */
+.nav-chev{margin-left:auto;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:8px;color:#8a8a92;transition:background .15s,transform .2s}
+.nav-chev svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.nav-chev:hover{background:#dcdce0;color:#111}.nav-chev.open svg{transform:rotate(90deg)}
+.nav-tree{display:flex;flex-direction:column;gap:1px;margin:2px 0 4px 18px;padding-left:6px;border-left:1.5px solid #e1e1e5}
+.nav-tree[hidden]{display:none}
+.nav-f{display:flex;align-items:center;gap:9px;border:0;background:none;padding:7px 10px;border-radius:10px;font:inherit;font-size:13.5px;color:#4a4a52;cursor:pointer;text-align:left;min-width:0}
+.nav-f i{flex:none;width:9px;height:9px;border-radius:50%}
+.nav-f .nl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-f:hover{background:#ebebed}.nav-f.on{background:#e6e6e9;color:#0f0f12;font-weight:600}
+.nav-f-e{margin:4px 10px;font-size:12.5px;color:#9a9aa3}
+.shell.collapsed .nav-chev,.shell.collapsed .nav-tree{display:none}
+@media(max-width:900px){.nav-chev,.nav-tree{display:none}}

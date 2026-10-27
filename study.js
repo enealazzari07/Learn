@@ -131,13 +131,15 @@ function refreshNav() {
   <div class="nav-grp">${SET.map(([k, l, i]) => `<button class="nav-i ${(window.__setTab || "gen") === k ? "on" : ""}" data-st="${k}" title="${l}">${ic((window.__setTab || "gen") === k ? icOn(i) : i)}<span class="nl">${l}</span></button>`).join("")}</div>
   <div class="sp hide-mob"></div>${proChipHtml()}${profBtn}` : `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand"><i class="mark"></i>Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
-  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "voice", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) ? icOn(i) : i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
+  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "voice", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) ? icOn(i) : i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}${k === "docs" ? `<span class="nav-chev ${LS.get("lumi-docs-open") === "1" ? "open" : ""}" id="docchev" role="button" tabindex="0" aria-label="Ordner ein- oder ausklappen"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>` : ""}</button>${k === "docs" ? `<div class="nav-tree" id="doctree" ${LS.get("lumi-docs-open") === "1" ? "" : "hidden"}>${folderTree().map(({ f, depth }) => `<button class="nav-f ${curView === "docs" && docFolder === f.id ? "on" : ""}" data-gf="${f.id}" style="padding-left:${12 + depth * 14}px" title="${esc(f.name)}"><i style="background:${f.color}"></i><span class="nl">${esc(f.name)}</span></button>`).join("") || `<p class="nav-f-e">Noch keine Ordner</p>`}</div>` : ""}`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
   ${proChipHtml()}${profBtn}`;
   $$("[data-st]", s).forEach(b => b.onclick = () => window.__showSetTab && window.__showSetTab(b.dataset.st));
   $("#setback", s) && ($("#setback", s).onclick = () => go("today"));
   $$("[data-go]", s).forEach(b => b.onclick = () => { if (b.dataset.go === "docs") docFolder = ""; go(b.dataset.go); });
+  const dch = $("#docchev", s); if (dch) { const tg = e => { e.stopPropagation(); e.preventDefault(); const open = LS.get("lumi-docs-open") !== "1"; LS.set("lumi-docs-open", open ? "1" : "0"); dch.classList.toggle("open", open); $("#doctree", s).hidden = !open; }; dch.onclick = tg; dch.onkeydown = e => { if (e.key === "Enter" || e.key === " ") tg(e); }; }
+  $$("[data-gf]", s).forEach(b => b.onclick = () => { docFolder = b.dataset.gf; docQuery = ""; go("docs/" + b.dataset.gf); });
   $("#newbtn", s) && ($("#newbtn", s).onclick = e => newMenu(e.currentTarget));
   $("#profbtn", s).onclick = e => menu(e.currentTarget, [{ label: "Einstellungen", icon: "gear", fn: () => go("settings") }, ...(CLOUD.user ? [{ label: "Abmelden", icon: "x", fn: cloudLogout }] : cloudOn() ? [{ label: "Anmelden", icon: "adduser", fn: cloudLoginModal }] : [])]);
   $("#sidetgl", s).onclick = () => { sideOpen = !sideOpen; try { localStorage.setItem("lumi-side", sideOpen ? "1" : "0"); } catch {} applyRail(); };
@@ -479,6 +481,7 @@ V.docs = (m, id) => {
   $$("[data-f]", m).forEach(c => { c.onclick = e => { if (e.target.closest("[data-fm]")) return; go("docs/" + c.dataset.f); }; c.ondragover = e => { e.preventDefault(); c.classList.add("drop"); }; c.ondragleave = () => c.classList.remove("drop"); c.ondrop = e => dropOn(e, c.dataset.f); });
   $$("[data-fm]", m).forEach(b => b.onclick = e => { e.stopPropagation(); folderMenu(b, folderOf(b.dataset.fm)); });
   $$("[data-k]", m).forEach(c => c.onclick = () => go("cards/" + c.dataset.k));
+  $$("[data-gf]", $("#side")).forEach(b => b.classList.toggle("on", b.dataset.gf === docFolder));
   $("#nf", m) && ($("#nf", m).onclick = () => newFolder());
   $$(".doc, .drow, .dtr[draggable]", m).forEach(c => c.ondragstart = e => { e.dataTransfer.setData("text/lumi-doc", c.dataset.d); e.dataTransfer.effectAllowed = "move"; });
   function dropOn(e, fid) { const did = e.dataTransfer.getData("text/lumi-doc"); if (!did) return; e.preventDefault(); e.stopPropagation(); const d = D.docs.find(x => x.id === did); if (d) { moveDoc(d, fid); toast("Verschoben nach " + (folderOf(fid)?.name || "Dokumente")); refreshNav(); V.docs(m); } }
