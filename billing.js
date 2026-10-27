@@ -27,8 +27,9 @@ const embedClose = () => document.querySelectorAll(".embk").forEach(e => { try {
 const proEmbIdle = () => { const c = BILL.cfg; return isPlus() || !(c && c.pk && c.enabled && CLOUD.user) ? "" : `<div class="proemb-idle"><i>${ic("shield")}</i><b>Sichere Bezahlung</b><p>Wähle links deinen Plan – das Zahlungsformular erscheint dann hier, ohne die Seite zu verlassen.</p></div>`; };
 async function embedInline(host, clientSecret, pk) {
   await loadStripeJs(); try { host._ck && host._ck.destroy(); } catch {}
+  const sec = host.closest(".setsec"); sec && sec.classList.add("paying");
   host.innerHTML = `<div class="proemb-box"><div class="proemb-h"><b>Bezahlung</b><button class="link" type="button" id="pe-x">Abbrechen</button></div><div class="embk-m"><i class="spin"></i></div></div>`;
-  const reset = () => { try { host._ck && host._ck.destroy(); } catch {} host._ck = null; host.innerHTML = proEmbIdle(); };
+  const reset = () => { try { host._ck && host._ck.destroy(); } catch {} host._ck = null; host.innerHTML = proEmbIdle(); sec && sec.classList.remove("paying"); };
   host.querySelector("#pe-x").onclick = reset;
   const S = Stripe(pk), init = S.initEmbeddedCheckout || S.createEmbeddedCheckoutPage;
   host._ck = await init.call(S, { clientSecret, onComplete: () => { reset(); plusAfter(); } });

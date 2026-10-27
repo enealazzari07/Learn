@@ -3300,3 +3300,7 @@ body.noscroll{overflow:hidden}
 .proemb-box{background:none;border:0;border-radius:0;box-shadow:none;overflow:visible}
 .proemb-h{border:0;padding:4px 2px 12px}
 .proemb-idle{border:0;background:none;padding:20px 8px}
+/* Beim Bezahlen füllt das Formular die ganze Seite (Stripe zeigt dann Übersicht und Zahlung nebeneinander) */
+.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr);max-width:none}
+.setsec.paying>.propanel{display:none}
+.setsec.paying .proemb-box{max-width:1080px;margin:0 auto}
