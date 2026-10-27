@@ -429,10 +429,18 @@ async function importAll(file) {
 }
 V.settings = m => {
   const p = D.profile;
-  m.innerHTML = `<div class="page setpage"><div class="hd"><div><p class="eyebrow">Persönlich</p><h1>Einstellungen</h1></div></div>
+  m.innerHTML = `<div class="page setpage"><div class="setcrumb"><span>Einstellungen</span><i>/</i><b id="setcrumb">Profil</b></div><div class="setbody">
   <nav class="settabs" role="tablist">${[["gen", "Allgemein"], ["ai", "Lumi AI"], ["acc", "Konto"], ["pro", "Pro"], ["con", "Verbindungen"], ["dat", "Daten"]].map(([k, n]) => `<button type="button" role="tab" data-s="${k}">${n}</button>`).join("")}</nav>
   <div class="setsec" data-s="gen">
-  <div class="panel"><h2>${ic("adduser")}Profil</h2><label class="lbl">Name</label><input class="field" id="sn" value="${esc(p.name)}"><p class="note" style="margin:12px 0 2px">🇨🇭 Schweiz: Noten 1–6 (6 = beste, ab 4 genügend), Lumi AI schreibt Schweizer Hochdeutsch ohne „ß“.</p><label class="lbl">Ich bin</label><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div><label class="lbl">Tagesziel (Minuten Lernzeit)</label><input class="field" id="sg" type="number" min="5" max="600" value="${p.goalMin || 45}"><label class="lbl">Notensystem</label><select class="field" id="ss">${Object.entries(SCALES).map(([k, v]) => `<option value="${k}" ${p.scale === k ? "selected" : ""}>${v.n}</option>`).join("")}</select></div>
+  ${proBannerHtml()}
+  <div class="prof-head"><span class="av-xl">${esc((p.name || CLOUD.user?.email || "L").trim()[0].toUpperCase())}</span><div><h1>${esc(p.name || "Dein Name")}</h1><p>${esc(CLOUD.user?.email || "Nicht angemeldet")}</p></div></div>
+  <div class="panel kvcard"><h2>Persönliche Angaben</h2>
+    <div class="kv"><span>Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
+    <div class="kv"><span>E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
+    <div class="kv"><span>Ich bin</span><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div></div>
+    <div class="kv"><span>Tagesziel</span><div class="kvu"><input class="field flat" id="sg" type="number" min="5" max="600" value="${p.goalMin || 45}"><small>Minuten Lernzeit</small></div></div>
+    <div class="kv"><span>Notensystem</span><select class="field flat" id="ss">${Object.entries(SCALES).map(([k, v]) => `<option value="${k}" ${p.scale === k ? "selected" : ""}>${v.n}</option>`).join("")}</select></div>
+    <p class="note kvnote">🇨🇭 Schweiz: Noten 1–6 (6 = beste, ab 4 genügend), Lumi AI schreibt Schweizer Hochdeutsch ohne „ß“.</p></div>
   <div class="panel"><h2>${ic("table")}Startseite</h2><p class="note">Ordne deine Startseite neu: Blöcke ersetzen, verschieben und größer oder kleiner ziehen – mit fertigen Vorlagen.</p><button class="btn" id="hed-open">${ic("pen")}Startseite bearbeiten</button></div>
   <div class="panel"><h2>${SUBJ()}</h2><div class="subjed">${D.subjects.map(s => `<div class="li"><input type="color" value="${s.color}" data-c="${s.id}"><input class="field slim" value="${esc(s.name)}" data-n="${s.id}"><button class="icon-btn" data-x="${s.id}" aria-label="Löschen">${ic("trash")}</button></div>`).join("")}</div><button class="btn ghost" id="as">${ic("plus")}${isUni() ? "Modul" : "Fach"} hinzufügen</button></div>
   </div><div class="setsec" data-s="ai">
@@ -456,7 +464,7 @@ V.settings = m => {
   </div><div class="setsec" data-s="dat">
   <div class="panel"><h2>Daten</h2><p class="note">Alles liegt lokal auf diesem Gerät (IndexedDB) und funktioniert offline. Erstelle regelmäßig ein Backup – z. B. um auf Handy, iPad und PC dieselben Daten zu nutzen.</p><div class="row"><button class="btn ghost" id="ex">${ic("download")}Backup exportieren</button><button class="btn ghost" id="im">${ic("upload")}Backup importieren</button><input type="file" id="imf" accept="application/json" hidden><button class="btn ghost danger" id="rs">${ic("trash")}Alles löschen</button></div></div>
   </div>
-  <div class="row end setsave"><button class="btn accent big" id="sv">Speichern</button></div></div>`;
+  <div class="row end setsave"><button class="btn accent big" id="sv">Speichern</button></div></div></div>`;
   $$("#sl button", m).forEach(b => b.onclick = () => { $$("#sl button", m).forEach(x => x.classList.toggle("on", x === b)); });
   $("#as", m).onclick = async () => { await newSubject(); V.settings(m); };
   $$("[data-x]", m).forEach(b => b.onclick = async () => { if (await confirmBox("Entfernen? Zugeordnete Dokumente bleiben erhalten.", "Entfernen")) { D.subjects = D.subjects.filter(s => s.id !== b.dataset.x); save(); V.settings(m); } });
@@ -464,8 +472,9 @@ V.settings = m => {
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
   $("#rs", m).onclick = async () => { if (await confirmBox("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.", "Alles löschen")) { indexedDB.deleteDatabase("lumi"); localStorage.clear(); setTimeout(() => location.hash = "#/", 100); setTimeout(() => location.reload(), 300); } };
   bindMsPanel(m); bindApplePanel(m); cloudBindPanel(m); plusBindPanel(m);
-  const showT = t => { window.__setTab = t; $(".setpage", m).dataset.t = t; $$(".settabs button", m).forEach(b => b.classList.toggle("on", b.dataset.s === t)); $$(".setsec", m).forEach(x => x.classList.toggle("on", x.dataset.s === t)); };
-  $$(".settabs button", m).forEach(b => b.onclick = () => showT(b.dataset.s)); showT(window.__setTab || "gen");
+  const SETN = { gen: "Profil", ai: "Lumi AI", acc: "Konto & Cloud", pro: "Lumi Pro", con: "Verbindungen", dat: "Daten" };
+  const showT = t => { window.__setTab = t; $(".setpage", m).dataset.t = t; $("#setcrumb", m).textContent = SETN[t] || ""; $$("#side [data-st]").forEach(b => b.classList.toggle("on", b.dataset.st === t)); $$(".settabs button", m).forEach(b => b.classList.toggle("on", b.dataset.s === t)); $$(".setsec", m).forEach(x => x.classList.toggle("on", x.dataset.s === t)); };
+  $$(".settabs button", m).forEach(b => b.onclick = () => showT(b.dataset.s)); window.__showSetTab = showT; showT(window.__setTab || "gen"); $("#pro-go", m)?.addEventListener("click", () => showT("pro"));
   $("#srcs", m)?.addEventListener("change", e => { p.sources = e.target.checked; save(); });
   $("#hed-open", m)?.addEventListener("click", () => homeEditor());
   $$("#ac-m button", m).forEach(b => b.onclick = () => { p.autoCorrect = b.dataset.v; save(); $$("#ac-m button", m).forEach(x => x.classList.toggle("on", x === b)); });

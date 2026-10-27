@@ -52,23 +52,31 @@ function buildShell(force) {
   app.addEventListener("drop", e => { if (e.dataTransfer?.files?.length && !e.target.closest("#boardwrap")) { e.preventDefault(); uploadFiles([...e.dataTransfer.files]); } });
   refreshNav();
 }
-let sideOpen = (() => { try { return localStorage.getItem("lumi-side") === "1"; } catch { return false; } })();
+let sideOpen = (() => { try { return localStorage.getItem("lumi-side") !== "0"; } catch { return true; } })();
 function applyRail() { const sh = $(".shell"); if (sh) sh.classList.toggle("collapsed", !sideOpen); }
 function refreshNav() {
   const s = $("#side"); if (!s) return; applyRail();
   const mob = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"]];
   const on = k => curView === k || (k === "docs" && (curView === "doc" || curView === "design")) || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
-  s.innerHTML = `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand">Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
+  const SET = [["gen", "Profil", "adduser"], ["ai", "Lumi AI", "spark"], ["acc", "Konto & Cloud", "globe"], ["pro", "Lumi Pro", "award"], ["con", "Verbindungen", "link"], ["dat", "Daten", "download"]], setMode = curView === "settings" && innerWidth > 900;
+  const profBtn = `<button class="nav-i prof hide-mob ${curView === "settings" ? "on" : ""}" id="profbtn" title="Profil"><span class="av">${esc((D.profile.name || (CLOUD.user?.email) || "L").trim()[0].toUpperCase())}</span><span class="nl pn"><b>${esc(D.profile.name || "Profil")}</b><small>${esc(CLOUD.user?.email || "Nicht angemeldet")}</small></span></button>`;
+  s.innerHTML = setMode ? `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen">${ic("menu")}</button><span class="brand">Lumi</span></div>
+  <button class="nav-i setback" id="setback" title="Zurück">${ic("back")}<span class="nl">Zurück zu Lumi</span></button>
+  <div class="nav-lbl nl">Einstellungen</div>
+  <div class="nav-grp">${SET.map(([k, l, i]) => `<button class="nav-i ${(window.__setTab || "gen") === k ? "on" : ""}" data-st="${k}" title="${l}">${ic(i)}<span class="nl">${l}</span></button>`).join("")}</div>
+  <div class="sp hide-mob"></div>${profBtn}` : `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand">Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
   <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
-  <button class="nav-i prof hide-mob ${curView === "settings" ? "on" : ""}" id="profbtn" title="Profil"><span class="av">${esc((D.profile.name || (CLOUD.user?.email) || "L").trim()[0].toUpperCase())}</span><span class="nl pn"><b>${esc(D.profile.name || "Profil")}</b><small>${esc(CLOUD.user?.email || "Nicht angemeldet")}</small></span></button>`;
+  ${profBtn}`;
+  $$("[data-st]", s).forEach(b => b.onclick = () => window.__showSetTab && window.__showSetTab(b.dataset.st));
+  $("#setback", s) && ($("#setback", s).onclick = () => go("today"));
   $$("[data-go]", s).forEach(b => b.onclick = () => { if (b.dataset.go === "docs") docFolder = ""; go(b.dataset.go); });
-  $("#newbtn", s).onclick = e => newMenu(e.currentTarget);
+  $("#newbtn", s) && ($("#newbtn", s).onclick = e => newMenu(e.currentTarget));
   $("#profbtn", s).onclick = e => menu(e.currentTarget, [{ label: "Einstellungen", icon: "gear", fn: () => go("settings") }, ...(CLOUD.user ? [{ label: "Abmelden", icon: "x", fn: cloudLogout }] : cloudOn() ? [{ label: "Anmelden", icon: "adduser", fn: cloudLoginModal }] : [])]);
   $("#sidetgl", s).onclick = () => { sideOpen = !sideOpen; try { localStorage.setItem("lumi-side", sideOpen ? "1" : "0"); } catch {} applyRail(); };
-  $("#morebtn", s).onclick = e => menu(e.currentTarget, [...NAVS, ["settings", "Einstellungen", "gear"]].filter(n => !mob.find(m => m[0] === n[0])).map(([k, l, i]) => ({ label: l, icon: i, fn: () => go(k) })));
+  $("#morebtn", s) && ($("#morebtn", s).onclick = e => menu(e.currentTarget, [...NAVS, ["settings", "Einstellungen", "gear"]].filter(n => !mob.find(m => m[0] === n[0])).map(([k, l, i]) => ({ label: l, icon: i, fn: () => go(k) }))));
 }
 function newMenu(anchor) {
   menu(anchor, [

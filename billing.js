@@ -42,3 +42,10 @@ async function plusReturn() {
   for (let i = 0; i < 8 && !isPlus(); i++) { await plusLoad(); if (!isPlus()) await new Promise(r => setTimeout(r, 2000)); }
   toast(isPlus() ? "Lumi Pro ist aktiv – viel Erfolg beim Lernen!" : "Zahlung eingegangen – die Freischaltung kann einen Moment dauern. Lade die Seite gleich neu."); if (curView === "settings") { window.__setTab = "pro"; renderView(); }
 }
+
+/* Pro-Block ganz oben in den Einstellungen */
+function proBannerHtml() {
+  const c = BILL.cfg, r = BILL.row, can = c && c.enabled && cloudOn();
+  const t = isPlus() ? (r.cancel_at_period_end ? `Gekündigt – läuft bis ${dateDE(r.current_period_end)}` : r.current_period_end ? `Aktiv · verlängert sich am ${dateDE(r.current_period_end)}` : "Aktiv") : can && c.monthly ? `Lumi AI ohne Limit – ab ${money(c.monthly)} / Monat` : can && c.yearly ? `Lumi AI ohne Limit – ${money(c.yearly)} / Jahr` : "Lumi AI ohne Limit – bald verfügbar";
+  return `<div class="probanner"><div class="pb-l"><span class="probadge">Pro</span><div><b>Lumi Pro</b><small>${t}</small></div></div><button class="btn primary" id="pro-go">${isPlus() ? "Abo verwalten" : can ? "Lumi Pro holen" : "Mehr erfahren"}</button></div>`;
+}
