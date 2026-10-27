@@ -1819,7 +1819,7 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 g>.ld{transform-box:fill-box;transform-origin:center}
 
 /* ======== v60: Logo 1:1 nach Vorlage (goldene Kachel + weiße, halbtransparente Schleife) ======== */
-.ai-ic,.aipane .ai-ic,.hai-h .ai-ic,.mark{background:url(logo-mark.png) center/84% no-repeat,linear-gradient(135deg,#f7d765 0%,#e8aa3a 100%)!important;color:transparent!important;box-shadow:none!important}
+.ai-ic,.aipane .ai-ic,.hai-h .ai-ic,.mark{background:url(logo-white.png) center/84% no-repeat,linear-gradient(135deg,#f7d765 0%,#e8aa3a 100%)!important;color:transparent!important;box-shadow:none!important}
 .ai-ic svg{display:none}
 .aipane .ai-ic{width:58px;height:58px;border-radius:19px}
 .mark{width:34px;height:34px;border-radius:11px!important;vertical-align:-9px;margin-right:8px}
@@ -1837,7 +1837,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .ai-ic svg{display:block!important;width:36px;height:36px}
 .aipane .ai-ic{width:40px;height:40px;border-radius:0!important}
 .aip-logo{width:40px;height:40px;flex:none;display:block;background:none!important}.aip-logo svg{width:100%;height:100%}
-.mark{background:url(logo-dark.png) center/contain no-repeat!important;border-radius:0!important}
+.mark{background:url(logo.png) center/contain no-repeat!important;border-radius:0!important}
 .nav-i .ic image.ld{transform-box:fill-box}
 
 /* v63: schönere Lumi-AI-Generierungs-Animation – Logo schwebt, kippt und wird von einem Lichtband durchlaufen */
@@ -3125,3 +3125,24 @@ body.hed-open{overflow:hidden}
 .kvcard>h2 svg{width:19px;height:19px}
 .kvu b{font-size:15px}
 .btn.sm{padding:7px 14px;font-size:13.5px}
+
+/* ===== Logo zentral (logo.png dunkel / logo-white.png hell) ===== */
+.brand{display:inline-flex;align-items:center}
+.brand .mark{width:28px;height:28px;margin:0 8px 0 0;vertical-align:baseline;flex:none}
+.shell.collapsed .brand{display:none}
+
+/* ===== Testphase / Abo-Status ===== */
+.subbox{margin:16px 22px 0;padding:18px 20px;border:1px solid #e2e2e8;border-radius:18px;background:#fafafb}
+.subbox b{font-size:18px;letter-spacing:-.02em;display:block}
+.subbox p{margin:6px 0 0;color:#6b6b73;font-size:14.5px;line-height:1.5}
+.trialbar{height:8px;border-radius:99px;background:#e6e6ea;margin-top:16px;overflow:hidden}
+.trialbar i{display:block;height:100%;background:#0f0f12;border-radius:99px;transition:width .5s}
+.trialnums{display:flex;justify-content:space-between;font-size:13px;color:#6b6b73;margin-top:8px;font-weight:500}
+.subacts{gap:10px;flex-wrap:wrap}
+.propanel .subbox{background:#fafafb}
+.propanel .btn.primary{background:#0f0f12!important;color:#fff!important}
+.prochip{display:flex;align-items:center;gap:10px;width:100%;margin:0 0 8px;padding:10px 12px;border:1px solid #e2e2e8;border-radius:14px;background:#fff;cursor:pointer;text-align:left;transition:border-color .15s}
+.prochip:hover{border-color:#0f0f12}
+.prochip .probadge{padding:5px 8px;font-size:10.5px}
+.prochip .pct{font-size:13.5px;font-weight:600;color:#0f0f12;line-height:1.2}
+.shell.collapsed .prochip{width:48px;padding:8px 0;justify-content:center;margin-left:auto;margin-right:auto}.shell.collapsed .prochip .pct{display:none}

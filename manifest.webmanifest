@@ -7,15 +7,22 @@
   "theme_color": "#f6f5f3",
   "icons": [
     {
-      "src": "icon-256.png",
-      "sizes": "256x256",
+      "src": "icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0a0a'/%3E%3Ccircle cx='16' cy='8' r='3.5' fill='%23fff'/%3E%3Ccircle cx='16' cy='24' r='3.5' fill='%23fff'/%3E%3Ccircle cx='8' cy='16' r='3.5' fill='%23fff'/%3E%3Ccircle cx='24' cy='16' r='3.5' fill='%23fff'/%3E%3C/svg%3E",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "description": "Lern-App für Schule und Studium",

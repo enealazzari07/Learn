@@ -14,6 +14,7 @@ function renderView() {
 }
 function route() {
   const h = location.hash.replace(/^#\/?/, "");
+  if (!h.startsWith("app") || cloudGate()) document.getElementById("hdock")?.remove();   // Chat-Leiste der Startseite nicht auf Landing/Login stehen lassen
   if (!h.startsWith("app")) { landingEl.hidden = false; appEl.hidden = true; document.title = "Lumi – Lernen, das funktioniert"; if (!landingEl.dataset.r) renderLanding(); window.scrollTo(0, 0); return; }
   landingEl.hidden = true; appEl.hidden = false; document.title = "Lumi";
   if (cloudGate()) return authScreen();
