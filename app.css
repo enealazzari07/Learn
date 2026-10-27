@@ -3309,3 +3309,23 @@ body.noscroll{overflow:hidden}
 .proemb-h{position:absolute;top:2px;right:4px;z-index:2;padding:0}
 .proemb-h b{display:none}
 .setsec.paying .proemb-box .embk-m{min-height:0}
+
+/* Pro-Vorteile links: ohne Block, animiert */
+.propanel.proside{background:none!important;border:0!important;box-shadow:none!important;padding:8px 4px 0;margin:0!important}
+.propanel.proside .probadge{display:inline-block}
+.propanel.proside h2{margin:12px 0 6px;font-size:34px;letter-spacing:-.04em;line-height:1.05;background:none;border:0;padding:0}
+.ps-lead{margin:0 0 22px;color:#5b5b63;font-size:15.5px}.ps-lead b{color:#111}
+.ps-list{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:16px}
+.ps-list li{display:flex;gap:14px;align-items:flex-start}
+.ps-list li>span{flex:none;width:38px;height:38px;border-radius:12px;background:#111;color:#fff;display:grid;place-items:center}
+.ps-list li>span svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8}.ps-list li>span image{filter:invert(1)}
+.ps-list b{display:block;font-size:15px;letter-spacing:-.01em}.ps-list small{display:block;margin-top:2px;color:#7a7a82;font-size:13px;line-height:1.45}
+.ps-fine{margin:0;color:#8a8a92;font-size:11.5px;line-height:1.55}.ps-fine a{color:inherit}
+.ps-in{opacity:0;transform:translateY(14px);animation:psIn .7s cubic-bezier(.2,.8,.2,1) forwards;animation-delay:calc(var(--d,0) * 90ms + 80ms)}
+@keyframes psIn{to{opacity:1;transform:none}}
+.propanel.proside .probadge{position:relative;overflow:hidden}
+.propanel.proside .probadge::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-120%);animation:psShine 3.2s 1s ease-in-out infinite}
+@keyframes psShine{60%,100%{transform:translateX(120%)}}
+.ps-list li{transition:transform .25s ease}.ps-list li:hover{transform:translateX(4px)}
+.setsec.paying .propanel.proside #pl-m{display:none}
+@media (prefers-reduced-motion:reduce){.ps-in{animation-duration:.01s;animation-delay:0s}.propanel.proside .probadge::after{display:none}}

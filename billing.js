@@ -102,6 +102,13 @@ function plusPanelHtml() {
   }
   if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.</p>${list}</div>`;
   if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Lumi Study Pro zu abonnieren.</p>${list}</div>`;
+  if (c.pk && c.monthly && !r) {   // Bezahlformular erscheint rechts → links nur die Vorteile, ohne Block, animiert
+    const FT = [["spark", "Lumi AI ohne Limit", "Frag so viel du willst – ohne 5-Stunden-Grenze."], ["cards", "Gemini Pro", "Das stärkste Modell: gründlichere, längere Antworten."], ["plus", "Alle kommenden Pro-Funktionen", "Neue Werkzeuge bekommst du zuerst."], ["check", "Jederzeit kündbar", "Direkt in Lumi, ohne Mail oder Anruf."], ["shield", "Mehrwertsteuer inklusive", `${money(c.monthly)} im Monat – genau der Preis, den du siehst.`]];
+    return `<div class="propanel proside"><span class="probadge ps-in" style="--d:0">Pro</span><h2 class="ps-in" style="--d:1">Lumi Study Pro</h2>
+      <p class="ps-lead ps-in" style="--d:2"><b>${trialD} Tage kostenlos testen</b>, danach ${money(c.monthly)} / Monat.</p>
+      <ul class="ps-list">${FT.map(([i, t, d], k) => `<li class="ps-in" style="--d:${k + 3}"><span>${ic(i)}</span><div><b>${t}</b><small>${d}</small></div></li>`).join("")}</ul>
+      <p class="ps-fine ps-in" style="--d:9">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
+  }
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
   return `<div class="panel propanel">${head(r ? SUB_STATUS[r.status] || "" : "")}<p class="note">${eligible ? `<b>${trialD} Tage kostenlos testen</b>, danach ${m ? money(m) + " / Monat" : y ? money(y) + " / Jahr" : "der normale Preis"}. ` : ""}Preis inkl. Mehrwertsteuer – in jeder Währung. Jederzeit kündbar.</p>${list}
     <div class="row" style="gap:10px;flex-wrap:wrap">${m ? `<button class="btn primary" id="pl-m">${eligible ? `${trialD} Tage gratis testen` : `${money(m)} / Monat`}</button>` : ""}${y ? `<button class="btn ${m ? "" : "primary"}" id="pl-y">${eligible ? `${money(y)} / Jahr · ${trialD} Tage gratis` : `${money(y)} / Jahr${save > 0 ? ` · ${save} % sparen` : ""}`}</button>` : ""}</div>
