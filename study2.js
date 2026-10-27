@@ -161,32 +161,49 @@ function activityFeed() {
   return it.filter(x => x.ts && x.ts <= Date.now() + 36e5).sort((a, b) => b.ts - a.ts).slice(0, 12);
 }
 const actWhen = ts => { const d = new Date(ts), t = d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" }), dd = daysUntil(iso(d)); return (dd === 0 ? "Heute" : dd === -1 ? "Gestern" : d.toLocaleDateString("de-CH", { day: "numeric", month: "short" })) + ", " + t; };
+let plMode = "";
+const plTint = c => /^#[0-9a-f]{6}$/i.test(c || "") ? c : "#8a8a92";
+function dayItems(i) {
+  const d = parseISO(i), dow = (d.getDay() + 6) % 7, blocks = [], allday = [];
+  D.tt.filter(e => e.day === dow).forEach(e => blocks.push({ k: "lesson", s: hm(e.start), e: hm(e.end), t: e.title || subj(e.subjectId)?.name || "Stunde", u: [subj(e.subjectId)?.name, e.room].filter(Boolean).join(" · "), id: e.id, c: plTint(subj(e.subjectId)?.color) }));
+  calEventsOn(i).forEach((e, n) => { const s = hm(e.time), c = plTint(e.color || APPLE_COLORS[(n + 3) % APPLE_COLORS.length]); if (s != null) blocks.push({ k: "event", s, e: hm(e.end || e.endTime) || s + 60, t: e.title, u: e.loc || "Kalender", c }); else allday.push({ t: e.title, u: "Termin", c }); });
+  D.tasks.filter(t => t.due === i).forEach(t => allday.push({ t: t.title, u: TYPES[t.type] || "Aufgabe", done: t.done, id: t.id, exam: t.type === "exam", c: plTint(subj(t.subjectId)?.color) }));
+  return { blocks: blocks.filter(b => b.s != null && b.e > b.s).sort((x, y) => x.s - y.s), allday };
+}
 function weekView(pb, m) {
-  if (!plWeek) plWeek = wkMon(new Date()); if (!plDay) plDay = iso();
-  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(plWeek); d.setDate(d.getDate() + i); return d; }), todayIso = iso();
-  if (!days.some(d => iso(d) === plDay)) plDay = iso(days[0]);
-  const sel = days.find(d => iso(d) === plDay), dow = (sel.getDay() + 6) % 7, a0 = 7 * 60, a1 = 21 * 60;
-  const blocks = [];
-  D.tt.filter(e => e.day === dow).forEach(e => blocks.push({ k: "lesson", s: hm(e.start), e: hm(e.end), t: e.title || subj(e.subjectId)?.name || "Stunde", u: [subj(e.subjectId)?.name, e.room].filter(Boolean).join(" · "), id: e.id }));
-  calEventsOn(plDay).forEach(e => { const s = hm(e.time); if (s != null) blocks.push({ k: "event", s, e: hm(e.end || e.endTime) || s + 60, t: e.title, u: e.loc || "Kalender" }); });
-  const allday = [...calEventsOn(plDay).filter(e => hm(e.time) == null).map(e => ({ t: e.title, u: "Termin" })), ...D.tasks.filter(t => t.due === plDay).map(t => ({ t: t.title, u: TYPES[t.type] || "Aufgabe", done: t.done, id: t.id, exam: t.type === "exam" }))];
-  const ok = blocks.filter(b => b.s != null && b.e > b.s).map(b => ({ ...b, s: Math.max(b.s, a0), e: Math.min(b.e, a1) }));
-  const px = 56, now = new Date(), nm = now.getHours() * 60 + now.getMinutes(), showNow = plDay === todayIso && nm >= a0 && nm <= a1;
-  const wl = days[0].toLocaleDateString("de-CH", { month: "long", year: "numeric" });
+  if (!plMode) { try { plMode = localStorage.getItem("lumi-plmode") || "week"; } catch { plMode = "week"; } } if (!plDay) plDay = iso();
+  const cur = parseISO(plDay), todayIso = iso(), mon = wkMon(cur), A0 = 7 * 60, A1 = 21 * 60, px = 56, now = new Date(), nm = now.getHours() * 60 + now.getMinutes();
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(d.getDate() + i); return d; });
+  const fmt = (d, o) => d.toLocaleDateString("de-CH", o);
+  const label = plMode === "day" ? fmt(cur, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : plMode === "week" ? fmt(days[0], { day: "numeric", month: "short" }) + " – " + fmt(days[6], { day: "numeric", month: "short", year: "numeric" }) : plMode === "month" ? fmt(cur, { month: "long", year: "numeric" }) : "Quartal " + (Math.floor(cur.getMonth() / 3) + 1) + " · " + cur.getFullYear();
+  const blk = (b, w = "") => `<button class="plw-b ${b.k}" ${b.id ? `data-l="${b.id}"` : ""} style="--c:${b.c};top:${(Math.max(b.s, A0) - A0) / 60 * px}px;height:${Math.max(44, (Math.min(b.e, A1) - Math.max(b.s, A0)) / 60 * px - 4)}px"><b>${esc(b.t)}</b><small>${pad(Math.floor(b.s / 60))}:${pad(b.s % 60)}–${pad(Math.floor(b.e / 60))}:${pad(b.e % 60)}${b.u && !w ? " · " + esc(b.u) : ""}</small></button>`;
+  const chip = a => `<button class="plw-chip ${a.done ? "done" : ""} ${a.exam ? "exam" : ""}" style="--c:${a.c}" ${a.id ? `data-t="${a.id}"` : ""}><b>${esc(a.t)}</b><small>${esc(a.u)}</small></button>`;
+  const hours = Array.from({ length: (A1 - A0) / 60 }, (_, i) => `<div class="plw-h" style="top:${i * px}px"><span>${pad(7 + i)}:00</span></div>`).join("");
+  const nowLine = `<div class="plw-now" style="top:${(nm - A0) / 60 * px}px"><em>${now.getHours()}:${pad(now.getMinutes())}</em></div>`;
+  const mcells = (y, mo) => { const off = (new Date(y, mo, 1).getDay() + 6) % 7, dim = new Date(y, mo + 1, 0).getDate(); return [...Array(off).fill(null), ...Array.from({ length: dim }, (_, i) => new Date(y, mo, i + 1))]; };
+  let body = "";
+  if (plMode === "day" || plMode === "week") {
+    const list = plMode === "day" ? [cur] : days;
+    const pills = `<div class="plw-days">${days.map(d => { const i = iso(d); return `<button class="plw-d ${i === plDay ? "on" : ""} ${i === todayIso ? "today" : ""}" data-d="${i}"><b>${d.getDate()}</b><small>${fmt(d, { weekday: "short" }).replace(".", "")}</small></button>`; }).join("")}</div>`;
+    const cols = list.map(d => { const i = iso(d), it = dayItems(i); return { i, d, it }; });
+    body = (plMode === "day" ? pills : "") + `<div class="plw-wk ${plMode}" style="--n:${cols.length}">` + (plMode === "week" ? `<div class="plw-wh"><span></span>${cols.map(c => `<button class="plw-wd ${c.i === todayIso ? "today" : ""}" data-d="${c.i}" data-go="day"><small>${fmt(c.d, { weekday: "short" }).replace(".", "")}</small><b>${c.d.getDate()}</b></button>`).join("")}</div>` : "") +
+      (cols.some(c => c.it.allday.length) ? `<div class="plw-ah"><span></span>${cols.map(c => `<div>${c.it.allday.map(chip).join("")}</div>`).join("")}</div>` : "") +
+      `<div class="plw-grid" style="height:${(A1 - A0) / 60 * px}px"><div class="plw-hrs">${hours}</div><div class="plw-cols">${cols.map(c => `<div class="plw-col">${c.it.blocks.map(b => blk(b, plMode === "week" ? "w" : "")).join("")}${c.i === todayIso && nm >= A0 && nm <= A1 ? nowLine : ""}</div>`).join("")}</div>${cols.every(c => !c.it.blocks.length && !c.it.allday.length) ? `<p class="plw-empty">Nichts geplant. Füge Stunden im Stundenplan oder Aufgaben mit Datum hinzu.</p>` : ""}</div></div>`;
+  } else if (plMode === "month") {
+    const cells = mcells(cur.getFullYear(), cur.getMonth());
+    body = `<div class="plw-mon">${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(x => `<div class="plw-mh">${x}</div>`).join("")}${cells.map(d => { if (!d) return `<div class="plw-mc empty"></div>`; const i = iso(d), it = dayItems(i), all = [...it.blocks.map(b => ({ t: b.t, c: b.c })), ...it.allday.map(a => ({ t: a.t, c: a.c, done: a.done }))]; return `<button class="plw-mc ${i === todayIso ? "today" : ""}" data-d="${i}" data-go="day"><b>${d.getDate()}</b>${all.slice(0, 3).map(x => `<i style="--c:${x.c}" class="${x.done ? "done" : ""}">${esc(x.t)}</i>`).join("")}${all.length > 3 ? `<em>+${all.length - 3}</em>` : ""}</button>`; }).join("")}</div>`;
+  } else {
+    const q = Math.floor(cur.getMonth() / 3) * 3;
+    body = `<div class="plw-qtr">${[0, 1, 2].map(k => { const y = cur.getFullYear(), mo = q + k, cells = mcells(y, mo); return `<div class="plw-qm"><button class="plw-qt" data-d="${iso(new Date(y, mo, 1))}" data-go="month">${fmt(new Date(y, mo, 1), { month: "long" })}</button><div class="plw-qg">${["M", "D", "M", "D", "F", "S", "S"].map(x => `<small>${x}</small>`).join("")}${cells.map(d => { if (!d) return "<span></span>"; const i = iso(d), it = dayItems(i), n = it.blocks.length + it.allday.length, c = (it.blocks[0] || it.allday[0] || {}).c; return `<button class="${i === todayIso ? "today" : ""} ${n ? "has" : ""}" data-d="${i}" data-go="day" ${n ? `style="--c:${c}"` : ""}>${d.getDate()}</button>`; }).join("")}</div></div>`; }).join("")}</div>`;
+  }
   const feed = activityFeed();
-  pb.innerHTML = `<div class="plw"><section class="plw-main"><div class="plw-hd"><button class="icon-btn" id="wp" aria-label="Vorherige Woche">${ic("back")}</button><b>${wl}</b><button class="icon-btn" id="wn" aria-label="Nächste Woche" style="transform:scaleX(-1)">${ic("back")}</button><button class="btn ghost small" id="wt">Heute</button></div>
-  <div class="plw-days">${days.map(d => { const i = iso(d); return `<button class="plw-d ${i === plDay ? "on" : ""} ${i === todayIso ? "today" : ""}" data-d="${i}"><b>${d.getDate()}</b><small>${d.toLocaleDateString("de-CH", { weekday: "short" }).replace(".", "")}</small></button>`; }).join("")}</div>
-  ${allday.length ? `<div class="plw-all">${allday.map(a => `<button class="plw-chip ${a.done ? "done" : ""} ${a.exam ? "exam" : ""}" ${a.id ? `data-t="${a.id}"` : ""}><b>${esc(a.t)}</b><small>${esc(a.u)}</small></button>`).join("")}</div>` : ""}
-  <div class="plw-grid" style="--px:${px}px;height:${(a1 - a0) / 60 * px}px">${Array.from({ length: (a1 - a0) / 60 }, (_, i) => `<div class="plw-h" style="top:${i * px}px"><span>${pad(7 + i)}:00</span></div>`).join("")}
-  ${ok.map(b => `<button class="plw-b ${b.k}" ${b.id ? `data-l="${b.id}"` : ""} style="top:${(b.s - a0) / 60 * px}px;height:${Math.max(44, (b.e - b.s) / 60 * px - 4)}px"><b>${esc(b.t)}</b><small>${pad(Math.floor(b.s / 60))}:${pad(b.s % 60)}–${pad(Math.floor(b.e / 60))}:${pad(b.e % 60)}${b.u ? " · " + esc(b.u) : ""}</small></button>`).join("")}
-  ${showNow ? `<div class="plw-now" style="top:${(nm - a0) / 60 * px}px"><em>${now.getHours()}:${pad(now.getMinutes())}</em></div>` : ""}
-  ${!ok.length && !allday.length ? `<p class="plw-empty">Nichts geplant. Füge Stunden im Stundenplan oder Aufgaben mit Datum hinzu.</p>` : ""}</div></section>
+  pb.innerHTML = `<div class="plw"><section class="plw-main"><div class="plw-hd"><button class="icon-btn" id="wp" aria-label="Zurück">${ic("back")}</button><b>${esc(label)}</b><button class="icon-btn" id="wn" aria-label="Weiter" style="transform:scaleX(-1)">${ic("back")}</button><div class="plw-sw" role="tablist">${[["day", "Tag"], ["week", "Woche"], ["month", "Monat"], ["quarter", "Quartal"]].map(([k, l]) => `<button class="${plMode === k ? "on" : ""}" data-pm="${k}">${l}</button>`).join("")}</div><button class="btn ghost small" id="wt">Heute</button></div>${body}</section>
   <aside class="plw-act"><h3>Aktivität</h3>${feed.length ? `<ol>${feed.map(a => `<li><span class="plw-ai">${ic(a.ic)}</span><div><small>${actWhen(a.ts)}</small><b>${esc(a.h)}</b><em>${esc(a.s)}</em></div></li>`).join("")}</ol>` : `<p class="note">Sobald du lernst, Aufgaben abhakst oder Noten einträgst, erscheint hier dein Verlauf.</p>`}</aside></div>`;
-  const go2 = () => V.planner(m);
-  $("#wp", pb).onclick = () => { plWeek.setDate(plWeek.getDate() - 7); plDay = iso(plWeek); go2(); };
-  $("#wn", pb).onclick = () => { plWeek.setDate(plWeek.getDate() + 7); plDay = iso(plWeek); go2(); };
-  $("#wt", pb).onclick = () => { plWeek = wkMon(new Date()); plDay = iso(); go2(); };
-  $$("[data-d]", pb).forEach(b => b.onclick = () => { plDay = b.dataset.d; go2(); });
+  const redo = () => V.planner(m), step = n => { const d = new Date(cur); if (plMode === "day") d.setDate(d.getDate() + n); else if (plMode === "week") d.setDate(d.getDate() + 7 * n); else if (plMode === "month") d.setMonth(d.getMonth() + n, 1); else d.setMonth(d.getMonth() + 3 * n, 1); plDay = iso(d); redo(); };
+  $("#wp", pb).onclick = () => step(-1); $("#wn", pb).onclick = () => step(1);
+  $("#wt", pb).onclick = () => { plDay = iso(); redo(); };
+  $$("[data-pm]", pb).forEach(b => b.onclick = () => { plMode = b.dataset.pm; try { localStorage.setItem("lumi-plmode", plMode); } catch {} redo(); });
+  $$("[data-d]", pb).forEach(b => b.onclick = () => { plDay = b.dataset.d; if (b.dataset.go) { plMode = b.dataset.go; try { localStorage.setItem("lumi-plmode", plMode); } catch {} } redo(); });
   $$("[data-t]", pb).forEach(b => b.onclick = () => taskModal(D.tasks.find(x => x.id === b.dataset.t)));
   $$("[data-l]", pb).forEach(b => b.onclick = () => ttModal(0, D.tt.find(x => x.id === b.dataset.l)));
 }
