@@ -3519,3 +3519,33 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .setcrumb .settabs{margin:0 0 0 14px;flex:0 1 auto;min-width:0}
 .setcrumb .theme-tg{margin-left:auto}
 @media(max-width:900px){.setcrumb .settabs{order:5;margin:0;width:100%}.setcrumb .theme-tg{order:4}}
+
+/* Dokumente: Titel wie auf den anderen Seiten, linksbündig; „Zuletzt benutzt“ rechts neben den Ordnern */
+@media (min-width:901px){
+  #app #main.doc-full .docsed>.ned-bar{display:flex!important;align-items:flex-end;justify-content:space-between;gap:14px;padding:28px 28px 6px!important;box-shadow:none;border:0;background:none}
+  #app #main.doc-full .docspaper{padding-left:28px!important;padding-right:28px!important}
+}
+.docsed .nb-l{flex:1;min-width:0}.docsed .nb-r{flex:none}.docsed .docs-tools{flex:none}
+.docsed .docs-t{flex-direction:column-reverse;gap:0;align-items:flex-start}
+.docsed .docs-t>b{font-size:clamp(30px,3.6vw,44px);letter-spacing:-.045em;line-height:1.02;font-weight:700;max-width:none;overflow:visible;cursor:default;padding:0;margin:0}
+.docsed .docs-t>b:hover{background:none}
+.docsed .path{margin-bottom:6px;padding:0}.docsed .path button,.docsed .path span{font-size:13px;font-weight:600;color:var(--muted,#8a8a92)}
+.docsed .path button{padding:0 2px}.docsed .path button.here{color:var(--muted,#8a8a92);font-weight:600}.docsed .path button:not(.here):hover{color:#111;background:none}
+.dtop{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,320px);gap:28px;align-items:start}
+.dtl{min-width:0}
+.drc{margin-top:0}
+.drc .dsec{margin-top:22px}
+.drr{display:flex;align-items:center;gap:11px;width:100%;padding:7px 8px;border:0;background:none;border-radius:12px;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.drr:hover{background:#f5f5f7}
+.drr .dk{flex:none}
+.drr span{min-width:0;display:flex;flex-direction:column}
+.drr b{font-size:13.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drr small{font-size:12px;color:#9a9aa3}
+@media(max-width:900px){.dtop{grid-template-columns:1fr;gap:0}.docsed .docs-t>b{font-size:30px}}
+@media (min-width:901px){#app #main.doc-full .docsed>.ned-bar{height:auto!important;min-height:0;position:static;margin-bottom:6px}}
+.dtop{grid-template-columns:minmax(0,1fr) 250px;gap:16px}
+@media (min-width:901px){#app #main.doc-full .docspaper{padding-left:20px!important}}
+.dtl{position:relative}
+.docspaper .dtl .items.fgrid>.fold.add{position:absolute;top:10px;right:0;width:auto!important;height:auto!important;min-height:0;flex-direction:row;gap:6px;padding:6px 12px 6px 10px;border:0;border-radius:999px;background:#f3f3f5;font-size:12.5px}
+.docspaper .dtl .items.fgrid>.fold.add:hover{background:#e9e9ec}
+.dtl .fold.add svg{width:14px;height:14px}
