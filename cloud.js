@@ -66,7 +66,7 @@ async function cloudInit() {
   addEventListener("online", cloudPush);
 }
 async function cloudAfterLogin() {
-  try { await plusLoad(); if (!BILL.row) await plusSync(); } catch {}
+  plusLoad(false).then(() => { try { refreshNav(); if (curView === "settings") renderView(); } catch {} }).catch(() => {});
   try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); }
   toast("Angemeldet – Daten werden synchronisiert"); $("#app").innerHTML = ""; route();
 }

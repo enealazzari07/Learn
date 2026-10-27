@@ -3157,3 +3157,15 @@ body.hed-open{overflow:hidden}
 .trialpill{display:inline-flex;align-items:center;margin-top:10px;padding:7px 14px;border-radius:999px;background:#0f0f12;color:#fff;font-size:13.5px;font-weight:600;letter-spacing:-.005em}
 .trialpill.end{background:#ececf0;color:#0f0f12}
 .prof-head p{margin-bottom:0}
+
+/* ===== Abo-Details (1:1 aus Stripe) ===== */
+.kvlist{margin:16px 22px 0;border:1px solid #ececf0;border-radius:16px;overflow:hidden;background:#fff}
+.kvlist>div{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:12px;padding:11px 16px;border-bottom:1px dashed #e2e2e8;font-size:14.5px}
+.kvlist>div:last-child{border-bottom:0}
+.kvlist span{color:#6b6b73}.kvlist b{font-weight:600;color:#0f0f12;word-break:break-word}
+.kvlist code{font:500 12.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;background:#f1f1f4;border-radius:6px;padding:2px 6px;color:#3a3a42}
+.invl{margin:18px 22px 0}.invl h3{font-size:15px;margin:0 0 8px;letter-spacing:-.01em}
+.inv{display:grid;grid-template-columns:96px 1fr auto 96px 70px;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid #f0f0f3;font-size:14px}
+.inv:last-child{border-bottom:0}.inv span{color:#6b6b73}.inv em{font-style:normal;font-size:12.5px;font-weight:600;background:#ececf0;border-radius:99px;padding:4px 10px;text-align:center}.inv em.ok{background:#e4f5ea;color:#17613a}
+.inv a{color:#0f0f12;font-weight:600;text-decoration:underline;text-align:right}
+@media (max-width:560px){.kvlist>div{grid-template-columns:1fr;gap:2px}.inv{grid-template-columns:1fr auto;row-gap:2px}.inv span:first-child{grid-column:1/-1}.inv em,.inv a{justify-self:start}}

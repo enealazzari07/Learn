@@ -13,4 +13,4 @@ Trage einmalig die Azure-„Anwendungs-(Client-)ID“ in `config.js` ein (`msCli
 Die KI läuft serverseitig über `api/ai.js`. In Vercel unter *Settings → Environment Variables* `GEMINI_API_KEY` setzen (kostenloser Key: https://aistudio.google.com/apikey), optional `GEMINI_MODEL` (Standard `gemini-2.5-flash-lite`), danach neu deployen. Der Key bleibt auf dem Server.
 
 ## Bezahlung (Lumi Study Pro mit Stripe Managed Payments)
-Abo-Zahlungen über Stripe Checkout mit Managed Payments (Stripe ist Verkäufer und übernimmt Mehrwertsteuer in 80+ Ländern), Status in Supabase. Einrichtung Schritt für Schritt: [docs/PAYMENTS.md](docs/PAYMENTS.md). Rechtstexte: `legal.html` (Angaben in `config.js` → `legal`).
+Abo-Zahlungen über Stripe Checkout mit Managed Payments (Stripe ist Verkäufer und übernimmt Mehrwertsteuer in 80+ Ländern). Das Abo wird live aus Stripe gelesen, nichts davon liegt in unserer Datenbank. Einrichtung Schritt für Schritt: [docs/PAYMENTS.md](docs/PAYMENTS.md). Rechtstexte: `legal.html` (Angaben in `config.js` → `legal`).

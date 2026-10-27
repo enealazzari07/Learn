@@ -76,7 +76,7 @@ module.exports = async function handler(req, res) {
   if (FREE_DAILY && !bg) {   // optional: AI_FREE_DAILY=30 → Gratis-Konten haben 30 KI-Anfragen pro Tag, Lumi Study Pro unbegrenzt (Hintergrund-Korrektur zählt nicht)
     try {
       const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte melde dich an, um Lumi AI zu nutzen." });
-      if (!L.isPlusRow(await L.getSubscription(user.id)) && !(await L.sb("POST", "rpc/lumi_ai_bump", { p_user: user.id, p_limit: FREE_DAILY })))
+      if (!(await L.isProLive(user.id)) && !(await L.sb("POST", "rpc/lumi_ai_bump", { p_user: user.id, p_limit: FREE_DAILY })))
         return res.status(429).json({ error: `Tageslimit erreicht (${FREE_DAILY} KI-Anfragen). Mit Lumi Study Pro nutzt du Lumi AI unbegrenzt.`, limit: true });
     } catch (e) { return res.status(503).json({ error: "Limit-Prüfung nicht erreichbar: " + e.message }); }
   }

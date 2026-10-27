@@ -1,20 +1,8 @@
--- Lumi Plus: Abo-Status und KI-Tageszähler. Einmalig im Supabase SQL-Editor ausführen.
--- Geschrieben wird nur serverseitig (Service-Role-Key in Vercel); Nutzer:innen dürfen ihren eigenen Status lesen.
+-- Optional: KI-Tageszähler für Gratis-Konten (AI_FREE_DAILY). Einmalig im Supabase SQL-Editor ausführen.
+-- Geschrieben wird nur serverseitig (Service-Role-Key in Vercel).
 
-create table if not exists public.lumi_subscriptions (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  stripe_customer_id text unique,
-  stripe_subscription_id text unique,
-  status text not null default 'inactive',
-  price_id text,
-  interval text,
-  current_period_end timestamptz,
-  cancel_at_period_end boolean not null default false,
-  updated_at timestamptz not null default now()
-);
-alter table public.lumi_subscriptions enable row level security;
-drop policy if exists "own subscription readable" on public.lumi_subscriptions;
-create policy "own subscription readable" on public.lumi_subscriptions for select using ((select auth.uid()) = user_id);
+-- Das Abo liegt nicht mehr in der Datenbank, sondern wird live aus Stripe gelesen. Alte Tabelle aus früheren Versionen entfernen:
+drop table if exists public.lumi_subscriptions;
 
 create table if not exists public.lumi_ai_usage (
   user_id uuid not null references auth.users(id) on delete cascade,

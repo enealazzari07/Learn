@@ -27,7 +27,7 @@ async function plans() {
           const add = (cur, cents) => { if (cents && !(cur in opts)) { opts[cur] = cents; ids[cur] = p.id; } };
           add(p.currency, p.unit_amount); Object.entries(p.currency_options || {}).forEach(([c, v]) => add(c, v.unit_amount));
         }
-        out[k] = { price: list[0].id, cents: list[0].unit_amount, opts, ids }; out.currency = list[0].currency;
+        out[k] = { price: list[0].id, cents: list[0].unit_amount, opts, ids, product: list[0].product.id }; out.currency = list[0].currency;
       }
     } catch (e) { if (priceCache.v) return priceCache.v; }
   }
@@ -40,7 +40,7 @@ const EUROPA = EURO.concat("AL BA BG CZ DK GB HU IS MK NO PL RO RS SE UA XK TR".
 const currencyOfCountry = c => { c = String(c || "").toUpperCase(); return !c || c === "XX" ? "" : c === "CH" || c === "LI" ? "chf" : EUROPA.includes(c) ? "eur" : "usd"; };
 const currencyFor = (req, avail, country) => { const c = String(country || req?.headers?.["x-vercel-ip-country"] || "").toUpperCase(), want = currencyOfCountry(c) || (c ? "usd" : ""); return want && (!avail || avail.includes(want)) ? want : (avail?.[0] || want || "eur"); };
 const CURRENCY = () => String(process.env.PLUS_CURRENCY || "eur").toLowerCase();
-const billingReady = async () => { const P = await plans(); return !!(stripeKey() && SB_SERVICE() && process.env.STRIPE_WEBHOOK_SECRET && (P.monthly.price || P.yearly.price)); };
+const billingReady = async () => { const P = await plans(); return !!(stripeKey() && (P.monthly.price || P.yearly.price)); };
 
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
 const siteUrl = req => String(process.env.SITE_URL || "").replace(/\/+$/, "") || `https://${req.headers.host}`;
@@ -104,29 +104,47 @@ async function sb(method, path, body, extra = {}) {
   if (!r.ok) throw Object.assign(new Error(j?.message || "Datenbankfehler " + r.status), { status: r.status });
   return j;
 }
-const getSubscription = async uid => (await sb("GET", `lumi_subscriptions?user_id=eq.${encodeURIComponent(uid)}&select=*&limit=1`))?.[0] || null;
-const isPlusRow = s => !!s && ["active", "trialing", "past_due"].includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5);
 
-/* Abo-Zeile in Supabase schreiben (Webhook und Abgleich nutzen dieselbe Funktion) */
-async function saveSubscription(sub, fallbackUser) {
-  let uid = sub.metadata?.user_id || fallbackUser;
-  if (!uid) { const r = await sb("GET", `lumi_subscriptions?stripe_customer_id=eq.${encodeURIComponent(sub.customer)}&select=user_id&limit=1`); uid = r?.[0]?.user_id; }
-  if (!uid) return null;   // gehört nicht zu Lumi
-  const item = sub.items?.data?.[0], end = sub.status === "trialing" && sub.trial_end ? sub.trial_end : (sub.current_period_end || item?.current_period_end);
-  await sb("POST", "lumi_subscriptions?on_conflict=user_id", {
-    user_id: uid, stripe_customer_id: sub.customer, stripe_subscription_id: sub.id, status: sub.status, price_id: item?.price?.id || null,
-    interval: item?.price?.recurring?.interval || null, current_period_end: end ? new Date(end * 1000).toISOString() : null,
-    cancel_at_period_end: !!sub.cancel_at_period_end, updated_at: new Date().toISOString(),
-  }, { Prefer: "resolution=merge-duplicates,return=minimal" });
-  return uid;
+/* ===== Abo live aus Stripe lesen (keine eigene Datenbank) ===== */
+const ACTIVE = ["active", "trialing", "past_due"], subCache = new Map();
+const iso = t => t ? new Date(t * 1000).toISOString() : null;
+function shapeSub(sub, invoices = []) {
+  const it = sub.items?.data?.[0] || {}, pr = it.price || {}, pm = sub.default_payment_method && typeof sub.default_payment_method === "object" ? sub.default_payment_method : null, card = pm?.card;
+  const end = sub.status === "trialing" && sub.trial_end ? sub.trial_end : (sub.current_period_end || it.current_period_end);
+  return {
+    id: sub.id, customer: typeof sub.customer === "string" ? sub.customer : sub.customer?.id, status: sub.status,
+    interval: pr.recurring?.interval || null, amount: pr.unit_amount ?? null, currency: pr.currency || null, tax_behavior: pr.tax_behavior || null,
+    created: iso(sub.start_date || sub.created), trial_end: iso(sub.trial_end), current_period_end: iso(end), cancel_at_period_end: !!sub.cancel_at_period_end, cancel_at: iso(sub.cancel_at), canceled_at: iso(sub.canceled_at), ended_at: iso(sub.ended_at),
+    card: card ? { brand: card.brand, last4: card.last4, exp_month: card.exp_month, exp_year: card.exp_year } : null,
+    invoices: invoices.map(i => ({ number: i.number, created: iso(i.created), total: i.total, currency: i.currency, status: i.status, tax: i.tax ?? null, url: i.hosted_invoice_url || null, pdf: i.invoice_pdf || null })),
+  };
 }
-/* Abgleich ohne Webhook: neueste abgeschlossene Checkout-Sitzung dieses Kontos suchen und sein Abo laden */
-async function syncUserSubscription(uid) {
-  const j = await stripe("GET", "/checkout/sessions", { limit: 50 });
-  const s = (j.data || []).filter(x => x.mode === "subscription" && x.status === "complete" && x.subscription && (x.client_reference_id === uid || x.metadata?.user_id === uid)).sort((a, b) => b.created - a.created)[0];
-  if (!s) return null;
-  const sub = await stripe("GET", "/subscriptions/" + (typeof s.subscription === "string" ? s.subscription : s.subscription.id));
-  await saveSubscription(sub, uid); return sub;
+/* Das Abo eines Kontos finden: Stripe-Suche über die Konto-ID (metadata.user_id), Fallback über die Checkout-Sitzungen (sofort aktuell) */
+async function findSubscription(uid) {
+  let list = [];
+  try { const j = await stripe("GET", "/subscriptions/search", { query: `metadata['user_id']:'${uid}'`, limit: 20, expand: ["data.default_payment_method"] }); list = j.data || []; } catch {}
+  if (!list.length) {
+    try {
+      const j = await stripe("GET", "/checkout/sessions", { limit: 100 });
+      const ss = (j.data || []).filter(x => x.mode === "subscription" && x.status === "complete" && x.subscription && (x.client_reference_id === uid || x.metadata?.user_id === uid)).sort((a, b) => b.created - a.created);
+      for (const x of ss.slice(0, 3)) { list.push(await stripe("GET", "/subscriptions/" + (typeof x.subscription === "string" ? x.subscription : x.subscription.id), { expand: ["default_payment_method"] })); }
+    } catch {}
+  }
+  if (!list.length) return null;
+  const rank = x => (ACTIVE.includes(x.status) ? 1e12 : 0) + (x.created || 0);
+  return list.sort((a, b) => rank(b) - rank(a))[0];
 }
+async function liveSubscription(uid, { fresh = false, withInvoices = false } = {}) {
+  const c = subCache.get(uid);
+  if (!fresh && !withInvoices && c && Date.now() - c.at < 20000) return c.v;
+  const sub = await findSubscription(uid); let v = null;
+  if (sub) {
+    let inv = []; if (withInvoices) { try { inv = (await stripe("GET", "/invoices", { subscription: sub.id, limit: 6 })).data || []; } catch {} }
+    v = shapeSub(sub, inv);
+  }
+  subCache.set(uid, { at: Date.now(), v }); return v;
+}
+const isProLive = async uid => { try { const s = await liveSubscription(uid); return !!s && ACTIVE.includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5); } catch { return false; } };
+const dropSubCache = uid => subCache.delete(uid);
 
-module.exports = { saveSubscription, syncUserSubscription, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb, getSubscription, isPlusRow };
+module.exports = { liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
