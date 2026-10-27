@@ -3101,3 +3101,27 @@ body.hed-open{overflow:hidden}
 .obx-back:hover,.obx-skip:hover{background:#f3f3f4;color:#0f0f12}
 @media (max-width:560px){.obx{padding:0;align-items:end}.obx-card{border-radius:28px 28px 0 0;padding:20px 20px 24px;max-height:100dvh}.obx-cards{grid-template-columns:1fr}.obx-body{min-height:0}}
 @media (max-width:560px){.obx-foot{flex-wrap:wrap}.obx-acts{flex:1;justify-content:flex-end}.obx-go{padding:14px 20px;font-size:15px;white-space:nowrap}.obx-skip,.obx-back{padding:12px 8px}.obx-pro-h b{white-space:nowrap;font-size:16px}.obx-pro-h em{font-size:12px;white-space:nowrap;padding:5px 10px}}
+
+/* ===== Noten: Fächer verwalten ===== */
+.subjsec{margin:6px 0 26px}
+.subjhd{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:14px}
+.subjhd h2{font-size:22px;letter-spacing:-.03em;margin:0}.subjhd .note{margin:4px 0 0}
+.subjgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.scard{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #ececf0;border-radius:20px;padding:12px 12px 12px 14px;transition:border-color .15s,box-shadow .15s}
+.scard:hover,.scard:focus-within{border-color:#cfcfd8;box-shadow:0 6px 20px -14px rgba(15,15,18,.4)}
+.scol{position:relative;width:38px;height:38px;border-radius:12px;background:var(--c);flex:none;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.35)}
+.scol input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;padding:0;border:0}
+.sinfo{display:flex;flex-direction:column;min-width:0;flex:1}
+.sname{border:0;background:transparent;font:600 16px/1.2 inherit;letter-spacing:-.01em;padding:3px 6px;margin:-3px -6px;border-radius:8px;width:100%;color:#0f0f12;outline:0}
+.sname:hover{background:#f6f6f8}.sname:focus{background:#f1f1f4}
+.sinfo small{color:#8a8a93;font-size:13px;margin-top:2px}.sinfo small b{font-weight:700}
+.scard .icon-btn{opacity:0;transition:opacity .15s;flex:none}.scard:hover .icon-btn,.scard:focus-within .icon-btn{opacity:.7}.scard .icon-btn:hover{opacity:1}
+@media (hover:none){.scard .icon-btn{opacity:.6}}
+.scard.add{justify-content:center;gap:8px;border:1.5px dashed #d4d4dc;background:transparent;color:#6b6b73;font-weight:600;font-size:15px;min-height:64px;cursor:pointer}
+.scard.add:hover{border-color:#0f0f12;color:#0f0f12;background:#fafafb;box-shadow:none}
+.scard.add svg{width:18px;height:18px}
+@media (max-width:560px){.subjhd{flex-direction:column;align-items:stretch}}
+/* Profil: Karten mit Symbol */
+.kvcard>h2 svg{width:19px;height:19px}
+.kvu b{font-size:15px}
+.btn.sm{padding:7px 14px;font-size:13.5px}
