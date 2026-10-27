@@ -37,7 +37,7 @@ Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in St
 | `SITE_URL` | optional, z. B. `https://lumi.example.ch` |
 | `STRIPE_API_VERSION` | optional, Standard `2025-03-31.basil` |
 | `STRIPE_MANAGED_PAYMENTS` | `off` schaltet Managed Payments für Tests ab |
-| `PRO_MONTHLY_CENTS` | Monatspreis in Rappen/Cent, in jeder Währung (Standard `600` = 6) – überschreibt die Beträge der Stripe-Preise |
+| `PRO_MONTHLY_CENTS` | optional: Monatspreis in Rappen/Cent, in jeder Währung – überschreibt die Stripe-Preise. Ohne Angabe gelten die Preise des Produkts in Stripe |
 | `PRO_YEARLY_DISCOUNT` | Rabatt des Jahresabos in % gegenüber 12 Monaten (Standard `40`); der Jahrespreis wird daraus berechnet, wenn Stripe keinen eigenen Jahrespreis hat. Alternativ `PRO_YEARLY_CENTS` fest |
 | `PRO_TRIAL_DAYS` | Testversion in Tagen, Standard `14` |
 | `AI_FREE_WINDOW_TOKENS` | KI-Token pro Zeitfenster für Gratis-Konten (Standard `5000` Lumi-Token = echte Token ÷ 10, `0` = unbegrenzt) |

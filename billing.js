@@ -108,7 +108,7 @@ function plusPanelHtml() {
   if (c.pk && c.monthly && !r) {   // Plan-Auswahl links, Bezahlformular rechts
     const m = c.monthly, y = c.yearly, cur = window.__plan || "trial", save = y ? Math.max(0, m * 12 - y) : 0, pct = y && m ? Math.round(save / (m * 12) * 100) : 0;
     const P = [["trial", `${trialD} Tage gratis testen`, `Danach ${money(m)} pro Monat. Nur einmal pro Konto möglich – jederzeit vorher kündbar.`, "Gratis"],
-      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${pct} % (${money(save)}) gegenüber 12 Monaten – nur ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Lumi Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
+      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${pct} % (${money(save)}) – nur ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Lumi Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
     return `<div class="propanel proside"><span class="probadge">Pro</span><h2>Lumi Study Pro</h2><p class="ps-lead">Wähle deinen Plan. Mehrwertsteuer ist immer inklusive.</p>
       <div class="pp-plans" role="radiogroup">${P.map(([k, t, d, pr], i) => `<button type="button" class="pp-card${k === cur ? " on" : ""}" data-plan="${k}" role="radio" aria-checked="${k === cur}" style="--d:${i}"><i class="pp-dot"></i><span class="pp-t"><b>${t}</b><small>${d}</small></span><span class="pp-pr">${pr}</span>${k === "trial" ? `<em>Neu</em>` : k === "yearly" && pct ? `<em>−${pct} %</em>` : ""}</button>`).join("")}</div>
       <p class="ps-fine">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
@@ -144,6 +144,7 @@ async function plusReturn() {
 async function plusAfter() {
   window.__setTab = "pro"; toast("Danke! Deine Testversion wird geladen …");
   for (let i = 0; i < 8 && !isPlus(); i++) { await plusLoad(true); if (!isPlus()) await new Promise(r => setTimeout(r, 2000)); }
+  if (isPlus()) confetti();
   toast(isPlus() ? "Lumi Study Pro ist aktiv – viel Erfolg beim Lernen!" : "Zahlung eingegangen – das Abo erscheint gleich. Lade die Seite in ein paar Sekunden neu."); try { refreshNav(); } catch {} if (curView === "settings") { window.__setTab = "pro"; renderView(); }
 }
 
@@ -231,4 +232,23 @@ function aiuPop(btn) {
   const r = btn.getBoundingClientRect(), w = pop.offsetWidth; pop.style.top = r.bottom + 8 + "px"; pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + "px";
   const up = pop.querySelector(".aiu-up"); if (up) up.onclick = () => { pop.remove(); plusBuy(planDefault()); };
   setTimeout(() => document.addEventListener("click", function h(e) { if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener("click", h); } }), 0);
+}
+
+
+/* Konfetti über der ganzen App (nach erfolgreichem Abschluss) – schwarz/weiss/grau passend zum Design */
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.createElement("canvas"); cv.style.cssText = "position:fixed;inset:0;width:100%;height:100%;z-index:9999;pointer-events:none"; document.body.appendChild(cv);
+  const dpr = Math.min(2, devicePixelRatio || 1), W = cv.width = innerWidth * dpr, H = cv.height = innerHeight * dpr, ctx = cv.getContext("2d"), cols = ["#111111", "#111111", "#444444", "#777777", "#a8a8ae", "#d4d4d9"], P = [];
+  const burst = (x, ang, n) => { for (let i = 0; i < n; i++) { const a = ang + (Math.random() - .5) * 1.1, v = (9 + Math.random() * 13) * dpr; P.push({ x, y: H + 10 * dpr, vx: Math.cos(a) * v, vy: Math.sin(a) * v, w: (6 + Math.random() * 7) * dpr, h: (4 + Math.random() * 5) * dpr, r: Math.random() * 6, vr: (Math.random() - .5) * .35, c: cols[i % cols.length], round: Math.random() < .25, t: 0 }); } };
+  burst(W * .12, -Math.PI / 2 - .55, 90); burst(W * .88, -Math.PI / 2 + .55, 90); setTimeout(() => { burst(W * .3, -Math.PI / 2 - .2, 60); burst(W * .7, -Math.PI / 2 + .2, 60); }, 350);
+  for (let i = 0; i < 70; i++) P.push({ x: Math.random() * W, y: -Math.random() * H * .5, vx: (Math.random() - .5) * 2 * dpr, vy: (2 + Math.random() * 3) * dpr, w: (5 + Math.random() * 6) * dpr, h: (4 + Math.random() * 4) * dpr, r: Math.random() * 6, vr: (Math.random() - .5) * .25, c: cols[i % cols.length], round: Math.random() < .2, t: 0 });
+  const g = .42 * dpr, t0 = performance.now();
+  (function frame(now) {
+    ctx.clearRect(0, 0, W, H); const el = now - t0;
+    for (const p of P) { p.vy += g; p.vx *= .992; p.vy *= .992; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.t++; const fade = Math.max(0, Math.min(1, (4200 - el) / 900)); if (fade <= 0) continue;
+      ctx.save(); ctx.globalAlpha = fade; ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.scale(1, Math.abs(Math.cos(p.t * .12 + p.r)) * .8 + .2); ctx.fillStyle = p.c;
+      if (p.round) { ctx.beginPath(); ctx.arc(0, 0, p.h / 1.4, 0, 7); ctx.fill(); } else ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore(); }
+    if (el < 4300) requestAnimationFrame(frame); else cv.remove();
+  })(t0);
 }

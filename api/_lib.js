@@ -29,12 +29,12 @@ async function plans() {
         }
         out[k] = { price: list[0].id, cents: list[0].unit_amount, opts, ids, product: list[0].product.id }; out.currency = list[0].currency;
       }
-      /* Preise: Monat 6 (PRO_MONTHLY_CENTS) in jeder Währung; Jahr = 12 Monate minus 40 % Rabatt (PRO_YEARLY_DISCOUNT), sofern in Stripe kein eigener Jahrespreis existiert */
-      const mc = +process.env.PRO_MONTHLY_CENTS || 600;
-      if (out.monthly.product && Object.keys(out.monthly.opts || {}).length) { Object.keys(out.monthly.opts).forEach(c => { out.monthly.opts[c] = mc; }); out.monthly.cents = mc; }
+      /* Preise: Monat = Stripe-Preis des Produkts (optional PRO_MONTHLY_CENTS überschreibt); Jahr = 12 Monate minus 40 % Rabatt (PRO_YEARLY_DISCOUNT), sofern in Stripe kein eigener Jahrespreis existiert */
+      const mc = +process.env.PRO_MONTHLY_CENTS || 0;   // optional; ohne Angabe gelten die Beträge der Stripe-Preise
+      if (mc && out.monthly.product && Object.keys(out.monthly.opts || {}).length) { Object.keys(out.monthly.opts).forEach(c => { out.monthly.opts[c] = mc; }); out.monthly.cents = mc; }
       if (!out.yearly.price && out.monthly.product && Object.keys(out.monthly.opts || {}).length) {
         const disc = process.env.PRO_YEARLY_DISCOUNT === undefined || process.env.PRO_YEARLY_DISCOUNT === "" ? 40 : Math.min(90, Math.max(0, +process.env.PRO_YEARLY_DISCOUNT || 0));
-        const yc = +process.env.PRO_YEARLY_CENTS || Math.round(mc * 12 * (100 - disc) / 100), opts = {}; Object.keys(out.monthly.opts).forEach(c => { opts[c] = yc; });
+        const yc = +process.env.PRO_YEARLY_CENTS || Math.round(Object.values(out.monthly.opts)[0] * 12 * (100 - disc) / 100), opts = {}; Object.entries(out.monthly.opts).forEach(([c, v]) => { opts[c] = process.env.PRO_YEARLY_CENTS ? yc : Math.round(v * 12 * (100 - disc) / 100); });
         out.yearly = { price: "dyn", cents: yc, opts, ids: {}, product: out.monthly.product };
       }
     } catch (e) { if (priceCache.v) return priceCache.v; }
