@@ -112,7 +112,17 @@ function cloudLoginModal() {
   const { el, close } = modal(`<h3>Konto</h3><p class="note">Melde dich an, damit deine Notizen, Aufgaben und Karteikarten auf allen Geräten da sind.</p>${cloudAuthHtml()}`);
   cloudAuthBind(el, close);
 }
-async function cloudLogout() { await cloudPush(); await CLOUD.sb.auth.signOut(); CLOUD.user = null; toast("Abgemeldet"); }
+async function cloudLogout() {
+  try { await cloudPush(); } catch {}
+  try { await CLOUD.sb.auth.signOut(); } catch {}
+  /* Dashboard komplett verlassen und die Login-Seite zeigen */
+  CLOUD.user = null; try { BILL.row = null; } catch {} LS.set("lumi-sync", "0");
+  document.getElementById("hdock")?.remove(); $("#modal-root").innerHTML = ""; $("#toast")?.classList.remove("show");
+  ["#tutor", "#cpanel", "#tpill"].forEach(q => { const e = $(q); if (e) e.hidden = true; });
+  $("#app").innerHTML = ""; $("#app").classList.remove("has-dock"); try { onboardShown = false; } catch {}
+  if (location.hash.replace(/^#\/?/, "") !== "app") location.hash = "#/app"; else route();
+  setTimeout(() => toast("Abgemeldet"), 50);
+}
 function cloudPanelHtml() {
   if (!cloudOn()) return `<div class="panel"><h2>${ic("adduser")}Konto &amp; Cloud</h2><p class="note">Die Cloud ist nicht eingerichtet.</p></div>`;
   return CLOUD.user
