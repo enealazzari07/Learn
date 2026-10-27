@@ -3305,3 +3305,7 @@ body.noscroll{overflow:hidden}
 .setsec.paying .proemb-box{max-width:none}
 .setsec.paying .propanel #pl-m,.setsec.paying .propanel #pl-y{opacity:.4;pointer-events:none}
 @media (max-width:900px){.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)}}
+.proemb-box{position:relative}
+.proemb-h{position:absolute;top:2px;right:4px;z-index:2;padding:0}
+.proemb-h b{display:none}
+.setsec.paying .proemb-box .embk-m{min-height:0}
