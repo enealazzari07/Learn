@@ -12,11 +12,11 @@ module.exports = async function handler(req, res) {
   try {
     const plansP = L.plans().catch(() => ({ monthly: {}, yearly: {} }));   // läuft parallel zur Anmeldeprüfung
     const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
-    const { plan = "monthly", country = "", embedded = false } = await L.readJson(req);
+    const body = await L.readJson(req), { country = "", embedded = false } = body, wantTrial = body.plan === "trial" || body.trial === true, plan = body.plan === "yearly" ? "yearly" : "monthly";
     const live = await L.liveSubscription(user.id, { fresh: true });   // direkt aus Stripe
     const P = (await plansP)[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
     if (live && L.ACTIVE.includes(live.status) && live.status !== "past_due") return res.status(409).json({ error: "Du hast Lumi Study Pro bereits – verwalte es unter Einstellungen." });
-    const trial = !live, base = L.siteUrl(req), customer = live?.customer, avail = Object.keys(P.opts || {}), cur = avail.length ? L.currencyFor(req, avail, String(country).slice(0, 2)) : "";
+    const trial = wantTrial && !live, base = L.siteUrl(req), customer = live?.customer, avail = Object.keys(P.opts || {}), cur = avail.length ? L.currencyFor(req, avail, String(country).slice(0, 2)) : "";
     const common = {
       mode: "subscription", managed_payments: { enabled: process.env.STRIPE_MANAGED_PAYMENTS === "off" ? false : true },
       client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),

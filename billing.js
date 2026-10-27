@@ -24,25 +24,27 @@ const billCall = async (path, body) => (await billPost(path, body)).url;
 let stripeJs = null;
 const loadStripeJs = () => stripeJs || (stripeJs = new Promise((ok, no) => { if (window.Stripe) return ok(); const s = document.createElement("script"); s.src = "https://js.stripe.com/v3/"; s.onload = () => ok(); s.onerror = () => { stripeJs = null; no(new Error("Stripe konnte nicht geladen werden.")); }; document.head.appendChild(s); }));
 const embedClose = () => document.querySelectorAll(".embk").forEach(e => { try { e._ck && e._ck.destroy(); } catch {} e.remove(); });
-const proEmbIdle = () => { const c = BILL.cfg; return isPlus() || !(c && c.pk && c.enabled && CLOUD.user) ? "" : `<div class="proemb-idle"><i>${ic("shield")}</i><b>Sichere Bezahlung</b><p>Wähle links deinen Plan – das Zahlungsformular erscheint dann hier, ohne die Seite zu verlassen.</p></div>`; };
+const proEmbIdle = () => "";
+const planDefault = () => BILL.row ? "monthly" : "trial";
 async function embedInline(host, clientSecret, pk) {
   await loadStripeJs(); try { host._ck && host._ck.destroy(); } catch {}
   const sec = host.closest(".setsec"); sec && sec.classList.add("paying");
-  host.innerHTML = `<div class="proemb-box"><div class="proemb-h"><b>Bezahlung · Lumi Study Pro ${window.__plan === "yearly" ? "jährlich" : "monatlich"}</b><button class="link" type="button" id="pe-x">Abbrechen</button></div><div class="embk-m"><i class="spin"></i></div></div>`;
-  const reset = () => { try { host._ck && host._ck.destroy(); } catch {} host._ck = null; host.innerHTML = proEmbIdle(); sec && sec.classList.remove("paying"); };
-  host.querySelector("#pe-x").onclick = () => { host._off = true; reset(); };
+  host.innerHTML = `<div class="proemb-box"><div class="embk-m"><i class="spin"></i></div></div>`;
   const S = Stripe(pk), init = S.initEmbeddedCheckout || S.createEmbeddedCheckoutPage;
-  host._ck = await init.call(S, { clientSecret, onComplete: () => { reset(); plusAfter(); } });
-  const mnt = host.querySelector(".embk-m"); mnt.innerHTML = ""; host._ck.mount(mnt); host.scrollIntoView({ behavior: "smooth", block: "start" });
+  host._ck = await init.call(S, { clientSecret, onComplete: () => { try { host._ck.destroy(); } catch {} host._ck = null; host.innerHTML = ""; sec && sec.classList.remove("paying"); plusAfter(); } });
+  const mnt = host.querySelector(".embk-m"); mnt.innerHTML = ""; host._ck.mount(mnt);
 }
-/* Beim Öffnen von „Study Pro“ erscheint das Bezahlformular sofort (ohne Klick auf den Button) */
-async function plusAuto() {
+/* Bezahlformular für den gewählten Plan (trial | monthly | yearly) rechts einblenden – beim Öffnen sofort, beim Planwechsel neu */
+async function plusAuto(force) {
   const host = document.getElementById("pro-emb"), c = BILL.cfg;
-  if (!host || host._ck || host._busy || host._off || isPlus() || !(c && c.pk && c.enabled && c.monthly && CLOUD.user && BILL.loaded)) return;
-  host._busy = true; const sec = host.closest(".setsec"); sec && sec.classList.add("paying"); window.__plan = "monthly";
-  host.innerHTML = `<div class="proemb-box"><div class="proemb-h"><b>Bezahlung · Lumi Study Pro monatlich</b></div><div class="embk-m"><i class="spin"></i></div></div>`;
-  try { const j = await billPost("/api/checkout", { plan: "monthly", country: proCountry(), embedded: true }); if (j.clientSecret && document.getElementById("pro-emb") === host) await embedInline(host, j.clientSecret, j.pk || c.pk); else throw 0; }
-  catch (e) { host.innerHTML = proEmbIdle(); sec && sec.classList.remove("paying"); if (e && e.message) toast(e.message); }
+  if (!host || host._busy || isPlus() || !(c && c.pk && c.enabled && c.monthly && CLOUD.user && BILL.loaded)) return;
+  if (host._ck && !force) return;
+  if (!window.__plan || (window.__plan === "trial" && BILL.row)) window.__plan = planDefault();
+  const plan = window.__plan; host._busy = true; try { host._ck && host._ck.destroy(); } catch {} host._ck = null;
+  const sec = host.closest(".setsec"); sec && sec.classList.add("paying");
+  host.innerHTML = `<div class="proemb-box"><div class="embk-m"><i class="spin"></i></div></div>`;
+  try { const j = await billPost("/api/checkout", { plan, country: proCountry(), embedded: true }); if (j.clientSecret && document.getElementById("pro-emb") === host && window.__plan === plan) await embedInline(host, j.clientSecret, j.pk || c.pk); else if (j.url) location.href = j.url; }
+  catch (e) { host.innerHTML = `<div class="proemb-idle"><p>${esc(e.message || "Die Bezahlung konnte nicht geladen werden.")}</p><button class="btn" type="button" id="pe-retry">Erneut versuchen</button></div>`; host.querySelector("#pe-retry").onclick = () => plusAuto(true); }
   finally { host._busy = false; }
 }
 async function embedCheckout(clientSecret, pk) {
@@ -81,28 +83,6 @@ const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American
 
 const PRO_FEATURES = ["Lumi AI ohne Limit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Lumi"];
 
-/* App-Schaufenster links neben dem Bezahlformular: eigene, gezeichnete Oberflächen (keine Fotos, keine Urheberrechte) */
-const PS_SCENES = [
-  ["Gemeinsam lernen", "Lerngruppen, Notizen und Pläne – alles an einem Ort.", "PHOTO:pro-photo1.webp"],
-  ["Lumi AI", "Erklärt, fragt ab und fasst zusammen – ohne Limit, mit Gemini Pro.", `<div class="mk-chat"><p class="u">Erkläre mir die Ableitung von x²</p><p class="a">Die Ableitung ist <b>2x</b>: Der Exponent wird zum Faktor, und der Exponent sinkt um 1.<span class="mk-dots"><i></i><i></i><i></i></span></p><div class="mk-in"><span>Frag Lumi AI etwas …</span><em></em></div></div>`],
-  ["Notizen & Zeichnen", "Formeln, Tabellen, Stift und Skizzen – alles in einer Notiz.", `<div class="mk-note"><h4>Analysis · Kapitel 3</h4><div class="mk-tb"><i></i><i></i><i></i><i></i></div><p class="l w9"></p><p class="l w7"></p><p class="l hl w8"></p><ul><li><span></span><p class="l w6"></p></li><li><span></span><p class="l w5"></p></li></ul><svg viewBox="0 0 120 30"><path d="M4 22c14-24 22 6 36-8s20 8 34-4 24 4 42-6"/></svg></div>`],
-  ["Überall lernen", "Auf iPad, Handy und Computer – dein Stand ist überall gleich.", "PHOTO:pro-photo2.webp"],
-  ["Karteikarten & Quiz", "Lernen mit klugen Wiederholungen – die App merkt sich, was sitzt.", `<div class="mk-card"><small>Frage 7 von 20</small><b>Was ist die Hauptstadt von Australien?</b><div class="mk-btns"><span>Nochmal</span><span class="on">Gewusst</span></div></div><div class="mk-card back"></div>`],
-  ["Planer & Prüfungen", "Termine, Aufgaben und Countdown – damit nichts untergeht.", `<div class="mk-plan"><div class="mk-wk">${["Mo","Di","Mi","Do","Fr"].map((d, i) => `<span class="${i === 2 ? "on" : ""}">${d}<b>${12 + i}</b></span>`).join("")}</div><div class="mk-ev"><i></i><p><b>Analysis-Prüfung</b><small>in 6 Tagen · 08:15</small></p></div><div class="mk-ev two"><i></i><p><b>Lernen: Integrale</b><small>45 Min.</small></p></div></div>`],
-  ["Noten & Schnitt", "Dein Notensystem, dein Schnitt – und was du für dein Ziel brauchst.", `<div class="mk-gr"><div class="avg"><small>Ø Gesamt</small><b>5.4</b></div>${[["Analysis",5.5],["Physik",5],["Recht",5.8],["BWL",4.8]].map(([n, v]) => `<div class="bar"><span>${n}</span><i style="--w:${(v - 1) / 5 * 100}%"></i><em>${v}</em></div>`).join("")}</div>`],
-  ["Fokus-Timer", "Konzentriert lernen, Serie halten – mit Tageszielen.", `<div class="mk-foc"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50"/><circle class="p" cx="60" cy="60" r="50" pathLength="100"/></svg><b>25:00</b><small>Tagesziel 60 Min. · 3 Tage Serie</small></div>`],
-];
-const proScenes = () => PS_SCENES.map(([t, d, mk], i) => `<div class="ps-sc${i ? "" : " on"}" data-i="${i}"><div class="ps-mk${mk.startsWith("PHOTO:") ? " ph" : ""}"${mk.startsWith("PHOTO:") ? ` style="background-image:url(${mk.slice(6)})"` : ""}>${mk.startsWith("PHOTO:") ? "" : mk}</div><b>${t}</b><p>${d}</p></div>`).join("");
-let psTimer = null;
-function proShowInit(m) {
-  clearInterval(psTimer); const root = $(".ps-show", m); if (!root) return;
-  const sc = [...root.querySelectorAll(".ps-sc")]; let k = 0;
-  psTimer = setInterval(() => {
-    if (!root.isConnected) return clearInterval(psTimer);
-    const old = sc[k]; old.classList.remove("on"); old.classList.add("out"); setTimeout(() => old.classList.remove("out"), 1200);
-    k = (k + 1) % sc.length; sc[k].classList.add("on");
-  }, 4600);
-}
 function plusPanelHtml() {
   const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${PRO_FEATURES.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
   const eligible = !r, trialD = (c && c.trial) || 14;
@@ -125,11 +105,13 @@ function plusPanelHtml() {
   }
   if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.</p>${list}</div>`;
   if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Lumi Study Pro zu abonnieren.</p>${list}</div>`;
-  if (c.pk && c.monthly && !r) {   // Bezahlformular erscheint rechts → links ein animiertes App-Schaufenster ohne Block
-    return `<div class="propanel proside"><span class="probadge ps-in" style="--d:0">Pro</span><h2 class="ps-in" style="--d:1">Lumi Study Pro</h2>
-      <p class="ps-lead ps-in" style="--d:2"><b>${trialD} Tage kostenlos testen</b>, danach ${money(c.monthly)} / Monat – Mehrwertsteuer inklusive, jederzeit kündbar.</p>
-      <div class="ps-show ps-in" style="--d:3">${proScenes()}</div>
-      <p class="ps-fine ps-in" style="--d:5">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
+  if (c.pk && c.monthly && !r) {   // Plan-Auswahl links, Bezahlformular rechts
+    const m = c.monthly, y = c.yearly, cur = window.__plan || "trial", save = y ? Math.max(0, m * 12 - y) : 0;
+    const P = [["trial", `${trialD} Tage gratis testen`, `Danach ${money(m)} pro Monat. Nur einmal pro Konto möglich – jederzeit vorher kündbar.`, "Gratis"],
+      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${money(save)} im Jahr – das sind ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Lumi Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
+    return `<div class="propanel proside"><span class="probadge">Pro</span><h2>Lumi Study Pro</h2><p class="ps-lead">Wähle deinen Plan. Mehrwertsteuer ist immer inklusive.</p>
+      <div class="pp-plans" role="radiogroup">${P.map(([k, t, d, pr], i) => `<button type="button" class="pp-card${k === cur ? " on" : ""}" data-plan="${k}" role="radio" aria-checked="${k === cur}" style="--d:${i}"><i class="pp-dot"></i><span class="pp-t"><b>${t}</b><small>${d}</small></span><span class="pp-pr">${pr}</span>${k === "trial" ? `<em>Neu</em>` : ""}</button>`).join("")}</div>
+      <p class="ps-fine">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
   }
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
   return `<div class="panel propanel">${head(r ? SUB_STATUS[r.status] || "" : "")}<p class="note">${eligible ? `<b>${trialD} Tage kostenlos testen</b>, danach ${m ? money(m) + " / Monat" : y ? money(y) + " / Jahr" : "der normale Preis"}. ` : ""}Preis inkl. Mehrwertsteuer – in jeder Währung. Jederzeit kündbar.</p>${list}
@@ -144,10 +126,10 @@ async function plusRefresh(m, quiet) {
   try { refreshNav(); } catch {} if (!quiet) toast("Aktualisiert");
 }
 function plusBindPanel(m) {
-  proShowInit(m);
+  $$(".pp-card", m).forEach(btn => btn.onclick = () => { if (btn.classList.contains("on") && $("#pro-emb")?._ck) return; window.__plan = btn.dataset.plan; $$(".pp-card", m).forEach(x => { x.classList.toggle("on", x === btn); x.setAttribute("aria-checked", x === btn); }); plusAuto(true); });
   const on = (id, f) => { const b = $(id, m); if (b) b.onclick = f; };
   const act = async (action, ok) => { try { BILL.row = await subCall({ action, invoices: true }); toast(ok); await plusRefresh(m, true); } catch (e) { toast(e.message); } };
-  on("#pl-m", () => plusBuy("monthly")); on("#pl-y", () => plusBuy("yearly")); on("#pl-pay", () => plusManage("payment")); on("#pl-manage", () => plusManage());
+  on("#pl-m", () => plusBuy(planDefault())); on("#pl-y", () => plusBuy("yearly")); on("#pl-pay", () => plusManage("payment")); on("#pl-manage", () => plusManage());
   on("#pl-reload", () => plusRefresh(m));
   on("#pl-cancel", async () => { const r = BILL.row, tr = r && r.status === "trialing"; if (await confirmBox(tr ? `Testversion beenden und Abo kündigen? Du behältst Pro bis ${dateDE(r.current_period_end)}, danach wird nichts berechnet.` : `Abo kündigen? Du behältst Pro bis ${dateDE(r.current_period_end)}.`, "Abo kündigen")) act("cancel", "Abo gekündigt – Zugang bleibt bis zum Ende erhalten."); });
   on("#pl-resume", () => act("resume", "Abo wieder aktiviert."));
@@ -247,6 +229,6 @@ function aiuPop(btn) {
        ${BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn small aiu-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
   document.body.appendChild(pop);
   const r = btn.getBoundingClientRect(), w = pop.offsetWidth; pop.style.top = r.bottom + 8 + "px"; pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + "px";
-  const up = pop.querySelector(".aiu-up"); if (up) up.onclick = () => { pop.remove(); plusBuy("monthly"); };
+  const up = pop.querySelector(".aiu-up"); if (up) up.onclick = () => { pop.remove(); plusBuy(planDefault()); };
   setTimeout(() => document.addEventListener("click", function h(e) { if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener("click", h); } }), 0);
 }

@@ -38,7 +38,7 @@ function welcomeSplash(name, canBuy) {
     <div class="wsp-act">${canBuy ? `<button class="obx-sec" id="wsp-pro" type="button">14 Tage Pro gratis testen</button>` : ""}<button class="obx-go" id="wsp-go" type="button">Los geht’s</button></div></div>`;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
   const close = () => { el.classList.remove("on"); setTimeout(() => el.remove(), 350); };
-  $("#wsp-go", el).onclick = close; const p = $("#wsp-pro", el); if (p) p.onclick = () => { close(); plusBuy("monthly"); };
+  $("#wsp-go", el).onclick = close; const p = $("#wsp-pro", el); if (p) p.onclick = () => { close(); plusBuy("trial"); };
 }
 function onboarding() {
   const O = { step: 0, country: (D.profile.country || (typeof proCountry === "function" ? proCountry() : "")) || "", name: D.profile.name || (CLOUD.user?.email || "").split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase()), level: D.profile.level || "school", goal: D.profile.goalMin || 45, picked: new Set(), scale: "", scaleSet: false };
@@ -55,7 +55,7 @@ function onboarding() {
     const w = `<h1>Willkommen bei Lumi</h1><p>Das ist deine erste Notiz. Probiere die Werkzeuge oben aus:</p><ul class="chk"><li><input type="checkbox"> Text <b>fett</b>, <i>kursiv</i> oder <mark>markiert</mark> machen</li><li><input type="checkbox"> Eine Tabelle oder ein Bild einfügen</li><li><input type="checkbox"> Mit <b>Lumi AI</b> eine Zusammenfassung oder Karteikarten erstellen</li><li><input type="checkbox"> Oben rechts auf <b>Zeichnen</b> wechseln und Skizzen direkt in die Notiz malen</li><li><input type="checkbox"> Im <b>Planer</b> Hausaufgaben und Prüfungen eintragen</li></ul><p>Tipp: Mit Strg/Cmd + K findest du alles blitzschnell.</p>`;
     KV.set("html:" + wid, w); D.docs[0].text = htmlToText(w);
     save(); try { proApply(); } catch {} root.remove(); go("today"); buildShell(true);
-    if (buy) { toast("Alles bereit!"); setTimeout(() => plusBuy("monthly"), 400); } else welcomeSplash(D.profile.name, can);
+    if (buy) { toast("Alles bereit!"); setTimeout(() => plusBuy("trial"), 400); } else welcomeSplash(D.profile.name, can);
   };
   const hint = () => O.country && priceHint(O.country) ? `Lumi Study Pro: <b>${priceHint(O.country)}</b> nach ${BILL.cfg.trial || 14} Tagen gratis` : "&nbsp;";
   const V = {

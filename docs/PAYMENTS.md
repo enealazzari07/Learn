@@ -37,6 +37,7 @@ Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in St
 | `SITE_URL` | optional, z. B. `https://lumi.example.ch` |
 | `STRIPE_API_VERSION` | optional, Standard `2025-03-31.basil` |
 | `STRIPE_MANAGED_PAYMENTS` | `off` schaltet Managed Payments für Tests ab |
+| `PRO_YEARLY_CENTS` | Jahrespreis in Rappen/Cent, wenn in Stripe kein Jahrespreis angelegt ist (Standard `6000` = 60 pro Jahr, in jeder Währung) |
 | `PRO_TRIAL_DAYS` | Testversion in Tagen, Standard `14` |
 | `AI_FREE_WINDOW_TOKENS` | KI-Token pro Zeitfenster für Gratis-Konten (Standard `5000` Lumi-Token = echte Token ÷ 10, `0` = unbegrenzt) |
 | `AI_WINDOW_HOURS` | Länge des Fensters in Stunden (Standard `5`; startet mit der ersten Anfrage); beide brauchen `SUPABASE_SERVICE_ROLE_KEY` und `supabase/billing.sql` |
