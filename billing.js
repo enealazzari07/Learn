@@ -80,6 +80,25 @@ const INV_STATUS = { paid: "Bezahlt", open: "Offen", draft: "Entwurf", void: "St
 const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American Express", discover: "Discover", jcb: "JCB", diners: "Diners Club", unionpay: "UnionPay" })[b] || (b ? b[0].toUpperCase() + b.slice(1) : "Karte");
 
 const PRO_FEATURES = ["Lumi AI ohne Limit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Lumi"];
+
+/* App-Schaufenster links neben dem Bezahlformular: eigene, gezeichnete Oberflächen (keine Fotos, keine Urheberrechte) */
+const PS_SCENES = [
+  ["Lumi AI", "Erklärt, fragt ab und fasst zusammen – ohne Limit, mit Gemini Pro.", `<div class="mk-chat"><p class="u">Erkläre mir die Ableitung von x²</p><p class="a">Die Ableitung ist <b>2x</b>: Der Exponent wird zum Faktor, und der Exponent sinkt um 1.<span class="mk-dots"><i></i><i></i><i></i></span></p><div class="mk-in"><span>Frag Lumi AI etwas …</span><em></em></div></div>`],
+  ["Notizen & Zeichnen", "Formeln, Tabellen, Stift und Skizzen – alles in einer Notiz.", `<div class="mk-note"><h4>Analysis · Kapitel 3</h4><div class="mk-tb"><i></i><i></i><i></i><i></i></div><p class="l w9"></p><p class="l w7"></p><p class="l hl w8"></p><ul><li><span></span><p class="l w6"></p></li><li><span></span><p class="l w5"></p></li></ul><svg viewBox="0 0 120 30"><path d="M4 22c14-24 22 6 36-8s20 8 34-4 24 4 42-6"/></svg></div>`],
+  ["Karteikarten & Quiz", "Lernen mit klugen Wiederholungen – die App merkt sich, was sitzt.", `<div class="mk-card"><small>Frage 7 von 20</small><b>Was ist die Hauptstadt von Australien?</b><div class="mk-btns"><span>Nochmal</span><span class="on">Gewusst</span></div></div><div class="mk-card back"></div>`],
+  ["Planer & Prüfungen", "Termine, Aufgaben und Countdown – damit nichts untergeht.", `<div class="mk-plan"><div class="mk-wk">${["Mo","Di","Mi","Do","Fr"].map((d, i) => `<span class="${i === 2 ? "on" : ""}">${d}<b>${12 + i}</b></span>`).join("")}</div><div class="mk-ev"><i></i><p><b>Analysis-Prüfung</b><small>in 6 Tagen · 08:15</small></p></div><div class="mk-ev two"><i></i><p><b>Lernen: Integrale</b><small>45 Min.</small></p></div></div>`],
+  ["Noten & Schnitt", "Dein Notensystem, dein Schnitt – und was du für dein Ziel brauchst.", `<div class="mk-gr"><div class="avg"><small>Ø Gesamt</small><b>5.4</b></div>${[["Analysis",5.5],["Physik",5],["Recht",5.8],["BWL",4.8]].map(([n, v]) => `<div class="bar"><span>${n}</span><i style="--w:${(v - 1) / 5 * 100}%"></i><em>${v}</em></div>`).join("")}</div>`],
+  ["Fokus-Timer", "Konzentriert lernen, Serie halten – mit Tageszielen.", `<div class="mk-foc"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50"/><circle class="p" cx="60" cy="60" r="50" pathLength="100"/></svg><b>25:00</b><small>Tagesziel 60 Min. · 3 Tage Serie</small></div>`],
+];
+const proScenes = () => PS_SCENES.map(([t, d, mk], i) => `<div class="ps-sc${i ? "" : " on"}" data-i="${i}"><div class="ps-mk">${mk}</div><b>${t}</b><p>${d}</p></div>`).join("");
+let psTimer = null;
+function proShowInit(m) {
+  clearInterval(psTimer); const root = $(".ps-show", m); if (!root) return;
+  const sc = [...root.querySelectorAll(".ps-sc")], dots = [...root.querySelectorAll(".ps-dots i")]; let k = 0;
+  const go = n => { sc[k].classList.remove("on"); sc[k].classList.add("out"); const old = sc[k]; setTimeout(() => old.classList.remove("out"), 700); k = (n + sc.length) % sc.length; sc[k].classList.add("on"); dots.forEach((d, i) => d.classList.toggle("on", i === k)); };
+  dots.forEach((d, i) => { d.classList.toggle("on", i === 0); d.onclick = () => { go(i); restart(); }; });
+  const restart = () => { clearInterval(psTimer); psTimer = setInterval(() => { if (!root.isConnected) return clearInterval(psTimer); go(k + 1); }, 4200); }; restart();
+}
 function plusPanelHtml() {
   const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${PRO_FEATURES.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
   const eligible = !r, trialD = (c && c.trial) || 14;
@@ -102,12 +121,11 @@ function plusPanelHtml() {
   }
   if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.</p>${list}</div>`;
   if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Lumi Study Pro zu abonnieren.</p>${list}</div>`;
-  if (c.pk && c.monthly && !r) {   // Bezahlformular erscheint rechts → links nur die Vorteile, ohne Block, animiert
-    const FT = [["spark", "Lumi AI ohne Limit", "Frag so viel du willst – ohne 5-Stunden-Grenze."], ["cards", "Gemini Pro", "Das stärkste Modell: gründlichere, längere Antworten."], ["plus", "Alle kommenden Pro-Funktionen", "Neue Werkzeuge bekommst du zuerst."], ["check", "Jederzeit kündbar", "Direkt in Lumi, ohne Mail oder Anruf."], ["shield", "Mehrwertsteuer inklusive", `${money(c.monthly)} im Monat – genau der Preis, den du siehst.`]];
+  if (c.pk && c.monthly && !r) {   // Bezahlformular erscheint rechts → links ein animiertes App-Schaufenster ohne Block
     return `<div class="propanel proside"><span class="probadge ps-in" style="--d:0">Pro</span><h2 class="ps-in" style="--d:1">Lumi Study Pro</h2>
-      <p class="ps-lead ps-in" style="--d:2"><b>${trialD} Tage kostenlos testen</b>, danach ${money(c.monthly)} / Monat.</p>
-      <ul class="ps-list">${FT.map(([i, t, d], k) => `<li class="ps-in" style="--d:${k + 3}"><span>${ic(i)}</span><div><b>${t}</b><small>${d}</small></div></li>`).join("")}</ul>
-      <p class="ps-fine ps-in" style="--d:9">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
+      <p class="ps-lead ps-in" style="--d:2"><b>${trialD} Tage kostenlos testen</b>, danach ${money(c.monthly)} / Monat – Mehrwertsteuer inklusive, jederzeit kündbar.</p>
+      <div class="ps-show ps-in" style="--d:3">${proScenes()}<div class="ps-dots">${PS_SCENES.map((_, i) => `<i data-i="${i}"></i>`).join("")}</div></div>
+      <p class="ps-fine ps-in" style="--d:5">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
   }
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
   return `<div class="panel propanel">${head(r ? SUB_STATUS[r.status] || "" : "")}<p class="note">${eligible ? `<b>${trialD} Tage kostenlos testen</b>, danach ${m ? money(m) + " / Monat" : y ? money(y) + " / Jahr" : "der normale Preis"}. ` : ""}Preis inkl. Mehrwertsteuer – in jeder Währung. Jederzeit kündbar.</p>${list}
@@ -122,6 +140,7 @@ async function plusRefresh(m, quiet) {
   try { refreshNav(); } catch {} if (!quiet) toast("Aktualisiert");
 }
 function plusBindPanel(m) {
+  proShowInit(m);
   const on = (id, f) => { const b = $(id, m); if (b) b.onclick = f; };
   const act = async (action, ok) => { try { BILL.row = await subCall({ action, invoices: true }); toast(ok); await plusRefresh(m, true); } catch (e) { toast(e.message); } };
   on("#pl-m", () => plusBuy("monthly")); on("#pl-y", () => plusBuy("yearly")); on("#pl-pay", () => plusManage("payment")); on("#pl-manage", () => plusManage());
