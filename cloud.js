@@ -44,6 +44,8 @@ async function cloudPull() {
   const last = foreign ? 0 : +LS.get("lumi-sync") || 0;
   if (!data.length) {
     if (foreign) return true;                                   // neues Konto auf fremdem Gerätestand: leer starten
+    /* brandneues Konto (gerade erst angelegt): Onboarding immer zeigen, auch wenn lokal noch ein früherer Stand liegt */
+    if (Date.now() - new Date(CLOUD.user.created_at || 0).getTime() < 20 * 60 * 1000 && D.profile.onboarded) { D.profile.onboarded = false; await KV.set("data", D); }
     for (const k of await cloudLocalKeys()) CLOUD.dirty.add(JSON.stringify([k, false])); await cloudPush(); return false;
   }
   const fresh = data.filter(r => !last || new Date(r.updated_at).getTime() > last); if (!fresh.length) return foreign;
