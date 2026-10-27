@@ -3721,3 +3721,5 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .sdock .theme-tg{color:#8a8a92}.sdock .theme-tg:hover{color:#111}
 .sdk-sep{height:28px;margin:0 6px}
 .settabs.sdock{align-items:center!important}
+.sdock button.on::after{display:none!important;content:none!important}
+.sdock button.on .sdk-i svg{stroke-width:2.6}
