@@ -28,6 +28,8 @@ function createWindow() {
   win.webContents.on("will-navigate", (e, url) => { if (!isHome(url) && !url.startsWith("file:")) { e.preventDefault(); if (/^https:/.test(url)) shell.openExternal(url); } });
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https:/.test(url)) shell.openExternal(url); return { action: "deny" }; });
   win.webContents.on("will-attach-webview", e => e.preventDefault());
+  /* F5 / Strg+R: neu laden, Strg+Shift+R / Strg+F5: Zwischenspeicher umgehen */
+  win.webContents.on("before-input-event", (e, i) => { if (i.type !== "keyDown") return; const k = i.key.toLowerCase(); if (k === "f5" || ((i.control || i.meta) && k === "r")) { e.preventDefault(); (i.shift || i.control && k === "f5") ? win.webContents.reloadIgnoringCache() : win.webContents.reload(); } });
 }
 
 app.whenReady().then(() => {
@@ -36,6 +38,7 @@ app.whenReady().then(() => {
   /* keine Gerätefreigaben ausser Zwischenablage, Vollbild und (für Fotos/Audio-Notizen) Kamera & Mikrofon nur von Lumi selbst */
   ses.setPermissionRequestHandler((wc, permission, cb, details) => { const o = (() => { try { return new URL(details.requestingUrl).origin; } catch { return ""; } })(); cb(o === HOME && ["clipboard-read", "clipboard-sanitized-write", "fullscreen", "media", "notifications"].includes(permission)); });
   ses.webRequest.onBeforeRequest({ urls: ["http://*/*"] }, (d, cb) => cb({ cancel: !/^http:\/\/(localhost|127\.0\.0\.1)/.test(d.url) }));   // kein unverschlüsseltes HTTP
+  ses.clearCache().catch(() => {});   // beim Start immer die neueste Lumi-Version holen (Anmeldung und App-Daten bleiben erhalten)
   createWindow();
   app.on("activate", () => { if (!BrowserWindow.getAllWindows().length) createWindow(); });
 });
