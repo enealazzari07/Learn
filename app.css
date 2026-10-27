@@ -3381,3 +3381,16 @@ body.noscroll{overflow:hidden}
 .propanel.is-off .pp-card{cursor:not-allowed;pointer-events:none}
 .propanel.is-off .pp-dot{border-color:#cfcfd6;background:none;box-shadow:none}
 .pp-ended{margin:10px 0 14px!important}
+/* Plan-Blöcke breiter, Stripe-Formular etwas kleiner */
+.setsec[data-s=pro].on.paying{grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:28px}
+.setsec.paying .proemb-box{max-width:900px;margin:0}
+.setsec.paying .pp-plans{max-width:none}
+.setsec.paying .pp-card{grid-template-columns:auto 1fr auto;padding:18px;gap:14px;border-radius:22px}
+.setsec.paying .pp-pr{grid-column:auto;margin-top:0;font-size:15px}
+.setsec.paying .pp-t b{font-size:16px}.setsec.paying .pp-t small{font-size:12.5px}
+.setsec.paying .propanel.proside h2{font-size:32px}
+@media (min-width:901px){.setsec.paying .proemb-box .embk-m{zoom:.82}
+ @media (max-height:900px){.setsec.paying .proemb-box .embk-m{zoom:.76}}
+ @media (max-height:800px){.setsec.paying .proemb-box .embk-m{zoom:.7}}
+ @media (max-height:720px){.setsec.paying .proemb-box .embk-m{zoom:.64}}}
+@media (max-width:900px){.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)}}
