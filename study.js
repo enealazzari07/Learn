@@ -24,7 +24,7 @@ const OB_SCALES = [   // Notensystem in einfachen Worten: links schlecht, rechts
   ["at", "Österreich", "Noten 1 bis 5 – die 1 ist die beste Note", "5", "1"],
   ["pts", "Punkte (Oberstufe)", "0 bis 15 Punkte – 15 ist am besten", "0", "15"],
   ["pct", "Prozent / USA", "0 bis 100 % – 100 ist am besten", "0", "100 %"]];
-const OB_FEATURES = [["note", "Notizen & Zeichnen", "Formeln, Tabellen, Stift und Skizzen"], ["cards", "Karteikarten & Quiz", "Lernen mit klugen Wiederholungen"], ["cal", "Planer & Prüfungen", "Termine, Aufgaben, Stundenplan"], ["award", "Noten", "Schnitt und Zielrechner für jedes Fach"], ["timer", "Fokus-Timer", "Konzentriert lernen, Serie halten"], ["spark", "Lumi AI", "Erklärt, fragt ab und fasst zusammen"]];
+const OB_FEATURES = [["today", "Heute", "Dein Tag auf einen Blick: Termine, Aufgaben, Fokus und Noten."], ["note", "Notizen & Zeichnen", "Formeln, Tabellen, Stift und Skizzen in einer Notiz."], ["ai", "Lumi AI", "Erklärt, fragt ab und fasst zusammen – direkt in deinen Fächern."], ["planner", "Planer & Prüfungen", "Aufgaben, Stundenplan und Prüfungs-Countdown."], ["grades", "Noten", "Schnitt und Zielrechner für jedes Fach."], ["cards", "Karteikarten & Quiz", "Lernen mit klugen Wiederholungen."]];
 const obScaleFor = cc => cc === "DE" ? "de" : cc === "AT" ? "at" : cc === "US" || cc === "CA" ? "pct" : "ch";
 /* Abschluss-Seite nach dem Onboarding: Animation + was der Gratis-Plan enthält (KI mit Limit) */
 function welcomeSplash(name, canBuy) {
@@ -49,6 +49,7 @@ function onboarding() {
   const IDS = ["welcome", "features", "region", "who", "grades", "subjects", "pro"], last = IDS.length - 1;
   const dots = () => `<div class="obx-dots">${IDS.map((_, i) => `<i class="${i === O.step ? "on" : i < O.step ? "done" : ""}"></i>`).join("")}</div>`;
   const finish = async (buy) => {
+    clearInterval(O.tm);
     D.profile.name = O.name.trim(); D.profile.level = O.level; D.profile.goalMin = O.goal; D.profile.scale = O.scale; D.profile.onboarded = true; if (O.country) D.profile.country = O.country;
     [...O.picked].forEach((n, i) => { const sid = uid(), c = COLORS[i % COLORS.length]; D.subjects.push({ id: sid, name: n, color: c }); D.folders.push({ id: uid(), name: n, parent: "", color: c, subjectId: sid }); }); D.foldersInit = true;
     const wid = uid(); D.docs.unshift({ id: wid, type: "note", title: "Willkommen bei Lumi", subjectId: "", folderId: "", paper: "white", updated: Date.now(), created: Date.now(), text: "" });
@@ -59,13 +60,14 @@ function onboarding() {
   };
   const hint = () => O.country && priceHint(O.country) ? `Lumi Study Pro: <b>${priceHint(O.country)}</b> nach ${BILL.cfg.trial || 14} Tagen gratis` : "&nbsp;";
   const V = {
-    welcome: () => `<div class="obx-hero" style="background-image:url(login-hero.webp)"><span class="obx-hero-chip">${ic("spark")}Dein ganzes Lernen an einem Ort</span></div>
+    welcome: () => `<div class="obx-hero" style="background-image:url(ob/photo-team.webp);background-position:center 66%"><span class="obx-hero-chip">${ic("spark")}Dein ganzes Lernen an einem Ort</span></div>
       <h1>Schön, dass du da bist.</h1><p class="obx-sub">Richte Lumi in einer Minute ein – danach passt sich alles an dich an.</p>
       <label class="obx-l" for="ob-n">Wie heißt du?</label><input class="obx-in" id="ob-n" placeholder="Dein Name" value="${esc(O.name)}" autocomplete="given-name">`,
-    features: () => `<span class="obx-eyebrow">Das kann Lumi</span><h1>Alles, was du zum Lernen brauchst.</h1><p class="obx-sub">Sechs Werkzeuge, ein Konto – auf iPad, Handy und Computer.</p>
-      <div class="obx-feats">${OB_FEATURES.map(([i, t, d]) => `<div class="obx-feat"><span class="obx-ico">${ic(i)}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div>`,
+    features: () => `<span class="obx-eyebrow">Das kann Lumi</span><h1>Alles, was du zum Lernen brauchst.</h1><p class="obx-sub">So sieht Lumi aus – auf iPad, Handy und Computer.</p>
+      <div class="obx-shots" id="ob-shots"><div class="obx-stage">${OB_FEATURES.map(([k], i) => `<img src="ob/shot-${k}.webp" alt="" class="${i ? "" : "on"}" loading="eager" draggable="false">`).join("")}</div>
+      <div class="obx-cap">${OB_FEATURES.map(([k, t, d], i) => `<div class="${i ? "" : "on"}"><b>${t}</b><small>${d}</small></div>`).join("")}</div></div>`,
     region: () => `<span class="obx-eyebrow">Deine Region</span><h1>Wo lebst du?</h1><p class="obx-sub">Damit Preise und Währung für dich stimmen – CHF, EUR oder USD. Die Steuer richtet sich nach deiner Rechnungsadresse.</p>
-      <div class="obx-globe">${ic("globe")}</div><label class="obx-l" for="ob-c">Land</label><select class="obx-in obx-sel" id="ob-c"><option value="" ${O.country ? "" : "selected"} disabled>Land wählen …</option>${countryOptions(O.country)}</select>
+      <div class="obx-hero obx-hero-s" style="background-image:url(ob/photo-laptop.webp)"></div><label class="obx-l" for="ob-c">Land</label><select class="obx-in obx-sel" id="ob-c"><option value="" ${O.country ? "" : "selected"} disabled>Land wählen …</option>${countryOptions(O.country)}</select>
       <p class="obx-hint" id="ob-ch">${hint()}</p>`,
     who: () => `<span class="obx-eyebrow">Über dich</span><h1>Wie lernst du?</h1><p class="obx-sub">So passen wir Fächer, Noten und Lumi AI an dich an.</p>
       <div class="obx-cards" id="ob-l"><button data-l="school" class="${O.level === "school" ? "on" : ""}"><span class="obx-ico">${ic("book")}</span><b>Schüler:in</b><small>Fächer, Noten, Hausaufgaben</small></button><button data-l="uni" class="${O.level === "uni" ? "on" : ""}"><span class="obx-ico">${ic("award")}</span><b>Student:in</b><small>Module, Prüfungen, Skripte</small></button></div>
@@ -98,6 +100,7 @@ function onboarding() {
     $("#ob-n2", root)?.addEventListener("click", () => { if (id === "region" && !O.country) { $("#ob-c", root)?.focus(); toast("Bitte wähle dein Land aus."); return; } O.step++; draw(); });
     $("#ob-c", root)?.addEventListener("change", e => { O.country = e.target.value; D.profile.country = O.country; if (!O.scaleSet) O.scale = obScaleFor(O.country); save(); try { proApply(); } catch {} const h = $("#ob-ch", root); if (h) h.innerHTML = hint(); });
     $("#ob-fin", root)?.addEventListener("click", () => finish(false)); $("#ob-skip", root)?.addEventListener("click", () => finish(false)); $("#ob-buy", root)?.addEventListener("click", () => finish(true));
+    clearInterval(O.tm); if (id === "features") { const imgs = $$(".obx-stage img", root), caps = $$(".obx-cap div", root); let k = 0; O.tm = setInterval(() => { if (!root.isConnected) return clearInterval(O.tm); imgs[k].classList.remove("on"); caps[k].classList.remove("on"); k = (k + 1) % imgs.length; imgs[k].classList.add("on"); caps[k].classList.add("on"); }, 3200); }
     setTimeout(() => $("#ob-n", root)?.focus(), 60);
   };
   draw();
