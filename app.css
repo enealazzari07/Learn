@@ -3476,3 +3476,20 @@ body.noscroll{overflow:hidden}
 .aiuse-t small{color:#6b6b73;font-size:13px}
 .aiuse .aiu-bar{margin:6px 0 0;max-width:420px}
 @media (max-width:560px){.aiuse{flex-wrap:wrap}}
+
+/* Profil: Persönliche Angaben | Lernen | AI-Nutzung nebeneinander */
+@media (min-width:1180px){.setsec[data-s=gen].on{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.setsec[data-s=gen].on>.aiuse{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:14px;padding:20px 22px!important;height:100%;margin:0!important}
+.setsec[data-s=gen].on>.aiuse .aiuse-t{width:100%}
+.setsec[data-s=gen].on>.aiuse .aiu-bar{max-width:none}
+.setsec[data-s=gen].on>.aiuse .btn{margin-top:auto}
+.setsec[data-s=gen].on>.aiuse[hidden]{display:none}
+/* Drei Spalten: Zeilen stapeln (Beschriftung über dem Wert), damit nichts abgeschnitten wird */
+@media (min-width:1180px){
+  .setsec[data-s=gen].on .kvcard .kv{grid-template-columns:1fr;gap:3px;padding:11px 20px}
+  .setsec[data-s=gen].on .kvcard .kv>span{font-size:12.5px}
+  .setsec[data-s=gen].on .kvcard .seg{width:100%}.setsec[data-s=gen].on .kvcard .seg button{flex:1}
+  .setsec[data-s=gen].on .kvcard .kvu{flex-wrap:wrap}
+  .setsec[data-s=gen].on .kvcard .kvnote{font-size:12.5px}
+}
+.setsec[data-s=gen].on>.aiuse .aiuse-t{width:auto;align-self:stretch;box-sizing:border-box}.setsec[data-s=gen].on>.aiuse{padding:20px 22px!important;box-sizing:border-box}.setsec[data-s=gen].on>.aiuse .aiu-lg{margin:0}.setsec[data-s=gen].on>.aiuse .aiu{margin:0;padding:0;justify-content:flex-start}

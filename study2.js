@@ -450,7 +450,6 @@ V.settings = m => {
   <div class="setsec" data-s="gen">
   <div class="prof-head"><div class="pgrid" aria-hidden="true">${(() => { let x = 7; return Array.from({ length: 140 }, () => { x = (x * 1103515245 + 12345) & 0x7fffffff; return `<i class="${x % 100 < 24 ? "f" : ""}"></i>`; }).join(""); })()}</div><span class="av-xl">${esc((p.name || CLOUD.user?.email || "L").trim()[0].toUpperCase())}</span><div><h1>${esc(p.name || "Dein Name")}${proBadgeHtml()}</h1><p>${esc(CLOUD.user?.email || "Nicht angemeldet")}</p>${proPillHtml()}</div></div>
   ${proBannerHtml()}
-  <div class="panel aiuse setfull" id="aiuse" hidden></div>
   <div class="panel kvcard"><h2>${ic("adduser")}Persönliche Angaben</h2>
     <div class="kv"><span>Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
     <div class="kv"><span>E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
@@ -462,6 +461,7 @@ V.settings = m => {
     <div class="kv"><span>Notensystem</span><select class="field flat" id="ss">${Object.entries(SCALES).map(([k, v]) => `<option value="${k}" ${p.scale === k ? "selected" : ""}>${v.n}</option>`).join("")}</select></div>
     <div class="kv"><span>${SUBJ()}</span><div class="kvu"><b>${D.subjects.length}</b><button class="btn ghost sm" id="to-subj" type="button">Verwalten unter Noten</button></div></div>
     <p class="note kvnote">🇨🇭 Schweiz: Noten 1–6 (6 = beste, ab 4 genügend), Lumi AI schreibt Schweizer Hochdeutsch ohne „ß“.</p></div>
+  <div class="panel aiuse" id="aiuse" hidden></div>
   <div class="panel setfull"><h2>${ic("table")}Startseite</h2><p class="note">Ordne deine Startseite neu: Blöcke ersetzen, verschieben und größer oder kleiner ziehen – mit fertigen Vorlagen.</p><button class="btn" id="hed-open">${ic("pen")}Startseite bearbeiten</button></div>
   </div><div class="setsec" data-s="ai">
   <div class="panel"><h2>${ic("spark")}Lumi AI</h2>
