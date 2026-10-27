@@ -15,14 +15,36 @@ async function plusLoad(invoices = false) {
   try { BILL.row = await subCall({ action: "get", invoices }); } catch {}
   BILL.loaded = true;
 }
-async function billCall(path, body) {
+async function billPost(path, body) {
   const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body || {}) });
-  const j = await r.json().catch(() => ({})); if (!r.ok || !j.url) throw new Error(j.error || "Fehler " + r.status); return j.url;
+  const j = await r.json().catch(() => ({})); if (!r.ok || !(j.url || j.clientSecret)) throw new Error(j.error || "Fehler " + r.status); return j;
 }
+const billCall = async (path, body) => (await billPost(path, body)).url;
+/* Stripe.js nur laden, wenn gebraucht (vorab im Leerlauf, damit der Checkout sofort da ist) */
+let stripeJs = null;
+const loadStripeJs = () => stripeJs || (stripeJs = new Promise((ok, no) => { if (window.Stripe) return ok(); const s = document.createElement("script"); s.src = "https://js.stripe.com/v3/"; s.onload = () => ok(); s.onerror = () => { stripeJs = null; no(new Error("Stripe konnte nicht geladen werden.")); }; document.head.appendChild(s); }));
+const embedClose = () => document.querySelectorAll(".embk").forEach(e => { try { e._ck && e._ck.destroy(); } catch {} e.remove(); });
+async function embedCheckout(clientSecret, pk) {
+  await loadStripeJs(); embedClose();
+  const wrap = document.createElement("div"); wrap.className = "embk"; wrap.innerHTML = `<div class="embk-c"><button class="embk-x" type="button" aria-label="Schließen">&times;</button><div class="embk-m"><i class="spin"></i></div></div>`;
+  document.body.appendChild(wrap); document.body.classList.add("noscroll");
+  const off = () => { try { wrap._ck && wrap._ck.destroy(); } catch {} wrap.remove(); document.body.classList.remove("noscroll"); };
+  wrap.querySelector(".embk-x").onclick = off; wrap.addEventListener("mousedown", e => { if (e.target === wrap) off(); });
+  const S = Stripe(pk), init = S.initEmbeddedCheckout || S.createEmbeddedCheckoutPage;
+  wrap._ck = await init.call(S, { clientSecret, onComplete: () => { off(); plusAfter(); } });
+  wrap.querySelector(".embk-m").innerHTML = ""; wrap._ck.mount(wrap.querySelector(".embk-m"));
+}
+if ("requestIdleCallback" in window) requestIdleCallback(() => { try { if (BILL.cfg && BILL.cfg.pk) loadStripeJs(); } catch {} }, { timeout: 6000 });
 /* Sofortige Rückmeldung, solange Stripe die Seite vorbereitet */
 function busy(msg) { const e = document.createElement("div"); e.className = "busy"; e.setAttribute("role", "status"); e.innerHTML = `<div class="busy-c"><i class="spin"></i><b>${msg}</b><small>Das dauert nur einen Moment.</small></div>`; document.body.appendChild(e); return () => e.remove(); }
 addEventListener("pageshow", () => document.querySelectorAll(".busy").forEach(e => e.remove()));
-const plusBuy = async plan => { const done = busy("Sichere Bezahlung wird vorbereitet …"); try { location.href = await billCall("/api/checkout", { plan, country: proCountry() }); } catch (e) { done(); toast(e.message); } };
+const plusBuy = async plan => {
+  const done = busy("Sichere Bezahlung wird vorbereitet …");
+  try {
+    const pk = BILL.cfg && BILL.cfg.pk, j = await billPost("/api/checkout", { plan, country: proCountry(), ...(pk ? { embedded: true } : {}) });
+    if (j.clientSecret) { await embedCheckout(j.clientSecret, j.pk || pk); done(); } else location.href = j.url;
+  } catch (e) { done(); toast(e.message); }
+};
 const plusManage = async flow => { const done = busy(flow === "cancel" ? "Kündigung wird vorbereitet …" : "Stripe-Portal wird geöffnet …"); try { location.href = await billCall("/api/portal", flow ? { flow } : {}); } catch (e) { done(); toast(e.message); } };
 const daysLeft = d => Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 864e5));
 const dLabel = n => n === 1 ? "1 Tag" : n + " Tage";
@@ -83,6 +105,9 @@ async function plusReturn() {
   const q = new URLSearchParams(location.search), st = q.get("plus"); if (!st) return;
   history.replaceState(null, "", location.pathname + location.hash);
   if (st === "cancel") return toast("Bezahlung abgebrochen – es wurde nichts berechnet.");
+  return plusAfter();
+}
+async function plusAfter() {
   window.__setTab = "pro"; toast("Danke! Deine Testversion wird geladen …");
   for (let i = 0; i < 8 && !isPlus(); i++) { await plusLoad(true); if (!isPlus()) await new Promise(r => setTimeout(r, 2000)); }
   toast(isPlus() ? "Lumi Study Pro ist aktiv – viel Erfolg beim Lernen!" : "Zahlung eingegangen – das Abo erscheint gleich. Lade die Seite in ein paar Sekunden neu."); try { refreshNav(); } catch {} if (curView === "settings") { window.__setTab = "pro"; renderView(); }

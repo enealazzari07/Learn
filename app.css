@@ -3278,3 +3278,10 @@ body.hed-open{overflow:hidden}
 /* Home-Chatleiste: so breit wie im Chat (nicht über die ganze Breite) */
 .hdock .hd-in,.hdock:not(.open) .hd-in,.hdock.open .hd-in{width:min(760px,calc(100% - 2 * var(--gx, 22px)))}
 .hdock.open .hd-bg{left:50%;right:auto;width:calc(min(760px,100% - 2 * var(--gx, 22px)) + 24px);transform:translateX(-50%)}
+
+/* Eingebetteter Stripe-Checkout */
+.embk{position:fixed;inset:0;z-index:700;display:grid;place-items:center;padding:16px;background:rgba(15,15,18,.45);backdrop-filter:blur(6px);animation:aiuIn .2s ease}
+.embk-c{position:relative;width:min(520px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:#fff;border-radius:26px;box-shadow:0 30px 90px rgba(0,0,0,.3)}
+.embk-m{min-height:320px;display:grid}.embk-m>.spin{margin:auto}
+.embk-x{position:absolute;top:10px;right:12px;z-index:2;width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.06);font-size:22px;line-height:1;cursor:pointer}
+body.noscroll{overflow:hidden}
