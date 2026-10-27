@@ -2375,4 +2375,4 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .ahc .dot{width:28px;height:28px;border-radius:50%;background:#0e9f6e;color:#fff;display:grid;place-items:center}.ahc .dot svg{width:15px;height:15px;stroke-width:2.4}
 .ahc.ah1{top:22px;left:22px;background:#ffd75a;display:block}
 .ahc.ah2{left:22px;bottom:22px}.ahc.ah3{right:22px;bottom:92px}
-@media(max-width:860px){.authshell{grid-template-columns:1fr;border-radius:32px}.authhero{order:-1;min-height:190px;border-radius:26px}.ahc.c2,.ahc.ah3{display:none}.authform{padding:18px 12px 8px}.authmid h1{font-size:28px}}
+@media(max-width:860px){.authshell{grid-template-columns:1fr;border-radius:32px}.authhero{order:-1;min-height:190px;border-radius:26px}.ahc.ah2,.ahc.ah3{display:none}.authform{padding:18px 12px 8px}.authmid h1{font-size:28px}}
