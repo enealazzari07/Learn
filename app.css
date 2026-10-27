@@ -3362,3 +3362,13 @@ body.noscroll{overflow:hidden}
 .setsec[data-s=pro].on.paying{grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:20px}
 .setsec.paying .proemb{margin:0 -10px 0 -4px}
 @media (max-width:900px){.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)}.setsec.paying .proemb{margin:0}}
+/* Planspalte kleiner – Stripe hat eine feste Maximalgrösse und wird zentriert */
+.setsec[data-s=pro].on.paying{grid-template-columns:minmax(230px,290px) minmax(0,1fr);gap:16px}
+.setsec.paying .proemb{margin:0}.setsec.paying .proemb-box{max-width:1040px;margin:0 auto}
+.setsec.paying .propanel.proside h2{font-size:28px}
+.setsec.paying .pp-plans{gap:10px}
+.setsec.paying .pp-card{grid-template-columns:auto 1fr;padding:14px 14px;gap:11px;border-radius:18px}
+.setsec.paying .pp-pr{grid-column:2;font-size:13.5px;margin-top:-4px}
+.setsec.paying .pp-t b{font-size:14.5px}.setsec.paying .pp-t small{font-size:12px}
+.setsec.paying .pp-card em{right:12px}
+@media (max-width:900px){.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)}.setsec.paying .pp-card{grid-template-columns:auto 1fr auto}.setsec.paying .pp-pr{grid-column:auto;margin-top:0}}
