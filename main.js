@@ -88,7 +88,7 @@ function renderLanding() {
   const cfgP = location.protocol.startsWith("http") ? fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.plus) { BILL.cfg = j.plus; try { proApply(); } catch {} } if (j && j.msClientId && !(window.LUMI_CONFIG.msClientId || "").trim()) { window.LUMI_CONFIG.msClientId = j.msClientId; if (j.msTenant) window.LUMI_CONFIG.msTenant = j.msTenant; } }).catch(() => {}) : Promise.resolve();
   await Promise.race([Promise.all([probeServerAI(), cfgP]), new Promise(r => setTimeout(r, 1800))]);
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
-  try { await plusLoad(); if (!BILL.row && buyRecent()) await plusSync(); } catch {}
+  try { await plusLoad(); if (!BILL.row && CLOUD.user && (buyRecent() || Date.now() - (+LS.get("lumi-sync-at") || 0) > 864e5)) { LS.set("lumi-sync-at", String(Date.now())); await plusSync(); } } catch {}
   route();
   plusReturn();
   setTimeout(() => { try { msAuto(); } catch {} }, 1500);
