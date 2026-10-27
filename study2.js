@@ -364,12 +364,12 @@ V.ai = m => {
   const aside = () => {
     const box = $("#aipl", m); if (!box) return; const cur = chatState();
     const list = D.chats.filter(c => !c.docId && (!filter || c.projectId === filter)).sort((a, b) => b.updated - a.updated);
-    box.innerHTML = `<button class="aip-new" id="cn">${ic("plus")}<span>Neuer Chat</span></button>
+    box.innerHTML = `<div class="aip-top"><button class="aip-new" id="cn">${ic("plus")}<span>Neuer Chat</span></button><button class="aip-new aip-voice" id="cvc">${ic("mic")}<span>AI Voice</span></button></div>
       <div class="aip-h"><span>Projekte</span><button class="icon-btn sm" id="pn" aria-label="Neues Projekt">${ic("plus")}</button></div>
       <div class="aip-list">${D.cprojects.map(p => `<div class="aip-i ${filter === p.id ? "on" : ""}" data-p="${p.id}" tabindex="0">${ic("folder")}<span>${esc(p.name)}</span><button class="aip-m" data-pm="${p.id}" aria-label="Projekt-Menü">${ic("more")}</button></div>`).join("") || `<p class="aip-e">Gruppiere Chats mit gemeinsamen Anweisungen.</p>`}</div>
       <div class="aip-h"><span>${filter ? esc(D.cprojects.find(x => x.id === filter)?.name || "Chats") : "Chats"}</span>${filter ? `<button class="link" id="pall">Alle</button>` : ""}</div>
       <div class="aip-list aip-chats">${list.map(c => `<div class="aip-i ${c.id === cur.id ? "on" : ""}" data-c="${c.id}" tabindex="0"><span>${esc(c.title)}</span><button class="aip-m" data-cm="${c.id}" aria-label="Chat-Menü">${ic("more")}</button></div>`).join("") || `<p class="aip-e">Keine Chats</p>`}</div>`;
-    $("#cn", box).onclick = () => { newChat(filter); page(); };
+    $("#cn", box).onclick = () => { newChat(filter); page(); }; $("#cvc", box).onclick = () => go("voice");
     $("#pn", box).onclick = () => projModal();
     $("#pall", box) && ($("#pall", box).onclick = () => { filter = ""; aside(); });
     $$("[data-c]", box).forEach(b => b.onclick = e => { if (e.target.closest("[data-cm]")) return; D.curChat = b.dataset.c; save(); page(); });
