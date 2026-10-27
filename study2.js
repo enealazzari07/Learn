@@ -124,7 +124,7 @@ V.quizrun = m => {
 
 /* ---------- planner ---------- */
 const TYPES = { hw: "Hausaufgabe", task: "Aufgabe", exam: "Prüfung", project: "Referat/Projekt" };
-let plTab = "tasks", calMonth = new Date();
+let plTab = "week", calMonth = new Date(), plWeek = null, plDay = null;
 function taskModal(task, date = "", preset = {}) {
   const t = task || { title: "", type: preset.type || "hw", subjectId: "", due: date, note: "" };
   const { el, close } = modal(`<h3>${task ? "Aufgabe bearbeiten" : "Neue Aufgabe"}</h3><label class="lbl">Titel</label><input class="field" id="tt1" value="${esc(t.title)}" placeholder="z. B. Aufgaben S. 54 Nr. 3–7">
@@ -147,12 +147,56 @@ function ttModal(day, ev) {
   $("#msv", el).onclick = () => { Object.assign(e, { subjectId: $(".tm1", el).value, title: $("#tm2", el).value.trim(), start: $("#tm3", el).value || "08:00", end: $("#tm4", el).value || "08:45", room: $("#tm5", el).value.trim(), day: +$("#tm6", el).value }); if (!ev) D.tt.push({ id: uid(), ...e }); save(); close(); renderView(); };
   $("#mdel", el) && ($("#mdel", el).onclick = () => { D.tt = D.tt.filter(x => x !== ev); save(); close(); renderView(); });
 }
+
+/* Wochenansicht: Tage als Pillen, Zeitleiste mit Stunden/Terminen/Aufgaben, rechts Aktivität */
+const wkMon = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+const hm = t => { const [h, m] = String(t || "").split(":").map(Number); return isNaN(h) ? null : h * 60 + (m || 0); };
+function activityFeed() {
+  const it = [];
+  D.tasks.forEach(t => t.done && t.doneAt && it.push({ ts: t.doneAt, ic: "check", h: "Aufgabe erledigt", s: t.title }));
+  (D.quizzes || []).forEach(q => it.push({ ts: q.date, ic: "help", h: "Quiz gespielt · " + q.score + "/" + q.total, s: q.title }));
+  D.grades.forEach(g => g.date && it.push({ ts: parseISO(g.date).getTime() + 12 * 36e5, ic: "award", h: "Note eingetragen · " + gfmt(g.value), s: g.title + (subj(g.subjectId) ? " · " + subj(g.subjectId).name : "") }));
+  D.docs.forEach(d => d.updated && it.push({ ts: d.updated, ic: "note", h: "Dokument bearbeitet", s: d.title }));
+  (D.decks || []).forEach(k => (k.updated || k.created) && it.push({ ts: k.updated || k.created, ic: "cards", h: "Karteikarten", s: k.title + " · " + (k.cards || []).length + " Karten" }));
+  return it.filter(x => x.ts && x.ts <= Date.now() + 36e5).sort((a, b) => b.ts - a.ts).slice(0, 12);
+}
+const actWhen = ts => { const d = new Date(ts), t = d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" }), dd = daysUntil(iso(d)); return (dd === 0 ? "Heute" : dd === -1 ? "Gestern" : d.toLocaleDateString("de-CH", { day: "numeric", month: "short" })) + ", " + t; };
+function weekView(pb, m) {
+  if (!plWeek) plWeek = wkMon(new Date()); if (!plDay) plDay = iso();
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(plWeek); d.setDate(d.getDate() + i); return d; }), todayIso = iso();
+  if (!days.some(d => iso(d) === plDay)) plDay = iso(days[0]);
+  const sel = days.find(d => iso(d) === plDay), dow = (sel.getDay() + 6) % 7, a0 = 7 * 60, a1 = 21 * 60;
+  const blocks = [];
+  D.tt.filter(e => e.day === dow).forEach(e => blocks.push({ k: "lesson", s: hm(e.start), e: hm(e.end), t: e.title || subj(e.subjectId)?.name || "Stunde", u: [subj(e.subjectId)?.name, e.room].filter(Boolean).join(" · "), id: e.id }));
+  calEventsOn(plDay).forEach(e => { const s = hm(e.time); if (s != null) blocks.push({ k: "event", s, e: hm(e.end || e.endTime) || s + 60, t: e.title, u: e.loc || "Kalender" }); });
+  const allday = [...calEventsOn(plDay).filter(e => hm(e.time) == null).map(e => ({ t: e.title, u: "Termin" })), ...D.tasks.filter(t => t.due === plDay).map(t => ({ t: t.title, u: TYPES[t.type] || "Aufgabe", done: t.done, id: t.id, exam: t.type === "exam" }))];
+  const ok = blocks.filter(b => b.s != null && b.e > b.s).map(b => ({ ...b, s: Math.max(b.s, a0), e: Math.min(b.e, a1) }));
+  const px = 56, now = new Date(), nm = now.getHours() * 60 + now.getMinutes(), showNow = plDay === todayIso && nm >= a0 && nm <= a1;
+  const wl = days[0].toLocaleDateString("de-CH", { month: "long", year: "numeric" });
+  const feed = activityFeed();
+  pb.innerHTML = `<div class="plw"><section class="plw-main"><div class="plw-hd"><button class="icon-btn" id="wp" aria-label="Vorherige Woche">${ic("back")}</button><b>${wl}</b><button class="icon-btn" id="wn" aria-label="Nächste Woche" style="transform:scaleX(-1)">${ic("back")}</button><button class="btn ghost small" id="wt">Heute</button></div>
+  <div class="plw-days">${days.map(d => { const i = iso(d); return `<button class="plw-d ${i === plDay ? "on" : ""} ${i === todayIso ? "today" : ""}" data-d="${i}"><b>${d.getDate()}</b><small>${d.toLocaleDateString("de-CH", { weekday: "short" }).replace(".", "")}</small></button>`; }).join("")}</div>
+  ${allday.length ? `<div class="plw-all">${allday.map(a => `<button class="plw-chip ${a.done ? "done" : ""} ${a.exam ? "exam" : ""}" ${a.id ? `data-t="${a.id}"` : ""}><b>${esc(a.t)}</b><small>${esc(a.u)}</small></button>`).join("")}</div>` : ""}
+  <div class="plw-grid" style="--px:${px}px;height:${(a1 - a0) / 60 * px}px">${Array.from({ length: (a1 - a0) / 60 }, (_, i) => `<div class="plw-h" style="top:${i * px}px"><span>${pad(7 + i)}:00</span></div>`).join("")}
+  ${ok.map(b => `<button class="plw-b ${b.k}" ${b.id ? `data-l="${b.id}"` : ""} style="top:${(b.s - a0) / 60 * px}px;height:${Math.max(44, (b.e - b.s) / 60 * px - 4)}px"><b>${esc(b.t)}</b><small>${pad(Math.floor(b.s / 60))}:${pad(b.s % 60)}–${pad(Math.floor(b.e / 60))}:${pad(b.e % 60)}${b.u ? " · " + esc(b.u) : ""}</small></button>`).join("")}
+  ${showNow ? `<div class="plw-now" style="top:${(nm - a0) / 60 * px}px"><em>${now.getHours()}:${pad(now.getMinutes())}</em></div>` : ""}
+  ${!ok.length && !allday.length ? `<p class="plw-empty">Nichts geplant. Füge Stunden im Stundenplan oder Aufgaben mit Datum hinzu.</p>` : ""}</div></section>
+  <aside class="plw-act"><h3>Aktivität</h3>${feed.length ? `<ol>${feed.map(a => `<li><span class="plw-ai">${ic(a.ic)}</span><div><small>${actWhen(a.ts)}</small><b>${esc(a.h)}</b><em>${esc(a.s)}</em></div></li>`).join("")}</ol>` : `<p class="note">Sobald du lernst, Aufgaben abhakst oder Noten einträgst, erscheint hier dein Verlauf.</p>`}</aside></div>`;
+  const go2 = () => V.planner(m);
+  $("#wp", pb).onclick = () => { plWeek.setDate(plWeek.getDate() - 7); plDay = iso(plWeek); go2(); };
+  $("#wn", pb).onclick = () => { plWeek.setDate(plWeek.getDate() + 7); plDay = iso(plWeek); go2(); };
+  $("#wt", pb).onclick = () => { plWeek = wkMon(new Date()); plDay = iso(); go2(); };
+  $$("[data-d]", pb).forEach(b => b.onclick = () => { plDay = b.dataset.d; go2(); });
+  $$("[data-t]", pb).forEach(b => b.onclick = () => taskModal(D.tasks.find(x => x.id === b.dataset.t)));
+  $$("[data-l]", pb).forEach(b => b.onclick = () => ttModal(0, D.tt.find(x => x.id === b.dataset.l)));
+}
 V.planner = m => {
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Organisation</p><h1>Planer</h1></div><button class="btn accent" id="nt">${ic("plus")}Aufgabe</button></div><div class="seg wide" id="pt"><button data-t="tasks">Aufgaben</button><button data-t="tt">Stundenplan</button><button data-t="cal">Kalender</button></div><div id="pb"></div></div>`;
+  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Organisation</p><h1>Planer</h1></div><button class="btn accent" id="nt">${ic("plus")}Aufgabe</button></div><div class="seg wide" id="pt"><button data-t="week">Woche</button><button data-t="tasks">Aufgaben</button><button data-t="tt">Stundenplan</button><button data-t="cal">Kalender</button></div><div id="pb"></div></div>`;
   $$("#pt button", m).forEach(b => { b.classList.toggle("on", b.dataset.t === plTab); b.onclick = () => { plTab = b.dataset.t; V.planner(m); }; });
   $("#nt", m).onclick = () => taskModal();
   const pb = $("#pb", m);
-  if (plTab === "tasks") {
+  if (plTab === "week") weekView(pb, m);
+  else if (plTab === "tasks") {
     const gs = [["Überfällig", x => x.due && daysUntil(x.due) < 0], ["Heute", x => x.due && daysUntil(x.due) === 0], ["Morgen", x => x.due && daysUntil(x.due) === 1], ["Diese Woche", x => x.due && daysUntil(x.due) > 1 && daysUntil(x.due) <= 7], ["Später", x => x.due && daysUntil(x.due) > 7], ["Ohne Datum", x => !x.due]];
     const evs = (D.apple?.events || []).filter(e => e.date >= iso() && daysUntil(e.date) <= 14).sort((x, y) => x.date.localeCompare(y.date)).slice(0, 8);
     const open = D.tasks.filter(x => !x.done), row = x => `<label class="li task" data-e="${x.id}"><input type="checkbox" data-c="${x.id}" ${x.done ? "checked" : ""}><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#bbb"}"></span><div class="tm2"><b class="${x.done ? "strike" : ""}">${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small>${x.repeat ? "↻ " + ({ daily: "täglich", weekly: "wöchentlich", monthly: "monatlich" }[x.repeat] || "") + (subj(x.subjectId) ? " · " : "") : ""}${esc(subj(x.subjectId)?.name || "")}${x.note ? " · " + esc(x.note) : ""}</small></div><small class="${x.due && daysUntil(x.due) < 0 && !x.done ? "red" : ""}">${x.due ? fmtD(x.due) : ""}</small></label>`;
