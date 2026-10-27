@@ -3382,3 +3382,8 @@ body.noscroll{overflow:hidden}
 @media (max-width:900px){.ps-show{max-width:none}}
 @media (prefers-reduced-motion:reduce){.ps-sc,.ps-sc.on,.ps-sc.out{transition:none}.ps-sc.on .ps-mk>div>*{animation:none}}
 .ps-mk>div>*{flex-shrink:0}.mk-chat{justify-content:flex-end}.mk-foc{align-items:center;justify-content:center}
+/* Foto-Szenen + sanftes Überblenden */
+.ps-sc.on{transition:opacity 1s ease,transform 1.1s cubic-bezier(.2,.8,.2,1)}
+.ps-sc.out{transition:opacity .9s ease,transform 1.1s ease}
+.ps-mk.ph{padding:0;background-size:cover;background-position:center}
+.ps-dots{display:none}
