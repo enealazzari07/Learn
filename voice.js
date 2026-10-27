@@ -109,7 +109,7 @@ V.voice = m => {
   async function respond(text) {
     stopRec(); const tk = ++S.token; $u.textContent = text; $a.textContent = ""; setSt("thinking", "Denke nach …");
     const sys = sysBase("Du sprichst gerade per Sprache mit der lernenden Person. Antworte kurz und natürlich gesprochen, meist 1 bis 3 Sätze, ohne Markdown, ohne Listen, ohne Aufzählungszeichen, ohne Emojis und ohne Sonderzeichen. Sprich Formeln in Worten aus. Frage bei Bedarf kurz nach. Nenne keine Quellenmarker.");
-    const reply = await ai(text, { system: sys, history: S.hist.slice(-12), max: 350 });
+    const reply = await ai(text, { system: sys, history: S.hist.slice(-12), max: 300, model: "groq:llama-3.3-70b-versatile", temperature: .6 });
     if (tk !== S.token || !S.alive) return;
     if (!reply) { setSt("idle", "Keine Antwort – tippe auf das Mikrofon"); S.paused = true; $mic.classList.remove("on"); return; }
     const say = clean(reply); S.hist.push({ role: "user", text }, { role: "assistant", text: say }); keep(text, say);
@@ -119,10 +119,10 @@ V.voice = m => {
   function keep(q, a) { try { D.chats = D.chats || []; let c = S.chat || D.chats.find(x => x.voice); if (!c) { c = { id: uid(), title: "Voice-Chat", projectId: "", instr: "", msgs: [], updated: Date.now(), voice: true }; D.chats.unshift(c); } S.chat = c; c.msgs.push({ role: "user", text: q }, { role: "assistant", text: a }); c.msgs = c.msgs.slice(-80); c.updated = Date.now(); save(); } catch {} }
 
   /* ---- Sprechen ---- */
-  const sentences = t => { const out = []; let cur = ""; for (const s of t.split(/(?<=[.!?…])\s+/)) { if ((cur + " " + s).trim().length > 230 && cur) { out.push(cur.trim()); cur = s; } else cur = (cur + " " + s).trim(); } if (cur) out.push(cur); return out.length ? out : [t]; };
+  const sentences = t => { const out = []; let cur = ""; const m1 = t.match(/^(.{20,140}?[.!?…])\s+(?=\S)/); if (m1 && t.length > m1[0].length + 20) { out.push(m1[1]); t = t.slice(m1[0].length); } for (const s of t.split(/(?<=[.!?…])\s+/)) { if ((cur + " " + s).trim().length > 230 && cur) { out.push(cur.trim()); cur = s; } else cur = (cur + " " + s).trim(); } if (cur) out.push(cur); return out.length ? out : [t]; };
   async function speak(text, tk) {
     setSt("speaking", "Spreche …"); const parts = sentences(text);
-    const fetchPart = p => S.ttsOk ? vcPost("/api/tts", { text: p, voice: S.voice }).then(async j => { const bin = atob(j.wav), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return await ctx().decodeAudioData(u8.buffer); }).catch(e => { if (e.limit) { toast(e.message); } S.ttsOk = false; return null; }) : Promise.resolve(null);
+    const fetchPart = p => S.ttsOk ? vcPost("/api/tts", { text: p, voice: S.voice }).then(async j => { const bin = atob(j.wav), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return await ctx().decodeAudioData(u8.buffer); }).catch(e => { toast(e.limit ? e.message : "Stimme nicht verfügbar – nutze Systemstimme (" + (e.message || "Fehler") + ")"); S.ttsOk = false; return null; }) : Promise.resolve(null);
     let next = fetchPart(parts[0]);
     for (let i = 0; i < parts.length; i++) {
       if (tk !== S.token || !S.alive) return; const buf = await next; next = i + 1 < parts.length ? fetchPart(parts[i + 1]) : null;
@@ -138,7 +138,7 @@ V.voice = m => {
   function interrupt() { S.token++; try { S.src && S.src.stop(); } catch {} S.src = null; try { "speechSynthesis" in window && speechSynthesis.cancel(); } catch {} stopRec(); }
 
   /* ---- Bedienung ---- */
-  $mic.onclick = () => { ctx().resume?.(); if (S.state === "listening") { S.paused = true; interrupt(); setSt("idle", "Pausiert – tippe auf das Mikrofon"); } else { S.paused = false; interrupt(); listen(); } };
+  $mic.onclick = () => { ctx().resume?.(); try { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } catch {} if (S.state === "listening") { S.paused = true; interrupt(); setSt("idle", "Pausiert – tippe auf das Mikrofon"); } else { S.paused = false; interrupt(); listen(); } };
   $("#vc-orb", m).onclick = () => { if (S.state === "speaking") { interrupt(); S.paused = false; listen(); } };
   $("#vc-sel", m).onchange = e => { S.voice = e.target.value; LS.set("lumi-voice", S.voice); S.ttsOk = true; speak("Hallo, so klingt diese Stimme.", ++S.token).then(() => !S.paused && listen()); };
   const leave = () => { S.alive = false; interrupt(); stopOrb(); try { S.mic && S.mic.getTracks().forEach(t => t.stop()); S.ac && S.ac.close(); } catch {} };

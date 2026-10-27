@@ -78,7 +78,7 @@ function cloudAuthHtml() {
     <p class="note" id="cl-m" style="min-height:20px"></p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" id="cl-in">Anmelden</button><button class="btn" id="cl-up">Registrieren</button><button class="link" id="cl-fp" type="button">Passwort vergessen</button></div>`;
 }
 function cloudAuthBind(el, done) {
-  const msg = t => { $("#cl-m", el).textContent = t; }, val = () => [$("#cl-e", el).value.trim(), $("#cl-p", el).value];
+  const msg = t => { const m = $("#cl-m", el); if (!m) return; const k = !t ? "" : /…$/.test(t) ? "load" : /Fast geschafft|erfolgreich|geschickt/i.test(t) ? "ok" : "err"; m.className = "note authmsg" + (k ? " " + k : ""); m.innerHTML = t ? `<span class="am-i">${k === "load" ? `<i class="am-sp"></i>` : k === "ok" ? `<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>` : `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.1"/></svg>`}</span><span></span>` : ""; if (t) m.lastChild.textContent = t; $$("#cl-in,#cl-up", el).forEach(b => b.classList.toggle("busy", k === "load")); }, val = () => [$("#cl-e", el).value.trim(), $("#cl-p", el).value];
   const need = () => { const [e, p] = val(); if (!e || p.length < 6) { msg("E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben."); return null; } return [e, p]; };
   const bi = $("#cl-in", el); if (bi) bi.onclick = async () => { const v = need(); if (!v) return; msg("Anmelden …"); const { error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) { if (/confirm/i.test(error.message)) { await CLOUD.sb.auth.resend({ type: "signup", email: v[0], options: { emailRedirectTo: location.origin + "/" } }); msg("Bitte bestätige zuerst deine E-Mail – wir haben dir den Link gerade nochmals geschickt (auch im Spam nachsehen)."); } else msg("Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); } else done(); };
   const bu = $("#cl-up", el); if (bu) bu.onclick = async () => { const v = need(); if (!v) return; msg("Konto wird erstellt …"); const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: { app: "lumi" }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session) return done(); msg("Anmelden …"); const r = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (r.error) msg(/confirm/i.test(r.error.message) ? "Fast geschafft: Wir haben dir eine E-Mail geschickt. Klicke auf den Bestätigungslink darin (auch im Spam nachsehen) und melde dich danach hier an." : r.error.message); else done(); };
@@ -91,21 +91,18 @@ const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 function authScreen(mode = "in") {
   const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = up ? "Lumi – Konto erstellen" : "Lumi – Anmelden";
   app.innerHTML = `<div class="authwrap"><div class="authshell">
-    <form class="authform" onsubmit="return false"><a class="logo authlogo" href="#/"><i class="mark"></i>Lumi</a>
-      <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
-        <label class="lbl" for="cl-e">E-Mail</label><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch">
-        <label class="lbl" for="cl-p">Passwort</label><div class="pwrap"><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
-        <p class="note" id="cl-m" style="min-height:20px"></p>
+    <form class="authform" onsubmit="return false" novalidate><a class="logo authlogo" href="#/"><i class="mark"></i>Lumi</a>
+      <div class="authmid"><div class="authtabs" role="tablist"><button type="button" role="tab" class="${up ? "" : "on"}" id="cl-t-in">Anmelden</button><button type="button" role="tab" class="${up ? "on" : ""}" id="cl-t-up">Registrieren</button></div><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
+        <label class="lbl" for="cl-e">E-Mail</label><div class="fld"><svg class="fi" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch"></div>
+        <label class="lbl" for="cl-p">Passwort</label><div class="fld pwrap"><svg class="fi" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="3.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
+        <p class="note authmsg" id="cl-m" aria-live="polite"></p>
         <button class="btn authgo" id="${up ? "cl-up" : "cl-in"}">${up ? "Kostenlos registrieren" : "Anmelden"}</button>
         ${oauth.length ? `<div class="authoauth">${oauth.map(o => `<button class="btn ghost" type="button" data-o="${o}">${o === "google" ? "Google" : "Apple"}</button>`).join("")}</div>` : ""}
         ${up ? "" : `<button class="link" id="cl-fp" type="button">Passwort vergessen?</button>`}</div>
-      <div class="authfoot"><span>${up ? "Schon ein Konto?" : "Noch kein Konto?"} <a href="#" id="cl-sw">${up ? "Anmelden" : "Registrieren"}</a></span><a href="legal.html#agb">AGB &amp; Datenschutz</a></div></form>
-    <aside class="authhero" style="--hero:url(login-hero.webp)">
-      <div class="ahc ah1"><b>Mathe-Klausur</b><small>in 6 Tagen · 18 Karten fällig</small></div>
-      <div class="ahc ah2"><span class="dot">${ic("check")}</span><div><b>Karteikarten erstellt</b><small>aus deinen Notizen</small></div></div>
-      <div class="ahc ah3">${ic("spark")}<div><b>Lumi AI</b><small>Erklärt Schritt für Schritt</small></div></div></aside></div></div>`;
+      <div class="authfoot"><span>Mit dem Fortfahren stimmst du den <a href="legal.html#agb">AGB</a> und der <a href="legal.html#datenschutz">Datenschutzerklärung</a> zu.</span></div></form>
+    <aside class="authhero" style="--hero:url(login-hero.webp)"></aside></div></div>`;
   const f = $(".authform", app); cloudAuthBind(f, () => {});
-  $("#cl-sw", f).onclick = e => { e.preventDefault(); authScreen(up ? "in" : "up"); };
+  $("#cl-t-in", f).onclick = () => up && authScreen("in"); $("#cl-t-up", f).onclick = () => !up && authScreen("up");
   $("#cl-eye", f).onclick = () => { const i = $("#cl-p", f); i.type = i.type === "password" ? "text" : "password"; };
   $$("[data-o]", f).forEach(b => b.onclick = async () => { const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/#/app" } }); if (error) $("#cl-m", f).textContent = error.message; });
 }
