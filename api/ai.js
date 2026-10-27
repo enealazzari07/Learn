@@ -3,7 +3,7 @@
      GEMINI_API_KEY  (kostenloser Key: https://aistudio.google.com/apikey)
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur
      GEMINI_MODEL    (optional, Standard: gemini-flash-lite-latest)
-     AI_FREE_WINDOW_TOKENS (optional: Token pro Zeitfenster für Gratis-Konten, Standard 1000 (Lumi-Token = echte Token ÷ 10); 0 = unbegrenzt) und AI_WINDOW_HOURS (Länge des Fensters, Standard 5). Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
+     AI_FREE_WINDOW_TOKENS (optional: Token pro Zeitfenster für Gratis-Konten, Standard 5000 (Lumi-Token = echte Token ÷ 10); 0 = unbegrenzt) und AI_WINDOW_HOURS (Länge des Fensters, Standard 5). Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
    Mindestens einer der beiden Keys genügt. Die Keys erreichen nie den Browser. */
 const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];

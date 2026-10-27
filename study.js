@@ -28,7 +28,7 @@ const OB_FEATURES = [["note", "Notizen & Zeichnen", "Formeln, Tabellen, Stift un
 const obScaleFor = cc => cc === "DE" ? "de" : cc === "AT" ? "at" : cc === "US" || cc === "CA" ? "pct" : "ch";
 /* Abschluss-Seite nach dem Onboarding: Animation + was der Gratis-Plan enthält (KI mit Limit) */
 function welcomeSplash(name, canBuy) {
-  const lim = (typeof AIU !== "undefined" && AIU.limit) || 1000, first = (name || "").trim().split(/\s+/)[0];
+  const lim = (typeof AIU !== "undefined" && AIU.limit) || 5000, first = (name || "").trim().split(/\s+/)[0];
   const el = document.createElement("div"); el.className = "wsp";
   el.innerHTML = `<div class="wsp-in"><svg class="wsp-ck" viewBox="0 0 96 96" width="96" height="96"><circle class="wsp-c" cx="48" cy="48" r="42" pathLength="100"/><path class="wsp-v" d="M30 50l13 13 24-28" pathLength="100"/></svg>
     <h1>Alles bereit${first ? ", " + esc(first) : ""}.</h1><p class="wsp-s">Dein Lumi ist eingerichtet. Das ist in deinem Gratis-Konto enthalten:</p>

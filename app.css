@@ -3263,3 +3263,14 @@ body.hed-open{overflow:hidden}
 .obx-sec{background:#fff;color:#111;border:1px solid #d9d9dc;border-radius:999px;padding:15px 24px;font-size:15px;font-weight:600;cursor:pointer}
 .obx-sec:hover{background:#f6f6f7}
 .obx-ico image{filter:invert(1)}
+
+/* Chat-Leiste auf Home: immer gleich breit; beim Öffnen wächst nur eine Karte nach oben (kein Vollbild) */
+.hdock.open{top:max(var(--dt,0px),calc(100dvh - 126px - 440px))}
+.hdock.open .hd-in{width:calc(100% - 2 * var(--gx, 22px));max-width:none;padding-bottom:12px}
+.hdock.open .hd-in .chatbox,.hdock.open .hd-in .chatbox.flat,.hdock.open .hd-in .t-in,.hdock.open .hd-in .t-in.cmp{max-width:none!important;width:100%!important;margin-left:0!important;margin-right:0!important}
+.hdock.open .hd-bg{left:calc(var(--gx,22px) - 12px);right:calc(var(--gx,22px) - 12px);background:#fff;border-radius:28px;box-shadow:0 14px 50px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.05)}
+.hdock.open .hd-bg::before{display:none}
+.hdock.open .hd-top{padding:14px 4px 4px}
+.hdock.open .msgs{padding:4px 4px 8px}
+@media (max-width:900px){.hdock.open{top:max(var(--dt,0px),calc(100dvh - 86px - env(safe-area-inset-bottom) - 126px - 380px))!important}}
+:root[data-theme="dark"] .hdock.open .hd-bg{background:#1c1c1e;box-shadow:0 14px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08)}
