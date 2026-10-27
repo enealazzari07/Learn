@@ -166,6 +166,7 @@ Object.assign(P, {
 });
 ["link", "download", "adduser"].forEach(n => { if (P[n]) P[n + "-f"] = '<g stroke-width="2.7">' + P[n] + '</g>'; });
 P["sparkO-f"] = P.spark;
+P["mic-f"] = '<rect x="9" y="3.5" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5"/>';
 const icOn = n => P[n + "-f"] ? n + "-f" : n;
 const ic = (n, c = "ic") => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ""}</svg>`;
 

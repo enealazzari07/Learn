@@ -8,7 +8,7 @@ const PRESETS = {
   school: ["Mathe", "Deutsch", "Englisch", "Biologie", "Chemie", "Physik", "Geschichte", "Geografie", "Informatik", "Kunst", "Musik", "Sport", "Politik", "Französisch", "Latein", "Spanisch", "Religion/Ethik"],
   uni: ["Analysis", "Lineare Algebra", "Programmierung", "Statistik", "BWL", "VWL", "Recht", "Psychologie", "Medizin", "Chemie", "Physik", "Informatik", "Literatur", "Geschichte", "Seminar"],
 };
-const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["search", "Suche", "search"]];
+const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Lumi AI", "sparkO"], ["voice", "Lumi Voice", "mic"], ["search", "Suche", "search"]];
 
 /* ---------- stats ---------- */
 const addMin = m => { const k = iso(); D.stats.days[k] = (D.stats.days[k] || 0) + m; save(); };
@@ -131,7 +131,7 @@ function refreshNav() {
   <div class="nav-grp">${SET.map(([k, l, i]) => `<button class="nav-i ${(window.__setTab || "gen") === k ? "on" : ""}" data-st="${k}" title="${l}">${ic((window.__setTab || "gen") === k ? icOn(i) : i)}<span class="nl">${l}</span></button>`).join("")}</div>
   <div class="sp hide-mob"></div>${proChipHtml()}${profBtn}` : `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand"><i class="mark"></i>Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
-  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) ? icOn(i) : i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
+  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "voice", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) ? icOn(i) : i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
   ${proChipHtml()}${profBtn}`;

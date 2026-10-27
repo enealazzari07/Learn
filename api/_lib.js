@@ -166,4 +166,13 @@ const win = j => j && typeof j === "object" ? { used: +j.tokens || 0, reset: j.s
 const aiUsed = async uid => { try { return win(await sb("POST", "rpc/lumi_ai_tokens", { p_user: uid, p_hours: WINDOW_H })); } catch { return null; } };
 const aiAdd = async (uid, t) => { try { return win(await sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: Math.max(0, Math.round(t)), p_hours: WINDOW_H })); } catch { return null; } };
 
-module.exports = { validCustomer, FREE_TOKENS, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+/* Gemeinsame Prüfung für KI-Aufrufe (Anmeldung, Gratis-Budget). Gibt { acct } oder { deny: [status, body] } zurück. */
+async function aiGate(req) {
+  const user = await userFromReq(req); if (!user) return { deny: [401, { error: "Bitte melde dich an, um Lumi AI zu nutzen." }] };
+  if (!FREE_TOKENS) return { acct: { id: user.id, pro: false, free: false } };
+  const pro = await isProLive(user.id), w = pro ? { used: 0, reset: null } : await aiUsed(user.id);
+  if (!w) return { acct: { id: user.id, pro, free: false } };
+  if (!pro && w.used >= FREE_TOKENS) return { deny: [429, { error: "Dein Lumi-AI-Limit ist erreicht. Es setzt sich in ein paar Stunden zurück – oder nutze Lumi Study Pro ohne Limit.", limit: true, usage: { used: w.used, limit: FREE_TOKENS, reset: w.reset } }] };
+  return { acct: { id: user.id, pro, free: !pro } };
+}
+module.exports = { aiGate, validCustomer, FREE_TOKENS, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
