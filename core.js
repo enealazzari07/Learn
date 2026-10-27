@@ -13,7 +13,7 @@ const pad = n => String(n).padStart(2, "0");
 const iso = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const parseISO = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 const daysUntil = s => Math.round((parseISO(s) - parseISO(iso())) / 864e5);
-const fmtD = s => parseISO(s).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+const fmtD = s => parseISO(s).toLocaleDateString("de-CH", { weekday: "short", day: "numeric", month: "short" });
 const fmtAgo = ts => { const m = Math.round((Date.now() - ts) / 6e4); if (m < 1) return "gerade eben"; if (m < 60) return `vor ${m} Min.`; const h = Math.round(m / 60); if (h < 24) return `vor ${h} Std.`; const d = Math.round(h / 24); return d === 1 ? "gestern" : `vor ${d} Tagen`; };
 
 /* ---------- icons ---------- */
@@ -217,13 +217,15 @@ const KV = {
     return new Promise(res => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").delete(k); t.oncomplete = () => res(); t.onerror = () => res(); });
   },
 };
-const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "de", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], folders: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
+const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "ch", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], folders: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
 let D = DEFAULT();
 let _st;
 function save() { clearTimeout(_st); _st = setTimeout(() => KV.set("data", D), 250); }
 async function loadData() {
   const d = (await KV.get("data")) || {}; const base = DEFAULT();
   D = Object.assign(base, d); D.profile = Object.assign(base.profile, d.profile || {}); D.stats = Object.assign(base.stats, d.stats || {});
+  /* Fächer behalten ihre Farbe; wer durch die kurze Neutral-Phase schwarz wurde, bekommt wieder eine Farbe */
+  (D.subjects || []).forEach((s, i) => { if (!s.color || s.color === "#0f0f12") s.color = COLORS[i % COLORS.length]; }); (D.folders || []).forEach(f => { const sj = f.subjectId && (D.subjects || []).find(x => x.id === f.subjectId); if (sj && (!f.color || f.color === "#0f0f12")) f.color = sj.color; });
 }
 addEventListener("pagehide", () => KV.set("data", D));
 const blobToDataURL = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); });
@@ -238,10 +240,10 @@ async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return
 const hasKey = () => serverAI || !!D.profile.apiKey;
 function sysBase(extra = "") {
   const p = D.profile;
-  return `You are Lumi, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural." : ""}${extra ? "\n" + extra : ""}`;
+  return `You are Lumi, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural. Use the Swiss school context: grades 1–6 (6 = best, 4 = pass), Swiss school types and Swiss dates (TT.MM.JJJJ), currency CHF." : ""}${extra ? "\n" + extra : ""}`;
 }
 const sourcesOn = () => D.profile.sources !== false && !!(serverInfo && serverInfo.gemini);
-const swissOn = () => D.profile.swiss !== false;
+const swissOn = () => true;   // Lumi ist für die Schweiz gemacht
 const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
 const AI_MODELS = [
@@ -262,7 +264,6 @@ async function aiCore(prompt, { system = "", history = [], max = 1500, image = n
       const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ ...(bg ? { bg: true } : {}), system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(r.status === 429 && !j.limit ? "Das kostenlose Lumi-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
-      if (j.model && j.model !== (model || aiModelId()) && !quiet) toast(`${aiModelName(model || aiModelId())} ist gerade ausgelastet – ${aiModelName(j.model)} hat geantwortet.`);
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
     } catch (e) { if (!quiet) toast("Lumi-AI-Fehler: " + e.message); return null; }

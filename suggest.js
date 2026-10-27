@@ -134,7 +134,7 @@ const Suggest = (() => {
     function suggestAt(scope, edits, opt = {}) {
       const caret = opt.avoidCaret ? caretOffset(scope) : -1, c0 = opt.direct ? caretOffset(scope) : -1; let n = 0, shift = 0;
       for (const e of [...edits].sort((x, y) => y.start - x.start)) {
-        if (caret >= 0 && caret >= e.start && caret <= e.end + 1) continue;
+        if (caret >= 0 && caret >= e.start && caret <= e.end + (opt.fast ? 0 : 1)) continue;
         const r = rangeAt(scope, e.start, e.end); if (!r) continue;
         if (opt.direct) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand("insertText", false, e.replace); n++; if (c0 >= 0 && e.end <= c0) shift += e.replace.length - (e.end - e.start); }
         else if (suggestRange(r, e.replace, { quiet: true, mini: opt.mini })) n++;

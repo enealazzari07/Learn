@@ -9,6 +9,7 @@ const INK_TOOLS = [["pen", "Stift", "brush"], ["hl", "Marker", "hl"], ["eraser",
 const INK_BRUSH = [["pen", "Füller"], ["mono", "Kugelschreiber"], ["pencil", "Bleistift"]];
 const INK_SHAPE = [["line", "Linie"], ["arrow", "Pfeil"], ["rect", "Rechteck"], ["ellipse", "Kreis"], ["tri", "Dreieck"]];
 const INK_SHAPE_IC = { line: "line", arrow: "arrow", rect: "square", ellipse: "circle", tri: "square" };
+const INK_STICKERS = ["⭐", "❗", "❓", "✅", "❌", "💡", "📌", "🔥", "👍", "🎯", "📚", "✏️", "⏰", "🧠", "❤️", "😀", "😅", "🤔", "🎉", "⚠️", "➡️", "🔎", "🧪", "🧮"];
 const INK_DEF = { smooth: .35, press: .8, penOnly: false, snap: true, eras: "stroke", brush: "pen", shape: "arrow", grid: "none", color: INK_COL[0], tool: "pen", sizes: { pen: 4, hl: 5, eraser: 24, shape: 3 }, pen: 0, pens: [{ brush: "pen", color: "#1c1c22", size: 4 }, { brush: "mono", color: "#2563eb", size: 3 }, { brush: "pencil", color: "#555a66", size: 3 }, { brush: "pen", color: "#e5484d", size: 6 }] };
 
 function createInk(paper, d, opts = {}) {
@@ -69,7 +70,8 @@ function createInk(paper, d, opts = {}) {
       else varied(c, s, p, X);
     } else {
       const a = p[0], b = p[1] || p[0];
-      if (s.type === "line" || s.type === "arrow") {
+      if (s.type === "sticker") { c.font = `${s.size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui,sans-serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText(s.e, X(a), a[1]); }
+      else if (s.type === "line" || s.type === "arrow") {
         c.beginPath(); c.moveTo(X(a), a[1]); c.lineTo(X(b), b[1]); c.stroke();
         if (s.type === "arrow") { const an = Math.atan2(b[1] - a[1], X(b) - X(a)), h = 12 + s.size * 2; c.beginPath(); c.moveTo(X(b), b[1]); c.lineTo(X(b) - h * Math.cos(an - .45), b[1] - h * Math.sin(an - .45)); c.moveTo(X(b), b[1]); c.lineTo(X(b) - h * Math.cos(an + .45), b[1] - h * Math.sin(an + .45)); c.stroke(); }
       } else if (s.type === "rect") c.strokeRect(Math.min(X(a), X(b)), Math.min(a[1], b[1]), Math.abs(b[0] - a[0]), Math.abs(b[1] - a[1]));
@@ -99,16 +101,22 @@ function createInk(paper, d, opts = {}) {
   }
   const sched = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; frame(); }); };
   const render = () => { dirty = true; sched(); };           // full re-bake of the committed layer
-  const selBox = () => { let b = null; st.sel.forEach(s => s.pts.forEach(q => { const r = s.type === "hl" ? s.size * 2 : s.size; b = b ? [Math.min(b[0], q[0] - r), Math.min(b[1], q[1] - r), Math.max(b[2], q[0] + r), Math.max(b[3], q[1] + r)] : [q[0] - r, q[1] - r, q[0] + r, q[1] + r]; })); return b; };
+  const selBox = () => { let b = null; st.sel.forEach(s => s.pts.forEach(q => { const r = s.type === "hl" ? s.size * 2 : s.type === "sticker" ? s.size * .6 : s.size; b = b ? [Math.min(b[0], q[0] - r), Math.min(b[1], q[1] - r), Math.max(b[2], q[0] + r), Math.max(b[3], q[1] + r)] : [q[0] - r, q[1] - r, q[0] + r, q[1] + r]; })); return b; };
   const inPoly = (poly, x, y) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
   const setSel = set => { st.sel = set && set.size ? set : null; render(); updUI(); };
   const d2 = (px, py, a, b) => { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy; let t = l ? ((px - a[0]) * dx + (py - a[1]) * dy) / l : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(px - (a[0] + t * dx), py - (a[1] + t * dy)); };
 
   /* hold still at the end of a stroke → perfect line / circle / rectangle (like GoodNotes shape snapping) */
   let holdT = 0, last = [0, 0];
+  let skipUp = false;
   const snapShape = () => {
     const c = st.cur; if (!c || c.type !== "pen" || c.pts.length < 8 || !S.snap) return; const p = c.pts, a = p[0], b = p[p.length - 1], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const xs = p.map(q => q[0]), ys = p.map(q => q[1]), bx = [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], diag = Math.hypot(bx[2] - bx[0], bx[3] - bx[1]) || 1;
+    /* closed loop around existing ink + hold → lasso selection instead of a shape */
+    if (S.loopLasso !== false && diag > 30 && len < diag * .3) {
+      const poly = p.map(q => [q[0], q[1]]), got = st.strokes.filter(x => x.pts.some(q => inPoly(poly, q[0], q[1])));
+      if (got.length) { st.cur = null; st.pred = []; skipUp = true; setTool("lasso"); setSel(new Set(got)); if (navigator.vibrate) navigator.vibrate(8); sched(); return; }
+    }
     const dev = Math.max(...p.map(q => d2(q[0], q[1], a, b)));
     if (len > 24 && dev < Math.max(6, len * .09)) { c.type = "line"; c.pts = [[a[0], a[1]], [b[0], b[1]]]; c.pr = false; }
     else if (len < diag * .3 && diag > 30) { const ex = (bx[0] + bx[2]) / 2, ey = (bx[1] + bx[3]) / 2, rx = (bx[2] - bx[0]) / 2 || 1, ry = (bx[3] - bx[1]) / 2 || 1, rad = p.map(q => Math.hypot((q[0] - ex) / rx, (q[1] - ey) / ry)), m = rad.reduce((x, y) => x + y, 0) / rad.length, v = Math.sqrt(rad.reduce((x, y) => x + (y - m) ** 2, 0) / rad.length);
@@ -119,6 +127,7 @@ function createInk(paper, d, opts = {}) {
   function hit(s, x, y, r) {
     const p = s.pts, rr = r + (s.type === "hl" ? s.size * 2 : s.size / 2);
     if (s.type === "pen" || s.type === "hl") return p.length === 1 ? Math.hypot(x - p[0][0], y - p[0][1]) < rr : p.some((q, i) => i && d2(x, y, p[i - 1], q) < rr);
+    if (s.type === "sticker") return Math.hypot(x - p[0][0], y - p[0][1]) < s.size * .6 + r;
     if (s.type === "line" || s.type === "arrow") return d2(x, y, p[0], p[1]) < rr;
     if (s.type === "rect") { const [a, b] = p, k = [[a[0], a[1]], [b[0], a[1]], [b[0], b[1]], [a[0], b[1]]]; return k.some((q, i) => d2(x, y, q, k[(i + 1) % 4]) < rr); }
     if (s.type === "tri") { const k = triPts(s); return k.some((q, i) => d2(x, y, q, k[(i + 1) % 3]) < rr); }
@@ -210,7 +219,7 @@ function createInk(paper, d, opts = {}) {
       const b = st.sel?.size ? selBox() : null;
       if (b && Math.hypot(p[0] - (b[2] + 8), p[1] - (b[3] + 8)) < 18) {          // scale handle
         snap(); const m = new Map(); st.strokes = st.strokes.map(x => { if (!st.sel.has(x)) return x; const n = { ...x, pts: x.pts.map(q => [...q]) }; m.set(x, n); return n; }); st.sel = new Set(m.values());
-        st.scaling = { o: [...st.sel].map(s => s.pts.map(q => [...q])), ax: b[0], ay: b[1], w: Math.max(10, b[2] - b[0]), h: Math.max(10, b[3] - b[1]), list: [...st.sel] }; return;
+        st.scaling = { o: [...st.sel].map(s => s.pts.map(q => [...q])), ax: b[0], ay: b[1], w: Math.max(10, b[2] - b[0]), h: Math.max(10, b[3] - b[1]), list: [...st.sel], os: [...st.sel].map(s => s.size) }; return;
       }
       if (b && p[0] > b[0] - 10 && p[0] < b[2] + 10 && p[1] > b[1] - 10 && p[1] < b[3] + 10) {
         snap(); const repl = new Map(); st.strokes = st.strokes.map(x => { if (!st.sel.has(x)) return x; const n = { ...x, pts: x.pts.map(q => [...q]) }; repl.set(x, n); return n; }); st.sel = new Set(repl.values()); st.moving = p; return;
@@ -222,6 +231,7 @@ function createInk(paper, d, opts = {}) {
     sm = [p[0], p[1], e.pointerType === "pen" ? (e.pressure || .5) : .5, tiltOf(e)];
     st.cur = { type: shape ? S.shape : t, color: isHl && st.color === "#ffffff" ? "#ffe600" : st.color, size: shape ? S.sizes.shape : S.sizes[t], pts: [[p[0], p[1], sm[2], sm[3]]], pr: e.pointerType === "pen" };
     if (!shape && !isHl) { st.cur.br = S.brush; st.cur.k = S.press; if (S.brush === "pencil") st.cur.sd = (Math.random() * 1e9) | 0; }
+    { const at = opts.audio?.clock?.(); if (at != null) { st.cur.t = at; st.cur.a = opts.audio.id; } }
     if (shape) st.cur.pts.push([p[0], p[1]]);
     st.pred = []; hoverRing(e); sched();
   });
@@ -235,7 +245,7 @@ function createInk(paper, d, opts = {}) {
       const p = pos(ev);
       if (t === "laser") { st.laser.push([p[0], p[1], performance.now()]); continue; }
       if (t === "lasso") {
-        if (st.scaling) { const g = st.scaling, f = Math.max(.1, ((p[0] - g.ax) / g.w + (p[1] - g.ay) / g.h) / 2); g.list.forEach((s, i) => s.pts.forEach((q, j) => { q[0] = g.ax + (g.o[i][j][0] - g.ax) * f; q[1] = g.ay + (g.o[i][j][1] - g.ay) * f; })); }
+        if (st.scaling) { const g = st.scaling, f = Math.max(.1, ((p[0] - g.ax) / g.w + (p[1] - g.ay) / g.h) / 2); g.list.forEach((s, i) => { if (s.type === "sticker") s.size = Math.max(14, g.os[i] * f); s.pts.forEach((q, j) => { q[0] = g.ax + (g.o[i][j][0] - g.ax) * f; q[1] = g.ay + (g.o[i][j][1] - g.ay) * f; }); }); }
         else if (st.moving) { const dx = p[0] - st.moving[0], dy = p[1] - st.moving[1]; st.sel.forEach(x => x.pts.forEach(q => { q[0] += dx; q[1] += dy; })); st.moving = p; }
         else if (st.lasso) st.lasso.push([p[0], p[1]]);
         continue;
@@ -254,9 +264,21 @@ function createInk(paper, d, opts = {}) {
     hoverRing(e); sched();
     if (st.cur && st.cur.type === "pen" && S.snap) { const p = pos(e); if (Math.hypot(p[0] - last[0], p[1] - last[1]) > 2) { last = p; clearTimeout(holdT); holdT = setTimeout(snapShape, 520); } }
   });
+  /* scribble over ink (zigzag) → erases what it crosses, like GoodNotes "scribble to erase" */
+  function isScribble(s) {
+    const p = s.pts; if (s.type !== "pen" || p.length < 14) return false;
+    const xs = p.map(q => q[0]), ys = p.map(q => q[1]), w = Math.max(...xs) - Math.min(...xs), h = Math.max(...ys) - Math.min(...ys), m = Math.max(w, h);
+    if (m < 24 || m > 280) return false;
+    let L = 0; for (let i = 1; i < p.length; i++) L += Math.hypot(p[i][0] - p[i - 1][0], p[i][1] - p[i - 1][1]);
+    if (L < m * 3.2) return false;
+    const k = w >= h ? 0 : 1; let dir = 0, ex = p[0][k], rev = 0;
+    for (const q of p) { const v = q[k]; if (dir <= 0 && v - ex > 10) { if (dir < 0) rev++; dir = 1; ex = v; } else if (dir >= 0 && ex - v > 10) { if (dir > 0) rev++; dir = -1; ex = v; } else if (dir > 0 && v > ex) ex = v; else if (dir < 0 && v < ex) ex = v; }
+    return rev >= 4;
+  }
   const up = e => {
     if (e.pointerType === "touch") touchUp(e);
     if (!drawing || (e.pointerId !== undefined && e.pointerId !== pid)) return; drawing = false; clearTimeout(holdT); const t = tl(); st.tmp = null; st.pred = [];
+    if (skipUp) { skipUp = false; st.cur = null; sched(); return; }
     if (t === "laser") { sched(); return; }
     if (t === "lasso") {
       if (st.scaling) { st.scaling = null; sched(); changed(); return; }
@@ -268,6 +290,10 @@ function createInk(paper, d, opts = {}) {
       const s = st.cur; st.cur = null;
       if (SHAPES.includes(s.type) && Math.hypot(s.pts[1][0] - s.pts[0][0], s.pts[1][1] - s.pts[0][1]) < 3) { sched(); return; }
       if (e.type === "pointerup" && !SHAPES.includes(s.type) && s.type !== "line" && s.pts.length > 1 && s.pts !== undefined) { const r = e.clientX !== undefined ? pos(e) : null; if (r) { const l = s.pts[s.pts.length - 1]; if (Math.hypot(r[0] - l[0], r[1] - l[1]) > .8) s.pts.push([r[0], r[1], l[2], l[3]]); } }
+      if (S.scribble !== false && isScribble(s)) {
+        const gone = new Set(st.strokes.filter(x => s.pts.some(q => hit(x, q[0], q[1], 4))));
+        if (gone.size) { snap(); st.strokes = st.strokes.filter(x => !gone.has(x)); render(); changed(); if (navigator.vibrate) navigator.vibrate(8); return; }
+      }
       snap(); st.strokes.push(s); if (!dirty) { bctx.setTransform(dpr, 0, 0, dpr, 0, 0); draw(bctx, s); } sched(); changed();
     }
   };
@@ -279,7 +305,7 @@ function createInk(paper, d, opts = {}) {
   pal.innerHTML = `<div class="ip-row">${INK_TOOLS.map(([k, t, i]) => k === "pen" ? `<span class="ip-pens" id="ip-pens"></span>` : `<button class="tbtn" data-t="${k}" title="${t}" aria-label="${t}">${k === "shape" ? shapeIc() : ic(i)}</button>`).join("")}</div>
   <i class="ip-sep"></i><div class="ip-cols">${INK_COL.map(c => `<button class="cdot" data-c="${c}" style="background:${c}" aria-label="Farbe"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="ip-cc" value="#2563eb"></label></div>
   <i class="ip-sep"></i><input type="range" id="ip-sz" min="1" max="24" value="4" aria-label="Strichstärke">
-  <i class="ip-sep"></i><div class="ip-row"><button class="tbtn" id="ip-un" title="Rückgängig (Zwei-Finger-Tipp)" aria-label="Rückgängig">${ic("undo")}</button><button class="tbtn" id="ip-re" title="Wiederholen (Drei-Finger-Tipp)" aria-label="Wiederholen">${ic("redo")}</button><button class="tbtn" id="ip-dup" title="Auswahl duplizieren" aria-label="Duplizieren" hidden>${ic("copy")}</button><button class="tbtn" id="ip-cl" title="Zeichnung leeren" aria-label="Zeichnung leeren">${ic("trash")}</button><button class="tbtn" id="ip-set" title="Zeichen-Einstellungen" aria-label="Zeichen-Einstellungen">${ic("gear")}</button></div>`;
+  <i class="ip-sep"></i><div class="ip-row"><button class="tbtn" id="ip-stk" title="Sticker" aria-label="Sticker">${ic("star")}</button>${opts.audio ? `<button class="tbtn" id="ip-mic" title="Audio aufnehmen" aria-label="Audio aufnehmen">${ic("mic")}</button>` : ""}<button class="tbtn" id="ip-un" title="Rückgängig (Zwei-Finger-Tipp)" aria-label="Rückgängig">${ic("undo")}</button><button class="tbtn" id="ip-re" title="Wiederholen (Drei-Finger-Tipp)" aria-label="Wiederholen">${ic("redo")}</button><button class="tbtn" id="ip-dup" title="Auswahl duplizieren" aria-label="Duplizieren" hidden>${ic("copy")}</button><button class="tbtn" id="ip-cl" title="Zeichnung leeren" aria-label="Zeichnung leeren">${ic("trash")}</button><button class="tbtn" id="ip-set" title="Zeichen-Einstellungen" aria-label="Zeichen-Einstellungen">${ic("gear")}</button></div>`;
   (opts.bar || document.body).appendChild(pal);
   const $p = s => pal.querySelector(s), $$p = s => [...pal.querySelectorAll(s)];
 
@@ -288,12 +314,13 @@ function createInk(paper, d, opts = {}) {
   const chip = (k, v, on, t) => `<button class="ink-chip${on ? " on" : ""}" data-k="${k}:${v}">${t}</button>`;
   function popHtml(kind) {
     if (kind === "pen") return `<b>Stift ${S.pen + 1}</b><div class="ink-chips">${INK_BRUSH.map(([v, t]) => chip("brush", v, S.brush === v, t)).join("")}</div><div class="ink-chips">${S.pens.length < 8 ? chip("penadd", "1", false, "Neuer Stift") : ""}${S.pens.length > 1 ? chip("penrm", "1", false, "Diesen Stift löschen") : ""}</div>`;
+    if (kind === "stk") return `<b>Sticker</b><div class="ink-chips ink-stk">${INK_STICKERS.map(e => chip("stk", e, false, e)).join("")}</div>`;
     if (kind === "shape") return `<b>Form</b><div class="ink-chips">${INK_SHAPE.map(([v, t]) => chip("shape", v, S.shape === v, t)).join("")}</div>`;
     if (kind === "eraser") return `<b>Radierer</b><div class="ink-chips">${chip("eras", "stroke", S.eras === "stroke", "Ganzer Strich")}${chip("eras", "point", S.eras === "point", "Nur berührte Stelle")}</div>`;
     if (kind === "gear") return `<b>Zeichnen</b><label class="ink-rg"><span>Glättung</span><input type="range" min="0" max="100" value="${Math.round(S.smooth * 100)}" data-r="smooth"></label>
       <label class="ink-rg"><span>Druckempfindlichkeit</span><input type="range" min="0" max="100" value="${Math.round(S.press * 100)}" data-r="press"></label>
-      <div class="ink-chips">${chip("penOnly", S.penOnly ? "0" : "1", S.penOnly, "Nur Stift zeichnet")}${chip("snap", S.snap ? "0" : "1", S.snap, "Formen erkennen")}</div>
-      ${opts.grid ? `<b>Papier</b><div class="ink-chips">${[["none", "Leer"], ["grid", "Karo"], ["lines", "Linien"], ["dots", "Punkte"]].map(([v, t]) => chip("grid", v, S.grid === v, t)).join("")}</div>` : ""}
+      <div class="ink-chips">${chip("penOnly", S.penOnly ? "0" : "1", S.penOnly, "Nur Stift zeichnet")}${chip("snap", S.snap ? "0" : "1", S.snap, "Formen erkennen")}${chip("scribble", S.scribble === false ? "1" : "0", S.scribble !== false, "Kritzeln löscht")}${chip("loopLasso", S.loopLasso === false ? "1" : "0", S.loopLasso !== false, "Umkreisen wählt aus")}</div>
+      ${opts.grid ? `<b>Papier</b><div class="ink-chips">${[["none", "Leer"], ["grid", "Karo"], ["lines", "Linien"], ["dots", "Punkte"], ["cornell", "Cornell"], ["week", "Woche"]].map(([v, t]) => chip("grid", v, S.grid === v, t)).join("")}</div>` : ""}
       <small>Zwei-Finger-Tipp: Rückgängig · Drei-Finger-Tipp: Wiederholen · Stift-Radierer und Stift-Taste radieren</small>`;
     return "";
   }
@@ -304,7 +331,8 @@ function createInk(paper, d, opts = {}) {
     if (kind === "gear") anchor.classList.add("on");
     pop.addEventListener("pointerdown", ev => ev.stopPropagation());
     pop.addEventListener("click", ev => { const b = ev.target.closest("[data-k]"); if (!b) return; const [k, v] = b.dataset.k.split(":");
-      if (k === "brush") { S.brush = v; S.pens[S.pen].brush = v; paintPens(); } else if (k === "penadd") { S.pens.push({ ...S.pens[S.pen] }); S.pen = S.pens.length - 1; applyPen(); paintPens(); } else if (k === "penrm") { S.pens.splice(S.pen, 1); S.pen = 0; applyPen(); paintPens(); } else if (k === "shape") { S.shape = v; refreshShapeIc(); } else if (k === "eras") S.eras = v; else if (k === "penOnly") S.penOnly = v === "1"; else if (k === "snap") S.snap = v === "1"; else if (k === "grid") { S.grid = v; applyGrid(); }
+      if (k === "stk") { addSticker(v); closePop(); return; }
+      if (k === "brush") { S.brush = v; S.pens[S.pen].brush = v; paintPens(); } else if (k === "penadd") { S.pens.push({ ...S.pens[S.pen] }); S.pen = S.pens.length - 1; applyPen(); paintPens(); } else if (k === "penrm") { S.pens.splice(S.pen, 1); S.pen = 0; applyPen(); paintPens(); } else if (k === "shape") { S.shape = v; refreshShapeIc(); } else if (k === "eras") S.eras = v; else if (k === "penOnly") S.penOnly = v === "1"; else if (k === "snap") S.snap = v === "1"; else if (k === "scribble") S.scribble = v === "1"; else if (k === "loopLasso") S.loopLasso = v === "1"; else if (k === "grid") { S.grid = v; applyGrid(); }
       saveS(); pop.innerHTML = popHtml(kind); rangeBind(); updUI(); });
     const rangeBind = () => pop?.querySelectorAll("[data-r]").forEach(i => i.oninput = () => { S[i.dataset.r] = +i.value / 100; saveS(); }); rangeBind();
   }
@@ -339,6 +367,19 @@ function createInk(paper, d, opts = {}) {
   $p("#ip-sz").oninput = e => { S.sizes[sizeKey()] = +e.target.value; if (sizeKey() === "pen" && S.pens[S.pen]) S.pens[S.pen].size = +e.target.value; saveS(); };
   $p("#ip-un").onclick = undo; $p("#ip-re").onclick = redo;
   $p("#ip-set").onclick = e => openPop("gear", e.currentTarget);
+  $p("#ip-stk").onclick = e => openPop("stk", e.currentTarget);
+  if (opts.audio) $p("#ip-mic").onclick = () => opts.audio.toggle();
+  /* sticker: an emoji placed at the visible centre, immediately selected so it can be moved / scaled with the lasso */
+  function addSticker(e) {
+    const r = paper.getBoundingClientRect(), y = Math.max(40, Math.min(H - 40, innerHeight / 2 - r.top)), s = { type: "sticker", e, color: "#000", size: 56, pts: [[0, y]] };
+    const t = opts.audio?.clock?.(); if (t != null) { s.t = t; s.a = opts.audio.id; }
+    snap(); st.strokes.push(s); setTool("lasso"); setSel(new Set([s])); changed();
+  }
+  /* double-tap ink written during a recording (select / laser tool) → jump the audio to that moment */
+  cv.addEventListener("dblclick", e => {
+    if (!opts.audio?.seek || !["lasso", "laser"].includes(st.tool)) return; const p = pos(e, cv.getBoundingClientRect());
+    for (let i = st.strokes.length - 1; i >= 0; i--) { const s = st.strokes[i]; if (s.t != null && hit(s, p[0], p[1], 10)) { opts.audio.seek(s.t, s.a); return; } }
+  });
   $p("#ip-dup").onclick = () => { if (!st.sel?.size) return; snap(); const cl = [...st.sel].map(x => ({ ...x, pts: x.pts.map(q => [q[0] + 24, q[1] + 24, ...q.slice(2)]) })); st.strokes.push(...cl); setSel(new Set(cl)); changed(); };
   $p("#ip-cl").onclick = async () => { if (st.sel?.size) { snap(); st.strokes = st.strokes.filter(x => !st.sel.has(x)); st.sel = null; render(); changed(); return; } if (st.strokes.length && await confirmBox("Alle Zeichnungen in diesem Dokument löschen? Der Text bleibt erhalten.", "Löschen")) { snap(); st.strokes = []; render(); changed(); } };
 
@@ -362,6 +403,7 @@ function createInk(paper, d, opts = {}) {
   applyPen(); paintPens(); setColor(st.color, true); setTool(st.tool); applyGrid(); updUI();
   return {
     st, canvas: cv,
+    mic(on) { $p("#ip-mic")?.classList.toggle("on", !!on); },
     load(strokes) { st.strokes = Array.isArray(strokes) ? strokes : []; st.sel = null; size(); dirty = true; frame(); updUI(); },
     mode(on) { st.on = !!on; paper.classList.toggle("inking", !!on); setTool(st.tool); pal.classList.toggle("show", !!on); if (!on) { closePop(); abort(); ring.classList.remove("on"); } },
     /* white image of the sketch (+ text) for the AI */
