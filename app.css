@@ -3493,3 +3493,10 @@ body.noscroll{overflow:hidden}
   .setsec[data-s=gen].on .kvcard .kvnote{font-size:12.5px}
 }
 .setsec[data-s=gen].on>.aiuse .aiuse-t{width:auto;align-self:stretch;box-sizing:border-box}.setsec[data-s=gen].on>.aiuse{padding:20px 22px!important;box-sizing:border-box}.setsec[data-s=gen].on>.aiuse .aiu-lg{margin:0}.setsec[data-s=gen].on>.aiuse .aiu{margin:0;padding:0;justify-content:flex-start}
+
+/* Sidebar: Icons grau, nur der gewählte Punkt hat ein schwarzes, ausgefülltes Icon (auch in den Einstellungen) */
+.side .nav-i:not(.on) svg,.side .rail-tgl svg{color:#8e8e97!important}
+.side .nav-i:not(.on):hover svg{color:#4a4a52!important}
+.side .nav-i.on svg{color:#0f0f12!important}
+.side .nav-i:not(.on) svg image{opacity:.45}
+.side .nav-i.prof svg{color:inherit}
