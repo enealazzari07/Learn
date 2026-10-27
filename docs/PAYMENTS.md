@@ -47,4 +47,4 @@ Prüfen: `https://DEINE-DOMAIN/api/config` muss `"plus":{"enabled":true,…}` mi
 Testkauf mit `4242 4242 4242 4242`. Für Live: Live-Key, Produkt und Preise im Livemodus neu anlegen.
 
 ## Rechtliches
-`legal.html` enthält Vorlagen (Stripe als Verkäufer). Eigene Angaben in `config.js` unter `legal` eintragen und prüfen lassen.
+`legal.html` enthält Impressum, Datenschutzerklärung, AGB und Widerrufsbelehrung, abgestimmt auf die tatsächlichen Datenflüsse (Supabase, Vercel, Stripe/Link, Gemini/Groq, Microsoft). Vor dem Livegang in `config.js` unter `legal` Name, Anschrift, E-Mail (optional Telefon, MWST-/USt-Nr.) und das Datum `privacyDate` eintragen und die Texte von einer Fachperson prüfen lassen. Ändern sich Anbieter oder Datenflüsse, muss die Datenschutzerklärung angepasst werden.

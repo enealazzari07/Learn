@@ -7,6 +7,7 @@
 <link rel="icon" type="image/png" sizes="64x64" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="stylesheet" href="styles.css">
 <style>
+ .meta{color:#777;font-size:13px;margin:-6px 0 14px}
  body{background:var(--bg,#f6f5f3);color:#0a0a0a;font:16px/1.6 Inter,system-ui,sans-serif;margin:0}
  main{max-width:760px;margin:0 auto;padding:40px 20px 80px}
  nav{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 28px}
@@ -25,51 +26,121 @@
 <a class="back" href="./" style="display:inline-flex;align-items:center;gap:10px"><img src="logo.png" alt="" width="28" height="28">Zurück zu Lumi</a>
 <h1>Rechtliches</h1>
 <nav id="nav"></nav>
-<div class="warn" id="warn" hidden><b>Hinweis für den Betreiber:</b> Die Anbieterangaben fehlen noch. Trage sie in <code>config.js</code> unter <code>legal</code> ein (Name, Anschrift, E-Mail). Die Texte sind Vorlagen und ersetzen keine Rechtsberatung.</div>
+<div class="warn" id="warn" hidden><b>Hinweis für den Betreiber:</b> Die Anbieterangaben fehlen noch. Trage sie in <code>config.js</code> unter <code>legal</code> ein (Name, Anschrift, E-Mail, optional Telefon und MWST-/USt-Nr.). Ohne diese Angaben ist die Seite nicht veröffentlichungsreif. Die Texte ersetzen keine Rechtsberatung.</div>
 
 <section id="impressum"><h2>Impressum</h2>
 <p><b data-f="name"></b><br><span data-f="street"></span><br><span data-f="city"></span><br><span data-f="country"></span></p>
-<p>E-Mail: <a data-mail></a></p>
-<p data-vat>Umsatzsteuer-Identifikationsnummer: <span data-f="vatId"></span></p>
+<p>E-Mail: <a data-mail></a><span data-phone> · Telefon: <span data-f="phone"></span></span></p>
+<p data-vat>Umsatzsteuer-Identifikationsnummer / MWST-Nr.: <span data-f="vatId"></span></p>
 <p>Verantwortlich für den Inhalt: <span data-f="name"></span>, Anschrift wie oben.</p>
-<h3>Streitbeilegung</h3><p>Wir sind weder bereit noch verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p></section>
+<h3>Zahlungsabwicklung</h3><p>Das kostenpflichtige Abonnement „Lumi Study Pro“ wird über <b>Stripe Managed Payments</b> verkauft. Verkäufer und Rechnungssteller ist dabei Stripe („Sold through Link“); Stripe berechnet und führt die Umsatzsteuer ab. Die Angaben des Verkäufers stehen auf deiner Rechnung bzw. Quittung.</p>
+<h3>Streitbeilegung</h3><p>Die EU-Kommission stellte bis 2025 eine Plattform zur Online-Streitbeilegung bereit; diese wurde eingestellt. Wir sind weder bereit noch verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen. Bei Fragen oder Beschwerden schreibe uns bitte direkt – wir antworten in der Regel innerhalb weniger Werktage.</p></section>
 
 <section id="datenschutz"><h2>Datenschutzerklärung</h2>
-<p>Verantwortlich ist der oben im Impressum genannte Anbieter. Kontakt für Datenschutzfragen: <a data-mail></a>.</p>
-<h3>Was wir verarbeiten</h3>
-<ul><li><b>Lokale Daten:</b> Notizen, Karteikarten, Aufgaben, Noten usw. liegen zunächst nur im Browser deines Geräts (IndexedDB).</li>
-<li><b>Konto &amp; Sync (Supabase):</b> Wenn du dich registrierst, speichern wir deine E-Mail-Adresse und die synchronisierten App-Daten bei Supabase (Server in der EU/je nach Projektregion). Zweck: Bereitstellung des Kontos und der Synchronisierung (Art. 6 Abs. 1 lit. b DSGVO).</li>
-<li><b>Lumi AI:</b> Wenn du Lumi AI nutzt, werden deine Eingaben und der nötige Notizkontext über unseren Server an Google (Gemini) bzw. Groq zur Beantwortung gesendet. Bitte gib keine sensiblen Daten Dritter ein.</li>
-<li><b>Zahlung (Stripe Managed Payments):</b> Der Verkauf von Lumi Study Pro und die Zahlungsabwicklung erfolgen über Stripe Managed Payments; Stripe tritt dabei als Verkäufer (Merchant of Record) auf, der Kauf erscheint als „Sold through Link“. Stripe verarbeitet deine Zahlungs- und Rechnungsdaten (Name, E-Mail, Adresse, Zahlungsmittel, ggf. USt-ID) in eigener Verantwortung, siehe deren Datenschutzerklärung. Wir erhalten nur Abo-Status, E-Mail und Kundennummer, nicht deine Zahlungsdaten. Rechtsgrundlage: Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO). Die Mehrwertsteuer wird anhand deines Standorts berechnet.</li>
-<li><b>Hosting (Vercel):</b> Beim Aufruf verarbeitet Vercel technische Zugriffsdaten (z. B. IP-Adresse) in Server-Logs.</li>
-<li><b>Microsoft (optional):</b> Nur wenn du dich aktiv mit Microsoft verbindest, rufen wir Kalender, OneNote bzw. Teams-Daten in deinem Namen ab; die Verbindung kannst du jederzeit trennen.</li></ul>
-<h3>Speicherdauer</h3><p>Kontodaten bis zur Löschung deines Kontos; Rechnungsdaten gemäß gesetzlicher Aufbewahrungsfristen (in der Regel 6–10 Jahre).</p>
-<h3>Deine Rechte</h3><p>Auskunft, Berichtigung, Löschung, Einschränkung, Datenübertragbarkeit und Widerspruch sowie Beschwerde bei einer Aufsichtsbehörde. Schreibe uns dazu an die oben genannte E-Mail-Adresse.</p>
-<h3>Cookies / lokale Speicherung</h3><p>Lumi nutzt nur technisch notwendigen Browser-Speicher (Anmeldung, App-Daten, Einstellungen). Es gibt kein Tracking und keine Werbe-Cookies.</p></section>
+<p class="meta">Stand: <span data-f="privacyDate"></span></p>
+<p>Diese Erklärung beschreibt, welche personenbezogenen Daten bei der Nutzung von Lumi verarbeitet werden, wozu, auf welcher Rechtsgrundlage und welche Rechte du hast. Sie gilt nach der EU-Datenschutz-Grundverordnung (DSGVO) und dem Schweizer Datenschutzgesetz (nDSG).</p>
 
-<section id="agb"><h2>Allgemeine Geschäftsbedingungen (Lumi Study Pro)</h2>
-<h3>1. Geltung</h3><p>Diese AGB gelten für das kostenpflichtige Abonnement „Lumi Study Pro“ des oben im Impressum genannten Anbieters. Die Grundfunktionen von Lumi sind kostenlos.</p>
-<h3>2. Vertragsschluss</h3><p>Der Kauf wird über Stripe Managed Payments abgewickelt; Stripe ist als Merchant of Record Vertragspartner für die Bezahlung, Rechnungsstellung und Umsatzsteuer, es gelten zusätzlich deren Bedingungen. Der Vertrag kommt zustande, wenn du den Bezahlvorgang abschließt und Lumi Study Pro freigeschaltet wird.</p>
-<h3>3. Leistung</h3><p>Lumi Study Pro schaltet die Funktionen frei, die auf der Preisseite als „Pro“ ausgewiesen sind (u. a. Lumi AI ohne Tageslimit). Der Funktionsumfang kann weiterentwickelt werden, wesentliche Leistungen werden nicht ohne gleichwertigen Ersatz entfernt.</p>
-<h3>3a. Testphase</h3><p>Neue Abonnent:innen können Lumi Study Pro 14 Tage kostenlos testen. Die Testphase wird einmal pro Konto gewährt. Wenn du nicht vor Ablauf in den Einstellungen (Abo verwalten) kündigst, wird nach den 14 Tagen der angezeigte Preis berechnet und das Abo verlängert sich.</p>
-<h3>4. Preise &amp; Mehrwertsteuer</h3><p>Es gelten die zum Kaufzeitpunkt angezeigten Preise. Sie enthalten die gesetzliche Umsatzsteuer, die von Stripe nach dem Land deines Wohn- bzw. Rechnungsortes berechnet und auf der Rechnung ausgewiesen wird. Unternehmen mit gültiger USt-ID können diese beim Bezahlen angeben.</p>
-<h3>5. Laufzeit &amp; Kündigung</h3><p>Das Abo läuft monatlich bzw. jährlich und verlängert sich automatisch um den gewählten Zeitraum. Du kannst jederzeit zum Ende des laufenden Zeitraums kündigen – in der App unter Einstellungen → Lumi Study Pro → „Abo verwalten“ (Kundenportal von Stripe). Bereits bezahlte Zeiträume werden nicht anteilig erstattet.</p>
-<h3>6. Zahlung</h3><p>Die Zahlung erfolgt über Stripe. Schlägt eine Zahlung fehl, kann der Zugang zu Pro-Funktionen eingeschränkt werden, bis die Zahlung nachgeholt ist.</p>
-<h3>7. Haftung</h3><p>Wir haften unbeschränkt bei Vorsatz und grober Fahrlässigkeit sowie bei Verletzung von Leben, Körper und Gesundheit; bei leichter Fahrlässigkeit nur bei Verletzung wesentlicher Vertragspflichten und begrenzt auf den vorhersehbaren, vertragstypischen Schaden. Antworten von Lumi AI können Fehler enthalten und ersetzen keine eigene Prüfung.</p>
-<h3>8. Schlussbestimmungen</h3><p>Es gilt das Recht des Sitzstaates des Anbieters, soweit dem keine zwingenden Verbraucherschutzvorschriften deines Wohnsitzstaates entgegenstehen.</p></section>
+<h3>1. Verantwortlicher</h3>
+<p>Verantwortlich ist der im Impressum genannte Anbieter. Kontakt für alle Datenschutzfragen: <a data-mail></a>.</p>
+
+<h3>2. Grundprinzip: erst einmal nur auf deinem Gerät</h3>
+<p>Lumi funktioniert ohne Konto. Notizen, Zeichnungen, Dateien, Karteikarten, Aufgaben, Noten, Prüfungen und Einstellungen werden dann ausschliesslich in deinem Browser (IndexedDB bzw. lokaler Speicher) gespeichert und nicht an uns übertragen. Erst wenn du ein Konto anlegst und dich anmeldest, werden diese Daten synchronisiert (Abschnitt 4). Wenn du die Browserdaten löschst und kein Konto hast, sind die Daten weg – erstelle bei Bedarf über Einstellungen → Daten eine Sicherung.</p>
+
+<h3>3. Hosting und technische Zugriffsdaten (Vercel)</h3>
+<p>Die App und die serverseitigen Funktionen werden bei <b>Vercel Inc.</b> (USA) gehostet; die Funktionen laufen in der Region Frankfurt (EU). Beim Aufruf verarbeitet Vercel technisch notwendige Daten (IP-Adresse, Datum und Uhrzeit, aufgerufene Adresse, Browser- und Geräteangaben) in Server-Logs, um die Seite auszuliefern, Missbrauch abzuwehren und Fehler zu finden. Aus der IP-Adresse leitet Vercel das Land ab; wir verwenden es nur, um dir Währung und Preis passend vorzuschlagen, und speichern es nicht. Rechtsgrundlage: berechtigtes Interesse an einem sicheren und stabilen Betrieb (Art. 6 Abs. 1 lit. f DSGVO).</p>
+
+<h3>4. Konto und Synchronisierung (Supabase)</h3>
+<p>Wenn du dich registrierst, nutzen wir <b>Supabase</b> (Supabase Inc., USA; unser Projekt liegt in der Region Frankfurt, EU) für die Anmeldung und die Datenhaltung. Verarbeitet werden:</p>
+<ul><li><b>Kontodaten:</b> E-Mail-Adresse, Passwort (nur als Hash, nie im Klartext), Zeitpunkte von Registrierung und Anmeldung, Konto-ID.</li>
+<li><b>App-Daten:</b> alle Inhalte, die du in Lumi anlegst (z. B. Notizen, Zeichnungen, Dateien, Karteikarten, Aufgaben, Noten, Chats mit Lumi AI, Einstellungen), werden als dein Datensatz in unserer Datenbank gespeichert und zwischen deinen Geräten abgeglichen.</li>
+<li><b>KI-Nutzungszähler:</b> Konto-ID, Anzahl verbrauchter KI-Einheiten und Beginn des aktuellen Zeitfensters, damit das Gratis-Limit eingehalten werden kann (Abschnitt 6).</li></ul>
+<p>Die Zugriffsregeln der Datenbank (Row Level Security) sorgen dafür, dass du nur deine eigenen Daten lesen und ändern kannst. Die Daten werden bei der Übertragung (TLS) und im Ruhezustand durch den Anbieter verschlüsselt; sie sind <b>nicht Ende-zu-Ende-verschlüsselt</b> – der Betreiber hat mit Administratorrechten technisch Zugriff, nutzt diesen aber nur zur Wartung und zur Bearbeitung deiner Anfragen. Zweck und Rechtsgrundlage: Bereitstellung des Kontos und der Synchronisierung (Art. 6 Abs. 1 lit. b DSGVO).</p>
+<p>Wenn du dich abmeldest oder ein anderes Konto verwendest, werden die lokal gespeicherten Daten des vorherigen Kontos nicht mit dem neuen vermischt.</p>
+
+<h3>5. Zusammenarbeit und Freigaben</h3>
+<p>Wenn du ein Dokument zur gemeinsamen Bearbeitung teilst, werden der Inhalt, die Cursor-Position und ein Anzeigename über Supabase Realtime an die Personen übertragen, die den Freigabe-Link kennen. Teile Links nur mit Personen, die den Inhalt sehen dürfen. Die Freigabe kannst du jederzeit beenden.</p>
+
+<h3>6. Lumi AI</h3>
+<p>Wenn du Lumi AI nutzt, sendet unser Server deine Eingabe, den bisherigen Chatverlauf, ausgewählte Inhalte aus deinen Notizen oder Dateien (sofern du sie anhängst oder die Funktion sie nutzt) und ggf. Bilder an einen KI-Anbieter, um die Antwort zu erzeugen: <b>Google</b> (Gemini; Google LLC, USA) und/oder <b>Groq</b> (Groq, Inc., USA). Bei eingeschalteter Quellensuche kann Google Suchanfragen zu deiner Frage ausführen. Die Anfrage läuft über unseren Server; die Schlüssel zu den Anbietern liegen nur dort. Wir speichern die KI-Anfragen nicht in einem eigenen Protokoll; dein Chatverlauf gehört zu deinen App-Daten (Abschnitt 4). Die Anbieter verarbeiten die Eingaben nach ihren eigenen Bedingungen; Hinweise dazu findest du in deren Datenschutzhinweisen. <b>Bitte gib keine sensiblen Daten oder Daten Dritter (z. B. Gesundheits- oder Zeugnisdaten anderer) in Lumi AI ein.</b> Rechtsgrundlage: Vertragserfüllung bzw. deine Entscheidung, die Funktion zu nutzen (Art. 6 Abs. 1 lit. b DSGVO).</p>
+<p>Optional kannst du in den Einstellungen einen eigenen API-Schlüssel eines KI-Anbieters hinterlegen. Der Schlüssel bleibt in deinem Browser; die Anfragen gehen dann direkt von deinem Browser an den Anbieter, ohne unseren Server.</p>
+<p>Für Gratis-Konten gilt ein Nutzungsbudget pro Zeitfenster. Dafür speichern wir den Verbrauch pro Konto (Abschnitt 4).</p>
+
+<h3>7. Zahlung und Abonnement (Stripe Managed Payments / Link)</h3>
+<p>Das Abonnement „Lumi Study Pro“ wird über <b>Stripe Managed Payments</b> verkauft. Stripe (je nach Land Stripe Payments Europe Ltd., Irland, oder ein verbundenes Unternehmen, auch in den USA) tritt als Verkäufer (Merchant of Record) auf, ist für die Zahlungsabwicklung, Umsatzsteuer, Rechnungen, Betrugsprävention und Streitfälle zuständig und verarbeitet deine Zahlungs- und Rechnungsdaten (Name, E-Mail, Rechnungsadresse, Zahlungsmittel, ggf. USt-ID, IP-Adresse, Geräte- und Betrugspräventionsdaten) in eigener Verantwortung. Hinweise: <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a>. Das Zahlungsformular von Stripe ist in Lumi eingebettet; dafür wird <b>Stripe.js</b> von js.stripe.com geladen. Kartendaten gelangen nie auf unsere Server.</p>
+<p>Wir speichern <b>keine</b> Abo- oder Zahlungsdaten in unserer Datenbank. Wenn du die Abo-Seite öffnest, rufen wir Status, Plan, Preis, Laufzeit, Testende, nächste Zahlung, die Kennzeichnung des Zahlungsmittels (Kartenmarke, letzte vier Ziffern, Ablaufdatum) und deine Rechnungen live bei Stripe ab. Damit Stripe dein Abo deinem Lumi-Konto zuordnen kann, speichern wir bei Stripe deine Konto-ID und deine E-Mail-Adresse. Rechtsgrundlage: Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) und gesetzliche Aufbewahrungspflichten (lit. c).</p>
+
+<h3>8. Optionale Verbindungen</h3>
+<ul><li><b>Microsoft (OneNote, Outlook-Kalender, Teams):</b> nur wenn du dich aktiv mit Microsoft verbindest. Die Anmeldung läuft zwischen deinem Browser und Microsoft (Microsoft Corp., USA); Zugriffstoken liegen im lokalen Speicher deines Browsers. Lumi liest und schreibt nur die Daten, die du in der App aufrufst. Du kannst die Verbindung jederzeit trennen und die Berechtigung in deinem Microsoft-Konto widerrufen.</li>
+<li><b>Kalender-Abos (z. B. Apple-Kalender, ICS):</b> Die von dir eingetragene Kalenderadresse wird über unseren Server abgerufen (damit der Browser die Datei lesen kann) und nicht gespeichert; die Termine werden in deinen App-Daten abgelegt. Behandle die Adresse wie ein Passwort.</li></ul>
+
+<h3>9. Von Dritten geladene Programmteile</h3>
+<p>Beim Laden einzelner Funktionen werden Bibliotheken von Content-Delivery-Netzwerken geladen; dabei erhält der Betreiber des Netzwerks technisch bedingt deine IP-Adresse: <b>jsDelivr</b> (Supabase-Bibliothek, Microsoft-Anmeldung), <b>cdnjs / Cloudflare</b> (PDF-Anzeige und PDF-Bearbeitung), <b>Stripe</b> (Zahlungsformular) und <b>Google Fonts</b> (Schriftarten, nur im Design-Werkzeug). Rechtsgrundlage: berechtigtes Interesse an einer funktionierenden App (Art. 6 Abs. 1 lit. f DSGVO).</p>
+
+<h3>10. Cookies und lokaler Speicher</h3>
+<p>Lumi verwendet keine Werbe- oder Tracking-Cookies und keine Analyse- oder Reichweitenmessung. Gespeichert werden nur technisch notwendige Daten in deinem Browser: Anmelde-Sitzung, deine App-Daten (IndexedDB), Einstellungen (z. B. Seitenleiste, Darstellung) und ein Offline-Zwischenspeicher der App. Da diese Daten für den von dir gewünschten Dienst erforderlich sind, ist keine Einwilligung nötig.</p>
+
+<h3>11. Empfänger und Drittlandübermittlung</h3>
+<p>Empfänger sind unsere Auftragsverarbeiter und Dienstleister: Vercel (Hosting), Supabase (Konto und Datenbank), Google und Groq (nur bei Nutzung von Lumi AI), Stripe (Zahlung), bei Nutzung Microsoft sowie die in Abschnitt 9 genannten Netzwerke. Mehrere dieser Anbieter sitzen in den USA oder können Daten dort verarbeiten. Die Übermittlung stützt sich auf Angemessenheitsbeschlüsse bzw. das EU-US Data Privacy Framework (sofern der Anbieter zertifiziert ist) oder auf EU-Standardvertragsklauseln. Wir verkaufen keine Daten und geben sie nicht zu Werbezwecken weiter.</p>
+
+<h3>12. Speicherdauer</h3>
+<p>Kontodaten und App-Daten speichern wir bis zur Löschung deines Kontos. Schreibe uns für die Löschung eine E-Mail von deiner Konto-Adresse an <a data-mail></a>; wir löschen dein Konto samt synchronisierten Daten und die bei uns hinterlegten Zuordnungen. Rechnungs- und Zahlungsdaten bewahrt Stripe als Verkäufer gemäss den gesetzlichen Fristen auf (in der Regel 6 bis 10 Jahre). Serverprotokolle werden von Vercel nach der dort vorgesehenen kurzen Frist automatisch gelöscht.</p>
+
+<h3>13. Deine Rechte</h3>
+<p>Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit (Export unter Einstellungen → Daten) und Widerspruch gegen Verarbeitungen auf Grundlage berechtigter Interessen. Eine erteilte Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen. Schreibe uns dazu an <a data-mail></a>. Du kannst dich ausserdem bei einer Aufsichtsbehörde beschweren, in der Schweiz beim Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB), in der EU bei der Behörde deines Wohnorts.</p>
+
+<h3>14. Alter</h3>
+<p>Lumi richtet sich auch an Schülerinnen und Schüler. Unter 16 Jahren (bzw. dem in deinem Land geltenden Alter) nutze Lumi bitte nur mit Zustimmung deiner Erziehungsberechtigten. Das kostenpflichtige Abo können nur volljährige Personen abschliessen.</p>
+
+<h3>15. Datensicherheit und Änderungen</h3>
+<p>Wir schützen die Daten durch verschlüsselte Übertragung, Zugriffsbeschränkungen und die Trennung der Schlüssel vom Browser. Eine absolute Sicherheit gibt es im Internet nicht. Wir passen diese Erklärung an, wenn sich die App oder die Rechtslage ändert; massgeblich ist die jeweils hier veröffentlichte Fassung.</p></section>
+
+<section id="agb"><h2>Allgemeine Geschäftsbedingungen</h2>
+<p class="meta">Stand: <span data-f="privacyDate"></span></p>
+<h3>1. Geltung und Anbieter</h3><p>Diese AGB gelten für die Nutzung von Lumi und das kostenpflichtige Abonnement „Lumi Study Pro“ des im Impressum genannten Anbieters. Lumi mit seinen Grundfunktionen (Notizen, Karteikarten, Planer, Noten, Fokus-Timer) ist kostenlos. Abweichende Bedingungen der Nutzer:innen gelten nicht.</p>
+<h3>2. Konto</h3><p>Für die Synchronisierung brauchst du ein Konto mit gültiger E-Mail-Adresse. Du bist für die Geheimhaltung deines Passworts verantwortlich und gibst richtige Angaben an. Minderjährige nutzen Lumi mit Zustimmung ihrer Erziehungsberechtigten; ein Abo können nur Volljährige abschliessen.</p>
+<h3>3. Gratis-Nutzung und Lumi AI</h3><p>Lumi AI steht im Gratis-Konto mit einem Nutzungsbudget pro Zeitfenster zur Verfügung (derzeit pro 5 Stunden; in der App im Verbrauchsring sichtbar). Verschiedene Modelle verbrauchen das Budget unterschiedlich schnell. Wir können Budget, Modelle und Verfügbarkeit anpassen. Antworten von Lumi AI werden automatisch erzeugt, können fehlerhaft sein und ersetzen keine eigene Prüfung, keine Fachberatung und keine Prüfungsleistung.</p>
+<h3>4. Lumi Study Pro: Leistung</h3><p>Lumi Study Pro schaltet die auf der Abo-Seite genannten Funktionen frei, insbesondere Lumi AI ohne das Gratis-Budget. Der Funktionsumfang kann weiterentwickelt werden; wesentliche Leistungen werden nicht ohne gleichwertigen Ersatz entfernt.</p>
+<h3>5. Vertragsschluss und Verkäufer</h3><p>Das Abo wird über Stripe Managed Payments verkauft; Stripe ist Verkäufer (Merchant of Record), erhebt die Zahlung, stellt die Rechnung aus und führt die Umsatzsteuer ab. Es gelten ergänzend die Bedingungen von Stripe/Link, die beim Bezahlen angezeigt werden. Der Vertrag kommt mit Abschluss des Bezahlvorgangs zustande; die Pro-Funktionen werden danach freigeschaltet.</p>
+<h3>6. Testversion</h3><p>Neue Abonnent:innen können Lumi Study Pro einmal pro Konto 14 Tage kostenlos testen. Kündigst du nicht vor Ablauf der Testversion (in Lumi unter Einstellungen → Study Pro), wird nach den 14 Tagen der angezeigte Preis berechnet und das Abo läuft im gewählten Rhythmus weiter. Für den Abschluss der Testversion ist eine Zahlungsmethode nötig.</p>
+<h3>7. Preise und Mehrwertsteuer</h3><p>Es gelten die beim Kauf angezeigten Preise (Monats- oder Jahresabo, in CHF, EUR oder USD je nach Land). Die gesetzliche Umsatzsteuer ist im Preis enthalten und wird auf der Rechnung ausgewiesen. Preisänderungen gelten nur für künftige Zeiträume; wir kündigen sie rechtzeitig vor der nächsten Verlängerung an, und du kannst vorher kündigen.</p>
+<h3>8. Laufzeit und Kündigung</h3><p>Das Abo verlängert sich automatisch um den gewählten Zeitraum (Monat oder Jahr), bis du kündigst. Du kannst jederzeit zum Ende des laufenden Zeitraums kündigen, direkt in Lumi unter Einstellungen → Study Pro; die Kündigung wird sofort wirksam, der Zugang bleibt bis zum Ende des bezahlten Zeitraums bestehen. Bis dahin kannst du die Kündigung zurücknehmen. Bereits bezahlte Zeiträume werden ausser im Fall des Widerrufs oder gesetzlicher Ansprüche nicht anteilig erstattet.</p>
+<h3>9. Zahlung</h3><p>Die Zahlung erfolgt über Stripe zum jeweiligen Beginn des Zeitraums. Schlägt eine Zahlung fehl, kann der Zugang zu Pro-Funktionen eingeschränkt werden, bis die Zahlung nachgeholt ist; Stripe kann die Zahlung erneut versuchen.</p>
+<h3>10. Widerruf</h3><p>Verbraucher:innen steht ein Widerrufsrecht nach der Widerrufsbelehrung zu.</p>
+<h3>11. Deine Inhalte</h3><p>Deine Inhalte gehören dir. Du räumst uns nur die Rechte ein, die zum Speichern, Synchronisieren, Anzeigen und – auf deinen Wunsch – zur Verarbeitung durch Lumi AI nötig sind. Du versicherst, dass du die Inhalte, die du hochlädst oder teilst, nutzen darfst und keine Rechte Dritter oder Gesetze verletzt. Wir sichern deine Daten nicht garantiert; erstelle bei wichtigen Inhalten eine eigene Sicherung (Einstellungen → Daten).</p>
+<h3>12. Zulässige Nutzung</h3><p>Missbrauch, Angriffe auf den Dienst, das automatisierte Auslesen der KI-Funktionen, das Umgehen von Limits und die Nutzung für rechtswidrige Inhalte sind untersagt. Bei schwerem oder wiederholtem Verstoss dürfen wir das Konto sperren.</p>
+<h3>13. Verfügbarkeit</h3><p>Wir bemühen uns um eine hohe Verfügbarkeit, schulden aber keine ununterbrochene Erreichbarkeit; Wartung und Störungen bei Drittanbietern (z. B. Hosting, KI, Zahlung) sind möglich.</p>
+<h3>14. Haftung</h3><p>Wir haften unbeschränkt bei Vorsatz und grober Fahrlässigkeit, bei Verletzung von Leben, Körper und Gesundheit sowie nach zwingendem Recht (z. B. Produkthaftung). Bei leichter Fahrlässigkeit haften wir nur bei Verletzung wesentlicher Vertragspflichten und begrenzt auf den vorhersehbaren, vertragstypischen Schaden. Für Datenverlust haften wir nur, soweit er auch bei regelmässiger Sicherung durch dich nicht vermeidbar gewesen wäre. Für Inhalte und Antworten von Lumi AI übernehmen wir keine Gewähr.</p>
+<h3>15. Änderungen</h3><p>Wir dürfen diese AGB mit Wirkung für die Zukunft ändern, wenn dies aus triftigem Grund (z. B. Gesetzesänderung, neue Funktionen) erforderlich und für dich zumutbar ist. Wir informieren dich in der App oder per E-Mail; widersprichst du nicht innerhalb von 30 Tagen, gelten die Änderungen. Auf diese Folge weisen wir bei der Mitteilung hin.</p>
+<h3>16. Schlussbestimmungen</h3><p>Es gilt das Recht des im Impressum genannten Sitzstaates des Anbieters unter Ausschluss des UN-Kaufrechts. Zwingende Verbraucherschutzvorschriften deines Wohnsitzstaates bleiben unberührt, ebenso dein Recht, am Wohnsitz zu klagen. Sollte eine Bestimmung unwirksam sein, bleibt der Rest wirksam.</p></section>
 
 <section id="widerruf"><h2>Widerrufsbelehrung</h2>
-<h3>Widerrufsrecht</h3><p>Du hast das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des Vertragsabschlusses. Um dein Widerrufsrecht auszuüben, musst du uns (Kontakt siehe Impressum, <a data-mail></a>) mittels einer eindeutigen Erklärung (z. B. E-Mail) über deinen Entschluss, diesen Vertrag zu widerrufen, informieren.</p>
-<h3>Folgen des Widerrufs</h3><p>Wenn du den Vertrag widerrufst, erstatten wir dir alle erhaltenen Zahlungen unverzüglich, spätestens binnen vierzehn Tagen ab Eingang deines Widerrufs, mit demselben Zahlungsmittel. Hast du verlangt, dass die Leistung während der Widerrufsfrist beginnen soll, zahlst du uns einen angemessenen Betrag für die bis zum Widerruf bereits erbrachten Leistungen.</p>
-<h3>Vorzeitiges Erlöschen</h3><p>Das Widerrufsrecht erlischt bei einem Vertrag über digitale Inhalte bzw. Dienstleistungen vorzeitig, wenn wir mit der Ausführung begonnen haben, nachdem du ausdrücklich zugestimmt hast, dass wir sofort mit der Ausführung beginnen, und du bestätigt hast, dass du dadurch dein Widerrufsrecht verlierst. Diese Zustimmung gibst du beim Bezahlvorgang. Erstattungen und Widerrufe werden über Stripe abgewickelt; schreibe uns oder dem Support von Link.</p></section>
+<p class="meta">Stand: <span data-f="privacyDate"></span></p>
+<p>Diese Belehrung gilt für Verbraucher:innen, die „Lumi Study Pro“ abonnieren.</p>
+<h3>Widerrufsrecht</h3><p>Du hast das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des Vertragsabschlusses. Bei einer Testversion beginnt die Frist mit dem Start der Testversion. Um dein Widerrufsrecht auszuüben, musst du uns (<span data-f="name"></span>, <span data-f="street"></span>, <span data-f="city"></span>, E-Mail: <a data-mail></a>) mittels einer eindeutigen Erklärung (z. B. per E-Mail) über deinen Entschluss, diesen Vertrag zu widerrufen, informieren. Du kannst dafür das untenstehende Muster-Widerrufsformular verwenden, das jedoch nicht vorgeschrieben ist. Zur Wahrung der Widerrufsfrist reicht es aus, dass du die Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der Widerrufsfrist absendest. Alternativ kannst du dich an den auf deiner Rechnung genannten Verkäufer (Stripe) wenden.</p>
+<h3>Folgen des Widerrufs</h3><p>Wenn du diesen Vertrag widerrufst, erstatten wir bzw. der Verkäufer dir alle Zahlungen, die wir von dir erhalten haben, unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag, an dem die Mitteilung über deinen Widerruf eingegangen ist. Für die Rückzahlung verwenden wir dasselbe Zahlungsmittel, das du bei der ursprünglichen Transaktion eingesetzt hast; dir werden wegen der Rückzahlung keine Entgelte berechnet. Hast du verlangt, dass die Dienstleistung während der Widerrufsfrist beginnen soll, so hast du uns einen angemessenen Betrag zu zahlen, der dem Anteil der bis zum Widerruf bereits erbrachten Leistungen im Vergleich zum Gesamtumfang entspricht. Während einer kostenlosen Testversion fällt kein Entgelt an.</p>
+<h3>Vorzeitiges Erlöschen des Widerrufsrechts</h3><p>Das Widerrufsrecht erlischt bei einem Vertrag über die Erbringung digitaler Dienstleistungen vorzeitig, wenn wir mit der Ausführung begonnen haben, nachdem du ausdrücklich zugestimmt hast, dass wir vor Ablauf der Widerrufsfrist mit der Ausführung beginnen, und du bestätigt hast, dass du dadurch dein Widerrufsrecht verlierst, sobald die Leistung vollständig erbracht ist. Bei einem laufenden Abo tritt dies erst mit vollständiger Erbringung der Leistung ein, nicht bereits mit Beginn.</p>
+<h3>Hinweis für Kund:innen ausserhalb der EU/des EWR</h3><p>In der Schweiz und in einigen anderen Ländern besteht kein gesetzliches Widerrufsrecht für Online-Verträge. Wir gewähren die oben genannte Frist von vierzehn Tagen dennoch freiwillig auch Verbraucher:innen in diesen Ländern. Zwingende Rechte deines Landes bleiben unberührt.</p>
+<h3>Muster-Widerrufsformular</h3>
+<p>(Wenn du den Vertrag widerrufen willst, fülle dieses Formular aus und sende es zurück.)</p>
+<p>– An <span data-f="name"></span>, <span data-f="street"></span>, <span data-f="city"></span>, E-Mail: <a data-mail></a>:<br>
+– Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über die Erbringung der folgenden Dienstleistung: Lumi Study Pro (Abonnement)<br>
+– Bestellt am (*) / erhalten am (*):<br>
+– Name des/der Verbraucher(s):<br>
+– Anschrift des/der Verbraucher(s):<br>
+– E-Mail-Adresse deines Lumi-Kontos:<br>
+– Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf Papier):<br>
+– Datum:<br>
+(*) Unzutreffendes streichen.</p>
+</section>
 </main>
 <script src="config.js"></script>
 <script>
 (function () {
   const L = window.LUMI_CONFIG.legal || {}, TABS = [["impressum", "Impressum"], ["datenschutz", "Datenschutz"], ["agb", "AGB"], ["widerruf", "Widerruf"]];
-  document.querySelectorAll("[data-f]").forEach(e => e.textContent = L[e.dataset.f] || (e.dataset.f === "vatId" ? "" : "[bitte ausfüllen]"));
+  document.querySelectorAll("[data-f]").forEach(e => e.textContent = L[e.dataset.f] || (e.dataset.f === "privacyDate" ? "27. Oktober 2026" : ["vatId", "phone"].includes(e.dataset.f) ? "" : "[bitte ausfüllen]"));
   document.querySelectorAll("[data-mail]").forEach(a => { a.textContent = L.email || "[bitte ausfüllen]"; if (L.email) a.href = "mailto:" + L.email; });
   if (!L.vatId) document.querySelector("[data-vat]").hidden = true;
+  if (!L.phone) document.querySelector("[data-phone]").hidden = true;
   if (!L.name || !L.email) document.getElementById("warn").hidden = false;
   const nav = document.getElementById("nav"); nav.innerHTML = TABS.map(t => `<a href="#${t[0]}" data-t="${t[0]}">${t[1]}</a>`).join("");
   const show = () => { const h = (location.hash || "#impressum").slice(1), id = TABS.some(t => t[0] === h) ? h : "impressum";
