@@ -151,6 +151,8 @@ async function liveSubscription(uid, { fresh = false, withInvoices = false } = {
   subCache.set(uid, { at: Date.now(), v }); return v;
 }
 const isProLive = async uid => { try { const s = await liveSubscription(uid); return !!s && ACTIVE.includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5); } catch { return false; } };
+/* Kunden-ID nur verwenden, wenn der Kunde bei Stripe (in diesem Modus) noch existiert – sonst „No such customer“ */
+const validCustomer = async id => { if (!id) return null; try { const c = await stripe("GET", "/customers/" + id); return c && !c.deleted ? id : null; } catch { return null; } };
 const dropSubCache = uid => subCache.delete(uid);
 
 /* KI-Budget (Token) für Gratis-Konten pro Zeitfenster (Standard 5 Stunden, wie bei Claude): das Fenster startet mit der ersten Anfrage und endet nach AI_WINDOW_HOURS.
@@ -161,4 +163,4 @@ const win = j => j && typeof j === "object" ? { used: +j.tokens || 0, reset: j.s
 const aiUsed = async uid => { try { return win(await sb("POST", "rpc/lumi_ai_tokens", { p_user: uid, p_hours: WINDOW_H })); } catch { return null; } };
 const aiAdd = async (uid, t) => { try { return win(await sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: Math.max(0, Math.round(t)), p_hours: WINDOW_H })); } catch { return null; } };
 
-module.exports = { FREE_TOKENS, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+module.exports = { validCustomer, FREE_TOKENS, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };

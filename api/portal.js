@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   try {
     const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
     const sub = await L.liveSubscription(user.id, { fresh: true });
-    if (!sub?.customer) return res.status(404).json({ error: "Kein Abo gefunden." });
+    if (!sub?.customer || !(await L.validCustomer(sub.customer))) return res.status(404).json({ error: "Kein Abo gefunden." });
     const { flow } = await L.readJson(req), ret = `${L.siteUrl(req)}/#/app/settings`, base = { customer: sub.customer, return_url: ret };
     const flows = {   // direkt zum Kündigen bzw. zur Zahlungsart statt auf die Portal-Startseite
       cancel: sub.id && { type: "subscription_cancel", subscription_cancel: { subscription: sub.id }, after_completion: { type: "redirect", redirect: { return_url: ret } } },
