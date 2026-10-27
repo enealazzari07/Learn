@@ -3329,3 +3329,13 @@ body.noscroll{overflow:hidden}
 .ps-list li{transition:transform .25s ease}.ps-list li:hover{transform:translateX(4px)}
 .setsec.paying .propanel.proside #pl-m{display:none}
 @media (prefers-reduced-motion:reduce){.ps-in{animation-duration:.01s;animation-delay:0s}.propanel.proside .probadge::after{display:none}}
+
+/* Bezahlformular kompakter: passt in die Fensterhöhe (Stripe-Formular ist ca. 870 px hoch) */
+@media (min-width:901px){
+  .setsec.paying .proemb-box .embk-m{zoom:.9}
+  @media (max-height:1000px){.setsec.paying .proemb-box .embk-m{zoom:.86}}
+  @media (max-height:900px){.setsec.paying .proemb-box .embk-m{zoom:.8}}
+  @media (max-height:800px){.setsec.paying .proemb-box .embk-m{zoom:.74}}
+  @media (max-height:720px){.setsec.paying .proemb-box .embk-m{zoom:.68}}
+}
+.setsec.paying .propanel.proside{padding-top:0}
