@@ -20,13 +20,14 @@ const dateDE = d => new Date(d).toLocaleDateString("de-DE", { day: "numeric", mo
 const PRO_FEATURES = ["Lumi AI ohne Tageslimit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Lumi"];
 function plusPanelHtml() {
   const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${PRO_FEATURES.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
+  const eligible = !r, trialD = (c && c.trial) || 14;
   const head = state => `<div class="prohead"><div><span class="probadge">Pro</span><h2>Lumi Study Pro</h2></div>${state ? `<span class="prostate">${state}</span>` : ""}</div>`;
-  if (isPlus()) return `<div class="panel propanel">${head("Aktiv")}<p class="note">${r.cancel_at_period_end ? `Gekündigt – läuft bis ${dateDE(r.current_period_end)}.` : r.status === "past_due" ? "Die letzte Zahlung ist fehlgeschlagen – bitte Zahlungsart prüfen." : r.current_period_end ? `Verlängert sich am ${dateDE(r.current_period_end)}.` : "Danke für deine Unterstützung!"}</p>${list}<button class="btn" id="pl-manage">Abo verwalten</button><p class="note">Rechnungen, Zahlungsart und Kündigung.</p></div>`;
+  if (isPlus()) return `<div class="panel propanel">${head(r.status === "trialing" ? "Testphase" : "Aktiv")}<p class="note">${r.status === "trialing" ? `Testphase – endet am ${dateDE(r.current_period_end)}, danach wird verlängert.` : r.cancel_at_period_end ? `Gekündigt – läuft bis ${dateDE(r.current_period_end)}.` : r.status === "past_due" ? "Die letzte Zahlung ist fehlgeschlagen – bitte Zahlungsart prüfen." : r.current_period_end ? `Verlängert sich am ${dateDE(r.current_period_end)}.` : "Danke für deine Unterstützung!"}</p>${list}<button class="btn" id="pl-manage">Abo verwalten</button><p class="note">Rechnungen, Zahlungsart und Kündigung.</p></div>`;
   if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.</p>${list}</div>`;
   if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Lumi Study Pro zu abonnieren.</p>${list}</div>`;
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
-  return `<div class="panel propanel">${head("")}<p class="note">Preise inkl. gesetzlicher Mehrwertsteuer – der Betrag für dein Land wird beim Bezahlen angezeigt. Jederzeit kündbar.</p>${list}
-    <div class="row" style="gap:10px;flex-wrap:wrap">${m ? `<button class="btn primary" id="pl-m">${money(m)} / Monat</button>` : ""}${y ? `<button class="btn ${m ? "" : "primary"}" id="pl-y">${money(y)} / Jahr${save > 0 ? ` · ${save} % sparen` : ""}</button>` : ""}</div>
+  return `<div class="panel propanel">${head("")}<p class="note">${eligible ? `<b>${trialD} Tage kostenlos testen</b>, danach ${m ? money(m) + " / Monat" : y ? money(y) + " / Jahr" : "der normale Preis"}. ` : ""}Preise inkl. gesetzlicher Mehrwertsteuer. Jederzeit kündbar.</p>${list}
+    <div class="row" style="gap:10px;flex-wrap:wrap">${m ? `<button class="btn primary" id="pl-m">${eligible ? `${trialD} Tage gratis testen` : `${money(m)} / Monat`}</button>` : ""}${y ? `<button class="btn ${m ? "" : "primary"}" id="pl-y">${eligible ? `${money(y)} / Jahr · ${trialD} Tage gratis` : `${money(y)} / Jahr${save > 0 ? ` · ${save} % sparen` : ""}`}</button>` : ""}</div>
     <p class="note" style="margin-top:10px">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
 }
 function plusBindPanel(m) {
@@ -38,7 +39,7 @@ async function plusReturn() {
   const q = new URLSearchParams(location.search), st = q.get("plus"); if (!st) return;
   history.replaceState(null, "", location.pathname + location.hash);
   if (st === "cancel") return toast("Bezahlung abgebrochen – es wurde nichts berechnet.");
-  window.__setTab = "pro"; toast("Danke! Lumi Study Pro wird freigeschaltet …");
+  window.__setTab = "pro"; toast("Danke! Deine Testphase wird gestartet …");
   for (let i = 0; i < 8 && !isPlus(); i++) { await plusLoad(); if (!isPlus()) await new Promise(r => setTimeout(r, 2000)); }
   toast(isPlus() ? "Lumi Study Pro ist aktiv – viel Erfolg beim Lernen!" : "Zahlung eingegangen – die Freischaltung kann einen Moment dauern. Lade die Seite gleich neu."); if (curView === "settings") { window.__setTab = "pro"; renderView(); }
 }
@@ -46,6 +47,6 @@ async function plusReturn() {
 /* Pro-Block ganz oben in den Einstellungen */
 function proBannerHtml() {
   const c = BILL.cfg, r = BILL.row, can = c && c.enabled && cloudOn();
-  const t = isPlus() ? (r.cancel_at_period_end ? `Gekündigt – läuft bis ${dateDE(r.current_period_end)}` : r.current_period_end ? `Aktiv · verlängert sich am ${dateDE(r.current_period_end)}` : "Aktiv") : can && c.monthly ? `Lumi AI ohne Limit – ab ${money(c.monthly)} / Monat` : can && c.yearly ? `Lumi AI ohne Limit – ${money(c.yearly)} / Jahr` : "Lumi AI ohne Limit – bald verfügbar";
-  return `<div class="probanner"><div class="pb-l"><span class="probadge">Pro</span><div><b>Lumi Study Pro</b><small>${t}</small></div></div><button class="btn primary" id="pro-go">${isPlus() ? "Abo verwalten" : can ? "Lumi Study Pro holen" : "Mehr erfahren"}</button></div>`;
+  const td = (c && c.trial) || 14, t = isPlus() ? (r.status === "trialing" ? `Testphase bis ${dateDE(r.current_period_end)}` : r.cancel_at_period_end ? `Gekündigt – läuft bis ${dateDE(r.current_period_end)}` : r.current_period_end ? `Aktiv · verlängert sich am ${dateDE(r.current_period_end)}` : "Aktiv") : can && c.monthly ? `${r ? "" : td + " Tage gratis, danach "}${money(c.monthly)} / Monat` : can && c.yearly ? `Lumi AI ohne Limit – ${money(c.yearly)} / Jahr` : "Lumi AI ohne Limit – bald verfügbar";
+  return `<div class="probanner"><div class="pb-l"><span class="probadge">Pro</span><div><b>Lumi Study Pro</b><small>${t}</small></div></div><button class="btn primary" id="pro-go">${isPlus() ? "Abo verwalten" : can ? (r ? "Lumi Study Pro holen" : `${td} Tage gratis testen`) : "Mehr erfahren"}</button></div>`;
 }

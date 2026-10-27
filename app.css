@@ -3063,3 +3063,41 @@ body.hed-open{overflow:hidden}
 }
 .setpage .panel{transition:border-color .2s}.setpage .panel:hover{border-color:#dcdce3}
 @media (min-width:901px){#app #main.doc-full .docsed>.ned-bar{padding:14px 22px 10px 24px}#app #main.doc-full .docspaper{padding-left:24px!important}}
+
+/* ===== Onboarding (weiss, abgerundet) ===== */
+.obx{position:fixed;inset:0;z-index:300;background:#f3f3f4;display:grid;place-items:center;padding:20px;animation:obxIn .35s ease}
+@keyframes obxIn{from{opacity:0}to{opacity:1}}
+.obx-card{width:min(640px,100%);max-height:calc(100dvh - 40px);overflow:auto;background:#fff;border:1px solid #e6e6ea;border-radius:32px;padding:26px 34px 28px;display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 70px -40px rgba(15,15,18,.35)}
+.obx-top{display:flex;align-items:center;justify-content:space-between}
+.obx-dots{display:flex;gap:6px}.obx-dots i{width:22px;height:5px;border-radius:99px;background:#e6e6ea;transition:background .25s,width .25s}
+.obx-dots i.done{background:#9a9aa5}.obx-dots i.on{background:#0f0f12;width:34px}
+.obx-body{min-height:300px;animation:obxStep .35s cubic-bezier(.3,.9,.3,1)}
+@keyframes obxStep{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+.obx-eyebrow{display:inline-block;font-size:13px;font-weight:600;color:#6b6b73;margin-bottom:8px}
+.obx-body h1{font-size:clamp(28px,4vw,38px);letter-spacing:-.04em;line-height:1.05;margin:0 0 10px}
+.obx-sub{color:#6b6b73;font-size:16px;line-height:1.5;margin:0 0 22px;max-width:46ch}
+.obx-l{display:block;font-size:13px;font-weight:600;color:#6b6b73;margin:20px 0 8px}
+.obx-in{width:100%;border:1.5px solid #e2e2e8;border-radius:18px;padding:16px 18px;font-size:17px;background:#fff;outline:0;transition:border-color .15s,box-shadow .15s}
+.obx-in:focus{border-color:#0f0f12;box-shadow:0 0 0 4px rgba(15,15,18,.06)}
+.obx-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.obx-cards button{text-align:left;border:1.5px solid #e2e2e8;border-radius:22px;padding:18px;background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:4px;transition:border-color .15s,background .15s}
+.obx-cards button b{font-size:17px}.obx-cards small{color:#6b6b73;font-size:13.5px;line-height:1.35}
+.obx-cards button:hover{border-color:#bdbdc6}
+.obx-cards button.on{border-color:#0f0f12;background:#fafafb;box-shadow:inset 0 0 0 1px #0f0f12}
+.obx-chips{display:flex;gap:8px;flex-wrap:wrap}.obx-chips button{border:1.5px solid #e2e2e8;border-radius:999px;padding:10px 16px;background:#fff;font-size:15px;font-weight:500;cursor:pointer;transition:all .15s}
+.obx-chips button:hover{border-color:#bdbdc6}.obx-chips button.on{background:#0f0f12;border-color:#0f0f12;color:#fff}
+.obx-ms{margin-top:18px;width:100%;justify-content:center;border-radius:999px}
+.obx-pro{border:1px solid #e2e2e8;border-radius:24px;padding:20px 22px;background:linear-gradient(180deg,#fff,#f8f8fa)}
+.obx-pro-h{display:flex;align-items:center;gap:10px}.obx-pro-h b{font-size:18px;letter-spacing:-.02em}
+.obx-pro-h em{margin-left:auto;font-style:normal;font-size:13px;font-weight:600;background:#ececf0;border-radius:99px;padding:6px 12px}
+.obx-pro ul{list-style:none;padding:0;margin:16px 0 4px;display:grid;gap:10px}.obx-pro li{display:flex;gap:10px;align-items:center;font-size:15.5px}
+.obx-pro li svg{width:16px;height:16px;fill:none;stroke:#0f0f12;stroke-width:2.4;flex:none}
+.obx-fine{margin:14px 0 0;color:#6b6b73;font-size:13.5px}
+.obx-foot{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.obx-acts{display:flex;gap:10px;align-items:center}
+.obx-go{background:#0f0f12;color:#fff;border:0;border-radius:999px;padding:15px 28px;font-size:16px;font-weight:600;cursor:pointer;transition:transform .15s}
+.obx-go:hover{transform:translateY(-1px)}
+.obx-back,.obx-skip{background:none;border:0;color:#6b6b73;font-size:15px;font-weight:600;cursor:pointer;padding:12px 14px;border-radius:999px}
+.obx-back:hover,.obx-skip:hover{background:#f3f3f4;color:#0f0f12}
+@media (max-width:560px){.obx{padding:0;align-items:end}.obx-card{border-radius:28px 28px 0 0;padding:20px 20px 24px;max-height:100dvh}.obx-cards{grid-template-columns:1fr}.obx-body{min-height:0}}
+@media (max-width:560px){.obx-foot{flex-wrap:wrap}.obx-acts{flex:1;justify-content:flex-end}.obx-go{padding:14px 20px;font-size:15px;white-space:nowrap}.obx-skip,.obx-back{padding:12px 8px}.obx-pro-h b{white-space:nowrap;font-size:16px}.obx-pro-h em{font-size:12px;white-space:nowrap;padding:5px 10px}}

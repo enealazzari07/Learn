@@ -11,5 +11,5 @@ module.exports = async function handler(req, res) {
   const id = String(process.env.MS_CLIENT_ID || "").trim(), tenant = String(process.env.MS_TENANT || "").trim() || "common";
   const P = await L.plans(), avail = Object.keys(P.monthly.opts || P.yearly.opts || {}), cur = L.currencyFor(req, avail.length ? avail : null);
   const amt = k => P[k].price ? (P[k].opts?.[cur] ?? P[k].cents) : 0;
-  res.status(200).json({ plus: { enabled: await L.billingReady(), monthly: amt("monthly"), yearly: amt("yearly"), currency: P.currency && !avail.includes(cur) ? P.currency : cur }, msClientId: /^[0-9a-f-]{36}$/i.test(id) ? id : "", msTenant: /^[\w.-]{1,80}$/.test(tenant) ? tenant : "common" });
+  res.status(200).json({ plus: { enabled: await L.billingReady(), trial: +process.env.PRO_TRIAL_DAYS || 14, monthly: amt("monthly"), yearly: amt("yearly"), currency: P.currency && !avail.includes(cur) ? P.currency : cur }, msClientId: /^[0-9a-f-]{36}$/i.test(id) ? id : "", msTenant: /^[\w.-]{1,80}$/.test(tenant) ? tenant : "common" });
 };

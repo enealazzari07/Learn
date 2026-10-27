@@ -19,24 +19,52 @@ const dueCardCount = () => D.decks.reduce((n, d) => n + d.cards.filter(c => c.du
 
 /* ---------- onboarding ---------- */
 function onboarding() {
-  let level = D.profile.level, picked = new Set();
-  const { el, close } = modal(`<h2 style="font-size:28px;letter-spacing:-.03em">Willkommen bei Lumi</h2><p class="note" style="margin:6px 0 18px">Richte deine Lern-App in 20 Sekunden ein. Mit Konto sind deine Daten auf allen Geräten gleich.</p>
-  <label class="lbl">Wie heißt du?</label><input class="field" id="ob-n" placeholder="Dein Name" value="${esc(D.profile.name)}">
-  <label class="lbl">Ich bin…</label><div class="seg" id="ob-l"><button data-l="school" class="on">Schüler:in</button><button data-l="uni">Student:in</button></div>
-  <label class="lbl" id="ob-sl">Meine Fächer</label><div class="chips" id="ob-s"></div>
-  ${msReady() ? `<div class="ob-ms"><button class="ms-btn" id="ob-ms" type="button">${msLogoSvg()}<span>Mit Microsoft anmelden (optional)</span></button><small>Importiert Termine, Prüfungen und OneNote automatisch.</small></div>` : ""}<div class="row end" style="margin-top:22px"><button class="btn big accent" id="ob-go">Los geht's</button></div>`, "wide");
-  $("#ob-ms", el) && ($("#ob-ms", el).onclick = async () => { await msQuickLogin(); });
-  const drawChips = () => { $("#ob-s", el).innerHTML = PRESETS[level].map(s => `<button class="chip ${picked.has(s) ? "on" : ""}" data-s="${esc(s)}">${esc(s)}</button>`).join(""); $$("[data-s]", el).forEach(b => b.onclick = () => { picked.has(b.dataset.s) ? picked.delete(b.dataset.s) : picked.add(b.dataset.s); b.classList.toggle("on"); }); $("#ob-sl", el).textContent = level === "uni" ? "Meine Module" : "Meine Fächer"; };
-  drawChips();
-  $$("#ob-l button", el).forEach(b => b.onclick = () => { level = b.dataset.l; picked.clear(); $$("#ob-l button", el).forEach(x => x.classList.toggle("on", x === b)); drawChips(); });
-  $("#ob-go", el).onclick = () => {
-    D.profile.name = $("#ob-n", el).value.trim(); D.profile.level = level; D.profile.onboarded = true;
-    [...picked].forEach((n, i) => { const sid = uid(), c = COLORS[i % COLORS.length]; D.subjects.push({ id: sid, name: n, color: c }); D.folders.push({ id: uid(), name: n, parent: "", color: c, subjectId: sid }); }); D.foldersInit = true;
+  const O = { step: 0, name: D.profile.name || (CLOUD.user?.email || "").split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase()), level: D.profile.level || "school", goal: D.profile.goalMin || 45, picked: new Set() };
+  const root = document.createElement("div"); root.className = "obx"; $("#modal-root").appendChild(root);
+  const can = typeof BILL !== "undefined" && BILL.cfg && BILL.cfg.enabled && CLOUD.user && !isPlus(), trial = (BILL.cfg && BILL.cfg.trial) || 14;
+  const price = can && BILL.cfg.monthly ? money(BILL.cfg.monthly) : "";
+  const STEPS = 4, dots = () => `<div class="obx-dots">${Array.from({ length: STEPS }, (_, i) => `<i class="${i === O.step ? "on" : i < O.step ? "done" : ""}"></i>`).join("")}</div>`;
+  const finish = async (buy) => {
+    D.profile.name = O.name.trim(); D.profile.level = O.level; D.profile.goalMin = O.goal; D.profile.onboarded = true;
+    [...O.picked].forEach((n, i) => { const sid = uid(), c = COLORS[i % COLORS.length]; D.subjects.push({ id: sid, name: n, color: c }); D.folders.push({ id: uid(), name: n, parent: "", color: c, subjectId: sid }); }); D.foldersInit = true;
     const wid = uid(); D.docs.unshift({ id: wid, type: "note", title: "Willkommen bei Lumi", subjectId: "", folderId: "", paper: "white", updated: Date.now(), created: Date.now(), text: "" });
     const w = `<h1>Willkommen bei Lumi</h1><p>Das ist deine erste Notiz. Probiere die Werkzeuge oben aus:</p><ul class="chk"><li><input type="checkbox"> Text <b>fett</b>, <i>kursiv</i> oder <mark>markiert</mark> machen</li><li><input type="checkbox"> Eine Tabelle oder ein Bild einfügen</li><li><input type="checkbox"> Mit <b>Lumi AI</b> eine Zusammenfassung oder Karteikarten erstellen</li><li><input type="checkbox"> Oben rechts auf <b>Zeichnen</b> wechseln und Skizzen direkt in die Notiz malen</li><li><input type="checkbox"> Im <b>Planer</b> Hausaufgaben und Prüfungen eintragen</li></ul><p>Tipp: Mit Strg/Cmd + K findest du alles blitzschnell.</p>`;
     KV.set("html:" + wid, w); D.docs[0].text = htmlToText(w);
-    save(); close(); toast("Alles bereit!"); go("today"); buildShell(true);
+    save(); root.remove(); toast("Alles bereit!"); go("today"); buildShell(true);
+    if (buy) setTimeout(() => plusBuy("monthly"), 400);
   };
+  const views = [
+    () => `<span class="obx-eyebrow">Willkommen</span><h1>Schön, dass du da bist.</h1><p class="obx-sub">Richte Lumi in 30 Sekunden ein – danach gehört dir dein ganzes Lernen an einem Ort.</p>
+      <label class="obx-l" for="ob-n">Wie heißt du?</label><input class="obx-in" id="ob-n" placeholder="Dein Name" value="${esc(O.name)}" autocomplete="given-name">`,
+    () => `<span class="obx-eyebrow">Über dich</span><h1>Wie lernst du?</h1><p class="obx-sub">So passen wir Fächer, Noten und Lumi AI an dich an.</p>
+      <div class="obx-cards" id="ob-l"><button data-l="school" class="${O.level === "school" ? "on" : ""}"><b>Schüler:in</b><small>Fächer, Noten 1–6, Hausaufgaben</small></button><button data-l="uni" class="${O.level === "uni" ? "on" : ""}"><b>Student:in</b><small>Module, Prüfungen, Skripte</small></button></div>
+      <label class="obx-l">Tagesziel Lernzeit</label><div class="obx-chips" id="ob-g">${[15, 30, 45, 60, 90].map(m => `<button data-g="${m}" class="${O.goal === m ? "on" : ""}">${m} Min.</button>`).join("")}</div>`,
+    () => `<span class="obx-eyebrow">Deine Auswahl</span><h1>${O.level === "uni" ? "Welche Module belegst du?" : "Welche Fächer hast du?"}</h1><p class="obx-sub">Wähle aus – Lumi legt dafür Ordner an. Du kannst alles später ändern.</p>
+      <div class="obx-chips wrap" id="ob-s">${PRESETS[O.level].map(x => `<button data-s="${esc(x)}" class="${O.picked.has(x) ? "on" : ""}">${esc(x)}</button>`).join("")}</div>
+      ${msReady() ? `<button class="obx-ms ms-btn" id="ob-ms" type="button">${msLogoSvg()}<span>Mit Microsoft anmelden (optional)</span></button>` : ""}`,
+    () => `<span class="obx-eyebrow">Lumi Study Pro</span><h1>${can ? `${trial} Tage gratis testen` : "Mehr Lumi AI mit Pro"}</h1>
+      <p class="obx-sub">${can ? `Teste alles ${trial} Tage kostenlos. Danach ${price} pro Monat – jederzeit kündbar, vor Ablauf erinnern wir dich.` : "Lumi Study Pro schaltet Lumi AI ohne Tageslimit frei. Es ist bald verfügbar."}</p>
+      <div class="obx-pro"><div class="obx-pro-h"><span class="probadge">Pro</span><b>Lumi Study Pro</b><em>${can ? `${trial} Tage gratis` : "Bald verfügbar"}</em></div>
+        <ul>${["Lumi AI ohne Tageslimit", "Alle kommenden Pro-Funktionen", "Jederzeit kündbar"].map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>
+        ${can ? `<p class="obx-fine">${trial} Tage kostenlos, danach ${price} / Monat inkl. MwSt.</p>` : ""}</div>`,
+  ];
+  const draw = () => {
+    root.innerHTML = `<div class="obx-card"><div class="obx-top"><a class="logo" href="#"><i class="mark"></i>Lumi</a>${dots()}</div>
+      <div class="obx-body" data-step="${O.step}">${views[O.step]()}</div>
+      <div class="obx-foot">${O.step ? `<button class="obx-back" id="ob-b">Zurück</button>` : "<span></span>"}
+        <div class="obx-acts">${O.step === 3 ? (can ? `<button class="obx-skip" id="ob-skip">Später</button><button class="obx-go" id="ob-buy">${trial} Tage gratis testen</button>` : `<button class="obx-go" id="ob-fin">Los geht's</button>`) : `<button class="obx-go" id="ob-n2">Weiter</button>`}</div></div></div>`;
+    const b = $(".obx-body", root);
+    $("#ob-n", root)?.addEventListener("input", e => { O.name = e.target.value; }); $("#ob-n", root)?.addEventListener("keydown", e => { if (e.key === "Enter") $("#ob-n2", root).click(); });
+    $$("#ob-l button", root).forEach(x => x.onclick = () => { if (O.level !== x.dataset.l) O.picked.clear(); O.level = x.dataset.l; $$("#ob-l button", root).forEach(y => y.classList.toggle("on", y === x)); });
+    $$("#ob-g button", root).forEach(x => x.onclick = () => { O.goal = +x.dataset.g; $$("#ob-g button", root).forEach(y => y.classList.toggle("on", y === x)); });
+    $$("#ob-s button", root).forEach(x => x.onclick = () => { O.picked.has(x.dataset.s) ? O.picked.delete(x.dataset.s) : O.picked.add(x.dataset.s); x.classList.toggle("on"); });
+    $("#ob-ms", root) && ($("#ob-ms", root).onclick = async () => { await msQuickLogin(); });
+    $("#ob-b", root)?.addEventListener("click", () => { O.step--; draw(); });
+    $("#ob-n2", root)?.addEventListener("click", () => { O.step++; draw(); });
+    $("#ob-fin", root)?.addEventListener("click", () => finish(false)); $("#ob-skip", root)?.addEventListener("click", () => finish(false)); $("#ob-buy", root)?.addEventListener("click", () => finish(true));
+    setTimeout(() => $("#ob-n", root)?.focus(), 60);
+  };
+  draw();
 }
 
 /* ---------- shell ---------- */
