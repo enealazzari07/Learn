@@ -405,7 +405,11 @@ V.today = m => {
       $("#cal-g", m).innerHTML = h; $("#cal-g", m).style.setProperty("--wk", wk);
       $$("[data-cd]", $("#cal-g", m)).forEach(b => b.onclick = () => { if (swiped) return; if (sel === b.dataset.cd) return taskModal(null, sel); sel = b.dataset.cd; const d = parseISO(sel); if (d.getMonth() !== cm) { cm = d.getMonth(); cy = d.getFullYear(); } drawCal(); });
       const l = itemsOn(sel), KL = { exam: "Prüfung", task: "Aufgabe", ev: "Termin" };
-      $("#cal-d", m).innerHTML = (sel === today ? "" : `<span class="cd-dt">${fmtD(sel)}</span>`) + [...l].sort((p, q) => (q.k === "exam") - (p.k === "exam")).slice(0, 1).map(x => `<span class="cd-i k${x.k}"><i></i><span class="cd-t"><b>${KL[x.k]}</b> ${esc(x.t)}</span>${l.length > 1 ? `<em class="cd-m">+${l.length - 1}</em>` : ""}</span>`).join("");
+      /* fester Bereich: Datum + immer 3 Zeilen (bis 2 Einträge + „weitere“), auch bei 0 Einträgen gleich hoch */
+      const srt = [...l].sort((p, q) => (q.k === "exam") - (p.k === "exam")), more = l.length > 2 ? l.length - 2 : 0, row = x => `<span class="cd-i k${x.k}"><i></i><span class="cd-t"><b>${KL[x.k]}</b> ${esc(x.t)}</span></span>`;
+      const rows = srt.slice(0, 2).map(row); while (rows.length < 2) rows.push(`<span class="cd-i ph"><span class="cd-t">${rows.length === 0 && !l.length ? "Keine Einträge" : "&nbsp;"}</span></span>`);
+      rows.push(more ? `<span class="cd-i more"><span class="cd-t">+${more} weitere</span></span>` : `<span class="cd-i ph"><span class="cd-t">&nbsp;</span></span>`);
+      $("#cal-d", m).innerHTML = `<span class="cd-dt">${sel === today ? "Heute" : fmtD(sel)}</span>` + rows.join("");
     };
     const shift = d => { cm += d; if (cm < 0) { cm = 11; cy--; } if (cm > 11) { cm = 0; cy++; } drawCal(); };
     $("#cal-m", m).onclick = () => { const n = new Date(); cy = n.getFullYear(); cm = n.getMonth(); sel = iso(); drawCal(); };

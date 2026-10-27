@@ -3525,3 +3525,14 @@ html[data-theme="dark"] .obx-stage img{filter:none}
 html[data-theme="dark"] .theme-tg .tg-sun{opacity:0;transform:rotate(70deg) scale(.4)}
 html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.theme-tg svg{transition:none}}
+
+/* Startseiten-Kalender: kompakte Zeilen, Ereignis-Bereich unten immer gleich hoch (Datum + 3 Zeilen) */
+.bento .w-cal{display:flex;flex-direction:column}
+.bento .w-cal .cal-g{flex:none!important;grid-template-rows:auto!important;grid-auto-rows:30px!important;align-content:start!important;overflow:visible!important}
+.bento .w-cal .cd{height:30px!important;min-height:0}
+.bento .w-cal .w-cd{display:flex!important;flex:none;margin-top:auto!important;padding-top:8px;height:92px;min-height:92px;box-sizing:border-box;overflow:hidden;gap:2px}
+.bento .w-cal .w-cd:empty{display:flex!important}
+.bento .w-cal .cd-i{height:20px;line-height:20px;flex:none}
+.bento .w-cal .cd-i.ph{color:#a0a0ae}
+.bento .w-cal .cd-i.ph:not(:has(.cd-t:empty)) .cd-t{font-size:12.5px}
+@media (min-width:901px) and (max-height:820px){.bento .w-cd{display:flex!important}.bento .w-cal .w-cd{height:84px;min-height:84px}}
