@@ -92,7 +92,7 @@ function authScreen(mode = "in") {
         ${oauth.length ? `<div class="authoauth">${oauth.map(o => `<button class="btn ghost" type="button" data-o="${o}">${o === "google" ? "Google" : "Apple"}</button>`).join("")}</div>` : ""}
         ${up ? "" : `<button class="link" id="cl-fp" type="button">Passwort vergessen?</button>`}</div>
       <div class="authfoot"><span>${up ? "Schon ein Konto?" : "Noch kein Konto?"} <a href="#" id="cl-sw">${up ? "Anmelden" : "Registrieren"}</a></span><a href="legal.html#agb">AGB &amp; Datenschutz</a></div></form>
-    <aside class="authhero" style="background-image:url(login-hero.webp)"><a class="authx" href="#/" aria-label="Schließen">${ic("x")}</a>
+    <aside class="authhero" style="background-image:url(login-hero.webp)">
       <div class="ahc ah1"><b>Mathe-Klausur</b><small>in 6 Tagen · 18 Karten fällig</small></div>
       <div class="ahc ah2"><span class="dot">${ic("check")}</span><div><b>Karteikarten erstellt</b><small>aus deinen Notizen</small></div></div>
       <div class="ahc ah3">${ic("spark")}<div><b>Lumi AI</b><small>Erklärt Schritt für Schritt</small></div></div></aside></div></div>`;
