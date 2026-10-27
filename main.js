@@ -84,12 +84,11 @@ function renderLanding() {
 (async function () {
   await loadData(); try { migrateFolders(); } catch {}
   try { await cloudInit(); } catch {}
-  /* Microsoft-Client-ID kann in Vercel (MS_CLIENT_ID) statt in config.js stehen */
-  const cfgP = location.protocol.startsWith("http") ? fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.plus) { BILL.cfg = j.plus; try { proApply(); } catch {} } if (j && j.msClientId && !(window.LUMI_CONFIG.msClientId || "").trim()) { window.LUMI_CONFIG.msClientId = j.msClientId; if (j.msTenant) window.LUMI_CONFIG.msTenant = j.msTenant; } }).catch(() => {}) : Promise.resolve();
+  const cfgP = location.protocol.startsWith("http") ? fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.plus) { BILL.cfg = j.plus; try { proApply(); } catch {} }}).catch(() => {}) : Promise.resolve();
   await Promise.race([Promise.all([probeServerAI(), cfgP]), new Promise(r => setTimeout(r, 1800))]);
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
   plusLoad(false).then(() => { try { aiuLoad().then(() => { try { const h = document.querySelector("#hdock .hd-top"); if (h && !h.querySelector(".aiu")) aiuMount(h, h.querySelector(".hd-x")); } catch {} }); refreshNav(); if (curView === "settings") renderView(); } catch {} }).catch(() => {});   // Abo live aus Stripe, ohne den Start zu verzögern
   route();
   plusReturn();
-  setTimeout(() => { try { msAuto(); } catch {} }, 1500);
+  try { Object.keys(localStorage).filter(k => /^msal\./.test(k)).forEach(k => localStorage.removeItem(k)); if (D && D.ms) { delete D.ms; save(); } } catch {}   // Reste der früheren Microsoft-Verbindung entfernen
 })();

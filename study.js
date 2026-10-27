@@ -76,8 +76,7 @@ function onboarding() {
       <div class="obx-scales" id="ob-sc">${OB_SCALES.map(([k, n, d, a, b]) => `<button data-k="${k}" class="${O.scale === k ? "on" : ""}"><span class="obx-sc-t"><b>${n}</b><small>${d}</small></span><span class="gsc"><i>${a}</i><em></em><i>${b}</i></span></button>`).join("")}</div>
       <p class="obx-hint">Links schlechter, rechts besser – so sieht dein Notenschnitt später aus.</p>`,
     subjects: () => `<span class="obx-eyebrow">Deine Auswahl</span><h1>${O.level === "uni" ? "Welche Module belegst du?" : "Welche Fächer hast du?"}</h1><p class="obx-sub">Wähle aus – Lumi legt dafür Ordner an. Du kannst alles später unter „Noten“ ändern.</p>
-      <div class="obx-chips wrap" id="ob-s">${PRESETS[O.level].map(x => `<button data-s="${esc(x)}" class="${O.picked.has(x) ? "on" : ""}">${esc(x)}</button>`).join("")}</div>
-      ${msReady() ? `<button class="obx-ms ms-btn" id="ob-ms" type="button">${msLogoSvg()}<span>Mit Microsoft anmelden (optional)</span></button>` : ""}`,
+      <div class="obx-chips wrap" id="ob-s">${PRESETS[O.level].map(x => `<button data-s="${esc(x)}" class="${O.picked.has(x) ? "on" : ""}">${esc(x)}</button>`).join("")}</div>`,
     pro: () => `<span class="obx-eyebrow">Lumi Study Pro</span><h1>${can ? `${trial} Tage gratis testen` : "Mehr Lumi AI mit Pro"}</h1>
       <p class="obx-sub">${can ? `Teste alles ${trial} Tage kostenlos. Danach ${priceStr()} pro Monat – jederzeit kündbar, vor Ablauf erinnern wir dich.` : "Lumi Study Pro schaltet Lumi AI ohne Limit frei. Es ist bald verfügbar."}</p>
       <div class="obx-pro"><div class="obx-pro-h"><img src="logo.png" alt="" width="34" height="34"><b>Lumi Study Pro</b><em>${can ? `${trial} Tage gratis` : "Bald verfügbar"}</em></div>
@@ -95,7 +94,6 @@ function onboarding() {
     $$("#ob-g button", root).forEach(x => x.onclick = () => { O.goal = +x.dataset.g; $$("#ob-g button", root).forEach(y => y.classList.toggle("on", y === x)); });
     $$("#ob-sc button", root).forEach(x => x.onclick = () => { O.scale = x.dataset.k; O.scaleSet = true; $$("#ob-sc button", root).forEach(y => y.classList.toggle("on", y === x)); });
     $$("#ob-s button", root).forEach(x => x.onclick = () => { O.picked.has(x.dataset.s) ? O.picked.delete(x.dataset.s) : O.picked.add(x.dataset.s); x.classList.toggle("on"); });
-    $("#ob-ms", root) && ($("#ob-ms", root).onclick = async () => { await msQuickLogin(); });
     $("#ob-b", root)?.addEventListener("click", () => { O.step--; draw(); });
     $("#ob-n2", root)?.addEventListener("click", () => { if (id === "region" && !O.country) { $("#ob-c", root)?.focus(); toast("Bitte wähle dein Land aus."); return; } O.step++; draw(); });
     $("#ob-c", root)?.addEventListener("change", e => { O.country = e.target.value; D.profile.country = O.country; if (!O.scaleSet) O.scale = obScaleFor(O.country); save(); try { proApply(); } catch {} const h = $("#ob-ch", root); if (h) h.innerHTML = hint(); });
@@ -291,7 +289,7 @@ function practiceExam(t) {
 function countUp(el, to, ms = 900) { if (!el) return; const t0 = performance.now(); const f = t => { const k = Math.min(1, (t - t0) / ms); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(f); }; requestAnimationFrame(f); }
 function dailyCtx({ lessons, evToday, exams, due, mins, goal }) {
   const t = iso(), open = D.tasks.filter(x => !x.done);
-  return [`Datum: ${t}`, `Stunden heute: ${lessons.map(e => `${e.start} ${e.title || subj(e.subjectId)?.name || "Stunde"}`).join(", ") || "keine"}`, `Termine (Outlook): ${evToday.map(e => `${e.time || ""} ${e.title}`).join(", ") || "keine"}`, `Offene Aufgaben: ${open.slice(0, 10).map(x => `${x.title}${x.due ? " (bis " + x.due + ")" : ""}`).join("; ") || "keine"}`, `Prüfungen: ${exams.map(x => `${x.title} in ${daysUntil(x.due)} Tagen`).join("; ") || "keine anstehend"}`, `Fällige Karteikarten: ${due}`, `Gelernt heute: ${mins} von ${goal} Minuten`].join("\n");
+  return [`Datum: ${t}`, `Stunden heute: ${lessons.map(e => `${e.start} ${e.title || subj(e.subjectId)?.name || "Stunde"}`).join(", ") || "keine"}`, `Termine: ${evToday.map(e => `${e.time || ""} ${e.title}`).join(", ") || "keine"}`, `Offene Aufgaben: ${open.slice(0, 10).map(x => `${x.title}${x.due ? " (bis " + x.due + ")" : ""}`).join("; ") || "keine"}`, `Prüfungen: ${exams.map(x => `${x.title} in ${daysUntil(x.due)} Tagen`).join("; ") || "keine anstehend"}`, `Fällige Karteikarten: ${due}`, `Gelernt heute: ${mins} von ${goal} Minuten`].join("\n");
 }
 function dailyLocal({ lessons, evToday, open, exams, due, mins, goal }) {
   const parts = [], t = open.filter(x => x.due && daysUntil(x.due) <= 0);
@@ -307,14 +305,14 @@ V.today = m => {
   const lessons = D.tt.filter(e => e.day === wd).sort((a, b) => a.start.localeCompare(b.start));
   const open = D.tasks.filter(x => !x.done).sort((a, b) => (a.due || "9").localeCompare(b.due || "9"));
   const allEx = open.filter(x => x.type === "exam" && x.due && daysUntil(x.due) >= 0).sort((a, b) => a.due.localeCompare(b.due)), exams = allEx.slice(0, 2);
-  const mins = D.stats.days[t] || 0, due = dueCardCount(), evToday = msEventsOn(t), todayTasks = open.filter(x => x.due && daysUntil(x.due) <= 0);
+  const mins = D.stats.days[t] || 0, due = dueCardCount(), evToday = calEventsOn(t), todayTasks = open.filter(x => x.due && daysUntil(x.due) <= 0);
   const recent = [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 6);
   try { appleAuto(); } catch {}
   let first = true; try { first = !sessionStorage.getItem("lumi-welcomed"); sessionStorage.setItem("lumi-welcomed", "1"); } catch {}
   const greet = (h < 11 ? "Guten Morgen" : h < 18 ? "Hallo" : "Guten Abend") + (D.profile.name ? ", " + D.profile.name.split(" ")[0] : "");
   const words = greet.split(" ").map((w, i) => `<span class="w" style="--i:${i}">${esc(w)}</span>`).join(" ");
   const sub = exams[0] ? `Deine nächste Prüfung: ${esc(exams[0].title)} in ${daysUntil(exams[0].due)} ${daysUntil(exams[0].due) === 1 ? "Tag" : "Tagen"}.` : todayTasks.length ? `Heute ${todayTasks.length === 1 ? "steht 1 Aufgabe" : "stehen " + todayTasks.length + " Aufgaben"} an.` : "Nichts Dringendes – ein guter Moment zum Lernen.";
-  const timeline = [...lessons.map(e => ({ t: e.start, e: e.end, n: e.title || subj(e.subjectId)?.name || "Stunde", c: subj(e.subjectId)?.color || "#999", s: e.room || "Stundenplan" })), ...evToday.map(e => ({ t: e.time || "00:00", e: e.end, n: e.title, c: "#2563eb", s: e.loc || "Outlook" }))].sort((a, b) => a.t.localeCompare(b.t));
+  const timeline = [...lessons.map(e => ({ t: e.start, e: e.end, n: e.title || subj(e.subjectId)?.name || "Stunde", c: subj(e.subjectId)?.color || "#999", s: e.room || "Stundenplan" })), ...evToday.map(e => ({ t: e.time || "00:00", e: e.end, n: e.title, c: "#2563eb", s: e.loc || "Kalender" }))].sort((a, b) => a.t.localeCompare(b.t));
   const PR = x => { const d = x.due ? daysUntil(x.due) : 99; return x.prio || (x.type === "exam" || d <= 0 ? "Hoch" : d <= 3 ? "Mittel" : "Niedrig"); };
   const TY = { task: "Aufgabe", hw: "Hausaufgabe", exam: "Prüfung" };
   const todayN = open.filter(x => x.due && daysUntil(x.due) <= 0).length || Math.min(open.length, 5);
@@ -343,7 +341,7 @@ V.today = m => {
     grades: () => { const gAvg = wavg(D.grades), rows = D.subjects.map(sj => ({ sj, l: D.grades.filter(g => g.subjectId === sj.id) })).filter(x => x.l.length).map(x => ({ ...x, a: wavg(x.l) })).sort((a, b) => a.sj.name.localeCompare(b.sj.name, "de")); return `<button class="wg w-stat w-grades rise" style="--i:3" data-go="grades"><h2>Noten</h2><div class="gr-top"><b class="w-big" style="color:${gAvg == null ? "inherit" : gcol(gAvg)}">${gfmt(gAvg)}</b><small>Ø Gesamt · ${D.grades.length} ${D.grades.length === 1 ? "Eintrag" : "Einträge"}</small></div><div class="gr-list">${rows.length ? rows.map(({ sj, l, a }) => `<div class="gr-r"><i class="gr-d" style="background:${sj.color}"></i><span class="gr-n">${esc(sj.name)}<small>${l.length}</small></span><span class="gr-b"><i style="width:${Math.max(6, Math.round(gnorm(a) * 100))}%;background:${gcol(a)}"></i></span><b style="color:${gcol(a)}">${gfmt(a)}</b></div>`).join("") : `<p class="empty sm">Noch keine Noten eingetragen.</p>`}</div><span class="w-go">Zu den Noten ${ic("back")}</span></button>`; },
     pinned: () => `<section class="wg w-pin rise" style="--i:3"><h2>Angeheftet</h2><div class="w-scroll">${D.docs.filter(d => d.pinned).slice(0, 8).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note")}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")}</small></span></button>`).join("") || `<p class="empty sm">Hefte Dokumente mit dem Stern an – sie erscheinen hier.</p>`}</div></section>`,
     ring: () => `<section class="wg w-ringb rise" style="--i:3"><h2>Tagesziel</h2><div class="rb">${ringSvg(pct, "#0f0f12", mins, "von " + goal + " Min.")}</div></section>`,
-    clock: () => { const lm = n => n > 1 ? `<div class="ck-r more">+ ${n - 1} weitere</div>` : ""; const rows = [...msEventsOn(t).map(e => ({ tm: e.allDay ? "Ganztägig" : e.time || "", c: e.color || "#2563eb", n: e.title, o: e.allDay ? "00:00" : e.time || "00:00" })), ...D.tasks.filter(x => !x.done && x.due === t).map(x => ({ tm: x.type === "exam" ? "Prüfung" : "Fällig", c: x.type === "exam" ? "#d93a3a" : "#0f0f12", n: x.title, o: "00:00" }))].sort((a, b) => a.o.localeCompare(b.o) || a.n.localeCompare(b.n)); const conn = !!((D.apple && D.apple.feeds && D.apple.feeds.length) || msConnected()); return `<section class="wg w-clock rise" style="--i:3"><div class="ck-in"><div class="ck-t"><b id="hclock">${new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}</b><p>${new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" })}</p></div>${conn ? `<div class="ck-ev"><h3>Heute im Kalender</h3>${rows.length ? rows.slice(0, 3).map(r => `<div class="ck-r"><i style="background:${r.c}"></i><span class="ck-tm">${esc(r.tm)}</span><b>${esc(r.n)}</b></div>`).join("") + lm(rows.length - 2 > 1 && rows.length > 3 ? rows.length - 2 : 0) : `<p class="ck-none">Heute nichts eingetragen</p>`}</div>` : ""}</div></section>`; },
+    clock: () => { const lm = n => n > 1 ? `<div class="ck-r more">+ ${n - 1} weitere</div>` : ""; const rows = [...calEventsOn(t).map(e => ({ tm: e.allDay ? "Ganztägig" : e.time || "", c: e.color || "#2563eb", n: e.title, o: e.allDay ? "00:00" : e.time || "00:00" })), ...D.tasks.filter(x => !x.done && x.due === t).map(x => ({ tm: x.type === "exam" ? "Prüfung" : "Fällig", c: x.type === "exam" ? "#d93a3a" : "#0f0f12", n: x.title, o: "00:00" }))].sort((a, b) => a.o.localeCompare(b.o) || a.n.localeCompare(b.n)); const conn = !!((D.apple && D.apple.feeds && D.apple.feeds.length)); return `<section class="wg w-clock rise" style="--i:3"><div class="ck-in"><div class="ck-t"><b id="hclock">${new Date().toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })}</b><p>${new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" })}</p></div>${conn ? `<div class="ck-ev"><h3>Heute im Kalender</h3>${rows.length ? rows.slice(0, 3).map(r => `<div class="ck-r"><i style="background:${r.c}"></i><span class="ck-tm">${esc(r.tm)}</span><b>${esc(r.n)}</b></div>`).join("") + lm(rows.length - 2 > 1 && rows.length > 3 ? rows.length - 2 : 0) : `<p class="ck-none">Heute nichts eingetragen</p>`}</div>` : ""}</div></section>`; },
     subjects: () => `<section class="wg w-sj rise" style="--i:3"><h2>${SUBJ()}</h2><div class="sj-l">${D.subjects.map(sj => { const n = D.tasks.filter(x => !x.done && x.subjectId === sj.id).length; return `<button data-go="docs"><i style="background:${sj.color}"></i><b>${esc(sj.name)}</b><small>${n ? n + " offen" : "frei"}</small></button>`; }).join("") || `<p class="empty sm">Noch keine Fächer – in den Einstellungen anlegen.</p>`}</div></section>`,
     hw: () => `<section class="wg w-hw rise" style="--i:3"><h2>Hausaufgaben</h2><div class="w-scroll">${open.filter(x => x.type === "hw").slice(0, 8).map(x => { const dd = x.due ? daysUntil(x.due) : null; return `<div class="hw-r"><b>${esc(x.title)}</b><small class="${dd != null && dd < 0 ? "red" : ""}">${dd == null ? "–" : dd < 0 ? "Überfällig" : dd === 0 ? "Heute" : dd === 1 ? "Morgen" : "in " + dd + " Tagen"}</small></div>`; }).join("") || `<p class="empty sm">Keine offenen Hausaufgaben.</p>`}</div></section>`,
   };
@@ -391,7 +389,7 @@ V.today = m => {
   }
   if ($("#cal-g", m)) {
     const now = new Date(); let cy = now.getFullYear(), cm = now.getMonth(), sel = iso();
-    const itemsOn = d => [...D.tasks.filter(x => !x.done && x.due === d).map(x => ({ k: x.type === "exam" ? "exam" : "task", t: x.title })), ...msEventsOn(d).map(e => ({ k: "ev", t: e.title }))];
+    const itemsOn = d => [...D.tasks.filter(x => !x.done && x.due === d).map(x => ({ k: x.type === "exam" ? "exam" : "task", t: x.title })), ...calEventsOn(d).map(e => ({ k: "ev", t: e.title }))];
     const drawCal = () => {
       $("#cal-m", m).textContent = new Date(cy, cm, 1).toLocaleDateString("de-CH", { month: "long", year: "numeric" });
       const f0 = (new Date(cy, cm, 1).getDay() + 6) % 7, today = iso();
@@ -421,7 +419,6 @@ V.today = m => {
     drawCal();
   }
 };
-const msLogoSvg = () => `<svg viewBox="0 0 24 24" width="26" height="26"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="13" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="13" width="10" height="10" fill="#00a4ef"/><rect x="13" y="13" width="10" height="10" fill="#ffb900"/></svg>`;
 let quizPrefill = null;
 function bindCommon(m) {
   $$("[data-go]", m).forEach(b => b.onclick = () => go(b.dataset.go));

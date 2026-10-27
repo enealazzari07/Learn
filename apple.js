@@ -1,6 +1,6 @@
 "use strict";
 /* Lumi – Apple-Kalender (und jeder andere Kalender mit ICS-Adresse): Abo über „Öffentlicher Kalender“, nur lesend, ohne Passwort.
-   Termine der nächsten 90 Tage liegen in D.apple.events und erscheinen überall dort, wo auch Outlook-Termine stehen. */
+   Termine der nächsten 90 Tage liegen in D.apple.events und erscheinen auf Startseite, Planer und Kalender. */
 const APPLE_COLORS = ["#ff3b30", "#ff9500", "#34c759", "#007aff", "#af52de", "#5856d6"];
 const appleCfg = () => D.apple || (D.apple = { feeds: [], events: [], lastSync: 0 });
 const icsUnfold = t => t.replace(/\r?\n[ \t]/g, "").split(/\r?\n/);
@@ -96,3 +96,5 @@ function bindApplePanel(m) {
   $$("[data-apx]", m).forEach(b => b.onclick = () => { c.feeds = c.feeds.filter(f => f.id !== b.dataset.apx); c.events = c.events.filter(e => e.feed !== b.dataset.apx); save(); re(); });
   $("#ap-s", m) && ($("#ap-s", m).onclick = async () => { toast("Synchronisiere …"); const r = await appleSync(); toast(r.errors.length ? r.errors[0] : `${r.count} Termine`); re(); });
 }
+/* Kalender-Termine eines Tages (Abos aus „Verbindungen“) */
+const calEventsOn = date => (D.apple?.events || []).filter(e => e.date === date || (e.allDay && e.date < date && e.endDate >= date)).sort((x, y) => (x.time || "").localeCompare(y.time || ""));

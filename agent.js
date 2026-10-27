@@ -98,7 +98,7 @@ async function runAgent(reply) {
 
 /* ---------- AI everywhere: command bar (Strg/Cmd + Umschalt + K, "Neu" menus, document bars) ---------- */
 async function agentAsk(text) {
-  const r = await ai(text, { system: sysBase(AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (typeof msContext === "function" && msContext() ? "\n" + msContext() : "")), max: 2000, quiet: true });
+  const r = await ai(text, { system: sysBase(AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext()), max: 2000, quiet: true });
   if (!r) return null; return runAgent(r);
 }
 function openAiCommand(prefill = "") {
