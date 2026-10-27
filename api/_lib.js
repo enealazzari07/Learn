@@ -146,9 +146,9 @@ const isProLive = async uid => { try { const s = await liveSubscription(uid); re
 const dropSubCache = uid => subCache.delete(uid);
 
 /* KI-Budget (Token) für Gratis-Konten pro Zeitfenster (Standard 5 Stunden, wie bei Claude): das Fenster startet mit der ersten Anfrage und endet nach AI_WINDOW_HOURS.
-   AI_FREE_WINDOW_TOKENS = Token pro Fenster (Standard 10000, 0 = unbegrenzt). Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
+   AI_FREE_WINDOW_TOKENS = Token pro Fenster (Standard 1000, 0 = unbegrenzt). Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
 const num = (v, d) => v === undefined || v === "" ? d : (+v || 0);
-const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 10000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 5)));
+const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 1000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 5)));
 const win = j => j && typeof j === "object" ? { used: +j.tokens || 0, reset: j.started ? new Date(new Date(j.started).getTime() + WINDOW_H * 36e5).toISOString() : null } : null;
 const aiUsed = async uid => { try { return win(await sb("POST", "rpc/lumi_ai_tokens", { p_user: uid, p_hours: WINDOW_H })); } catch { return null; } };
 const aiAdd = async (uid, t) => { try { return win(await sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: Math.max(0, Math.round(t)), p_hours: WINDOW_H })); } catch { return null; } };
