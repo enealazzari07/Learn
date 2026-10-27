@@ -28,7 +28,7 @@ const proEmbIdle = () => { const c = BILL.cfg; return isPlus() || !(c && c.pk &&
 async function embedInline(host, clientSecret, pk) {
   await loadStripeJs(); try { host._ck && host._ck.destroy(); } catch {}
   const sec = host.closest(".setsec"); sec && sec.classList.add("paying");
-  host.innerHTML = `<div class="proemb-box"><div class="proemb-h"><b>Bezahlung</b><button class="link" type="button" id="pe-x">Abbrechen</button></div><div class="embk-m"><i class="spin"></i></div></div>`;
+  host.innerHTML = `<div class="proemb-box"><div class="proemb-h"><b>Bezahlung · Lumi Study Pro ${window.__plan === "yearly" ? "jährlich" : "monatlich"}</b><button class="link" type="button" id="pe-x">Abbrechen</button></div><div class="embk-m"><i class="spin"></i></div></div>`;
   const reset = () => { try { host._ck && host._ck.destroy(); } catch {} host._ck = null; host.innerHTML = proEmbIdle(); sec && sec.classList.remove("paying"); };
   host.querySelector("#pe-x").onclick = reset;
   const S = Stripe(pk), init = S.initEmbeddedCheckout || S.createEmbeddedCheckoutPage;
@@ -51,7 +51,7 @@ if ("requestIdleCallback" in window) requestIdleCallback(() => { try { if (BILL.
 function busy(msg) { const e = document.createElement("div"); e.className = "busy"; e.setAttribute("role", "status"); e.innerHTML = `<div class="busy-c"><i class="spin"></i><b>${msg}</b><small>Das dauert nur einen Moment.</small></div>`; document.body.appendChild(e); return () => e.remove(); }
 addEventListener("pageshow", () => document.querySelectorAll(".busy").forEach(e => e.remove()));
 const plusBuy = async plan => {
-  const done = busy("Sichere Bezahlung wird vorbereitet …");
+  window.__plan = plan; const done = busy("Sichere Bezahlung wird vorbereitet …");
   try {
     const pk = BILL.cfg && BILL.cfg.pk, j = await billPost("/api/checkout", { plan, country: proCountry(), ...(pk ? { embedded: true } : {}) });
     if (j.clientSecret) { await embedCheckout(j.clientSecret, j.pk || pk); done(); } else location.href = j.url;
