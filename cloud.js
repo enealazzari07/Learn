@@ -56,10 +56,11 @@ async function cloudInit() {
   CLOUD.sb = window.supabase.createClient(window.LUMI_CONFIG.supabaseUrl, window.LUMI_CONFIG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true } });
   const { data } = await CLOUD.sb.auth.getSession(); CLOUD.user = data.session?.user || null;
   if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
-  CLOUD.sb.auth.onAuthStateChange((ev, s) => { const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
+  CLOUD.sb.auth.onAuthStateChange((ev, s) => { const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { BILL.row = null; LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
   addEventListener("online", cloudPush);
 }
 async function cloudAfterLogin() {
+  try { await plusLoad(); } catch {}
   try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); }
   toast("Angemeldet – Daten werden synchronisiert"); $("#app").innerHTML = ""; route();
 }

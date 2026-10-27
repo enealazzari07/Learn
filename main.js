@@ -41,6 +41,14 @@ function appShot() {
   <div class="shot-tiles"><div><b>12</b><small>Tage Serie</small></div><div><b>45</b><small>Min. heute</small></div><div><b>18</b><small>Karten fällig</small></div></div>
   <div class="shot-list">${rows.map(r => `<div><i style="background:${r[1]}"></i><span>${r[2]}</span><small>${r[0]} · ${r[3]}</small></div>`).join("")}</div></div></div>`;
 }
+function pricingHtml(go) {
+  const c = BILL.cfg; if (!c || !c.enabled) return "";
+  const eur = v => new Intl.NumberFormat("de-DE", { style: "currency", currency: (c.currency || "eur").toUpperCase() }).format(v / 100), li = a => a.map(x => `<li>${ic("check")}${x}</li>`).join("");
+  return `<section class="sec" id="pricing"><h2 style="text-align:center;margin-inline:auto">Einfache Preise.</h2><p class="lead" style="text-align:center;margin:10px auto 0">Starte kostenlos – upgrade, wenn du mehr Lumi AI willst.</p>
+  <div class="plans"><div class="plan"><h3>Gratis</h3><p class="pr"><b>${eur(0)}</b></p><ul>${li(["Notizen, Zeichnen, Dateien", "Karteikarten &amp; Quiz", "Planer, Noten, Fokus-Timer", "Lumi AI mit Tageslimit", "Sync auf allen Geräten"])}</ul><a class="btn" ${go}>Kostenlos starten</a></div>
+  <div class="plan feat"><span class="pill-l"><b>Plus</b> beliebt</span><h3>Lumi Plus</h3><p class="pr"><b>${eur(c.monthly)}</b> / Monat</p><p class="note">oder ${eur(c.yearly)} / Jahr</p><ul>${li(["Alles aus Gratis", "Lumi AI ohne Tageslimit", "Neue Plus-Funktionen zuerst", "Jederzeit kündbar"])}</ul><a class="btn accent" ${go}>Lumi Plus holen</a></div></div>
+  <p class="note" style="text-align:center;margin-top:14px">Preise inkl. gesetzlicher Mehrwertsteuer deines Landes – sie wird beim Bezahlen automatisch berechnet.</p></section>`;
+}
 function renderLanding() {
   landingEl.dataset.r = 1; const go = 'href="#/app"';
   const TABS = [
@@ -51,7 +59,7 @@ function renderLanding() {
   ];
   landingEl.innerHTML = `
   <header class="nav" id="nav"><a class="logo" href="#/"><i class="mark"></i>Lumi</a>
-    <nav class="nav-links"><a href="#how">Funktionen</a><a href="#create">Editor</a><a href="#devices">Geräte</a><a href="#ai">Lumi AI</a><a href="#faq">Fragen</a></nav>
+    <nav class="nav-links"><a href="#how">Funktionen</a><a href="#create">Editor</a><a href="#devices">Geräte</a><a href="#ai">Lumi AI</a>${BILL.cfg?.enabled ? '<a href="#pricing">Preise</a>' : ""}<a href="#faq">Fragen</a></nav>
     <div class="nav-right"><a class="btn accent" ${go}>App öffnen</a><button class="burger" aria-label="Menü" onclick="document.getElementById('nav').classList.toggle('open')">${ic("menu")}</button></div></header>
   <section class="hero2"><div class="orb o1"></div><div class="orb o2"></div>
     <span class="pill-l"><b>Neu</b> Für Schule & Studium</span>
@@ -73,9 +81,10 @@ function renderLanding() {
   <section class="sec" id="ai"><div class="dark-card"><div><span class="pill-l dk"><b>Lumi AI</b> eingebaut</span><h2>Frag, was du willst. Lumi hilft.</h2><p class="lead">Zusammenfassungen, Quiz, Erklärungen und Hausaufgaben-Hinweise – direkt in deinen Unterlagen.</p><a class="btn accent" ${go} style="margin-top:26px">Mit dem Tutor sprechen</a></div>
     <div class="chat-demo"><div class="m u">Erkläre mir die Zellatmung wie einem Zehntklässler.</div><div class="m a">Stell dir die Zelle als Kraftwerk vor: Aus Zucker und Sauerstoff entsteht Energie (ATP). Soll ich dich danach abfragen?</div><div class="m u">Ja, und mach Karteikarten daraus.</div><div class="m a">Erledigt – 12 Karten sind in deinem Stapel „Biologie“.</div></div></div>
     <div class="grid3">${[["note", "#5b3df5", "Notiz-Editor", "Formatierung, Tabellen, Formeln, Bilder und Checklisten."], ["brush", "#ff6a3d", "Schreiben und Zeichnen", "Stift, Marker, Formen und Text – auch mit Apple Pencil."], ["cards", "#0e9f6e", "Karteikarten", "Lernen mit Wiederholungs-Algorithmus."], ["help", "#2563eb", "Quiz-Training", "Prüfungsfragen aus deinen Unterlagen."], ["cal", "#8b5cf6", "Planer", "Stundenplan, Aufgaben, Kalender und Prüfungen."], ["award", "#111", "Noten & Fokus", "Notenschnitt, Zielrechner und Pomodoro-Timer."]].map(([i, c, t, d]) => `<div class="card"><div class="ico" style="background:${c}">${ic(i)}</div><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></section>
-  <section class="sec" id="faq"><h2>Häufige Fragen</h2><div class="faq">${[["Ist Lumi kostenlos?", "Ja. Alle Funktionen sind kostenlos. Für die Lumi-AI-Funktionen nutzt du optional deinen eigenen Anthropic-API-Key."], ["Wo liegen meine Daten?", "Alles wird lokal auf deinem Gerät gespeichert und funktioniert offline. Mit dem Backup-Export nimmst du deine Daten mit aufs nächste Gerät."], ["Funktioniert es für Schule und Studium?", "Ja – beim Start wählst du Schule oder Studium. Notensysteme (1–6, Punkte, Prozent) und Fächer bzw. Module passen sich an."], ["Kann ich es wie eine App installieren?", "Ja. Im Browser „Zum Home-Bildschirm“ (iPad/iPhone) bzw. „Installieren“ (Chrome/Edge) wählen."]].map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div></section>
-  <section class="cta-final"><h2>Lern klüger, nicht länger.</h2><p style="opacity:.75;margin-top:18px;font-size:19px">In 20 Sekunden eingerichtet. Ohne Anmeldung.</p><a class="btn" ${go}>App öffnen</a></section>
-  <footer><div><a class="logo" href="#/"><i class="mark"></i>Lumi</a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Lumi", "Lumi AI", "Datenschutz", "Kontakt"]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Lumi · Demo-Projekt</div>`;
+  ${pricingHtml(go)}
+  <section class="sec" id="faq"><h2>Häufige Fragen</h2><div class="faq">${[["Ist Lumi kostenlos?", BILL.cfg?.enabled ? "Ja, die Grundfunktionen – Notizen, Karteikarten, Quiz, Planer, Noten – sind kostenlos. Mit Lumi Plus nutzt du Lumi AI ohne Tageslimit." : "Ja. Alle Funktionen sind kostenlos."], ["Wo liegen meine Daten?", "Lokal auf deinem Gerät (auch offline nutzbar). Mit einem Konto werden Notizen, Aufgaben und Karteikarten verschlüsselt übertragen und sind auf allen Geräten gleich. Mit dem Backup-Export nimmst du sie jederzeit mit."], ["Funktioniert es für Schule und Studium?", "Ja – beim Start wählst du Schule oder Studium. Notensysteme (1–6, Punkte, Prozent) und Fächer bzw. Module passen sich an."], ["Kann ich es wie eine App installieren?", "Ja. Im Browser „Zum Home-Bildschirm“ (iPad/iPhone) bzw. „Installieren“ (Chrome/Edge) wählen."], ...(BILL.cfg?.enabled ? [["Wie bezahle ich und wie kündige ich?", "Über Stripe per Karte, Apple Pay, Google Pay oder SEPA. Die Mehrwertsteuer deines Landes ist im Preis enthalten und wird beim Bezahlen angezeigt. Kündigen kannst du jederzeit in den Einstellungen unter „Lumi Plus“."]] : [])].map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div></section>
+  <section class="cta-final"><h2>Lern klüger, nicht länger.</h2><p style="opacity:.75;margin-top:18px;font-size:19px">In 20 Sekunden eingerichtet. Kostenlos starten.</p><a class="btn" ${go}>App öffnen</a></section>
+  <footer><div><a class="logo" href="#/"><i class="mark"></i>Lumi</a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Rechtliches", ["Impressum", "legal.html#impressum"], ["Datenschutz", "legal.html#datenschutz"], ["AGB", "legal.html#agb"], ["Widerruf", "legal.html#widerruf"]]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => Array.isArray(x) ? `<a href="${x[1]}">${x[0]}</a>` : `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Lumi</div>`;
   const pane = $("#tabpane", landingEl);
   const showTab = i => { const t = TABS[i]; $$(".tab", landingEl).forEach((b, k) => b.classList.toggle("on", k === i)); pane.innerHTML = `<div><span class="ico2">${ic(t[3])}</span><h3>${t[1]}</h3><p>${t[2]}</p><a class="btn" ${go}>Ausprobieren</a></div><div class="mock">${t[4].map((x, k) => `<div class="mk" style="animation-delay:${k * .12}s">${ic(t[3])}<span>${x}</span><i>↗</i></div>`).join("")}</div>`; };
   $$(".tab", landingEl).forEach(b => b.onclick = () => showTab(+b.dataset.t)); showTab(0);
@@ -86,9 +95,11 @@ function renderLanding() {
   await loadData(); try { migrateFolders(); } catch {}
   try { await cloudInit(); } catch {}
   /* Microsoft-Client-ID kann in Vercel (MS_CLIENT_ID) statt in config.js stehen */
-  const cfgP = location.protocol.startsWith("http") ? fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.msClientId && !(window.LUMI_CONFIG.msClientId || "").trim()) { window.LUMI_CONFIG.msClientId = j.msClientId; if (j.msTenant) window.LUMI_CONFIG.msTenant = j.msTenant; } }).catch(() => {}) : Promise.resolve();
+  const cfgP = location.protocol.startsWith("http") ? fetch("/api/config", { cache: "no-store" }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.plus) BILL.cfg = j.plus; if (j && j.msClientId && !(window.LUMI_CONFIG.msClientId || "").trim()) { window.LUMI_CONFIG.msClientId = j.msClientId; if (j.msTenant) window.LUMI_CONFIG.msTenant = j.msTenant; } }).catch(() => {}) : Promise.resolve();
   await Promise.race([Promise.all([probeServerAI(), cfgP]), new Promise(r => setTimeout(r, 1800))]);
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => {});
+  try { await plusLoad(); } catch {}
   route();
+  plusReturn();
   setTimeout(() => { try { msAuto(); } catch {} }, 1500);
 })();

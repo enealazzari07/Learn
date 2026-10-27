@@ -3,6 +3,7 @@
      GEMINI_API_KEY  (kostenloser Key: https://aistudio.google.com/apikey)
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur
      GEMINI_MODEL    (optional, Standard: gemini-flash-lite-latest)
+     AI_FREE_DAILY   (optional: KI-Anfragen pro Tag für Gratis-Konten; leer = unbegrenzt. Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
    Mindestens einer der beiden Keys genügt. Die Keys erreichen nie den Browser. */
 const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];
@@ -15,6 +16,8 @@ const MODELS = [
   { id: "groq:llama-3.3-70b-versatile", p: "groq", m: "llama-3.3-70b-versatile" },
   { id: "groq:openai/gpt-oss-120b", p: "groq", m: "openai/gpt-oss-120b" },
 ];
+const L = require("./_lib");
+const FREE_DAILY = +process.env.AI_FREE_DAILY || 0;
 const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY });
 const available = () => { const h = have(); return MODELS.filter(x => h[x.p]); };
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
@@ -62,13 +65,20 @@ async function callGroq(model, key, { system, messages, max, temperature = 0.4, 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   const h = have();
-  if (req.method === "GET") return res.status(200).json({ ok: true, provider: h.gemini ? "gemini" : "groq", model: h.gemini ? MODEL() : "groq", configured: h.gemini || h.groq, gemini: h.gemini, groq: h.groq, models: available().map(x => x.id) });
+  if (req.method === "GET") return res.status(200).json({ ok: true, freeDaily: FREE_DAILY, provider: h.gemini ? "gemini" : "groq", model: h.gemini ? MODEL() : "groq", configured: h.gemini || h.groq, gemini: h.gemini, groq: h.groq, models: available().map(x => x.id) });
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   if (!h.gemini && !h.groq) return res.status(503).json({ error: "Weder GEMINI_API_KEY noch GROQ_API_KEY ist in Vercel gesetzt." });
   if (!sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
-  const { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false } = body || {};
+  const { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false, bg = false } = body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "Keine Nachricht" });
+  if (FREE_DAILY && !bg) {   // optional: AI_FREE_DAILY=30 → Gratis-Konten haben 30 KI-Anfragen pro Tag, Lumi Plus unbegrenzt (Hintergrund-Korrektur zählt nicht)
+    try {
+      const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte melde dich an, um Lumi AI zu nutzen." });
+      if (!L.isPlusRow(await L.getSubscription(user.id)) && !(await L.sb("POST", "rpc/lumi_ai_bump", { p_user: user.id, p_limit: FREE_DAILY })))
+        return res.status(429).json({ error: `Tageslimit erreicht (${FREE_DAILY} KI-Anfragen). Mit Lumi Plus nutzt du Lumi AI unbegrenzt.`, limit: true });
+    } catch (e) { return res.status(503).json({ error: "Limit-Prüfung nicht erreichbar: " + e.message }); }
+  }
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
 
   /* Reihenfolge: gewünschtes Modell → Rest des Anbieters → anderer Anbieter */

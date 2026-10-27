@@ -20,7 +20,7 @@ const dueCardCount = () => D.decks.reduce((n, d) => n + d.cards.filter(c => c.du
 /* ---------- onboarding ---------- */
 function onboarding() {
   let level = D.profile.level, picked = new Set();
-  const { el, close } = modal(`<h2 style="font-size:28px;letter-spacing:-.03em">Willkommen bei Lumi</h2><p class="note" style="margin:6px 0 18px">Richte deine Lern-App in 20 Sekunden ein. Alles bleibt auf deinem Gerät.</p>
+  const { el, close } = modal(`<h2 style="font-size:28px;letter-spacing:-.03em">Willkommen bei Lumi</h2><p class="note" style="margin:6px 0 18px">Richte deine Lern-App in 20 Sekunden ein. Mit Konto sind deine Daten auf allen Geräten gleich.</p>
   <label class="lbl">Wie heißt du?</label><input class="field" id="ob-n" placeholder="Dein Name" value="${esc(D.profile.name)}">
   <label class="lbl">Ich bin…</label><div class="seg" id="ob-l"><button data-l="school" class="on">Schüler:in</button><button data-l="uni">Student:in</button></div>
   <label class="lbl" id="ob-sl">Meine Fächer</label><div class="chips" id="ob-s"></div>
@@ -515,7 +515,7 @@ async function noteEditor(m, d) {
     if (Date.now() - AC.last < 2500) return scheduleAC();
     AC.busy = true; AC.last = Date.now();
     let res = null;
-    try { res = await ai(orig, { system: "Du bist eine sehr zurückhaltende Rechtschreibkorrektur. Korrigiere NUR eindeutige Tippfehler und klare Rechtschreibfehler (vertauschte oder fehlende Buchstaben, doppelte Wörter, falsche Gross-/Kleinschreibung am Satzanfang oder bei Namen). Ändere NICHT: Stil, Wortwahl, Satzbau, Kommas, Fachbegriffe, Namen, Zahlen, Abkürzungen, Umgangssprache, Zeilenumbrüche. Formuliere nichts um und füge nichts hinzu." + (swissOn() ? " Schweizer Rechtschreibung: Das Zeichen „ß“ gibt es nicht, immer „ss“ schreiben." : "") + " Antworte NUR mit dem Text, ohne Erklärung, ohne Anführungszeichen. Wenn nichts eindeutig falsch ist, gib den Text exakt unverändert zurück.", max: Math.min(1500, Math.ceil(orig.length / 2) + 120), model: autoModelId(), temperature: 0.1, quiet: true }); } catch {}
+    try { res = await ai(orig, { system: "Du bist eine sehr zurückhaltende Rechtschreibkorrektur. Korrigiere NUR eindeutige Tippfehler und klare Rechtschreibfehler (vertauschte oder fehlende Buchstaben, doppelte Wörter, falsche Gross-/Kleinschreibung am Satzanfang oder bei Namen). Ändere NICHT: Stil, Wortwahl, Satzbau, Kommas, Fachbegriffe, Namen, Zahlen, Abkürzungen, Umgangssprache, Zeilenumbrüche. Formuliere nichts um und füge nichts hinzu." + (swissOn() ? " Schweizer Rechtschreibung: Das Zeichen „ß“ gibt es nicht, immer „ss“ schreiben." : "") + " Antworte NUR mit dem Text, ohne Erklärung, ohne Anführungszeichen. Wenn nichts eindeutig falsch ist, gib den Text exakt unverändert zurück.", max: Math.min(1500, Math.ceil(orig.length / 2) + 120), model: autoModelId(), temperature: 0.1, quiet: true, bg: true }); } catch {}
     AC.busy = false; AC.seen.set(blk, orig);
     if (!res || !blk.isConnected) return;
     let fixed = res.trim(); if (!/^["„“]/.test(orig)) fixed = fixed.replace(/^["„“]|["“”]$/g, "");

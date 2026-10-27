@@ -2329,3 +2329,18 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .msl-ok{display:flex;align-items:center;gap:9px;margin-bottom:8px}
 .msl-m{min-height:20px;margin:0;font-size:13px;text-align:center;color:#2a2a33}.msl-m.bad{color:#d92d20}
 .msl-fine{margin:0;font-size:11.5px;color:#8a8a98;text-align:center}
+
+/* Preise (Landing) */
+.sec>.lead{margin-left:auto;margin-right:auto}
+#pricing>h2{margin-inline:auto;justify-content:center;text-align:center}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,340px));gap:18px;justify-content:center;margin-top:34px}
+.plan{position:relative;background:#fff;border:1px solid var(--line);border-radius:26px;padding:28px;display:flex;flex-direction:column;gap:12px;text-align:left}
+.plan.feat{border-color:#5b3df5;box-shadow:0 20px 50px -24px rgba(91,61,245,.55)}
+.plan .pill-l{align-self:flex-start;margin:0}
+.plan h3{font-size:22px;letter-spacing:-.02em;margin:0}
+.plan .pr{margin:0}.plan .pr b{font-size:40px;letter-spacing:-.04em}
+.plan .note{margin:-8px 0 0}
+.plan ul{list-style:none;padding:0;margin:6px 0 10px;display:grid;gap:8px;flex:1}
+.plan li{display:flex;gap:8px;align-items:center;font-size:15px}
+.plan li svg{width:16px;height:16px;flex:none;color:#0e9f6e}
+.plan .btn{justify-content:center}

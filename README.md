@@ -1,6 +1,6 @@
 # Lumi – Lern-App für Schule und Studium
 
-Statische Web-App (kein Build-Schritt). Öffne `index.html` oder starte `npx http-server`.
+Statische Web-App (kein Build-Schritt). Öffne `index.html` oder starte `npx http-server` (die Funktionen unter `/api` laufen nur auf Vercel).
 
 - **/app** – Notizen-Editor (Formatierung, Tabellen, Formeln, Bilder, Checklisten), Zeichnen direkt in der Notiz (Stift, Marker, Radierer, Formen), Dateien & PDFs, Karteikarten (Spaced Repetition), Quiz, Planer (Aufgaben, Stundenplan, Kalender), Noten, Fokus-Timer, KI-Tutor, Suche, Backup/Import.
 - **KI**: eigenen Anthropic-API-Key unter Einstellungen eintragen. Ohne Key laufen Zusammenfassung, Karteikarten und Quiz aus Dokumenten lokal.
@@ -11,3 +11,6 @@ Trage einmalig die Azure-„Anwendungs-(Client-)ID“ in `config.js` ein (`msCli
 
 ## KI (Google Gemini über Vercel)
 Die KI läuft serverseitig über `api/ai.js`. In Vercel unter *Settings → Environment Variables* `GEMINI_API_KEY` setzen (kostenloser Key: https://aistudio.google.com/apikey), optional `GEMINI_MODEL` (Standard `gemini-2.5-flash-lite`), danach neu deployen. Der Key bleibt auf dem Server.
+
+## Bezahlung (Lumi Plus mit Stripe)
+Abo-Zahlungen über Stripe Checkout, Mehrwertsteuer je Land über Stripe Tax, Status in Supabase. Einrichtung Schritt für Schritt: [docs/STRIPE.md](docs/STRIPE.md). Rechtstexte: `legal.html` (Angaben in `config.js` → `legal`).

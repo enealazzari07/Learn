@@ -254,14 +254,14 @@ const aiModelId = () => { const L = aiModelList(); return (L.find(m => m[0] === 
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
 /* schnelles Modell für Hintergrundaufgaben (Auto-Korrektur): bevorzugt Groq */
 const autoModelId = () => { const L = aiModelList(), pick = D.profile.autoModel && L.find(m => m[0] === D.profile.autoModel); return (pick || L.find(m => m[0] === "groq:llama-3.1-8b-instant") || L.find(m => m[0] === "gemini-flash-lite-latest") || L[0] || AI_MODELS[0])[0]; };
-async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature, sources = false } = {}) {
+async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature, sources = false, bg = false } = {}) {
   window.lastAiSources = [];
   if (!hasKey()) { if (!quiet) toast("Lumi AI ist noch nicht eingerichtet (Einstellungen → Lumi AI). Lokale Hilfe wird verwendet."); return null; }
   if (serverAI) {
     try {
-      const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
+      const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ ...(bg ? { bg: true } : {}), system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(r.status === 429 ? "Das kostenlose Lumi-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
+      if (!r.ok) throw new Error(r.status === 429 && !j.limit ? "Das kostenlose Lumi-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
       if (j.model && j.model !== (model || aiModelId()) && !quiet) toast(`${aiModelName(model || aiModelId())} ist gerade ausgelastet – ${aiModelName(j.model)} hat geantwortet.`);
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
