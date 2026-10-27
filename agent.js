@@ -79,7 +79,7 @@ const ACTIONS = {
 };
 
 /* returns {text, acts} – text without the action block; acts = [{label, go?, err?}] */
-async function runAgent(reply) {
+async function runAgent(reply, opt = {}) {
   const m = String(reply || "").match(/<lumi-actions>([\s\S]*?)<\/lumi-actions>/i);
   const text = String(reply || "").replace(/<lumi-actions>[\s\S]*?(<\/lumi-actions>|$)/i, "").trim();
   if (!m) return { text, acts: [] };
@@ -91,7 +91,7 @@ async function runAgent(reply) {
   }
   save(); refreshNav();
   const op = [...acts].reverse().find(x => x.open && x.go);
-  if (op) setTimeout(() => go(op.go), 700); else if (["docs", "planner", "cards", "grades"].includes(curView)) renderView();
+  if (op && !opt.stay) setTimeout(() => go(op.go), 700); else if (op) {} else if (["docs", "planner", "cards", "grades"].includes(curView)) renderView();
   return { text: text || "Erledigt.", acts };
 }
 

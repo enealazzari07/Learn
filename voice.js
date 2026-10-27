@@ -116,12 +116,16 @@ V.voice = m => {
   const clean = t => String(t || "").replace(/<lumi-actions>[\s\S]*?(<\/lumi-actions>|$)/g, "").replace(/\[(\d+)\]/g, "").replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[*_`#>~|]/g, "").replace(/^\s*[-•]\s+/gm, "").replace(/\s+/g, " ").trim();
   async function respond(text) {
     stopRec(); const tk = ++S.token; $u.textContent = text; $a.textContent = ""; setSt("thinking", "Denke nach …");
-    const sys = sysBase("Du sprichst gerade per Sprache mit der lernenden Person. Sprich ausschliesslich Hochdeutsch (Standarddeutsch), niemals Schweizerdeutsch oder Dialekt, und verwende deutsche Wörter statt Helvetismen (z. B. Fahrrad statt Velo, Abitur-Niveau-Wortschatz). Antworte kurz und natürlich gesprochen, meist 1 bis 3 Sätze, ohne Markdown, ohne Listen, ohne Aufzählungszeichen, ohne Emojis und ohne Sonderzeichen. Sprich Formeln in Worten aus. Frage bei Bedarf kurz nach. Nenne keine Quellenmarker.");
-    const reply = await ai(text, { system: sys, history: S.hist.slice(-12), max: 300, model: "groq:llama-3.3-70b-versatile", temperature: .6 });
+    const c = typeof ctxText === "function" ? await ctxText().catch(() => "") : "";
+    const sys = sysBase("Du sprichst gerade per Sprache mit der lernenden Person. Sprich ausschließlich Hochdeutsch (Standarddeutsch), niemals Schweizerdeutsch oder Dialekt, und verwende deutsche Wörter statt Helvetismen (z. B. Fahrrad statt Velo). Dein gesprochener Teil ist kurz und natürlich, meist 1 bis 3 Sätze, ohne Markdown, ohne Listen, ohne Emojis und ohne Sonderzeichen. Sprich Formeln in Worten aus. Frage bei Bedarf kurz nach. Nenne keine Quellenmarker. Du kannst die ganze App bedienen: Wenn die Person etwas erstellen, ändern, eintragen oder löschen will (Notizen, Dokumente, Aufgaben, Termine, Noten, Karteikarten, Prüfungen …), tu es mit einem <lumi-actions>-Block, den niemand vorgelesen bekommt. Der Inhalt in den Aktionen (z. B. der Text einer Notiz) darf ausführlich sein, dein gesprochener Satz davor bleibt kurz. Die Aktion „open“ benutzt du nicht, weil das Gespräch offen bleibt.\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (c ? "\nUnterlagen des Lernenden:\n" + c : ""));
+    let reply = await ai(text, { system: sys, history: S.hist.slice(-12), max: 1800, model: "groq:llama-3.3-70b-versatile", temperature: .5 }), acts = [];
+    if (reply && /<lumi-actions>/i.test(reply)) {
+      try { reply = reply.replace(/<lumi-actions>([\s\S]*?)<\/lumi-actions>/i, (all, j) => { try { const l = JSON.parse(j.trim().replace(/^```(json)?|```$/g, "")); return "<lumi-actions>" + JSON.stringify((Array.isArray(l) ? l : [l]).filter(a => a && a.action !== "open")) + "</lumi-actions>"; } catch { return all; } }); const o = await runAgent(reply, { stay: true }); reply = o.text; acts = o.acts; } catch (e) { reply = reply.replace(/<lumi-actions>[\s\S]*/i, "").trim(); }
+    }
     if (tk !== S.token || !S.alive) return;
     if (!reply) { setSt("idle", "Keine Antwort – tippe auf das Mikrofon"); S.paused = true; $mic.classList.remove("on"); return; }
-    const say = clean(reply); S.hist.push({ role: "user", text }, { role: "assistant", text: say }); keep(text, say);
-    $a.textContent = say; await speak(say, tk);
+    const say = clean(reply) + (acts.some(x => x.err) ? " Das hat leider nicht ganz geklappt." : ""); S.hist.push({ role: "user", text }, { role: "assistant", text: say }); keep(text, say);
+    $a.textContent = say + (acts.length ? "\n" + acts.map(x => (x.err ? "✕ " : "✓ ") + x.label).join("\n") : ""); await speak(say, tk);
     if (tk === S.token && S.alive && !S.paused) listen();
   }
   function keep(q, a) { try { D.chats = D.chats || []; let c = S.chat || D.chats.find(x => x.voice); if (!c) { c = { id: uid(), title: "Voice-Chat", projectId: "", instr: "", msgs: [], updated: Date.now(), voice: true }; D.chats.unshift(c); } S.chat = c; c.msgs.push({ role: "user", text: q }, { role: "assistant", text: a }); c.msgs = c.msgs.slice(-80); c.updated = Date.now(); save(); } catch {} }
