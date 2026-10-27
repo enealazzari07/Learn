@@ -3710,3 +3710,14 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .sdock .sdk-tip{bottom:auto;top:calc(100% + 12px);transform:translate(-50%,-4px)}
 .sdock button:hover .sdk-tip,.sdock button:focus-visible .sdk-tip{transform:translate(-50%,0)}
 .sdock button.on:hover{background:#111;color:#fff}
+/* Dock wie im Vorbild: nur Icons in einer Pille, keine Box um die einzelnen Icons */
+.settabs.sdock{background:#fff;border:1px solid #e6e6ea;border-radius:22px;padding:7px 14px;gap:8px;height:60px;box-shadow:0 6px 22px -16px rgba(0,0,0,.3)}
+.sdock button,.sdock button:hover,.sdock button.on,.sdock button.on:hover,.sdock .theme-tg,.sdock .theme-tg:hover{background:none!important;box-shadow:none!important}
+.sdock button{color:#8a8a92;transition:color .15s}
+.sdock button:hover{color:#111}
+.sdock button.on{color:#111}
+.sdock button.on::after{content:"";position:absolute;left:50%;bottom:-1px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#111}
+.sdock .sdk-i svg{stroke-width:1.7}
+.sdock .theme-tg{color:#8a8a92}.sdock .theme-tg:hover{color:#111}
+.sdk-sep{height:28px;margin:0 6px}
+.settabs.sdock{align-items:center!important}
