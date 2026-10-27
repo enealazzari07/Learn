@@ -3415,3 +3415,40 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 @media (max-width:900px){.vc{padding:10px 16px 90px}.vc-a{font-size:17px}}
 @media (prefers-reduced-motion:reduce){.vc-mic.on{animation:none}}
 .aip-ta #cvoice svg{width:15px;height:15px}
+
+/* ===== Dokumente im Notion-Stil: oben Ordner-Übersicht, darunter alle Dateien als Liste ===== */
+.docsed .dmain{max-width:1180px;margin:0 auto;padding:6px 8px 40px}
+.dsec{display:flex;align-items:center;gap:8px;margin:22px 0 12px;font-size:14px;font-weight:700;letter-spacing:-.01em;color:#33333a}
+.dsec small{font-weight:600;color:#9a9aa3;font-size:12.5px}
+.fcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px}
+.fcard{--c:#6b6b78;position:relative;display:flex;flex-direction:column;gap:3px;text-align:left;padding:0 0 14px;border:1px solid #ececf0;border-radius:var(--rad,28px);background:#fff;cursor:pointer;overflow:hidden;transition:transform .2s,box-shadow .25s,border-color .2s;font:inherit;color:inherit}
+.fcard:hover{transform:translateY(-2px);border-color:#d9d9e0;box-shadow:0 14px 30px -20px rgba(0,0,0,.25)}
+.fcard.drop{border-color:#111;box-shadow:0 0 0 2px #111}
+.fcard .fc-top{display:flex;justify-content:space-between;align-items:flex-start;height:78px;padding:12px 12px 0;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,#fff),color-mix(in srgb,var(--c) 8%,#fff))}
+.fcard .fc-ic{width:38px;height:38px;border-radius:12px;background:#fff;color:var(--c);display:grid;place-items:center;box-shadow:0 4px 12px -6px rgba(0,0,0,.25)}
+.fcard .fc-ic svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8}
+.fcard b{padding:10px 14px 0;font-size:14.5px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fcard small{padding:0 14px;color:#8a8a92;font-size:12.5px}
+.fcard .dmore{position:static;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.7);opacity:0;transition:opacity .15s}.fcard:hover .dmore{opacity:1}
+.fcard.add{align-items:center;justify-content:center;gap:8px;min-height:134px;border-style:dashed;background:transparent;color:#7a7a82}
+.fcard.add .fc-ic{box-shadow:none;border:1px solid #e3e3e8;color:#555}.fcard.add b{padding:0;font-size:13.5px;color:#555}
+.docsed .dtools{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:22px 0 6px}
+.dtab{border:1px solid #ececf0;border-radius:var(--rad,28px);background:#fff;overflow:hidden}
+.dth,.dtr{display:grid;grid-template-columns:minmax(0,3fr) minmax(110px,1.1fr) minmax(90px,1fr) minmax(100px,1fr) 40px;align-items:center;gap:12px;padding:0 18px}
+.dth{height:40px;font-size:12px;font-weight:600;color:#9a9aa3;border-bottom:1px solid #f0f0f3;letter-spacing:.01em}
+.dtr{min-height:54px;border-bottom:1px solid #f4f4f6;cursor:pointer;font-size:13.5px;transition:background .15s;outline:none}
+.dtr:last-child{border-bottom:0}.dtr:hover,.dtr:focus-visible{background:#f8f8fa}
+.dtr .dn{display:flex;align-items:center;gap:12px;min-width:0}
+.dtr .dn b{font-size:14px;font-weight:600;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.dtr .dn small{color:#9a9aa3;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtr .pin{display:inline-grid;color:#0f0f12}.dtr .pin svg{width:12px;height:12px}
+.dk{position:relative;flex:none;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:#f3f3f5;color:#33333a}
+.dk svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8}
+.dk.k-note{background:#eef2ff;color:#3b4ac8}.dk.k-pdf{background:#fff0f0;color:#d03a3f}.dk.k-db{background:#eefaf3;color:#1f8a56}.dk.k-draw{background:#fff6e8;color:#b9710f}.dk.k-design{background:#f6efff;color:#7b3fd1}.dk.k-cards{background:#eaf6ff;color:#1f78c1}
+.dk .shbadge{position:absolute;right:-4px;bottom:-4px;width:15px;height:15px;border-radius:50%;background:#fff;display:grid;place-items:center;text-decoration:none;box-shadow:0 0 0 1px #e6e6ea}.dk .shbadge svg{width:9px;height:9px}
+.tag{font-style:normal;display:inline-block;padding:3px 10px;border-radius:99px;background:#f3f3f5;font-size:12px;font-weight:600;color:#55555d}
+.tag.k-note{background:#eef2ff;color:#3b4ac8}.tag.k-pdf{background:#fff0f0;color:#d03a3f}.tag.k-db{background:#eefaf3;color:#1f8a56}.tag.k-draw{background:#fff6e8;color:#b9710f}.tag.k-design{background:#f6efff;color:#7b3fd1}.tag.k-cards{background:#eaf6ff;color:#1f78c1}
+.dtr .dsj{display:flex;align-items:center;gap:7px;color:#55555d;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.dtr .dsj i{width:8px;height:8px;border-radius:50%;flex:none}.dtr .dsj small{color:#b4b4bb}
+.dtr .dd{color:#7a7a82;font-size:12.5px;white-space:nowrap}.dtr .dt2{align-self:center;display:flex;align-items:center}
+.dtr .dmore{position:static;opacity:0;width:30px;height:30px;border-radius:50%;display:grid;place-items:center}.dtr:hover .dmore,.dtr:focus-within .dmore{opacity:1}.dtr .dmore:hover{background:#ececf0}
+@media (max-width:900px){.dth{display:none}.dtr{grid-template-columns:minmax(0,1fr) 30px;grid-template-areas:"n m" "t t";padding:10px 14px;row-gap:4px}.dtr .dn{grid-area:n}.dtr .da{grid-area:m}.dtr .dt2,.dtr .dsj,.dtr .dd{display:none}.dtr .dmore{opacity:1}.fcards{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}}
