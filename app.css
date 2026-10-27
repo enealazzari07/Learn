@@ -3372,3 +3372,12 @@ body.noscroll{overflow:hidden}
 .setsec.paying .pp-t b{font-size:14.5px}.setsec.paying .pp-t small{font-size:12px}
 .setsec.paying .pp-card em{right:12px}
 @media (max-width:900px){.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)}.setsec.paying .pp-card{grid-template-columns:auto 1fr auto}.setsec.paying .pp-pr{grid-column:auto;margin-top:0}}
+
+/* Abo gekündigt, läuft noch: Pläne ausgegraut + Hinweis oben; Abo beendet: neuer Plan wählbar */
+.pp-run{display:grid;gap:4px;margin:14px 0 6px;padding:14px 16px;border-radius:18px;background:#f3f3f5;max-width:460px}
+.pp-run b{font-size:15px;letter-spacing:-.01em}.pp-run small{color:#6b6b73;font-size:12.5px;line-height:1.45}.pp-run .btn{justify-self:start;margin-top:8px;background:#111;color:#fff;border:0;border-radius:99px}
+.pp-ended{margin:10px 0 0;color:#6b6b73;font-size:13px}
+.propanel.is-off .pp-plans{opacity:.42;filter:grayscale(1)}
+.propanel.is-off .pp-card{cursor:not-allowed;pointer-events:none}
+.propanel.is-off .pp-dot{border-color:#cfcfd6;background:none;box-shadow:none}
+.pp-ended{margin:10px 0 14px!important}

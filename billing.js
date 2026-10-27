@@ -88,6 +88,18 @@ function plusPanelHtml() {
   const eligible = !r, trialD = (c && c.trial) || 14;
   const head = state => `<div class="prohead"><div><span class="probadge">Pro</span><h2>Lumi Study Pro</h2></div>${state ? `<span class="prostate">${state}</span>` : ""}</div>`;
   if (CLOUD.user && c && c.enabled && !BILL.loaded) return `<div class="panel propanel">${head("")}<p class="note">Abo wird bei Stripe geladen …</p></div>`;
+  const cancelling = isPlus() && r.cancel_at_period_end;
+  if (c && c.pk && c.monthly && c.enabled && cloudOn() && CLOUD.user && (!isPlus() || cancelling)) {   // Plan-Auswahl links, Bezahlformular rechts
+    const m = c.monthly, y = c.yearly, off = cancelling, def = r ? "monthly" : "trial", cur = off ? "" : (window.__plan && !(window.__plan === "trial" && r) ? window.__plan : def), save = y ? Math.max(0, m * 12 - y) : 0, pct = y && m ? Math.round(save / (m * 12) * 100) : 0;
+    const P = [!r ? ["trial", `${trialD} Tage gratis testen`, `Danach ${money(m)} pro Monat. Nur einmal pro Konto möglich – jederzeit vorher kündbar.`, "Gratis"] : null,
+      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${pct} % (${money(save)}) – nur ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Lumi Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
+    const days = cancelling ? daysLeft(r.current_period_end) : 0;
+    const top = cancelling ? `<div class="pp-run"><b>Aktives Abo läuft in ${dIn(days)} ab</b><small>Zugang bis ${dateDE(r.current_period_end)}. Danach kannst du hier ein neues Abo abschliessen.</small><button class="btn" type="button" id="pl-resume">Abo wieder aktivieren</button></div>`
+      : r ? `<p class="pp-ended">Dein letztes Abo ist beendet${r.ended_at || r.current_period_end ? ` (${dateDE(r.ended_at || r.current_period_end)})` : ""}. Schön, dass du zurück bist.</p>` : "";
+    return `<div class="propanel proside${off ? " is-off" : ""}"><span class="probadge">Pro</span><h2>Lumi Study Pro</h2>${top}<p class="ps-lead">${off ? "Neue Pläne sind erst nach Ablauf wählbar." : "Wähle deinen Plan. Mehrwertsteuer ist immer inklusive."}</p>
+      <div class="pp-plans" role="radiogroup">${P.map(([k, t, d, pr], i) => `<button type="button" class="pp-card${k === cur ? " on" : ""}" data-plan="${k}" role="radio" aria-checked="${k === cur}" ${off ? "disabled" : ""} style="--d:${i}"><i class="pp-dot"></i><span class="pp-t"><b>${t}</b><small>${d}</small></span><span class="pp-pr">${pr}</span>${k === "trial" ? `<em>Neu</em>` : k === "yearly" && pct ? `<em>−${pct} %</em>` : ""}</button>`).join("")}</div>
+      <p class="ps-fine">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
+  }
   if (isPlus()) {
     const trialing = r.status === "trialing", left = daysLeft(r.current_period_end), cancelled = r.cancel_at_period_end;
     const trialLen = (c && c.trial) || 14, pct = Math.min(100, Math.max(4, Math.round((1 - left / trialLen) * 100)));
@@ -105,14 +117,6 @@ function plusPanelHtml() {
   }
   if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.</p>${list}</div>`;
   if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Lumi Study Pro zu abonnieren.</p>${list}</div>`;
-  if (c.pk && c.monthly && !r) {   // Plan-Auswahl links, Bezahlformular rechts
-    const m = c.monthly, y = c.yearly, cur = window.__plan || "trial", save = y ? Math.max(0, m * 12 - y) : 0, pct = y && m ? Math.round(save / (m * 12) * 100) : 0;
-    const P = [["trial", `${trialD} Tage gratis testen`, `Danach ${money(m)} pro Monat. Nur einmal pro Konto möglich – jederzeit vorher kündbar.`, "Gratis"],
-      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${pct} % (${money(save)}) – nur ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Lumi Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
-    return `<div class="propanel proside"><span class="probadge">Pro</span><h2>Lumi Study Pro</h2><p class="ps-lead">Wähle deinen Plan. Mehrwertsteuer ist immer inklusive.</p>
-      <div class="pp-plans" role="radiogroup">${P.map(([k, t, d, pr], i) => `<button type="button" class="pp-card${k === cur ? " on" : ""}" data-plan="${k}" role="radio" aria-checked="${k === cur}" style="--d:${i}"><i class="pp-dot"></i><span class="pp-t"><b>${t}</b><small>${d}</small></span><span class="pp-pr">${pr}</span>${k === "trial" ? `<em>Neu</em>` : k === "yearly" && pct ? `<em>−${pct} %</em>` : ""}</button>`).join("")}</div>
-      <p class="ps-fine">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
-  }
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
   return `<div class="panel propanel">${head(r ? SUB_STATUS[r.status] || "" : "")}<p class="note">${eligible ? `<b>${trialD} Tage kostenlos testen</b>, danach ${m ? money(m) + " / Monat" : y ? money(y) + " / Jahr" : "der normale Preis"}. ` : ""}Preis inkl. Mehrwertsteuer – in jeder Währung. Jederzeit kündbar.</p>${list}
     <div class="row" style="gap:10px;flex-wrap:wrap">${m ? `<button class="btn primary" id="pl-m">${eligible ? `${trialD} Tage gratis testen` : `${money(m)} / Monat`}</button>` : ""}${y ? `<button class="btn ${m ? "" : "primary"}" id="pl-y">${eligible ? `${money(y)} / Jahr · ${trialD} Tage gratis` : `${money(y)} / Jahr${save > 0 ? ` · ${save} % sparen` : ""}`}</button>` : ""}</div>
