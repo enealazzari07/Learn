@@ -3394,3 +3394,12 @@ body.noscroll{overflow:hidden}
  @media (max-height:800px){.setsec.paying .proemb-box .embk-m{zoom:.7}}
  @media (max-height:720px){.setsec.paying .proemb-box .embk-m{zoom:.64}}}
 @media (max-width:900px){.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)}}
+/* Final: Plan-Blöcke breit, Stripe-Formular wie vorher (feste Maximalgrösse, zentriert im Rest) */
+.setsec[data-s=pro].on.paying{grid-template-columns:minmax(360px,440px) minmax(0,1fr);gap:24px}
+.setsec.paying .proemb-box{max-width:1040px;margin:0 auto}
+@media (min-width:901px){.setsec.paying .proemb-box .embk-m{zoom:.9}
+ @media (max-height:1000px){.setsec.paying .proemb-box .embk-m{zoom:.86}}
+ @media (max-height:900px){.setsec.paying .proemb-box .embk-m{zoom:.8}}
+ @media (max-height:800px){.setsec.paying .proemb-box .embk-m{zoom:.74}}
+ @media (max-height:720px){.setsec.paying .proemb-box .embk-m{zoom:.68}}}
+@media (max-width:900px){.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)}}
