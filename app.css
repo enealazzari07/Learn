@@ -3227,10 +3227,6 @@ body.hed-open{overflow:hidden}
 .aiu-up{margin-top:6px;width:100%;justify-content:center}
 .hd-top .aiu{margin-left:auto;margin-right:2px}
 .aip-ta .aiu{margin-right:4px}
-:root[data-theme="dark"] .aiu:hover{background:rgba(255,255,255,.1)}
-:root[data-theme="dark"] .aiu-pop{background:#1c1c1e;color:#f2f2f2;box-shadow:0 18px 50px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.1)}
-:root[data-theme="dark"] .aiu-bar{background:#333}:root[data-theme="dark"] .aiu-bar i{background:#f2f2f2}
-:root[data-theme="dark"] .aiu-big span,:root[data-theme="dark"] .aiu-s,:root[data-theme="dark"] .aiu-pop b{color:#aaa}
 
 /* ===== Abschluss-Seite nach dem Onboarding ===== */
 .wsp{position:fixed;inset:0;z-index:600;display:grid;place-items:center;overflow:auto;padding:24px 16px;background:#f3f3f4;opacity:0;transition:opacity .4s ease}
@@ -3273,7 +3269,6 @@ body.hed-open{overflow:hidden}
 .hdock.open .hd-top{padding:14px 4px 4px}
 .hdock.open .msgs{padding:4px 4px 8px}
 @media (max-width:900px){.hdock.open{top:max(var(--dt,0px),calc(100dvh - 86px - env(safe-area-inset-bottom) - 126px - 380px))!important}}
-:root[data-theme="dark"] .hdock.open .hd-bg{background:#1c1c1e;box-shadow:0 14px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08)}
 
 /* Home-Chatleiste: so breit wie im Chat (nicht über die ganze Breite) */
 .hdock .hd-in,.hdock:not(.open) .hd-in,.hdock.open .hd-in{width:min(760px,calc(100% - 2 * var(--gx, 22px)))}
@@ -3478,14 +3473,14 @@ body.noscroll{overflow:hidden}
 @media (max-width:560px){.aiuse{flex-wrap:wrap}}
 
 /* Profil: Persönliche Angaben | Lernen | AI-Nutzung nebeneinander */
-@media (min-width:1180px){.setsec[data-s=gen].on{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:760px){.setsec[data-s=gen].on{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .setsec[data-s=gen].on>.aiuse{flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:14px;padding:20px 22px!important;height:100%;margin:0!important}
 .setsec[data-s=gen].on>.aiuse .aiuse-t{width:100%}
 .setsec[data-s=gen].on>.aiuse .aiu-bar{max-width:none}
 .setsec[data-s=gen].on>.aiuse .btn{margin-top:auto}
 .setsec[data-s=gen].on>.aiuse[hidden]{display:none}
 /* Drei Spalten: Zeilen stapeln (Beschriftung über dem Wert), damit nichts abgeschnitten wird */
-@media (min-width:1180px){
+@media (min-width:760px){
   .setsec[data-s=gen].on .kvcard .kv{grid-template-columns:1fr;gap:3px;padding:11px 20px}
   .setsec[data-s=gen].on .kvcard .kv>span{font-size:12.5px}
   .setsec[data-s=gen].on .kvcard .seg{width:100%}.setsec[data-s=gen].on .kvcard .seg button{flex:1}
@@ -3512,3 +3507,21 @@ body.noscroll{overflow:hidden}
 .bento .wg,.bento .tile,.hgrid .rec{border-radius:var(--rad)!important}
 .hdock .t-in.cmp,.hdock:not(.open) .hd-in .t-in.cmp,.hdock .hd-in .t-in.cmp{border-radius:var(--rad)!important}
 .hdock.open .hd-bg,.hdock .hd-bg{border-radius:var(--rad)!important}
+
+
+/* ===== Dunkelmodus: Das Design ist schwarz/weiss/grau, deshalb genügt eine saubere Farbumkehr; Fotos, Zahlungsformular und Schlüssel-Bilder bleiben unverändert ===== */
+html[data-theme="dark"]{filter:invert(.93) hue-rotate(180deg);background:#fff}
+html[data-theme="dark"] :is(iframe,video,.authhero,.obx-hero,.obx-stage img,[data-keep-colors]){filter:invert(1) hue-rotate(180deg)}
+html[data-theme="dark"] .obx-stage img{filter:none}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:1}::view-transition-new(root){z-index:2}
+
+/* Theme-Schalter (Einstellungen, oben neben dem Pfad) */
+.setcrumb{align-items:center}
+.theme-tg{margin-left:auto;width:38px;height:38px;border-radius:50%;border:1px solid #e6e6ea;background:#fff;color:#0f0f12;display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden;transition:background .2s,border-color .2s}
+.theme-tg:hover{background:#f3f3f5}
+.theme-tg svg{position:absolute;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .35s}
+.theme-tg .tg-moon{opacity:0;transform:rotate(-70deg) scale(.4)}
+html[data-theme="dark"] .theme-tg .tg-sun{opacity:0;transform:rotate(70deg) scale(.4)}
+html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.theme-tg svg{transition:none}}

@@ -381,3 +381,15 @@ menu = function (anchor, items) {
   return _menu(anchor, items);
 };
 P.aipanelOn = '<rect x="3" y="4.5" width="18" height="15" rx="4.5"/><path d="M15.5 4.5h1a4.5 4.5 0 0 1 4.5 4.5v6a4.5 4.5 0 0 1-4.5 4.5h-1z" fill="currentColor" stroke="none"/><path d="M15.5 4.5v15"/><path d="M8.4 9.4L11 12l-2.6 2.6"/>';
+
+
+/* ===== Dunkelmodus (Farbumkehr per CSS) mit kreisförmiger Überblendung ab dem Schalter ===== */
+const themeNow = () => document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+function themeApply(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem("lumi-theme", t); } catch {} }
+function themeToggle(btn) {
+  const next = themeNow() === "dark" ? "light" : "dark";
+  if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) return themeApply(next);
+  const r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  const vt = document.startViewTransition(() => themeApply(next));
+  vt.ready.then(() => document.documentElement.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${R}px at ${x}px ${y}px)`] }, { duration: 550, easing: "cubic-bezier(.4,0,.2,1)", pseudoElement: "::view-transition-new(root)" })).catch(() => {});
+}

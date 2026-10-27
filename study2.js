@@ -445,7 +445,7 @@ async function importAll(file) {
 }
 V.settings = m => {
   const p = D.profile;
-  m.innerHTML = `<div class="page setpage"><div class="setcrumb"><span>Einstellungen</span><i>/</i><b id="setcrumb">Profil</b></div><div class="setbody">
+  m.innerHTML = `<div class="page setpage"><div class="setcrumb"><span>Einstellungen</span><i>/</i><b id="setcrumb">Profil</b><button class="theme-tg" id="theme-tg" type="button" aria-label="Hell oder dunkel umschalten" title="Hell / Dunkel"><svg class="tg-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="tg-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></div><div class="setbody">
   <nav class="settabs" role="tablist">${[["gen", "Allgemein"], ["ai", "Lumi AI"], ["acc", "Konto"], ["pro", "Pro"], ["con", "Verbindungen"], ["dat", "Daten"]].map(([k, n]) => `<button type="button" role="tab" data-s="${k}">${n}</button>`).join("")}</nav>
   <div class="setsec" data-s="gen">
   <div class="prof-head"><div class="pgrid" aria-hidden="true">${(() => { let x = 7; return Array.from({ length: 140 }, () => { x = (x * 1103515245 + 12345) & 0x7fffffff; return `<i class="${x % 100 < 24 ? "f" : ""}"></i>`; }).join(""); })()}</div><span class="av-xl">${esc((p.name || CLOUD.user?.email || "L").trim()[0].toUpperCase())}</span><div><h1>${esc(p.name || "Dein Name")}${proBadgeHtml()}</h1><p>${esc(CLOUD.user?.email || "Nicht angemeldet")}</p>${proPillHtml()}</div></div>
@@ -494,6 +494,7 @@ V.settings = m => {
   $$(".settabs button", m).forEach(b => b.onclick = () => showT(b.dataset.s)); $("#sc", m)?.addEventListener("change", e => { p.country = e.target.value; save(); try { proApply(); } catch {} const hh = $("#sch", m); if (hh) hh.textContent = priceHint(p.country) ? "Lumi Study Pro: " + priceHint(p.country) : ""; const bn = $(".probanner", m); if (bn) { bn.replaceWith(Object.assign(document.createElement("div"), { innerHTML: proBannerHtml() }).firstElementChild); $("#pro-go", m)?.addEventListener("click", () => showT("pro")); } const pp = $(".propanel", m); if (pp) { pp.replaceWith(Object.assign(document.createElement("div"), { innerHTML: plusPanelHtml() }).firstElementChild); plusBindPanel(m); } toast("Region gespeichert"); });
   aiuBlockFill(m); if (CLOUD.user) aiuLoad().then(() => aiuBlockFill(m));
   window.__showSetTab = showT; showT(window.__setTab || "gen"); $("#pro-go", m)?.addEventListener("click", () => showT("pro"));
+  $("#theme-tg", m)?.addEventListener("click", e => themeToggle(e.currentTarget));
   $("#srcs", m)?.addEventListener("change", e => { p.sources = e.target.checked; save(); });
   $("#hed-open", m)?.addEventListener("click", () => homeEditor());
   $$("#ac-m button", m).forEach(b => b.onclick = () => { p.autoCorrect = b.dataset.v; save(); $$("#ac-m button", m).forEach(x => x.classList.toggle("on", x === b)); });
