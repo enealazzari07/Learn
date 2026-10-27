@@ -3441,3 +3441,18 @@ body.noscroll{overflow:hidden}
 .side .nav-i{--ko:#ececf0}.side .nav-i:hover{--ko:#f3f3f6}.side .nav-i.on svg *{fill:revert-layer}
 @media (max-width:900px){.side .nav-i,.side .nav-i:hover{--ko:#fff}}
 @media (min-width:901px){.shell,.shell:has(.main.doc-full),.shell:has(.main.homew),.shell:has(.main){background:#f3f3f4}}
+
+/* Einstellungen: Profil-Blöcke gleich hoch, Auto-Speichern-Hinweis statt Button, Sicherheit/Konto löschen */
+.setsec[data-s=gen].on{align-items:stretch}
+.setsec[data-s=gen].on>.kvcard{height:100%;margin:0!important}
+.setsec[data-s=gen].on>.kvcard .kvnote{margin-top:auto}
+.setsave{display:none!important}
+.savestat{position:fixed;right:28px;bottom:22px;z-index:30;padding:9px 16px;border-radius:999px;background:#111;color:#fff;font-size:13px;font-weight:600;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .25s,transform .25s}
+.savestat.on{opacity:1;transform:none}
+.secrow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 22px;border-top:1px dashed #ececf0}
+.secrow:first-of-type{border-top:0}
+.secrow b{display:block;font-size:15px}.secrow small{display:block;margin-top:2px;color:#7a7a82;font-size:12.5px;line-height:1.45;max-width:520px}
+.danger-zone{border-color:#f3d4d6!important}.danger-zone h2 svg{color:#e5484d}.danger-zone .note,.danger-zone .btn{margin:0 22px 18px}
+.mfa-qr{display:grid;place-items:center;margin:8px 0}.mfa-qr img{border:1px solid #e6e6ea;border-radius:16px;padding:10px;background:#fff}
+.mfa-code{text-align:center;font-size:22px;letter-spacing:.35em;font-weight:700}
+.secrow .btn{white-space:nowrap;flex:none}

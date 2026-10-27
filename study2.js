@@ -483,7 +483,7 @@ V.settings = m => {
   </div><div class="setsec" data-s="dat">
   <div class="panel"><h2>Daten</h2><p class="note">Alles liegt lokal auf diesem Gerät (IndexedDB) und funktioniert offline. Erstelle regelmäßig ein Backup – z. B. um auf Handy, iPad und PC dieselben Daten zu nutzen.</p><div class="row"><button class="btn ghost" id="ex">${ic("download")}Backup exportieren</button><button class="btn ghost" id="im">${ic("upload")}Backup importieren</button><input type="file" id="imf" accept="application/json" hidden><button class="btn ghost danger" id="rs">${ic("trash")}Alles löschen</button></div></div>
   </div>
-  <div class="row end setsave"><button class="btn accent big" id="sv">Speichern</button></div></div></div>`;
+  <div class="savestat" id="savestat" aria-live="polite"></div></div></div>`;
   $$("#sl button", m).forEach(b => b.onclick = () => { $$("#sl button", m).forEach(x => x.classList.toggle("on", x === b)); });
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
   $("#rs", m).onclick = async () => { if (await confirmBox("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.", "Alles löschen")) { indexedDB.deleteDatabase("lumi"); localStorage.clear(); setTimeout(() => location.hash = "#/", 100); setTimeout(() => location.reload(), 300); } };
@@ -496,7 +496,13 @@ V.settings = m => {
   $("#hed-open", m)?.addEventListener("click", () => homeEditor());
   $$("#ac-m button", m).forEach(b => b.onclick = () => { p.autoCorrect = b.dataset.v; save(); $$("#ac-m button", m).forEach(x => x.classList.toggle("on", x === b)); });
   $("#ac-s", m) && ($("#ac-s", m).onchange = e => { p.autoModel = e.target.value; save(); });
-  $("#sv", m).onclick = () => { p.goalMin = Math.max(5, parseInt($("#sg", m).value) || 45); p.name = $("#sn", m).value.trim(); p.level = $("#sl .on", m)?.dataset.l || p.level; p.scale = $("#ss", m).value; p.apiKey = $("#sk", m).value.trim(); p.model = $("#sm", m).value.trim() || "claude-sonnet-5-5"; save(); refreshNav(); toast("Gespeichert"); };
+  /* Automatisch speichern: beim Tippen (verzögert) und beim Ändern – mit kleiner Rückmeldung statt Speichern-Button */
+  let svT = null; const stat = t => { const e = $("#savestat", m); if (!e) return; e.textContent = t; e.classList.toggle("on", !!t); };
+  const commit = () => { p.goalMin = Math.max(5, parseInt($("#sg", m).value) || 45); p.name = $("#sn", m).value.trim(); p.level = $("#sl .on", m)?.dataset.l || p.level; p.scale = $("#ss", m).value; p.apiKey = $("#sk", m).value.trim(); p.model = $("#sm", m).value.trim() || "claude-sonnet-5-5"; save(); refreshNav(); stat("Gespeichert ✓"); clearTimeout(svT); svT = setTimeout(() => stat(""), 1800); };
+  const later = () => { stat("Speichert …"); clearTimeout(svT); svT = setTimeout(commit, 600); };
+  ["#sg", "#sn", "#sk", "#sm"].forEach(id => $(id, m)?.addEventListener("input", later)); ["#sg", "#sn", "#ss", "#sk", "#sm"].forEach(id => $(id, m)?.addEventListener("change", () => { clearTimeout(svT); commit(); }));
+  $$("#sl button", m).forEach(b => b.addEventListener("click", () => setTimeout(commit, 0)));
+  LEAVE.push(() => { clearTimeout(svT); });
 };
 
 /* ---------- Microsoft settings panel ---------- */
