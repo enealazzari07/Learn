@@ -3014,3 +3014,10 @@ body.hed-open{overflow:hidden}
 .propanel .btn.primary{background:#0f0f12!important;color:#fff!important;border:0}
 
 .emptybox .btn{font-size:15px;padding:12px 22px;height:auto;min-height:0}
+
+/* Raster hinter dem Profilkopf */
+.prof-head{position:relative;isolation:isolate;min-height:176px;align-items:flex-end;padding-bottom:20px;margin-top:18px}
+.prof-head>*:not(.pgrid){position:relative;z-index:1}
+.pgrid{position:absolute;z-index:0!important;top:0;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(auto-fill,88px);grid-auto-rows:88px;justify-content:end;overflow:hidden;pointer-events:none;-webkit-mask-image:linear-gradient(to left,#000 10%,transparent 85%);mask-image:linear-gradient(to left,#000 10%,transparent 85%)}
+.pgrid i{border-right:1px solid #f0f0f2;border-bottom:1px solid #f0f0f2;background:#fff}
+.pgrid i.f{background:#f6f6f8}
