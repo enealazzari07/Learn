@@ -3732,3 +3732,10 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .sthome b{font-size:13.5px}.sthome small{font-size:12px;color:#8a8a92;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sthome .btn{flex:none;padding:6px 12px;font-size:12.5px;border-radius:11px}
 @media(max-width:560px){.sthome small{white-space:normal}.prof-head .pf-auth{position:static;transform:none;margin-left:auto}}
+
+/* Dunkelmodus: schwarze Schatten würden durch die Farbumkehr zu weißem Leuchten – deshalb keine unscharfen Schatten */
+html[data-theme="dark"] *,html[data-theme="dark"] *::before,html[data-theme="dark"] *::after{box-shadow:none!important;text-shadow:none!important}
+html[data-theme="dark"] :is(.fold,.f3d,.fsvg,.ffront,.drc,.plw-b){filter:none!important}
+html[data-theme="dark"] .qa-btn,html[data-theme="dark"] .qa-s{border:1px solid #e3e3e7}
+html[data-theme="dark"] .settabs.sdock{border-color:#e6e6ea}
+html[data-theme="dark"] .pgrid{opacity:.35}
