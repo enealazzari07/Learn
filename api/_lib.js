@@ -45,7 +45,7 @@ async function stripe(method, path, data) {
   const key = stripeKey(); if (!key) throw Object.assign(new Error("STRIPE_SECRET_KEY fehlt in Vercel."), { status: 503 });
   const body = data ? new URLSearchParams(form(data)).toString() : undefined;
   const r = await fetch("https://api.stripe.com/v1" + path + (method === "GET" && body ? "?" + body : ""), {
-    method, headers: { authorization: "Bearer " + key, "stripe-version": process.env.STRIPE_API_VERSION || "2026-04-22.dahlia", ...(method !== "GET" ? { "content-type": "application/x-www-form-urlencoded" } : {}) }, body: method === "GET" ? undefined : body,
+    method, headers: { authorization: "Bearer " + key, "stripe-version": process.env.STRIPE_API_VERSION || "2025-03-31.basil", ...(method !== "GET" ? { "content-type": "application/x-www-form-urlencoded" } : {}) }, body: method === "GET" ? undefined : body,
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw Object.assign(new Error(j.error?.message || "Stripe-Fehler " + r.status), { status: r.status, code: j.error?.code });

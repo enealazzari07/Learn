@@ -36,7 +36,7 @@ Danach *Project Settings → API* → **service_role**-Key kopieren (geheim, nie
 | `PLUS_MONTHLY_CENTS` / `PLUS_YEARLY_CENTS` | nur Anzeige auf der Preisseite, Standard `499` / `3999` – muss zu den Stripe-Preisen passen |
 | `PLUS_CURRENCY` | Anzeige-Währung, Standard `eur` |
 | `SITE_URL` | optional, z. B. `https://lumi.example.ch` |
-| `STRIPE_API_VERSION` | optional, Standard `2026-04-22.dahlia` (Managed Payments braucht mindestens `2025-03-31.basil`) |
+| `STRIPE_API_VERSION` | optional, Standard `2025-03-31.basil` (so im Stripe-Beispiel für Managed Payments; neuere Versionen funktionieren ebenfalls) |
 | `STRIPE_MANAGED_PAYMENTS` | `off` schaltet Managed Payments für Tests ab |
 | `AI_FREE_DAILY` | optional: KI-Anfragen pro Tag für Gratis-Konten (z. B. `30`). Leer = unbegrenzt für alle |
 
