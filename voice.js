@@ -11,7 +11,7 @@ async function vcPiper(voiceId) {
   if (!vcSes[voiceId]) { vcMod.TtsSession._instance = null; vcSes[voiceId] = vcMod.TtsSession.create({ voiceId, wasmPaths: { ...vcMod.TtsSession.WASM_LOCATIONS, onnxWasm: VC_ORT } }).catch(e => { delete vcSes[voiceId]; throw e; }); }
   return vcSes[voiceId];
 }
-const vcLang = () => (D.profile.country || (typeof proCountry === "function" ? proCountry() : "")) === "DE" ? "de-DE" : (D.profile.country === "AT" ? "de-AT" : "de-CH");
+const vcLang = () => "de-DE";   // immer Hochdeutsch, auch für Schweizer Konten
 
 /* ---------- die Kugel ---------- */
 function vcOrb(cv, get) {
@@ -116,7 +116,7 @@ V.voice = m => {
   const clean = t => String(t || "").replace(/<lumi-actions>[\s\S]*?(<\/lumi-actions>|$)/g, "").replace(/\[(\d+)\]/g, "").replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[*_`#>~|]/g, "").replace(/^\s*[-•]\s+/gm, "").replace(/\s+/g, " ").trim();
   async function respond(text) {
     stopRec(); const tk = ++S.token; $u.textContent = text; $a.textContent = ""; setSt("thinking", "Denke nach …");
-    const sys = sysBase("Du sprichst gerade per Sprache mit der lernenden Person. Antworte kurz und natürlich gesprochen, meist 1 bis 3 Sätze, ohne Markdown, ohne Listen, ohne Aufzählungszeichen, ohne Emojis und ohne Sonderzeichen. Sprich Formeln in Worten aus. Frage bei Bedarf kurz nach. Nenne keine Quellenmarker.");
+    const sys = sysBase("Du sprichst gerade per Sprache mit der lernenden Person. Sprich ausschliesslich Hochdeutsch (Standarddeutsch), niemals Schweizerdeutsch oder Dialekt, und verwende deutsche Wörter statt Helvetismen (z. B. Fahrrad statt Velo, Abitur-Niveau-Wortschatz). Antworte kurz und natürlich gesprochen, meist 1 bis 3 Sätze, ohne Markdown, ohne Listen, ohne Aufzählungszeichen, ohne Emojis und ohne Sonderzeichen. Sprich Formeln in Worten aus. Frage bei Bedarf kurz nach. Nenne keine Quellenmarker.");
     const reply = await ai(text, { system: sys, history: S.hist.slice(-12), max: 300, model: "groq:llama-3.3-70b-versatile", temperature: .6 });
     if (tk !== S.token || !S.alive) return;
     if (!reply) { setSt("idle", "Keine Antwort – tippe auf das Mikrofon"); S.paused = true; $mic.classList.remove("on"); return; }
