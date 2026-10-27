@@ -30,10 +30,20 @@ async function embedInline(host, clientSecret, pk) {
   const sec = host.closest(".setsec"); sec && sec.classList.add("paying");
   host.innerHTML = `<div class="proemb-box"><div class="proemb-h"><b>Bezahlung · Lumi Study Pro ${window.__plan === "yearly" ? "jährlich" : "monatlich"}</b><button class="link" type="button" id="pe-x">Abbrechen</button></div><div class="embk-m"><i class="spin"></i></div></div>`;
   const reset = () => { try { host._ck && host._ck.destroy(); } catch {} host._ck = null; host.innerHTML = proEmbIdle(); sec && sec.classList.remove("paying"); };
-  host.querySelector("#pe-x").onclick = reset;
+  host.querySelector("#pe-x").onclick = () => { host._off = true; reset(); };
   const S = Stripe(pk), init = S.initEmbeddedCheckout || S.createEmbeddedCheckoutPage;
   host._ck = await init.call(S, { clientSecret, onComplete: () => { reset(); plusAfter(); } });
   const mnt = host.querySelector(".embk-m"); mnt.innerHTML = ""; host._ck.mount(mnt); host.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+/* Beim Öffnen von „Study Pro“ erscheint das Bezahlformular sofort (ohne Klick auf den Button) */
+async function plusAuto() {
+  const host = document.getElementById("pro-emb"), c = BILL.cfg;
+  if (!host || host._ck || host._busy || host._off || isPlus() || !(c && c.pk && c.enabled && c.monthly && CLOUD.user && BILL.loaded)) return;
+  host._busy = true; const sec = host.closest(".setsec"); sec && sec.classList.add("paying"); window.__plan = "monthly";
+  host.innerHTML = `<div class="proemb-box"><div class="proemb-h"><b>Bezahlung · Lumi Study Pro monatlich</b></div><div class="embk-m"><i class="spin"></i></div></div>`;
+  try { const j = await billPost("/api/checkout", { plan: "monthly", country: proCountry(), embedded: true }); if (j.clientSecret && document.getElementById("pro-emb") === host) await embedInline(host, j.clientSecret, j.pk || c.pk); else throw 0; }
+  catch (e) { host.innerHTML = proEmbIdle(); sec && sec.classList.remove("paying"); if (e && e.message) toast(e.message); }
+  finally { host._busy = false; }
 }
 async function embedCheckout(clientSecret, pk) {
   const host = document.getElementById("pro-emb"); if (host && host.offsetParent) return embedInline(host, clientSecret, pk);
