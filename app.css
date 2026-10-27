@@ -2809,7 +2809,6 @@ body.hed-open{overflow:hidden}
   .setback{color:#6b6b73;margin-bottom:4px}
   .hd-bg::before{background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 38%)!important;border-radius:0 0 28px 28px!important}
   .hd-bg{border-radius:28px!important}
-  .setpage .settabs{display:none}
 }
 
 /* ===== Einstellungen / Konto ===== */
@@ -3514,3 +3513,9 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .authfoot{justify-content:center;text-align:center;font-size:12.5px;color:#999;line-height:1.5}.authfoot a{color:#666}
 .authhero{padding:14px 14px 14px 0}.authhero::before{inset:14px 14px 14px 0}
 @media(max-width:860px){.authhero{padding:10px 10px 0}.authhero::before{inset:10px 10px 0}}
+
+/* Einstellungen: Bereiche als Reiter oben neben dem Pfad, Seitenleiste bleibt immer gleich */
+.setcrumb{gap:12px;flex-wrap:wrap;row-gap:10px}
+.setcrumb .settabs{margin:0 0 0 14px;flex:0 1 auto;min-width:0}
+.setcrumb .theme-tg{margin-left:auto}
+@media(max-width:900px){.setcrumb .settabs{order:5;margin:0;width:100%}.setcrumb .theme-tg{order:4}}

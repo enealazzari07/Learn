@@ -123,7 +123,7 @@ function refreshNav() {
   const s = $("#side"); if (!s) return; applyRail();
   const mob = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "book"], ["planner", "Planer", "cal"]];
   const on = k => curView === k || (k === "docs" && (curView === "doc" || curView === "design")) || (k === "board" && curView === "draw") || (k === "exams" && ["exam", "quiz", "quizrun", "cards", "deck", "study"].includes(curView));
-  const SET = [["gen", "Profil", "adduser"], ["ai", "Lumi AI", "spark"], ["acc", "Konto & Cloud", "globe"], ["pro", "Study Pro", "award"], ["con", "Verbindungen", "link"], ["dat", "Daten", "download"]], setMode = curView === "settings" && innerWidth > 900;
+  const SET = [["gen", "Profil", "adduser"], ["ai", "Lumi AI", "spark"], ["acc", "Konto & Cloud", "globe"], ["pro", "Study Pro", "award"], ["con", "Verbindungen", "link"], ["dat", "Daten", "download"]], setMode = false;
   const profBtn = `<button class="nav-i prof hide-mob ${curView === "settings" ? "on" : ""}" id="profbtn" title="Profil"><span class="av">${esc((D.profile.name || (CLOUD.user?.email) || "L").trim()[0].toUpperCase())}</span><span class="nl pn"><b>${esc(D.profile.name || "Profil")}${proBadgeHtml()}</b><small>${esc(CLOUD.user?.email || "Nicht angemeldet")}</small></span></button>`;
   s.innerHTML = setMode ? `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen">${ic("menu")}</button><span class="brand"><i class="mark"></i>Lumi</span></div>
   <button class="nav-i setback" id="setback" title="Zurück">${ic("back")}<span class="nl">Zurück zu Lumi</span></button>
