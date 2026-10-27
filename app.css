@@ -3723,3 +3723,12 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .settabs.sdock{align-items:center!important}
 .sdock button.on::after{display:none!important;content:none!important}
 .sdock button.on .sdk-i svg{stroke-width:2.6}
+/* Profil: Anmelden/Abmelden klar im Kopf; Startseite-Zeile kompakt */
+.prof-head{position:relative}
+.prof-head .pf-auth{position:absolute;right:18px;top:50%;transform:translateY(-50%);z-index:2}
+.sthome{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid #ececf0;border-radius:16px;background:#fff;margin-top:2px}
+.sthome .sth-i{width:30px;height:30px;border-radius:10px;background:#f3f3f5;display:grid;place-items:center;color:#333;flex:none}.sthome .sth-i svg{width:16px;height:16px}
+.sthome>div{flex:1;min-width:0;display:flex;flex-direction:column}
+.sthome b{font-size:13.5px}.sthome small{font-size:12px;color:#8a8a92;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sthome .btn{flex:none;padding:6px 12px;font-size:12.5px;border-radius:11px}
+@media(max-width:560px){.sthome small{white-space:normal}.prof-head .pf-auth{position:static;transform:none;margin-left:auto}}

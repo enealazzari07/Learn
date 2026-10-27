@@ -142,7 +142,7 @@ function refreshNav() {
   $$("[data-gf]", s).forEach(b => b.onclick = () => { docFolder = b.dataset.gf; docQuery = ""; go("docs/" + b.dataset.gf); });
   $("#newbtn", s) && ($("#newbtn", s).onclick = e => newMenu(e.currentTarget));
   $("#qabtn", s) && ($("#qabtn", s).onclick = e => newMenu(e.currentTarget)); $("#qasch", s) && ($("#qasch", s).onclick = () => go("search"));
-  $("#profbtn", s).onclick = e => menu(e.currentTarget, [{ label: "Einstellungen", icon: "gear", fn: () => go("settings") }, ...(CLOUD.user ? [{ label: "Abmelden", icon: "x", fn: cloudLogout }] : cloudOn() ? [{ label: "Anmelden", icon: "adduser", fn: cloudLoginModal }] : [])]);
+  $("#profbtn", s).onclick = () => { window.__setTab = "gen"; go("settings"); };
   $("#sidetgl", s).onclick = () => { sideOpen = !sideOpen; try { localStorage.setItem("lumi-side", sideOpen ? "1" : "0"); } catch {} applyRail(); };
   $("#morebtn", s) && ($("#morebtn", s).onclick = e => menu(e.currentTarget, [...NAVS, ["settings", "Einstellungen", "gear"]].filter(n => !mob.find(m => m[0] === n[0])).map(([k, l, i]) => ({ label: l, icon: i, fn: () => go(k) }))));
 }
