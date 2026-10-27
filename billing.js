@@ -12,12 +12,12 @@ async function billCall(path, body) {
   const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body || {}) });
   const j = await r.json().catch(() => ({})); if (!r.ok || !j.url) throw new Error(j.error || "Fehler " + r.status); return j.url;
 }
-const plusBuy = async plan => { try { toast("Weiterleitung zur Bezahlung …"); location.href = await billCall("/api/checkout", { plan }); } catch (e) { toast(e.message); } };
+const plusBuy = async plan => { try { toast("Weiterleitung zur Bezahlung …"); location.href = await billCall("/api/checkout", { plan, country: proCountry() }); } catch (e) { toast(e.message); } };
 const plusManage = async flow => { try { location.href = await billCall("/api/portal", flow ? { flow } : {}); } catch (e) { toast(e.message); } };
 const daysLeft = d => Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 864e5));
 const dLabel = n => n === 1 ? "1 Tag" : n + " Tage";
 const isTrial = () => isPlus() && BILL.row.status === "trialing";
-const money = c => `${new Intl.NumberFormat("de-CH", { minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(c / 100)} ${({ chf: "CHF", eur: "€", usd: "USD" })[(BILL.cfg.currency || "eur").toLowerCase()] || (BILL.cfg.currency || "").toUpperCase()}`;
+const money = c => `${new Intl.NumberFormat("de-CH", { minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(c / 100)} ${curName((BILL.cfg.currency || "eur").toLowerCase())}`;
 const dateDE = d => new Date(d).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
 
 const PRO_FEATURES = ["Lumi AI ohne Tageslimit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Lumi"];
@@ -73,3 +73,24 @@ function proChipHtml() {
   const txt = r.cancel_at_period_end ? `Gekündigt · bis ${new Date(r.current_period_end).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}` : r.status === "trialing" ? `Testphase · noch ${dLabel(n)}` : "";
   return txt ? `<button class="prochip hide-mob" id="prochip" type="button" title="Abo verwalten"><span class="probadge">Pro</span><span class="nl pct">${txt}</span></button>` : "";
 }
+
+/* ---------- Land / Region → Währung (CHF, EUR, USD) ---------- */
+const COUNTRIES = [["CH", "Schweiz"], ["DE", "Deutschland"], ["AT", "Österreich"], ["LI", "Liechtenstein"], ["IT", "Italien"], ["FR", "Frankreich"], ["ES", "Spanien"], ["PT", "Portugal"], ["NL", "Niederlande"], ["BE", "Belgien"], ["LU", "Luxemburg"], ["IE", "Irland"], ["GB", "Vereinigtes Königreich"], ["DK", "Dänemark"], ["SE", "Schweden"], ["NO", "Norwegen"], ["FI", "Finnland"], ["PL", "Polen"], ["CZ", "Tschechien"], ["HU", "Ungarn"], ["GR", "Griechenland"], ["HR", "Kroatien"], ["SI", "Slowenien"], ["SK", "Slowakei"], ["RO", "Rumänien"], ["BG", "Bulgarien"], ["EE", "Estland"], ["LV", "Lettland"], ["LT", "Litauen"], ["MT", "Malta"], ["CY", "Zypern"], ["IS", "Island"], ["TR", "Türkei"], ["US", "USA"], ["CA", "Kanada"], ["AU", "Australien"], ["NZ", "Neuseeland"], ["BR", "Brasilien"], ["IN", "Indien"], ["JP", "Japan"], ["XX", "Anderes Land"]];
+const EURO_LAND = "AT BE CY DE EE ES FI FR GR HR IE IT LT LU LV MT NL PT SI SK AD MC SM VA ME AL BA BG CZ DK GB HU IS MK NO PL RO RS SE UA XK TR".split(" ");
+const curOf = cc => !cc || cc === "XX" ? "" : cc === "CH" || cc === "LI" ? "chf" : EURO_LAND.includes(cc) ? "eur" : "usd";
+const curName = cur => ({ chf: "CHF", eur: "€", usd: "USD" })[cur] || String(cur || "").toUpperCase();
+function guessCountry() {
+  try { const z = Intl.DateTimeFormat().resolvedOptions().timeZone || "", tz = { "Europe/Zurich": "CH", "Europe/Vaduz": "LI", "Europe/Berlin": "DE", "Europe/Vienna": "AT", "Europe/Rome": "IT", "Europe/Paris": "FR", "Europe/Madrid": "ES", "Europe/Lisbon": "PT", "Europe/Amsterdam": "NL", "Europe/Brussels": "BE", "Europe/Luxembourg": "LU", "Europe/Dublin": "IE", "Europe/London": "GB" }[z]; if (tz) return tz;
+    const r = ((navigator.language || "").split("-")[1] || "").toUpperCase(); if (COUNTRIES.some(c => c[0] === r)) return r; } catch {}
+  return "";
+}
+/* Preise und Währung der gewählten Region in die Konfiguration übernehmen */
+function proApply() {
+  const c = BILL.cfg; if (!c || !c.opts) return;
+  const cc = (typeof D !== "undefined" && D.profile && D.profile.country) || c.country || guessCountry(), want = curOf(cc) || c.currency;
+  const av = Object.keys(c.opts.monthly || c.opts.yearly || {}), cur = av.includes(want) ? want : av.includes("eur") ? "eur" : av[0] || c.currency;
+  ["monthly", "yearly"].forEach(k => { if (c.opts[k] && c.opts[k][cur] != null) c[k] = c.opts[k][cur]; }); c.currency = cur;
+}
+const proCountry = () => (D.profile.country || (BILL.cfg && BILL.cfg.country) || guessCountry() || "");
+const countryOptions = sel => COUNTRIES.map(([k, n]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${n}</option>`).join("");
+const priceHint = cc => { const c = BILL.cfg; if (!c || !c.enabled || !c.opts) return ""; const cur = curOf(cc) || c.currency, o = c.opts.monthly || c.opts.yearly || {}, v = o[cur] ?? o.eur; return v == null ? "" : `${new Intl.NumberFormat("de-CH", { minimumFractionDigits: v % 100 ? 2 : 0 }).format(v / 100)} ${curName(o[cur] != null ? cur : "eur")} ${c.opts.monthly ? "/ Monat" : "/ Jahr"}`; };

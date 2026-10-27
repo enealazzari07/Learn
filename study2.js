@@ -444,6 +444,7 @@ V.settings = m => {
   <div class="panel kvcard"><h2>${ic("adduser")}Persönliche Angaben</h2>
     <div class="kv"><span>Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
     <div class="kv"><span>E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
+    <div class="kv"><span>Land / Region</span><div class="kvc"><select class="field flat" id="sc">${countryOptions(proCountry())}</select><small id="sch">${priceHint(proCountry()) ? "Lumi Study Pro: " + priceHint(proCountry()) : ""}</small></div></div>
     <div class="kv"><span>Ich bin</span><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div></div>
   </div>
   <div class="panel kvcard"><h2>${ic("book")}Lernen</h2>
@@ -480,7 +481,8 @@ V.settings = m => {
   bindMsPanel(m); bindApplePanel(m); cloudBindPanel(m); plusBindPanel(m);
   const SETN = { gen: "Profil", ai: "Lumi AI", acc: "Konto & Cloud", pro: "Lumi Study Pro", con: "Verbindungen", dat: "Daten" };
   const showT = t => { window.__setTab = t; $(".setpage", m).dataset.t = t; $("#setcrumb", m).textContent = SETN[t] || ""; $$("#side [data-st]").forEach(b => b.classList.toggle("on", b.dataset.st === t)); $$(".settabs button", m).forEach(b => b.classList.toggle("on", b.dataset.s === t)); $$(".setsec", m).forEach(x => x.classList.toggle("on", x.dataset.s === t)); };
-  $$(".settabs button", m).forEach(b => b.onclick = () => showT(b.dataset.s)); window.__showSetTab = showT; showT(window.__setTab || "gen"); $("#pro-go", m)?.addEventListener("click", () => showT("pro"));
+  $$(".settabs button", m).forEach(b => b.onclick = () => showT(b.dataset.s)); $("#sc", m)?.addEventListener("change", e => { p.country = e.target.value; save(); try { proApply(); } catch {} const hh = $("#sch", m); if (hh) hh.textContent = priceHint(p.country) ? "Lumi Study Pro: " + priceHint(p.country) : ""; const bn = $(".probanner", m); if (bn) { bn.replaceWith(Object.assign(document.createElement("div"), { innerHTML: proBannerHtml() }).firstElementChild); $("#pro-go", m)?.addEventListener("click", () => showT("pro")); } const pp = $(".propanel", m); if (pp) { pp.replaceWith(Object.assign(document.createElement("div"), { innerHTML: plusPanelHtml() }).firstElementChild); plusBindPanel(m); } toast("Region gespeichert"); });
+  window.__showSetTab = showT; showT(window.__setTab || "gen"); $("#pro-go", m)?.addEventListener("click", () => showT("pro"));
   $("#srcs", m)?.addEventListener("change", e => { p.sources = e.target.checked; save(); });
   $("#hed-open", m)?.addEventListener("click", () => homeEditor());
   $$("#ac-m button", m).forEach(b => b.onclick = () => { p.autoCorrect = b.dataset.v; save(); $$("#ac-m button", m).forEach(x => x.classList.toggle("on", x === b)); });

@@ -28,7 +28,9 @@ async function plans() {
 }
 /* Währung nach Land des Besuchs (Vercel-Header): Schweiz → CHF, Euroraum → EUR, sonst USD */
 const EURO = "AT BE CY DE EE ES FI FR GR HR IE IT LT LU LV MT NL PT SI SK AD MC SM VA ME".split(" ");
-const currencyFor = (req, avail) => { const c = String(req?.headers?.["x-vercel-ip-country"] || "").toUpperCase(), want = c === "CH" || c === "LI" ? "chf" : EURO.includes(c) ? "eur" : c ? "usd" : ""; return want && (!avail || avail.includes(want)) ? want : (avail?.[0] || want || "eur"); };
+const EUROPA = EURO.concat("AL BA BG CZ DK GB HU IS MK NO PL RO RS SE UA XK TR".split(" "));
+const currencyOfCountry = c => { c = String(c || "").toUpperCase(); return !c || c === "XX" ? "" : c === "CH" || c === "LI" ? "chf" : EUROPA.includes(c) ? "eur" : "usd"; };
+const currencyFor = (req, avail, country) => { const c = String(country || req?.headers?.["x-vercel-ip-country"] || "").toUpperCase(), want = currencyOfCountry(c) || (c ? "usd" : ""); return want && (!avail || avail.includes(want)) ? want : (avail?.[0] || want || "eur"); };
 const CURRENCY = () => String(process.env.PLUS_CURRENCY || "eur").toLowerCase();
 const billingReady = async () => { const P = await plans(); return !!(stripeKey() && SB_SERVICE() && process.env.STRIPE_WEBHOOK_SECRET && (P.monthly.price || P.yearly.price)); };
 
@@ -97,4 +99,4 @@ async function sb(method, path, body, extra = {}) {
 const getSubscription = async uid => (await sb("GET", `lumi_subscriptions?user_id=eq.${encodeURIComponent(uid)}&select=*&limit=1`))?.[0] || null;
 const isPlusRow = s => !!s && ["active", "trialing", "past_due"].includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5);
 
-module.exports = { SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb, getSubscription, isPlusRow };
+module.exports = { SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb, getSubscription, isPlusRow };
