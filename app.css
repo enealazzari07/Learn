@@ -3274,3 +3274,7 @@ body.hed-open{overflow:hidden}
 .hdock.open .msgs{padding:4px 4px 8px}
 @media (max-width:900px){.hdock.open{top:max(var(--dt,0px),calc(100dvh - 86px - env(safe-area-inset-bottom) - 126px - 380px))!important}}
 :root[data-theme="dark"] .hdock.open .hd-bg{background:#1c1c1e;box-shadow:0 14px 50px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08)}
+
+/* Home-Chatleiste: so breit wie im Chat (nicht über die ganze Breite) */
+.hdock .hd-in,.hdock:not(.open) .hd-in,.hdock.open .hd-in{width:min(760px,calc(100% - 2 * var(--gx, 22px)))}
+.hdock.open .hd-bg{left:50%;right:auto;width:calc(min(760px,100% - 2 * var(--gx, 22px)) + 24px);transform:translateX(-50%)}
