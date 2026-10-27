@@ -3609,3 +3609,12 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 @media(max-width:1100px){.plw{grid-template-columns:1fr}.plw-act{position:static}}
 @media(max-width:560px){.plw-d{padding:8px 0}.plw-d b{font-size:17px}.plw-hd b{min-width:0;font-size:16px}}
 .plw-b{padding:6px 12px}.plw-b small{line-height:1.2}
+/* Ordner-Baum: Linie läuft zum Punkt jedes Ordners und weiter zum nächsten */
+.nav-tree{border-left:0!important;padding-left:0!important;margin:2px 0 4px 20px;gap:0}
+.nav-f{position:relative;padding-top:8px;padding-bottom:8px}
+.nav-f u{position:absolute;pointer-events:none;text-decoration:none}
+.nav-f .tl-v{top:0;bottom:0;width:0;border-left:1.5px solid #c9c9cf}
+.nav-f .tl-e{top:0;height:50%;width:17px;border-left:1.5px solid #c9c9cf;border-bottom:1.5px solid #c9c9cf;border-bottom-left-radius:9px;box-sizing:border-box}
+.nav-f .tl-e:not(.end){height:100%;border-bottom:0;border-radius:0}
+.nav-f .tl-e:not(.end)::after{content:"";position:absolute;left:-1.5px;top:50%;width:13px;height:50%;border-left:0;border-top:0;border-bottom:0}
+.nav-f .tl-e:not(.end)::before{content:"";position:absolute;left:-1.5px;top:0;width:17px;height:50%;border-left:1.5px solid #c9c9cf;border-bottom:1.5px solid #c9c9cf;border-bottom-left-radius:9px;box-sizing:border-box}
