@@ -1429,146 +1429,25 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .hero-body{max-width:min(860px,100%)}
 .page.home.calm{overflow-y:clip;overflow-x:visible}
 
-/* ======== v42: Sana-style home (white, table, cards) ======== */
 .main.homew{--panel:#fff;background:#fff;box-shadow:inset 0 0 0 1px #ececf1}
-.page.home.sana{max-width:1040px;margin:0 auto;padding:6px 0 90px;display:block;overflow:visible}
-.sana .hh{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:26px}
-.sana .greet-h{font-size:clamp(30px,3.6vw,44px);letter-spacing:-.04em;margin:0}
-.sana .hsub{margin:8px 0 0;color:#7b7b88;font-size:17px}
-.sana .hsearch{margin:0;max-width:380px;flex:1 1 280px;box-shadow:none;border:1px solid #e6e6ee;background:#fafafc;padding:5px 5px 5px 16px}
-.sana .s-tbl{border:1px solid #ececf1;border-radius:24px;background:#fff;padding:6px 8px 8px;margin-bottom:34px}
-.sana .s-tr{display:grid;grid-template-columns:minmax(0,2.6fr) 1fr 1.2fr 1fr .8fr;align-items:center;gap:14px;padding:11px 14px;border-radius:16px}
-.sana .s-th0{color:#9a9aa8;font-size:13px;font-weight:500;padding-bottom:6px;border-bottom:1px solid #f0f0f4;border-radius:0;margin-bottom:2px}
-.sana .todo{display:grid;transition:background .2s,opacity .35s,max-height .38s,padding .38s;max-height:80px;overflow:hidden}
-.sana .todo:hover{background:#f7f7fa}
-.sana .todo.gone{max-height:0;opacity:0;padding-block:0}
-.sana .todo.done .s-tt b{text-decoration:line-through;color:#a5a5b2}
-.sana .s-tt{display:flex;align-items:center;gap:12px;min-width:0}
-.sana .s-tt b{font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sana .s-ty{color:#6e6e7c;font-size:14px}
-.sana .todo small{color:#6e6e7c;font-size:14px}.sana .todo small.red{color:#d93a3a}
-.sana .s-pg{height:8px;border-radius:99px;background:#eeeef3;overflow:hidden;cursor:pointer;padding:0;width:100%;max-width:150px}
-.sana .s-pg i{display:block;height:100%;border-radius:99px;background:#2f7bff;transition:width .35s}
-.sana .s-pri{justify-self:start;font-size:13px;font-weight:600;padding:4px 12px;border-radius:99px}
-.sana .pHoch{background:#ffe9e9;color:#d93a3a}.sana .pMittel{background:#fff1dc;color:#c27a10}.sana .pNiedrig{background:#e6f6ee;color:#1f9a5f}
-.sana .todo-add{display:flex;align-items:center;gap:12px;padding:10px 14px}
-.sana .todo-add input{flex:1;border:0;outline:0;background:none;font:inherit;font-size:15px}
-.sana .sech{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.sana .sh2{font-size:19px;letter-spacing:-.02em;margin:0}
-.sana .s-sec{margin-bottom:34px}
-.sana .s-cards4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
-.sana .s-rc{text-align:left;display:flex;flex-direction:column;gap:3px;cursor:pointer;background:none;border:0;padding:0;transition:transform .2s}
-.sana .s-rc:hover{transform:translateY(-3px)}
-.sana .s-rc .s-th{aspect-ratio:16/10;border-radius:20px;display:grid;place-items:center;margin-bottom:8px;background:linear-gradient(140deg,hsl(var(--h) 80% 93%),hsl(calc(var(--h) + 40) 85% 86%))}
-.sana .s-rc .s-th span{width:34px;height:34px;color:hsl(var(--h) 45% 40%);opacity:.75}.sana .s-rc .s-th svg{width:100%;height:100%}
-.sana .s-rc b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sana .s-rc small{color:#8a8a98;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sana .s-cards3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
-.sana .s-fc{border-radius:26px;padding:24px;min-height:170px;display:flex;flex-direction:column;gap:8px;text-align:left;border:0;cursor:pointer;transition:transform .2s}
-.sana button.fc:hover{transform:translateY(-3px)}
-.sana .s-fk{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;opacity:.7}.sana .s-fk svg{width:15px;height:15px}
-.sana .s-fc b{font-size:34px;letter-spacing:-.03em;line-height:1.1;margin-top:auto}.sana .s-fc small{font-size:14px;opacity:.7}
-.sana .s-fc-ai{background:#e9f1ff;color:#17306b}.sana .s-fc-ai p{margin:0;font-size:16px;line-height:1.5;font-weight:500}
-.sana .s-fc-c{background:#efeaff;color:#3b2a8f}.sana .s-fc-e{background:#fff1e6;color:#8a3d0a}.sana .s-fc-e b{font-size:24px}
-@media (max-width:900px){.sana .s-cards4{grid-template-columns:repeat(2,1fr)}.sana .s-cards3{grid-template-columns:1fr}.sana .s-fc{min-height:0}}
-@media (max-width:700px){.sana .s-tr{grid-template-columns:minmax(0,1fr) 90px 74px}.sana .s-tr>.s-ty,.sana .s-tr>.s-pg,.sana .s-th0 span:nth-child(2),.sana .s-th0 span:nth-child(3){display:none}.sana .hh{margin-bottom:18px}}
 .main.homew:not(.doc-full){background:#fff!important;--panel:#fff;box-shadow:inset 0 0 0 1px #ececf1}
-.sana .s-sec .sech h2,.sana .sech .sh2{margin:0}
-.sana section{margin-bottom:34px}.sana .sech{margin-top:0}
-.sana section.sec{padding-top:0!important}.sana .page,.page.home.sana{padding-top:6px}
 
 /* ======== v43: kompakt, volle Breite ======== */
 .main.homew,.main.homew:not(.doc-full){margin:0!important;border-radius:0!important;box-shadow:none!important;min-height:100dvh;padding:22px clamp(18px,2.6vw,44px) 40px}
 .shell:has(.main.homew){background:#fff}
-.page.home.sana{max-width:none;padding:0 0 60px}
-.sana .hh{margin-bottom:14px;align-items:center}
-.sana .greet-h{font-size:clamp(22px,2.2vw,28px);letter-spacing:-.03em}
-.sana .hsub{font-size:15px;margin-top:3px}
-.sana .hsearch{max-width:340px;flex:0 1 340px;padding:3px 3px 3px 14px;margin:0}
-.sana .hsearch input{padding:6px 0;font-size:14px}.sana .hs-ai{padding:8px 13px;font-size:13px}
-.sana .s-tbl{border:0;border-radius:0;padding:0;margin-bottom:22px}
-.sana .s-tr{padding:7px 4px;gap:12px;border-radius:12px;border-bottom:1px solid #f1f1f5;border-radius:0}
-.sana .s-th0{padding:4px 4px;border-bottom:1px solid #ececf1}
-.sana .todo:hover{background:#fafafc}
-.sana .s-tt{gap:11px}.sana .s-tt b{font-size:14px}
-.sana .rt{width:30px;height:30px;border-radius:9px;flex:none;order:2;background:linear-gradient(140deg,hsl(var(--h) 75% 80%),hsl(calc(var(--h) + 50) 80% 62%))}
-.sana .s-tt .tc{order:1}.sana .s-tt b{order:3}
-.sana .s-ty,.sana .todo small{font-size:13px}.sana .s-pri{font-size:12px;padding:3px 10px}
-.sana .todo-add{padding:8px 4px;border-bottom:1px solid #f1f1f5}
-.sana .s-sec{margin-bottom:24px}.sana .sh2{font-size:17px}.sana .sh2 em{font-style:normal;color:#a0a0ae;font-weight:500;margin-left:4px}
-.sana .s-cards4{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
-.sana .s-rc .s-th{aspect-ratio:4/3;border-radius:16px;margin-bottom:6px}
-.sana .s-rc b{font-size:14px}
-.sana .s-cards3{gap:14px}
-.sana .s-fc{min-height:150px;padding:20px 22px;border-radius:22px;color:#fff}
-.sana .s-fc-ai{background:linear-gradient(120deg,#33b6d9,#f7b733 95%)}
-.sana .s-fc-c{background:linear-gradient(135deg,#5a3df0,#9b6bff)}
-.sana .s-fc-e{background:linear-gradient(135deg,#111827,#374151)}
-.sana .s-fc .s-fk{opacity:.85}.sana .s-fc-ai p{font-size:19px;font-weight:600;line-height:1.3;letter-spacing:-.02em;color:#fff}
-.sana .s-fc b{font-size:30px}.sana .s-fc-e b{font-size:22px}.sana .s-fc small{opacity:.8}
 @media (max-width:900px){.main.homew,.main.homew:not(.doc-full){padding:14px 16px 150px}}
 
 /* ======== v44: weißer Rand + graue Box bleibt auch auf Home ======== */
 .main.homew,.main.homew:not(.doc-full){margin:12px 12px 12px 0!important;border-radius:40px!important;background:var(--appbg)!important;--panel:var(--appbg);box-shadow:none!important;min-height:calc(100dvh - 24px);padding:26px clamp(18px,2.6vw,44px) 40px}
-.sana .s-tr,.sana .todo-add,.sana .s-th0{border-bottom-color:#e8e7e1}
-.sana .todo:hover{background:rgba(255,255,255,.6)}
-.sana .hsearch{background:#fff}
 @media (max-width:900px){.main.homew,.main.homew:not(.doc-full){margin:8px 8px 0!important;border-radius:30px!important;padding:16px 16px 150px}}
-.sana .s-tbl{background:transparent}
-
-/* ======== v45: KI im Vordergrund ======== */
-.sana .s-ai{background:linear-gradient(180deg,#e4eeff,#eaf1ff);border-radius:32px;padding:22px 26px 20px;margin-bottom:22px;display:flex;flex-direction:column;gap:14px}
-.sana .s-aih{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#4a6290}
-.sana .s-aik{display:flex;align-items:center;gap:7px;font-weight:700;color:#2850b8}.sana .s-aik svg{width:16px;height:16px}
-.sana .s-aif{display:flex;align-items:center;gap:10px;background:#fff;border-radius:999px;padding:7px 7px 7px 22px;box-shadow:0 6px 24px rgba(40,80,184,.1)}
-.sana .s-aif input{flex:1;border:0;outline:0;background:none;font:inherit;font-size:16px;padding:9px 0;min-width:0}
-.sana .s-aif .send{width:42px;height:42px;border-radius:50%;background:var(--violet,#5a3df0);color:#fff;display:grid;place-items:center;flex:none;cursor:pointer}
-.sana .s-aif .send svg{width:18px;height:18px}
-.sana .s-aia{min-height:46px;color:#17306b}.sana .s-aia p{margin:0;font-size:18px;line-height:1.5;font-weight:500;letter-spacing:-.01em}
-.sana .s-aia .acts{margin-top:12px}
-.sana .s-aic{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.sana .s-aic span{font-size:13px;color:#4a6290;margin-right:4px}
-.sana .s-aic button{background:rgba(255,255,255,.75);border-radius:999px;padding:8px 14px;font-size:13px;color:#2850b8;font-weight:500;cursor:pointer;transition:background .2s}
-.sana .s-aic button:hover{background:#fff}
-.sana .s-two{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start;margin-bottom:22px}
-.sana .s-two .s-tbl{margin-bottom:0}
-.sana .s-side{display:flex;flex-direction:column;gap:14px}
-.sana .s-side .s-fc{min-height:0;flex:1;padding:18px 20px}
-@media (max-width:1000px){.sana .s-two{grid-template-columns:1fr}.sana .s-side{flex-direction:row}.sana .s-side .s-fc{min-height:120px}}
-@media (max-width:700px){.sana .s-ai{padding:16px;border-radius:26px}.sana .s-side{flex-direction:column}}
-
-/* v46: schwarz statt blau */
-.sana .s-ai{background:#0f0f12;color:#fff}
-.sana .s-aih,.sana .s-aic span{color:#9a9aa6}.sana .s-aik{color:#fff}
-.sana .s-aif{background:#1c1c21;box-shadow:none}
-.sana .s-aif input{color:#fff}.sana .s-aif input::placeholder{color:#7d7d89}
-.sana .s-aif .send{background:#fff;color:#0f0f12}
-.sana .s-aia,.sana .s-aia p{color:#f2f2f5}
-.sana .s-aic button{background:#1c1c21;color:#e6e6ec}.sana .s-aic button:hover{background:#2a2a31}
-.sana .s-aia .aic-think{color:#c9c9d2}.sana .s-aia .act{background:#26262c;color:#fff}
-.sana .s-fc-c{background:linear-gradient(135deg,#2a2a31,#4a4a55)}
-.sana .s-fc-e{background:#fff;color:#0f0f12}.sana .s-fc-e .s-fk,.sana .s-fc-e small{color:#0f0f12}
-.sana .s-pg i,.sana .s-pg i{background:#0f0f12}
-.sana .hs-ai,.sana .link{color:#0f0f12}
 
 /* v47: Home scrollt nicht (Desktop) – Inhalt passt sich der Höhe an */
 @media (min-width:901px){
   .main.homew,.main.homew:not(.doc-full){height:calc(100dvh - 24px);min-height:0;overflow:hidden!important;display:flex;flex-direction:column;padding-bottom:22px}
   .main.homew .home-wrap{flex:1;min-height:0;display:flex}
-  .page.home.sana{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;padding-bottom:0;width:100%}
-  .sana .s-two{flex:0 1 auto;min-height:0;margin-bottom:16px}
-  .sana .s-rec{flex:1 1 0;min-height:0;overflow:hidden;margin-bottom:0}
-  .sana .s-cards4{grid-auto-flow:column;grid-auto-columns:minmax(190px,1fr);grid-template-columns:none;overflow:hidden}
-  .sana .s-rc .s-th{aspect-ratio:16/8}
   .main.homew #hq~*{}
 }
-@media (min-width:901px) and (max-height:900px){.sana .s-rec{display:none}.sana .s-two{margin-bottom:0}}
-@media (min-width:901px) and (max-height:760px){.sana .s-aic{display:none}.sana .s-ai{margin-bottom:14px}}
-@media (min-width:901px) and (max-height:680px){.sana .s-aia{display:none}.sana .s-side .s-fc{padding:12px 16px}}
-.sana .s-aia{max-height:30vh;overflow:auto}
-@media (min-width:901px){.main.homew .home-wrap{display:block;width:100%;max-width:none;margin:0;flex:1;min-height:0}.page.home.sana{height:100%;max-width:none;margin:0}}
-@media (min-width:901px){.sana .s-cards4{grid-auto-columns:230px;align-content:start;grid-template-rows:auto}.sana .s-rc .s-th{aspect-ratio:16/9}}
-.sana .s-acct{background:#fff;border-radius:999px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sana .s-acct:hover{background:#ededf0}
+@media (min-width:901px){.main.homew .home-wrap{display:block;width:100%;max-width:none;margin:0;flex:1;min-height:0}}
 
 /* v48: Profil unten links + Anmelde-Screen */
 .side{display:flex;flex-direction:column}
@@ -1582,30 +1461,7 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 .authcard h1{font-size:26px;letter-spacing:-.03em;margin:18px 0 4px}.authcard .logo{align-self:flex-start}
 .authcard .row{margin-top:8px}.authcard>.link{margin-top:14px;align-self:flex-start}
 
-/* v49: Home-Redesign – weiße Karten auf Grau, Lernziel-Ring */
-.sana .hh{margin-bottom:18px}
-.sana .greet-h{font-size:clamp(26px,2.6vw,34px)}
-.sana .s-ai{background:radial-gradient(120% 140% at 85% -20%,#2b2b36 0,#0f0f12 55%);padding:24px 28px 22px;border-radius:34px}
-.sana .s-aif{background:#1d1d24;border:1px solid #2c2c35}
-.sana .s-aia p{font-size:20px}
-.sana .s-two{gap:18px;grid-template-columns:minmax(0,1fr) 320px}
-.sana .s-tbl{background:#fff;border-radius:28px;padding:10px 20px 8px;border:0}
-.sana .s-tr{border-bottom-color:#f0f0f4}.sana .s-th0{border-bottom-color:#ececf1}
-.sana .todo:hover{background:#f8f8fa}
-.sana .s-side{gap:14px}
-.sana .s-card{background:#fff;border-radius:28px;padding:18px 20px}
-.sana .s-goal{display:flex;align-items:center;gap:18px}
-.sana .s-goal .rg{width:92px;height:92px;flex:none;position:relative}.sana .s-goal .rg svg{width:100%;height:100%;transform:rotate(-90deg)}
-.sana .s-goal .rbg{fill:none;stroke:#eeeef2;stroke-width:12}.sana .s-goal .rfg{fill:none;stroke-width:12;stroke-linecap:round}
-.sana .s-goal .rg b{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;letter-spacing:-.03em}.sana .s-goal .rg small{display:none}
-.sana .s-goal>div:last-child{display:flex;flex-direction:column;gap:3px;align-items:flex-start}.sana .s-goal b{font-size:17px}
-.sana .s-goal .s-fk{font-size:12px;color:#8a8a98;font-weight:600;opacity:1}
-.sana .s-list{padding:6px 8px;display:flex;flex-direction:column}
-.sana .s-li{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:12px;border-radius:20px;cursor:pointer;transition:background .2s}
-.sana .s-li:hover{background:#f5f5f8}.sana .s-li+.s-li{border-top:1px solid #f0f0f4;border-radius:0}
-.sana .s-li span{display:flex;flex-direction:column;gap:2px;min-width:0}.sana .s-li small{font-size:12px;color:#8a8a98;font-weight:600}.sana .s-li b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sana .s-li svg{width:16px;height:16px;transform:rotate(180deg);color:#8a8a98;flex:none}
-.sana .s-rc .s-th{border-radius:22px}
+/* v49: Home-Redesign – weiße Karten auf Grau{margin-bottom:18px}
 
 /* ======== v50: Home komplett neu – ruhiger, zentrierter Einstieg ======== */
 .page.home.zen{max-width:780px;margin:0 auto;display:flex;flex-direction:column;align-items:stretch;padding:2vh 0 0;height:auto;overflow:visible}
@@ -1896,7 +1752,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .bento .w-cd .none{color:#a0a0ae}
 /* Von Lumi AI Erstelltes: Symbol + Link, kein eigener Block */
 .acts{gap:4px}
-.acts .act,.aipane .act,.aipane .acts .act,.sana .s-aia .act{background:none!important;box-shadow:none!important;border-radius:0!important;padding:2px 0!important;font-size:14px;font-weight:600;gap:8px;color:#0f0f12}
+.acts .act,.aipane .act,.aipane .acts .act{background:none!important;box-shadow:none!important;border-radius:0!important;padding:2px 0!important;font-size:14px;font-weight:600;gap:8px;color:#0f0f12}
 .acts .act svg{width:17px;height:17px;flex:none}
 .acts button.act span{text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(15,15,18,.3);transition:text-decoration-color .15s}
 .acts button.act:hover{background:none!important}.acts button.act:hover span{text-decoration-color:#0f0f12}
