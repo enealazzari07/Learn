@@ -35,7 +35,7 @@ function withCitations(text, meta) {
   return { text: buf.toString("utf8"), sources: srcs };
 }
 /* Gemini denkt intern: diese Token zaehlen zu maxOutputTokens. Ohne Reserve bleibt bei kurzen Antworten oft nur das erste Wort uebrig. */
-async function callGemini(model, key, { system, messages, max, image, signal, sources }) {
+async function callGemini(model, key, { system, messages, max, image, signal, sources, cap }) {
   const contents = messages.slice(-24).map((m, i, arr) => {
     const role = m.role === "assistant" ? "model" : "user", parts = [{ text: String(m.content ?? "").slice(0, 80000) || " " }];
     if (image?.data && i === arr.length - 1 && role === "user") parts.unshift({ inlineData: { mimeType: image.type || "image/jpeg", data: String(image.data) } });
@@ -44,18 +44,18 @@ async function callGemini(model, key, { system, messages, max, image, signal, so
   while (contents.length && contents[0].role !== "user") contents.shift();
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: "POST", signal, headers: { "content-type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.min(8192, Math.max(64, Math.min(2048, +max || 1024)) + 1500), temperature: 0.6 }, ...(sources ? { tools: [{ google_search: {} }] } : {}) }),
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: String(system).slice(0, 30000) || "You are a helpful study assistant." }] }, contents, generationConfig: { maxOutputTokens: Math.min(8192, Math.max(64, Math.min(cap || 2048, +max || 1024)) + 1500), temperature: 0.6 }, ...(sources ? { tools: [{ google_search: {} }] } : {}) }),
   });
   const j = await r.json().catch(() => ({}));
   let text = r.ok ? (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("") : "", src = [];
   if (text && sources) { const c = withCitations(text, j.candidates?.[0]?.groundingMetadata); text = c.text; src = c.sources; }
   return { status: r.status, ok: r.ok, text, sources: src, error: j.error?.message, blocked: j.promptFeedback?.blockReason, tokens: j.usageMetadata?.totalTokenCount || 0 };
 }
-async function callGroq(model, key, { system, messages, max, temperature = 0.4, signal }) {
+async function callGroq(model, key, { system, messages, max, temperature = 0.4, signal, cap }) {
   const msgs = [{ role: "system", content: String(system).slice(0, 30000) || "You are a helpful study assistant." }, ...messages.slice(-24).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content ?? "").slice(0, 60000) || " " }))];
   const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST", signal, headers: { "content-type": "application/json", authorization: "Bearer " + key },
-    body: JSON.stringify({ model, messages: msgs, max_tokens: Math.max(64, Math.min(2048, +max || 1024)), temperature }),
+    body: JSON.stringify({ model, messages: msgs, max_tokens: Math.max(64, Math.min(cap || 2048, +max || 1024)), temperature }),
   });
   const j = await r.json().catch(() => ({}));
   let text = r.ok ? String(j.choices?.[0]?.message?.content || "") : "";
@@ -102,7 +102,7 @@ module.exports = async function handler(req, res) {
   try {
     let last = null;
     for (const c of cands) {
-      const args = { system, messages, max, image, sources: !!sources, signal: ctl.signal, temperature: typeof temperature === "number" ? Math.max(0, Math.min(1, temperature)) : undefined };
+      const args = { cap: acct?.pro ? 6144 : 2048, system, messages, max, image, sources: !!sources, signal: ctl.signal, temperature: typeof temperature === "number" ? Math.max(0, Math.min(1, temperature)) : undefined };
       const out = c.p === "gemini" ? await callGemini(c.m, process.env.GEMINI_API_KEY, args) : await callGroq(c.m, process.env.GROQ_API_KEY, args);
       last = { ...out, c };
       if (out.ok && out.text) {

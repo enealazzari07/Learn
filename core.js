@@ -251,8 +251,9 @@ const AI_MODELS = [
   ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B", "Groq"]];
 const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq" };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
-const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; return ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !m[0].startsWith("groq:")); };
-const aiModelId = () => { const L = aiModelList(); return (L.find(m => m[0] === D.profile.aiModel) || L[0] || AI_MODELS[0])[0]; };
+const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !m[0].startsWith("groq:")); if (typeof AIU !== "undefined" && AIU.on && !AIU.pro) { const F = L.filter(m => m[0] === "gemini-flash-lite-latest" || m[0] === "groq:llama-3.1-8b-instant"); if (F.length) L = F; } return L; };
+/* Lumi Study Pro nutzt standardmässig Gemini Pro (stärkstes Modell, längere Antworten), Gratis das Lite-Modell */
+const aiModelId = () => { const L = aiModelList(), mine = L.find(m => m[0] === D.profile.aiModel); if (mine) return mine[0]; const pro = typeof AIU !== "undefined" && AIU.pro && L.find(m => m[0] === "gemini-pro-latest"); return (pro || L[0] || AI_MODELS[0])[0]; };
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
 /* schnelles Modell für Hintergrundaufgaben (Auto-Korrektur): bevorzugt Groq */
 const autoModelId = () => { const L = aiModelList(), pick = D.profile.autoModel && L.find(m => m[0] === D.profile.autoModel); return (pick || L.find(m => m[0] === "groq:llama-3.1-8b-instant") || L.find(m => m[0] === "gemini-flash-lite-latest") || L[0] || AI_MODELS[0])[0]; };
