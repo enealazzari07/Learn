@@ -3438,3 +3438,5 @@ body.noscroll{overflow:hidden}
   .setpage .setsec.paying .ps-fine{font-size:10.5px}
   .setpage .setsec.paying .pp-card em{font-size:10px;padding:2px 7px;right:10px;top:-8px}
 }
+.side .nav-i{--ko:#ececf0}.side .nav-i:hover{--ko:#f3f3f6}.side .nav-i.on svg *{fill:revert-layer}
+@media (max-width:900px){.side .nav-i,.side .nav-i:hover{--ko:#fff}}

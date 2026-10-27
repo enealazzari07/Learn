@@ -154,6 +154,19 @@ Object.assign(P, {
 P.gear = P.filter;
 
 
+/* Ausgefüllte Varianten für aktive Navigationspunkte (schwarz gefüllt, Details ausgespart) */
+const KO = 'style="stroke:var(--ko,#ececf0)"';
+Object.assign(P, {
+  "book-f": '<path fill="currentColor" stroke="currentColor" stroke-linejoin="round" d="M4.5 6.6c2.8-.6 5.2 0 7.5 1.8 2.3-1.8 4.7-2.4 7.5-1.8v11c-2.8-.6-5.2 0-7.5 1.8-2.3-1.8-4.7-2.4-7.5-1.8z"/><path ' + KO + ' d="M12 8.4v11"/>',
+  "award-f": '<circle cx="12" cy="9" r="5.5" fill="currentColor"/><path fill="currentColor" stroke-linejoin="round" d="M8.7 13.3l-1.2 6.7 4.5-2.4 4.5 2.4-1.2-6.7"/>',
+  "timer-f": '<circle cx="12" cy="13.5" r="7.5" fill="currentColor"/><path d="M9.5 3.2h5"/><path ' + KO + ' d="M12 9.8v3.9l2.5 1.6"/>',
+  "search-f": '<circle cx="11" cy="11" r="7" fill="currentColor"/><path d="M16.2 16.2L20.2 20.2"/>',
+  "globe-f": '<circle cx="12" cy="12" r="9" fill="currentColor"/><path ' + KO + ' d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z"/>',
+  "cal-f": '<rect x="3" y="4.5" width="18" height="17" rx="4" fill="currentColor"/><path d="M8 2.2v3.1M16 2.2v3.1"/><path ' + KO + ' d="M3.2 9.6h17.6M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/>',
+});
+["link", "download", "adduser"].forEach(n => { if (P[n]) P[n + "-f"] = '<g stroke-width="2.7">' + P[n] + '</g>'; });
+P["sparkO-f"] = P.spark;
+const icOn = n => P[n + "-f"] ? n + "-f" : n;
 const ic = (n, c = "ic") => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ""}</svg>`;
 
 /* ---------- toast & modal ---------- */

@@ -130,10 +130,10 @@ function refreshNav() {
   s.innerHTML = setMode ? `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen">${ic("menu")}</button><span class="brand"><i class="mark"></i>Lumi</span></div>
   <button class="nav-i setback" id="setback" title="Zurück">${ic("back")}<span class="nl">Zurück zu Lumi</span></button>
   <div class="nav-lbl nl">Einstellungen</div>
-  <div class="nav-grp">${SET.map(([k, l, i]) => `<button class="nav-i ${(window.__setTab || "gen") === k ? "on" : ""}" data-st="${k}" title="${l}">${ic(i)}<span class="nl">${l}</span></button>`).join("")}</div>
+  <div class="nav-grp">${SET.map(([k, l, i]) => `<button class="nav-i ${(window.__setTab || "gen") === k ? "on" : ""}" data-st="${k}" title="${l}">${ic((window.__setTab || "gen") === k ? icOn(i) : i)}<span class="nl">${l}</span></button>`).join("")}</div>
   <div class="sp hide-mob"></div>${proChipHtml()}${profBtn}` : `<div class="rail-top"><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen">${ic("menu")}</button><span class="brand"><i class="mark"></i>Lumi</span><span class="lvl">${isUni() ? "Studium" : "Schule"}</span></div>
   <button class="btn-new" id="newbtn" title="Neu erstellen">${ic("plus")}<span class="nl">Neu</span></button>
-  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) && ({ home: "home-f", folder: "folder-f", note: "note-f", sparkO: "spark" })[i] || i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
+  <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) ? icOn(i) : i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}</button>`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
   ${proChipHtml()}${profBtn}`;
