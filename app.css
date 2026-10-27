@@ -3285,3 +3285,14 @@ body.hed-open{overflow:hidden}
 .embk-m{min-height:320px;display:grid}.embk-m>.spin{margin:auto}
 .embk-x{position:absolute;top:10px;right:12px;z-index:2;width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.06);font-size:22px;line-height:1;cursor:pointer}
 body.noscroll{overflow:hidden}
+
+/* Bezahlung direkt rechts neben dem Pro-Block (Einstellungen → Study Pro) */
+.setsec[data-s=pro].on{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));max-width:1100px}
+.proemb:empty{display:none}
+.proemb-idle{border:1px dashed #d9d9e0;border-radius:22px;padding:34px 28px;text-align:center;color:#6b6b73;min-height:240px;display:grid;align-content:center;gap:6px;justify-items:center}
+.proemb-idle i{width:44px;height:44px;border-radius:14px;background:#f1f1f3;display:grid;place-items:center;color:#111}.proemb-idle i svg{width:20px;height:20px}
+.proemb-idle b{color:#111;font-size:16px}.proemb-idle p{margin:0;font-size:13.5px;line-height:1.5;max-width:300px}
+.proemb-box{background:#fff;border:1px solid #ececf0;border-radius:22px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.05)}
+.proemb-h{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #f0f0f3}
+@media (max-width:760px){.proemb-idle{display:none}}
+.proemb-h .link{color:#555;font-weight:600}

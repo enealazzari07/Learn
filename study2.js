@@ -476,7 +476,7 @@ V.settings = m => {
   <details class="msh"><summary>Erweitert: eigenen Anthropic-API-Key nutzen</summary><p class="note">Nur nötig, wenn die Server-KI nicht aktiv ist. Der Key wird nur in diesem Browser gespeichert.</p><label class="lbl">API-Key</label><input class="field" id="sk" type="password" placeholder="sk-ant-…" value="${esc(p.apiKey)}" autocomplete="off"><label class="lbl">Modell</label><input class="field" id="sm" value="${esc(p.model)}"></details></div>
   </div><div class="setsec" data-s="acc">
   ${cloudPanelHtml()}
-  </div><div class="setsec" data-s="pro">${plusPanelHtml()}
+  </div><div class="setsec" data-s="pro">${plusPanelHtml()}<aside class="proemb" id="pro-emb">${proEmbIdle()}</aside>
   </div><div class="setsec" data-s="con">
   ${msPanelHtml()}
   ${applePanelHtml()}

@@ -24,7 +24,18 @@ const billCall = async (path, body) => (await billPost(path, body)).url;
 let stripeJs = null;
 const loadStripeJs = () => stripeJs || (stripeJs = new Promise((ok, no) => { if (window.Stripe) return ok(); const s = document.createElement("script"); s.src = "https://js.stripe.com/v3/"; s.onload = () => ok(); s.onerror = () => { stripeJs = null; no(new Error("Stripe konnte nicht geladen werden.")); }; document.head.appendChild(s); }));
 const embedClose = () => document.querySelectorAll(".embk").forEach(e => { try { e._ck && e._ck.destroy(); } catch {} e.remove(); });
+const proEmbIdle = () => { const c = BILL.cfg; return isPlus() || !(c && c.pk && c.enabled && CLOUD.user) ? "" : `<div class="proemb-idle"><i>${ic("shield")}</i><b>Sichere Bezahlung</b><p>Wähle links deinen Plan – das Zahlungsformular erscheint dann hier, ohne die Seite zu verlassen.</p></div>`; };
+async function embedInline(host, clientSecret, pk) {
+  await loadStripeJs(); try { host._ck && host._ck.destroy(); } catch {}
+  host.innerHTML = `<div class="proemb-box"><div class="proemb-h"><b>Bezahlung</b><button class="link" type="button" id="pe-x">Abbrechen</button></div><div class="embk-m"><i class="spin"></i></div></div>`;
+  const reset = () => { try { host._ck && host._ck.destroy(); } catch {} host._ck = null; host.innerHTML = proEmbIdle(); };
+  host.querySelector("#pe-x").onclick = reset;
+  const S = Stripe(pk), init = S.initEmbeddedCheckout || S.createEmbeddedCheckoutPage;
+  host._ck = await init.call(S, { clientSecret, onComplete: () => { reset(); plusAfter(); } });
+  const mnt = host.querySelector(".embk-m"); mnt.innerHTML = ""; host._ck.mount(mnt); host.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 async function embedCheckout(clientSecret, pk) {
+  const host = document.getElementById("pro-emb"); if (host && host.offsetParent) return embedInline(host, clientSecret, pk);
   await loadStripeJs(); embedClose();
   const wrap = document.createElement("div"); wrap.className = "embk"; wrap.innerHTML = `<div class="embk-c"><button class="embk-x" type="button" aria-label="Schließen">&times;</button><div class="embk-m"><i class="spin"></i></div></div>`;
   document.body.appendChild(wrap); document.body.classList.add("noscroll");
