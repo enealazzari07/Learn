@@ -72,17 +72,34 @@ function cloudAuthHtml() {
 function cloudAuthBind(el, done) {
   const msg = t => { $("#cl-m", el).textContent = t; }, val = () => [$("#cl-e", el).value.trim(), $("#cl-p", el).value];
   const need = () => { const [e, p] = val(); if (!e || p.length < 6) { msg("E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben."); return null; } return [e, p]; };
-  $("#cl-in", el).onclick = async () => { const v = need(); if (!v) return; msg("Anmelden …"); const { error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) msg(/confirm/i.test(error.message) ? "Bitte bestätige zuerst deine E-Mail." : "Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); else done(); };
-  $("#cl-up", el).onclick = async () => { const v = need(); if (!v) return; msg("Konto wird erstellt …"); const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: { app: "lumi" }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session) return done(); msg("Anmelden …"); const r = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (r.error) msg(/confirm/i.test(r.error.message) ? "Konto erstellt – bitte melde dich jetzt an." : r.error.message); else done(); };
-  $("#cl-fp", el).onclick = async () => { const [e] = val(); if (!e) return msg("Gib oben deine E-Mail ein."); const { error } = await CLOUD.sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + "/" }); msg(error ? error.message : "E-Mail zum Zurücksetzen ist unterwegs."); };
-  $$("input", el).forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") $("#cl-in", el).click(); }));
+  const bi = $("#cl-in", el); if (bi) bi.onclick = async () => { const v = need(); if (!v) return; msg("Anmelden …"); const { error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) msg(/confirm/i.test(error.message) ? "Bitte bestätige zuerst deine E-Mail." : "Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); else done(); };
+  const bu = $("#cl-up", el); if (bu) bu.onclick = async () => { const v = need(); if (!v) return; msg("Konto wird erstellt …"); const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: { app: "lumi" }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session) return done(); msg("Anmelden …"); const r = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (r.error) msg(/confirm/i.test(r.error.message) ? "Konto erstellt – bitte melde dich jetzt an." : r.error.message); else done(); };
+  const bf = $("#cl-fp", el); if (bf) bf.onclick = async () => { const [e] = val(); if (!e) return msg("Gib oben deine E-Mail ein."); const { error } = await CLOUD.sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + "/" }); msg(error ? error.message : "E-Mail zum Zurücksetzen ist unterwegs."); };
+  $$("input", el).forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") ($("#cl-in", el) || $("#cl-up", el)).click(); }));
   setTimeout(() => $("#cl-e", el).focus(), 50);
 }
 const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
-function authScreen() {
-  const app = $("#app"); document.title = "Lumi – Anmelden";
-  app.innerHTML = `<div class="authwrap"><form class="authcard" onsubmit="return false"><a class="logo" href="#/"><i class="mark"></i>Lumi</a><h1>Willkommen zurück</h1><p class="note">Melde dich an, um dein Dashboard zu öffnen. Deine Daten sind auf allen Geräten gleich.</p>${cloudAuthHtml()}<a class="link" href="#/">Zurück zur Startseite</a></form></div>`;
-  cloudAuthBind($(".authcard", app), () => {});
+/* Anmelde-/Registrierseite: Formular links, Foto mit schwebenden Karten rechts */
+function authScreen(mode = "in") {
+  const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = up ? "Lumi – Konto erstellen" : "Lumi – Anmelden";
+  app.innerHTML = `<div class="authwrap"><div class="authshell">
+    <form class="authform" onsubmit="return false"><a class="logo authlogo" href="#/"><i class="mark"></i>Lumi</a>
+      <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
+        <label class="lbl" for="cl-e">E-Mail</label><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch">
+        <label class="lbl" for="cl-p">Passwort</label><div class="pwrap"><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
+        <p class="note" id="cl-m" style="min-height:20px"></p>
+        <button class="btn authgo" id="${up ? "cl-up" : "cl-in"}">${up ? "Kostenlos registrieren" : "Anmelden"}</button>
+        ${oauth.length ? `<div class="authoauth">${oauth.map(o => `<button class="btn ghost" type="button" data-o="${o}">${o === "google" ? "Google" : "Apple"}</button>`).join("")}</div>` : ""}
+        ${up ? "" : `<button class="link" id="cl-fp" type="button">Passwort vergessen?</button>`}</div>
+      <div class="authfoot"><span>${up ? "Schon ein Konto?" : "Noch kein Konto?"} <a href="#" id="cl-sw">${up ? "Anmelden" : "Registrieren"}</a></span><a href="legal.html#agb">AGB &amp; Datenschutz</a></div></form>
+    <aside class="authhero" style="background-image:url(login-hero.webp)"><a class="authx" href="#/" aria-label="Schließen">${ic("x")}</a>
+      <div class="ahc ah1"><b>Mathe-Klausur</b><small>in 6 Tagen · 18 Karten fällig</small></div>
+      <div class="ahc ah2"><span class="dot">${ic("check")}</span><div><b>Karteikarten erstellt</b><small>aus deinen Notizen</small></div></div>
+      <div class="ahc ah3">${ic("spark")}<div><b>Lumi AI</b><small>Erklärt Schritt für Schritt</small></div></div></aside></div></div>`;
+  const f = $(".authform", app); cloudAuthBind(f, () => {});
+  $("#cl-sw", f).onclick = e => { e.preventDefault(); authScreen(up ? "in" : "up"); };
+  $("#cl-eye", f).onclick = () => { const i = $("#cl-p", f); i.type = i.type === "password" ? "text" : "password"; };
+  $$("[data-o]", f).forEach(b => b.onclick = async () => { const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/#/app" } }); if (error) $("#cl-m", f).textContent = error.message; });
 }
 function cloudLoginModal() {
   if (!cloudOn()) return toast("Cloud ist noch nicht eingerichtet.");

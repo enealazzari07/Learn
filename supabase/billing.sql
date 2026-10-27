@@ -14,7 +14,7 @@ create table if not exists public.lumi_subscriptions (
 );
 alter table public.lumi_subscriptions enable row level security;
 drop policy if exists "own subscription readable" on public.lumi_subscriptions;
-create policy "own subscription readable" on public.lumi_subscriptions for select using (auth.uid() = user_id);
+create policy "own subscription readable" on public.lumi_subscriptions for select using ((select auth.uid()) = user_id);
 
 create table if not exists public.lumi_ai_usage (
   user_id uuid not null references auth.users(id) on delete cascade,
