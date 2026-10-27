@@ -3682,3 +3682,14 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .shell.collapsed .qa-row{flex-direction:column;align-items:center}.shell.collapsed .qa-t,.shell.collapsed .qa-row kbd{display:none}.shell.collapsed .qa-btn,.shell.collapsed .qa-s{width:44px;padding:0;justify-content:center}
 .shell.collapsed .rail-top{flex-direction:column;gap:6px;justify-content:center}.shell.collapsed .rail-top .rail-tgl{margin-left:0}
 @media(max-width:900px){.qa-row{display:none}}
+/* Quick-Actions-Zeile kleiner und heller; eingeklappt nur Suche; Unterordner ohne graue Box */
+.qa-row{margin:0 0 10px;gap:6px}
+.qa-btn,.qa-s{height:34px;border-radius:11px;background:#fff!important;box-shadow:0 0 0 1px rgba(0,0,0,.05);font-size:13px}
+.qa-btn:hover,.qa-s:hover{background:#fafafa!important;box-shadow:0 0 0 1px rgba(0,0,0,.09)}
+.qa-btn svg,.qa-s svg{width:16px;height:16px}
+.qa-btn{padding:0 9px;gap:8px}.qa-s{padding:0 10px;gap:6px}
+.shell.collapsed .qa-btn{display:none}
+.shell.collapsed .qa-s{width:36px;height:34px;padding:0}
+.nav-f:hover,.nav-f.on{background:none!important}
+.nav-f.on{font-weight:700;color:#0f0f12}
+.nav-f:hover{color:#0f0f12}
