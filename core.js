@@ -386,10 +386,18 @@ P.aipanelOn = '<rect x="3" y="4.5" width="18" height="15" rx="4.5"/><path d="M15
 /* ===== Dunkelmodus (Farbumkehr per CSS) mit kreisförmiger Überblendung ab dem Schalter ===== */
 const themeNow = () => document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 function themeApply(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem("lumi-theme", t); } catch {} }
-function themeToggle(btn) {
-  const next = themeNow() === "dark" ? "light" : "dark";
-  if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) return themeApply(next);
-  const r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2, R = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+let themeBusy = false;
+function themeToggle(btn, duration = 450) {
+  const next = themeNow() === "dark" ? "light" : "dark", root = document.documentElement;
+  if (themeBusy) return;
+  if (typeof document.startViewTransition !== "function" || matchMedia("(prefers-reduced-motion: reduce)").matches) return themeApply(next);
+  /* Prozentangaben statt Pixel (wie im Magic-UI-Original): vermeidet Versatz bei Skalierung wie Windows 150 % */
+  const W = innerWidth, H = innerHeight, r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+  const R = Math.hypot(Math.max(x, W - x), Math.max(y, H - y)), rad = v => (v / (Math.hypot(W, H) / Math.SQRT2) * 100) + "%", at = `${(x / W) * 100}% ${(y / H) * 100}%`;
+  const from = `circle(0% at ${at})`, to = `circle(${rad(R)} at ${at})`;
+  themeBusy = true; root.dataset.lumiThemeVt = "active"; root.style.setProperty("--lumi-theme-vt-duration", duration + "ms"); root.style.setProperty("--lumi-theme-vt-clip-from", from);
   const vt = document.startViewTransition(() => themeApply(next));
-  vt.ready.then(() => document.documentElement.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${R}px at ${x}px ${y}px)`] }, { duration: 550, easing: "cubic-bezier(.4,0,.2,1)", pseudoElement: "::view-transition-new(root)" })).catch(() => {});
+  const done = () => { themeBusy = false; delete root.dataset.lumiThemeVt; root.style.removeProperty("--lumi-theme-vt-duration"); root.style.removeProperty("--lumi-theme-vt-clip-from"); };
+  vt.finished.then(done, done);
+  vt.ready.then(() => root.animate({ clipPath: [from, to] }, { duration, easing: "ease-in-out", fill: "forwards", pseudoElement: "::view-transition-new(root)" })).catch(() => {});
 }

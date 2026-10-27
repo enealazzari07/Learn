@@ -3371,6 +3371,8 @@ html[data-theme="dark"] :is(iframe,video,.authhero,.obx-hero,.obx-stage img,[dat
 html[data-theme="dark"] .obx-stage img{filter:none}
 ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
 ::view-transition-old(root){z-index:1}::view-transition-new(root){z-index:2}
+html[data-lumi-theme-vt="active"]::view-transition-group(root){animation-duration:var(--lumi-theme-vt-duration)}
+html[data-lumi-theme-vt="active"]::view-transition-new(root){clip-path:var(--lumi-theme-vt-clip-from)}
 
 /* Theme-Schalter (Einstellungen, oben neben dem Pfad) */
 .setcrumb{align-items:center}
