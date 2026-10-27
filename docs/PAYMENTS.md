@@ -1,11 +1,11 @@
-# Lumi Pro – Bezahlung mit Stripe Managed Payments
+# Lumi Study Pro – Bezahlung mit Stripe Managed Payments
 
-**Managed Payments** ist Stripes Merchant-of-Record-Lösung: Stripe verkauft Lumi Pro rechtlich selbst, berechnet und kassiert die **Mehrwertsteuer in über 80 Ländern**,
+**Managed Payments** ist Stripes Merchant-of-Record-Lösung: Stripe verkauft Lumi Study Pro rechtlich selbst, berechnet und kassiert die **Mehrwertsteuer in über 80 Ländern**,
 meldet und führt sie ab, stellt Rechnungen/Belege aus (Kund:innen sehen „Sold through Link“) und übernimmt Betrugsabwehr und Streitfälle. Du musst dich nicht in einzelnen
 Ländern für die MwSt registrieren. In Ländern, die Managed Payments nicht abdeckt, bleibst du selbst steuerpflichtig (dort kannst du Stripe Tax nutzen).
 Gebühren und die Länderliste stehen bei Stripe: https://stripe.com/managed-payments und https://docs.stripe.com/payments/managed-payments
 
-Ablauf: Klick auf „Lumi Pro“ → `/api/checkout` erstellt eine Checkout-Sitzung mit `managed_payments[enabled]=true` → Kauf bei Stripe →
+Ablauf: Klick auf „Lumi Study Pro“ → `/api/checkout` erstellt eine Checkout-Sitzung mit `managed_payments[enabled]=true` → Kauf bei Stripe →
 `/api/stripe-webhook` schreibt den Abo-Status in Supabase (`lumi_subscriptions`) → die App liest ihn und schaltet Pro frei.
 Kündigen/Zahlungsart ändern: `/api/portal` (Kundenportal) oder Link (link.com).
 
@@ -15,7 +15,7 @@ Danach *Project Settings → API* → **service_role**-Key kopieren (geheim, nie
 
 ## 2. Stripe einrichten (zuerst im Testmodus/Sandbox)
 1. **Managed Payments aktivieren:** Dashboard → *Settings → Managed Payments* (https://dashboard.stripe.com/settings/managed-payments), Bedingungen akzeptieren.
-2. **Produkt anlegen:** *Product catalog → Create product* → Name „Lumi Pro“, **Product tax code** wählen, der mit **„Eligible for Managed Payments“** markiert ist
+2. **Produkt anlegen:** *Product catalog → Create product* → Name „Lumi Study Pro“, **Product tax code** wählen, der mit **„Eligible for Managed Payments“** markiert ist
    (für eine Lern-App als Software/SaaS). Preis: wiederkehrend, **Monatlich** 4,99 € → **Preis-ID** (`price_…`) notieren.
    Über das **+** bei *Pricing* einen zweiten Preis **Jährlich** 39,99 € anlegen → zweite Preis-ID.
 3. **Steuer im Preis:** *Settings → Tax → „Include tax in prices“* aktivieren, wenn die Preise Brutto sein sollen (sonst schlägt Stripe die Steuer obendrauf).
@@ -31,7 +31,7 @@ Danach *Project Settings → API* → **service_role**-Key kopieren (geheim, nie
 |---|---|
 | `STRIPE_SECRET_KEY` | `sk_test_…` (später `sk_live_…`) |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` |
-| `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_YEARLY` | optional. Ohne sie sucht der Server selbst die aktiven Preise des Stripe-Produkts „Lumi Pro“ (monatlich/jährlich, Betrag aus Stripe). Mit `STRIPE_PRODUCT_ID` lässt sich das Produkt festlegen |
+| `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_YEARLY` | optional. Ohne sie sucht der Server selbst die aktiven Preise des Stripe-Produkts „Lumi Study Pro“ (monatlich/jährlich, Betrag aus Stripe). Mit `STRIPE_PRODUCT_ID` lässt sich das Produkt festlegen |
 | `SUPABASE_SERVICE_ROLE_KEY` | service_role-Key aus Supabase |
 | `SITE_URL` | optional, z. B. `https://lumi.example.ch` |
 | `STRIPE_API_VERSION` | optional, Standard `2025-03-31.basil` (so im Stripe-Beispiel für Managed Payments; neuere Versionen funktionieren ebenfalls) |

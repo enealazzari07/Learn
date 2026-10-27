@@ -432,8 +432,8 @@ V.settings = m => {
   m.innerHTML = `<div class="page setpage"><div class="setcrumb"><span>Einstellungen</span><i>/</i><b id="setcrumb">Profil</b></div><div class="setbody">
   <nav class="settabs" role="tablist">${[["gen", "Allgemein"], ["ai", "Lumi AI"], ["acc", "Konto"], ["pro", "Pro"], ["con", "Verbindungen"], ["dat", "Daten"]].map(([k, n]) => `<button type="button" role="tab" data-s="${k}">${n}</button>`).join("")}</nav>
   <div class="setsec" data-s="gen">
-  ${proBannerHtml()}
   <div class="prof-head"><div class="pgrid" aria-hidden="true">${(() => { let x = 7; return Array.from({ length: 140 }, () => { x = (x * 1103515245 + 12345) & 0x7fffffff; return `<i class="${x % 100 < 24 ? "f" : ""}"></i>`; }).join(""); })()}</div><span class="av-xl">${esc((p.name || CLOUD.user?.email || "L").trim()[0].toUpperCase())}</span><div><h1>${esc(p.name || "Dein Name")}</h1><p>${esc(CLOUD.user?.email || "Nicht angemeldet")}</p></div></div>
+  ${proBannerHtml()}
   <div class="panel kvcard"><h2>Persönliche Angaben</h2>
     <div class="kv"><span>Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
     <div class="kv"><span>E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
@@ -472,7 +472,7 @@ V.settings = m => {
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
   $("#rs", m).onclick = async () => { if (await confirmBox("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.", "Alles löschen")) { indexedDB.deleteDatabase("lumi"); localStorage.clear(); setTimeout(() => location.hash = "#/", 100); setTimeout(() => location.reload(), 300); } };
   bindMsPanel(m); bindApplePanel(m); cloudBindPanel(m); plusBindPanel(m);
-  const SETN = { gen: "Profil", ai: "Lumi AI", acc: "Konto & Cloud", pro: "Lumi Pro", con: "Verbindungen", dat: "Daten" };
+  const SETN = { gen: "Profil", ai: "Lumi AI", acc: "Konto & Cloud", pro: "Lumi Study Pro", con: "Verbindungen", dat: "Daten" };
   const showT = t => { window.__setTab = t; $(".setpage", m).dataset.t = t; $("#setcrumb", m).textContent = SETN[t] || ""; $$("#side [data-st]").forEach(b => b.classList.toggle("on", b.dataset.st === t)); $$(".settabs button", m).forEach(b => b.classList.toggle("on", b.dataset.s === t)); $$(".setsec", m).forEach(x => x.classList.toggle("on", x.dataset.s === t)); };
   $$(".settabs button", m).forEach(b => b.onclick = () => showT(b.dataset.s)); window.__showSetTab = showT; showT(window.__setTab || "gen"); $("#pro-go", m)?.addEventListener("click", () => showT("pro"));
   $("#srcs", m)?.addEventListener("change", e => { p.sources = e.target.checked; save(); });

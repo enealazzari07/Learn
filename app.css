@@ -2941,7 +2941,7 @@ body.hed-open{overflow:hidden}
   #app #main.doc-full .docspaper,#app #main.doc-full .docsbody{background:#fff!important}
   #app #main:not(.doc-full){background:#fff!important;--panel:#fff;--appbg:#fff;border:1px solid #e6e6ea;border-radius:28px!important;margin:10px 10px 10px 0!important;box-shadow:none!important}
   .main.homew,.main.homew:not(.doc-full){height:calc(100dvh - 20px);min-height:0}
-  .main :is(.panel,.bento .wg,.tile,.crow,.deck,.exc,.fold,.result-big,.timerbox,.qcard,.dcal,.emptybox,.hgrid .rec,.dsh-card,.exlist,.hb){border:1px solid #ececf0;box-shadow:none}
+  .main :is(.panel,.bento .wg,.tile,.crow,.deck,.exc,.result-big,.timerbox,.qcard,.dcal,.emptybox,.hgrid .rec,.dsh-card,.exlist,.hb){border:1px solid #ececf0;box-shadow:none}
   .nav-i{color:#4a4a52;border-radius:12px}
   .nav-i:hover{background:#ebebed}
   .nav-i.on{background:#e6e6e9!important;color:#0f0f12!important;font-weight:600}
@@ -3021,3 +3021,45 @@ body.hed-open{overflow:hidden}
 .pgrid{position:absolute;z-index:0!important;top:0;bottom:0;left:0;right:0;display:grid;grid-template-columns:repeat(auto-fill,88px);grid-auto-rows:88px;justify-content:end;overflow:hidden;pointer-events:none;-webkit-mask-image:linear-gradient(to left,#000 10%,transparent 85%);mask-image:linear-gradient(to left,#000 10%,transparent 85%)}
 .pgrid i{border-right:1px solid #f0f0f2;border-bottom:1px solid #f0f0f2;background:#fff}
 .pgrid i.f{background:#f6f6f8}
+
+/* ===== Feinschliff v2 ===== */
+/* Ordner: ohne Rahmen, gestochen scharf */
+.docspaper .fold,.docspaper .fold:hover,.docspaper .fold:focus-visible{border:0!important;box-shadow:none!important;background:transparent!important;outline:0}
+.docspaper .foldgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:26px 18px}
+.docspaper .fold .fsvg{width:128px;height:100px;filter:drop-shadow(0 1px 1px rgba(15,15,18,.12)) drop-shadow(0 10px 16px color-mix(in srgb,var(--c,#5b3df5) 28%,transparent))}
+.docspaper .fold:hover .fsvg{filter:drop-shadow(0 1px 1px rgba(15,15,18,.14)) drop-shadow(0 16px 22px color-mix(in srgb,var(--c,#5b3df5) 38%,transparent))}
+.fsvg svg{image-rendering:auto;transform:translateZ(0)}
+.fsvg .fic{top:38%;bottom:8%}
+/* Kalender auf Home: luftiger, kleiner schwarzer Marker */
+.bento .w-cal{padding:20px 22px 18px!important}
+.bento .w-cal .cal-t{margin:0 0 12px!important}
+.bento .w-cal .cal-g{row-gap:6px!important;column-gap:2px}
+.bento .w-cal .wd{padding-bottom:8px!important;font-size:11.5px;letter-spacing:.04em}
+.bento .w-cal .cd,.bento .w-cal .cd.today,.bento .w-cal .cd.sel:not(.today){background:none!important;color:#1a1a20;gap:3px;justify-content:center}
+.bento .w-cal .cd span,.bento .w-cal .cd.today span{width:34px!important;height:34px!important;line-height:34px!important;border-radius:11px!important;display:grid!important;place-items:center;font-size:14px;margin:0 auto;transition:background .15s,color .15s}
+.bento .w-cal .cd:hover span{background:#f1f1f4!important}
+.bento .w-cal .cd.sel:not(.today) span{background:#e9e9ee!important}
+.bento .w-cal .cd.today span,.bento .w-cal .cd.today:hover span{background:#0f0f12!important;color:#fff!important}
+.bento .w-cal .cd.today u{background:#0f0f12}
+.bento .w-cal .cd.out span{color:#c3c3cd}
+.bento .w-cal .cd.ex:not(.today) span{color:#d93a3a}
+/* Einstellungen: bündig links, volle Fläche, zweispaltig */
+.setbody{max-width:none!important;margin:0!important;padding:0 0 40px!important}
+.setcrumb{margin:-12px 0 18px}
+.setsec.on{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,470px),1fr));gap:18px;align-items:start}
+.setsec.on>.prof-head,.setsec.on>.probanner,.setsec.on>.setfull{grid-column:1/-1}
+.setsec.on>.panel{margin:0!important}
+.setsec[data-s=pro].on,.setsec[data-s=dat].on{grid-template-columns:repeat(auto-fit,minmax(min(100%,470px),560px))}
+/* Profilkopf: Raster ganz oben, volle Breite */
+.prof-head{margin:-4px 0 0!important;min-height:200px;padding:0 0 26px;align-items:flex-end}
+.pgrid{-webkit-mask-image:linear-gradient(to left,#000 25%,transparent 100%)!important;mask-image:linear-gradient(to left,#000 25%,transparent 100%)!important;grid-template-columns:repeat(auto-fill,96px);grid-auto-rows:96px}
+.probanner{border-radius:20px;background:linear-gradient(180deg,#fff,#f8f8fa)}
+@media (min-width:901px){
+  .main,.main:not(.homew):not(.doc-full){padding-left:clamp(20px,2.2vw,36px);padding-right:clamp(20px,2.2vw,36px)}
+  .hd h1,.page>.hd h1{letter-spacing:-.035em}
+  .nav-i{transition:background .15s,color .15s}
+  .nav-i.on svg{color:#0f0f12}
+  .main{scrollbar-width:thin}
+}
+.setpage .panel{transition:border-color .2s}.setpage .panel:hover{border-color:#dcdce3}
+@media (min-width:901px){#app #main.doc-full .docsed>.ned-bar{padding:14px 22px 10px 24px}#app #main.doc-full .docspaper{padding-left:24px!important}}

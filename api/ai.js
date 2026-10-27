@@ -73,11 +73,11 @@ module.exports = async function handler(req, res) {
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
   const { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false, bg = false } = body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "Keine Nachricht" });
-  if (FREE_DAILY && !bg) {   // optional: AI_FREE_DAILY=30 → Gratis-Konten haben 30 KI-Anfragen pro Tag, Lumi Pro unbegrenzt (Hintergrund-Korrektur zählt nicht)
+  if (FREE_DAILY && !bg) {   // optional: AI_FREE_DAILY=30 → Gratis-Konten haben 30 KI-Anfragen pro Tag, Lumi Study Pro unbegrenzt (Hintergrund-Korrektur zählt nicht)
     try {
       const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte melde dich an, um Lumi AI zu nutzen." });
       if (!L.isPlusRow(await L.getSubscription(user.id)) && !(await L.sb("POST", "rpc/lumi_ai_bump", { p_user: user.id, p_limit: FREE_DAILY })))
-        return res.status(429).json({ error: `Tageslimit erreicht (${FREE_DAILY} KI-Anfragen). Mit Lumi Pro nutzt du Lumi AI unbegrenzt.`, limit: true });
+        return res.status(429).json({ error: `Tageslimit erreicht (${FREE_DAILY} KI-Anfragen). Mit Lumi Study Pro nutzt du Lumi AI unbegrenzt.`, limit: true });
     } catch (e) { return res.status(503).json({ error: "Limit-Prüfung nicht erreichbar: " + e.message }); }
   }
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });

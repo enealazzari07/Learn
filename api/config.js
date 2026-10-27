@@ -9,5 +9,7 @@ module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
   const id = String(process.env.MS_CLIENT_ID || "").trim(), tenant = String(process.env.MS_TENANT || "").trim() || "common";
-  const P = await L.plans(); res.status(200).json({ plus: { enabled: await L.billingReady(), monthly: P.monthly.price ? P.monthly.cents : 0, yearly: P.yearly.price ? P.yearly.cents : 0, currency: P.currency || L.CURRENCY() }, msClientId: /^[0-9a-f-]{36}$/i.test(id) ? id : "", msTenant: /^[\w.-]{1,80}$/.test(tenant) ? tenant : "common" });
+  const P = await L.plans(), avail = Object.keys(P.monthly.opts || P.yearly.opts || {}), cur = L.currencyFor(req, avail.length ? avail : null);
+  const amt = k => P[k].price ? (P[k].opts?.[cur] ?? P[k].cents) : 0;
+  res.status(200).json({ plus: { enabled: await L.billingReady(), monthly: amt("monthly"), yearly: amt("yearly"), currency: P.currency && !avail.includes(cur) ? P.currency : cur }, msClientId: /^[0-9a-f-]{36}$/i.test(id) ? id : "", msTenant: /^[\w.-]{1,80}$/.test(tenant) ? tenant : "common" });
 };

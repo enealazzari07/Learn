@@ -7,25 +7,28 @@ const SB_ANON = () => process.env.SUPABASE_ANON_KEY || "sb_publishable_1AJLgVlp0
 const SB_SERVICE = () => process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const stripeKey = () => process.env.STRIPE_SECRET_KEY || "";
 
-/* Pro-Tarife: kommen direkt aus Stripe. Gesucht werden aktive, wiederkehrende Preise des Produkts "Lumi Pro" (oder STRIPE_PRODUCT_ID);
+/* Pro-Tarife: kommen direkt aus Stripe. Gesucht werden aktive, wiederkehrende Preise des Produkts "Lumi Study Pro" (oder STRIPE_PRODUCT_ID);
    monatlich = interval month, jährlich = interval year. STRIPE_PRICE_MONTHLY / STRIPE_PRICE_YEARLY überschreiben die Suche. */
 let priceCache = { at: 0, v: null };
 async function plans() {
   if (priceCache.v && Date.now() - priceCache.at < 60000) return priceCache.v;
-  const out = { monthly: { price: process.env.STRIPE_PRICE_MONTHLY || "", cents: +process.env.PLUS_MONTHLY_CENTS || 0 }, yearly: { price: process.env.STRIPE_PRICE_YEARLY || "", cents: +process.env.PLUS_YEARLY_CENTS || 0 }, currency: String(process.env.PLUS_CURRENCY || "eur").toLowerCase() };
+  const out = { monthly: { price: process.env.STRIPE_PRICE_MONTHLY || "", cents: +process.env.PLUS_MONTHLY_CENTS || 0, opts: {} }, yearly: { price: process.env.STRIPE_PRICE_YEARLY || "", cents: +process.env.PLUS_YEARLY_CENTS || 0, opts: {} }, currency: String(process.env.PLUS_CURRENCY || "eur").toLowerCase() };
   if (stripeKey() && (!out.monthly.price || !out.yearly.price)) {
     try {
-      const j = await stripe("GET", "/prices", { active: "true", type: "recurring", limit: 50, expand: ["data.product"] }), want = process.env.STRIPE_PRODUCT_ID;
-      const ok = j.data.filter(p => p.product && typeof p.product === "object" && p.product.active && (want ? p.product.id === want : /lumi\s*(pro|plus)/i.test(p.product.name || "")));
+      const j = await stripe("GET", "/prices", { active: "true", type: "recurring", limit: 50, expand: ["data.product", "data.currency_options"] }), want = process.env.STRIPE_PRODUCT_ID;
+      const ok = j.data.filter(p => p.product && typeof p.product === "object" && p.product.active && (want ? p.product.id === want : /lumi\s*(study\s*)?(pro|plus)/i.test(p.product.name || "")));
       for (const [k, iv] of [["monthly", "month"], ["yearly", "year"]]) {
         const p = !out[k].price && ok.filter(x => x.recurring?.interval === iv && x.recurring.interval_count === 1 && x.unit_amount).sort((x, y) => y.created - x.created)[0];
-        if (p) { out[k] = { price: p.id, cents: p.unit_amount }; out.currency = p.currency; }
+        if (p) { out[k] = { price: p.id, cents: p.unit_amount, opts: { [p.currency]: p.unit_amount, ...Object.fromEntries(Object.entries(p.currency_options || {}).map(([c, v]) => [c, v.unit_amount])) } }; out.currency = p.currency; }
       }
     } catch (e) { if (priceCache.v) return priceCache.v; }
   }
   if (out.monthly.price || out.yearly.price) priceCache = { at: Date.now(), v: out };
   return out;
 }
+/* Währung nach Land des Besuchs (Vercel-Header): Schweiz → CHF, Euroraum → EUR, sonst USD */
+const EURO = "AT BE CY DE EE ES FI FR GR HR IE IT LT LU LV MT NL PT SI SK AD MC SM VA ME".split(" ");
+const currencyFor = (req, avail) => { const c = String(req?.headers?.["x-vercel-ip-country"] || "").toUpperCase(), want = c === "CH" || c === "LI" ? "chf" : EURO.includes(c) ? "eur" : c ? "usd" : ""; return want && (!avail || avail.includes(want)) ? want : (avail?.[0] || want || "eur"); };
 const CURRENCY = () => String(process.env.PLUS_CURRENCY || "eur").toLowerCase();
 const billingReady = async () => { const P = await plans(); return !!(stripeKey() && SB_SERVICE() && process.env.STRIPE_WEBHOOK_SECRET && (P.monthly.price || P.yearly.price)); };
 
@@ -94,4 +97,4 @@ async function sb(method, path, body, extra = {}) {
 const getSubscription = async uid => (await sb("GET", `lumi_subscriptions?user_id=eq.${encodeURIComponent(uid)}&select=*&limit=1`))?.[0] || null;
 const isPlusRow = s => !!s && ["active", "trialing", "past_due"].includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5);
 
-module.exports = { SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb, getSubscription, isPlusRow };
+module.exports = { SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb, getSubscription, isPlusRow };
