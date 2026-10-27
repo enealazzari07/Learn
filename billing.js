@@ -19,8 +19,11 @@ async function billCall(path, body) {
   const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body || {}) });
   const j = await r.json().catch(() => ({})); if (!r.ok || !j.url) throw new Error(j.error || "Fehler " + r.status); return j.url;
 }
-const plusBuy = async plan => { try { toast("Weiterleitung zur Bezahlung …"); location.href = await billCall("/api/checkout", { plan, country: proCountry() }); } catch (e) { toast(e.message); } };
-const plusManage = async flow => { try { location.href = await billCall("/api/portal", flow ? { flow } : {}); } catch (e) { toast(e.message); } };
+/* Sofortige Rückmeldung, solange Stripe die Seite vorbereitet */
+function busy(msg) { const e = document.createElement("div"); e.className = "busy"; e.setAttribute("role", "status"); e.innerHTML = `<div class="busy-c"><i class="spin"></i><b>${msg}</b><small>Das dauert nur einen Moment.</small></div>`; document.body.appendChild(e); return () => e.remove(); }
+addEventListener("pageshow", () => document.querySelectorAll(".busy").forEach(e => e.remove()));
+const plusBuy = async plan => { const done = busy("Sichere Bezahlung wird vorbereitet …"); try { location.href = await billCall("/api/checkout", { plan, country: proCountry() }); } catch (e) { done(); toast(e.message); } };
+const plusManage = async flow => { const done = busy(flow === "cancel" ? "Kündigung wird vorbereitet …" : "Stripe-Portal wird geöffnet …"); try { location.href = await billCall("/api/portal", flow ? { flow } : {}); } catch (e) { done(); toast(e.message); } };
 const daysLeft = d => Math.max(0, Math.ceil((new Date(d).getTime() - Date.now()) / 864e5));
 const dLabel = n => n === 1 ? "1 Tag" : n + " Tage";
 const dIn = n => n === 1 ? "1 Tag" : n + " Tagen";
@@ -98,10 +101,10 @@ function proBannerHtml() {
 }
 
 /* Chip in der Seitenleiste: Testphase bzw. Kündigung immer sichtbar */
-function proChipHtml() {
+function proChipHtml() {   // nur Text, kein Knopf; wird bei eingeklappter Seitenleiste ausgeblendet
   if (!isPlus()) return ""; const r = BILL.row, n = daysLeft(r.current_period_end);
-  const txt = r.cancel_at_period_end ? `Gekündigt · bis ${new Date(r.current_period_end).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}` : r.status === "trialing" ? `Testversion endet in ${dIn(n)}` : "";
-  return txt ? `<button class="prochip hide-mob" id="prochip" type="button" title="Abo verwalten"><span class="probadge">Pro</span><span class="nl pct">${txt}</span></button>` : "";
+  const txt = r.cancel_at_period_end ? `Gekündigt – Zugang bis ${new Date(r.current_period_end).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}` : r.status === "trialing" ? `Testversion endet in ${dIn(n)}` : "";
+  return txt ? `<div class="prostatus nl hide-mob" id="prochip">${txt}</div>` : "";
 }
 
 /* ---------- Land / Region → Währung (CHF, EUR, USD) ---------- */

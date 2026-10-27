@@ -174,17 +174,23 @@ V.planner = m => {
 };
 
 /* ---------- grades ---------- */
-const SCALES = { ch: { n: "Noten 1–6 (Schweiz, 6 = beste)", min: 1, max: 6, lowGood: false, step: .25 }, pts: { n: "Punkte 0–15", min: 0, max: 15, lowGood: false, step: 1 }, pct: { n: "Prozent", min: 0, max: 100, lowGood: false, step: 1 } };
-const gradeKey = () => D.profile.scale === "pts" || D.profile.scale === "pct" ? D.profile.scale : "ch";
+const SCALES = {
+  ch: { n: "Schweiz · 1 bis 6 (6 = beste)", min: 1, max: 6, lowGood: false, step: .25 },
+  de: { n: "Deutschland · 1 bis 6 (1 = beste)", min: 1, max: 6, lowGood: true, step: .25 },
+  at: { n: "Österreich · 1 bis 5 (1 = beste)", min: 1, max: 5, lowGood: true, step: .25 },
+  pts: { n: "Punkte · 0 bis 15 (15 = beste)", min: 0, max: 15, lowGood: false, step: 1 },
+  pct: { n: "Prozent / USA · 0 bis 100 %", min: 0, max: 100, lowGood: false, step: 1 } };
+const gradeKey = () => ["pts", "pct", "de", "at"].includes(D.profile.scale) ? D.profile.scale : "ch";
+const gradeDec = k => k === "ch" || k === "de" || k === "at";   // Noten mit Dezimalstellen (.25)
 const SC = () => SCALES[gradeKey()];
 const gnorm = v => { const s = SC(); return s.lowGood ? (s.max - v) / (s.max - s.min) : (v - s.min) / (s.max - s.min); };
-const gcol = v => { const k = gradeKey(); if (k === "ch") return v >= 5.25 ? "#0e9f6e" : v >= 4.5 ? "#7cc23a" : v >= 4 ? "#f59e0b" : "#e5484d"; const n = gnorm(v); return n >= .7 ? "#0e9f6e" : n >= .45 ? "#f59e0b" : "#e5484d"; };
+const gcol = v => { const k = gradeKey(); if (k === "de" || k === "at") return v <= 2.5 ? "#0e9f6e" : v <= 3.5 ? "#7cc23a" : v <= 4.5 ? "#f59e0b" : "#e5484d"; if (k === "ch") return v >= 5.25 ? "#0e9f6e" : v >= 4.5 ? "#7cc23a" : v >= 4 ? "#f59e0b" : "#e5484d"; const n = gnorm(v); return n >= .7 ? "#0e9f6e" : n >= .45 ? "#f59e0b" : "#e5484d"; };
 const wavg = l => { const w = l.reduce((a, g) => a + g.weight, 0); return w ? l.reduce((a, g) => a + g.value * g.weight, 0) / w : null; };
-const gfmt = v => { if (v == null || isNaN(v)) return "–"; const k = gradeKey(); if (k === "ch") { let t = v.toFixed(2); if (t.endsWith("0")) t = t.slice(0, -1); return t; } return Math.round(v * 10) / 10 + ""; };
+const gfmt = v => { if (v == null || isNaN(v)) return "–"; const k = gradeKey(); if (gradeDec(k)) { let t = v.toFixed(2); if (t.endsWith("0")) t = t.slice(0, -1); return t; } return Math.round(v * 10) / 10 + ""; };
 function gradeModal(g) {
   const x = g || { subjectId: D.subjects[0]?.id || "", title: "", value: "", weight: 1, date: iso() };
   const { el, close } = modal(`<h3>${g ? "Note bearbeiten" : "Note eintragen"}</h3><label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(x.subjectId, "gm1")}<label class="lbl">Bezeichnung</label><input class="field" id="gm2" value="${esc(x.title)}" placeholder="Klassenarbeit, Test, mündlich, Klausur…">
-  <div class="row"><div><label class="lbl">${SC().n}${gradeKey() === "ch" ? " · ab 4 genügend" : ""}</label><input class="field" id="gm3" type="number" inputmode="decimal" step="${SC().step}" min="${SC().min}" max="${SC().max}" value="${x.value}"></div><div><label class="lbl">${isUni() ? "Gewicht / ECTS" : "Gewicht"}</label><input class="field" id="gm4" type="number" step=".5" min=".5" value="${x.weight}"></div><div><label class="lbl">Datum</label><input class="field" id="gm5" type="date" value="${x.date}"></div></div>
+  <div class="row"><div><label class="lbl">${SC().n}${gradeKey() === "ch" ? " · ab 4 genügend" : gradeKey() === "de" || gradeKey() === "at" ? " · bis 4 genügend" : ""}</label><input class="field" id="gm3" type="number" inputmode="decimal" step="${SC().step}" min="${SC().min}" max="${SC().max}" value="${x.value}"></div><div><label class="lbl">${isUni() ? "Gewicht / ECTS" : "Gewicht"}</label><input class="field" id="gm4" type="number" step=".5" min=".5" value="${x.weight}"></div><div><label class="lbl">Datum</label><input class="field" id="gm5" type="date" value="${x.date}"></div></div>
   <div class="row end">${g ? `<button class="btn ghost danger" id="gdel">Löschen</button>` : ""}<button class="btn accent" id="gsv">Speichern</button></div>`);
   $("#gsv", el).onclick = () => { const v = parseFloat(String($("#gm3", el).value).replace(",", ".")); if (isNaN(v) || v < SC().min || v > SC().max) return toast(`Wert zwischen ${SC().min} und ${SC().max}`); Object.assign(x, { subjectId: $(".gm1", el).value, title: $("#gm2", el).value.trim() || "Note", value: v, weight: parseFloat($("#gm4", el).value) || 1, date: $("#gm5", el).value || iso() }); if (!g) D.grades.push({ id: uid(), ...x }); save(); close(); renderView(); };
   $("#gdel", el) && ($("#gdel", el).onclick = () => { D.grades = D.grades.filter(y => y !== g); save(); close(); renderView(); });
@@ -205,8 +211,8 @@ V.grades = m => {
   $("#ng", m).onclick = () => D.subjects.length ? gradeModal() : toast(`Lege zuerst ${SUBJ()} an`);
   $$("[data-g]", m).forEach(b => b.onclick = () => gradeModal(D.grades.find(g => g.id === b.dataset.g)));
   $("#goal", m).onclick = () => {
-    const { el } = modal(`<h3>Zielrechner</h3><p class="note">Welche Note brauchst du noch für deinen Wunschschnitt?</p><label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(D.subjects[0]?.id || "", "zs")}<div class="row"><div><label class="lbl">Zielschnitt</label><input class="field" id="zt" type="number" step="${SC().step}" value="${({ ch: 5, pts: 12, pct: 75 })[gradeKey()]}"></div><div><label class="lbl">Gewicht nächste Note</label><input class="field" id="zw" type="number" step=".5" value="1"></div></div><div class="result" id="zr">–</div>`);
-    const calc = () => { const l = D.grades.filter(g => g.subjectId === $(".zs", el).value), t = parseFloat($("#zt", el).value), w = parseFloat($("#zw", el).value) || 1; const W = l.reduce((a, g) => a + g.weight, 0), S = l.reduce((a, g) => a + g.value * g.weight, 0); const need = (t * (W + w) - S) / w; const need2 = gradeKey() === "ch" ? Math.ceil(need * 4 - 1e-9) / 4 : need; const ok = need >= SC().min - 1e-9 && need <= SC().max + 1e-9; $("#zr", el).innerHTML = isNaN(need) ? "–" : ok ? `Du brauchst mindestens <b style="font-size:26px">${gfmt(Math.round(need2 * 100) / 100)}</b>${SC().lowGood ? " (oder besser)" : ""}.` : need < SC().min ? "Ziel ist bereits sicher erreicht" : "Mit der nächsten Note ist dieses Ziel leider nicht mehr erreichbar."; };
+    const { el } = modal(`<h3>Zielrechner</h3><p class="note">Welche Note brauchst du noch für deinen Wunschschnitt?</p><label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(D.subjects[0]?.id || "", "zs")}<div class="row"><div><label class="lbl">Zielschnitt</label><input class="field" id="zt" type="number" step="${SC().step}" value="${({ ch: 5, de: 2, at: 2, pts: 12, pct: 75 })[gradeKey()]}"></div><div><label class="lbl">Gewicht nächste Note</label><input class="field" id="zw" type="number" step=".5" value="1"></div></div><div class="result" id="zr">–</div>`);
+    const calc = () => { const l = D.grades.filter(g => g.subjectId === $(".zs", el).value), t = parseFloat($("#zt", el).value), w = parseFloat($("#zw", el).value) || 1; const W = l.reduce((a, g) => a + g.weight, 0), S = l.reduce((a, g) => a + g.value * g.weight, 0); const need = (t * (W + w) - S) / w; const need2 = gradeDec(gradeKey()) ? (SC().lowGood ? Math.floor(need * 4 + 1e-9) : Math.ceil(need * 4 - 1e-9)) / 4 : need; const ok = need >= SC().min - 1e-9 && need <= SC().max + 1e-9; $("#zr", el).innerHTML = isNaN(need) ? "–" : ok ? `Du brauchst mindestens <b style="font-size:26px">${gfmt(Math.round(need2 * 100) / 100)}</b>${SC().lowGood ? " (oder besser)" : ""}.` : (SC().lowGood ? need > SC().max : need < SC().min) ? "Ziel ist bereits sicher erreicht" : "Mit der nächsten Note ist dieses Ziel leider nicht mehr erreichbar."; };
     $$("input,select", el).forEach(i => i.oninput = calc); calc();
   };
 };
@@ -398,13 +404,16 @@ function mountDock(m) {
   document.body.appendChild(el);
   if (!window.__dockFresh) { window.__dockFresh = true; if (chatMsgs().length) newChat(); }
   const mount = () => { mountChat($("#hcb", el), false); const t = $(".tin", el); t.addEventListener("input", () => tog(true)); $(".t-in", el).addEventListener("submit", () => tog(true), true); };
-  const fit = () => { const r0 = m.getBoundingClientRect(), r = { left: r0.left, width: r0.width, top: Math.max(0, r0.top), bottom: Math.min(innerHeight, r0.bottom) }; el.style.setProperty("--dl", r.left + "px"); el.style.setProperty("--dw", r.width + "px"); el.style.setProperty("--dt", r.top + "px"); const tin = $(".t-in", el), bh = (tin ? tin.offsetHeight : 100) + 24; el.style.setProperty("--dtc", r.bottom - bh + "px"); if (innerWidth > 900) m.style.setProperty("padding-bottom", bh + "px", "important"); el.style.setProperty("--db", innerHeight - r.bottom + "px"); };
+  const fit = () => { const r0 = m.getBoundingClientRect(), r = { left: r0.left, width: r0.width, top: Math.max(0, r0.top), bottom: Math.min(innerHeight, r0.bottom) }; el.style.setProperty("--dl", r.left + "px"); el.style.setProperty("--dw", r.width + "px"); el.style.setProperty("--gx", (parseFloat(getComputedStyle(m).paddingLeft) || 22) + "px"); el.style.setProperty("--dt", r.top + "px"); const tin = $(".t-in", el), bh = (tin ? tin.offsetHeight : 100) + 24; el.style.setProperty("--dtc", r.bottom - bh + "px"); if (innerWidth > 900) m.style.setProperty("padding-bottom", bh + "px", "important"); el.style.setProperty("--db", innerHeight - r.bottom + "px"); };
   const tog = o => { if (o === el.classList.contains("open")) return; fit(); el.classList.toggle("open", o); document.body.classList.toggle("hd-open2", o); if (!o) { document.activeElement?.blur?.(); $(".msgs", el).scrollTop = 1e9; } else setTimeout(() => { const ms = $(".msgs", el); ms.scrollTop = ms.scrollHeight; }, 60); };
   const key = e => { if (e.key === "Escape" && el.classList.contains("open") && !document.querySelector(".popmenu,.mpop,.modal")) tog(false); };
   $(".hd-x", el).onclick = () => tog(false);
   $(".hd-new", el).onclick = () => { newChat(); mount(); $(".tin", el).focus(); };
   addEventListener("resize", fit); document.addEventListener("keydown", key); mount(); fit(); setTimeout(fit, 300);
-  LEAVE.push(() => { el.remove(); document.body.classList.remove("hd-open2"); removeEventListener("resize", fit); document.removeEventListener("keydown", key); });
+  /* folgt dem Raster, wenn die Seitenleiste ein-/ausgeklappt wird (iPad, Drehen, Fenstergröße) */
+  let lw = 0, ll = 0; const ro = new ResizeObserver(() => { const r = m.getBoundingClientRect(); if (Math.abs(r.width - lw) > 0.5 || Math.abs(r.left - ll) > 0.5) { lw = r.width; ll = r.left; fit(); } }); ro.observe(m);
+  const shell = document.querySelector(".shell"), mo = shell && new MutationObserver(() => { fit(); setTimeout(fit, 120); setTimeout(fit, 320); }); if (mo) mo.observe(shell, { attributes: true, attributeFilter: ["class"] });
+  LEAVE.push(() => { el.remove(); document.body.classList.remove("hd-open2"); try { ro.disconnect(); mo && mo.disconnect(); } catch {} removeEventListener("resize", fit); document.removeEventListener("keydown", key); });
 }
 function toggleChatPanel() { const p = $("#cpanel"); if (p.hidden) { p.hidden = false; mountChat(p, true); } else p.hidden = true; }
 

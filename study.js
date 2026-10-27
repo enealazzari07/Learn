@@ -18,53 +18,71 @@ function streak() { let n = 0; const d = new Date(); if (!activity(iso(d))) d.se
 const dueCardCount = () => D.decks.reduce((n, d) => n + d.cards.filter(c => c.due <= iso()).length, 0);
 
 /* ---------- onboarding ---------- */
+const OB_SCALES = [   // Notensystem in einfachen Worten: links schlecht, rechts gut
+  ["ch", "Schweiz", "Noten 1 bis 6 – die 6 ist die beste Note", "1", "6"],
+  ["de", "Deutschland", "Noten 1 bis 6 – die 1 ist die beste Note", "6", "1"],
+  ["at", "Österreich", "Noten 1 bis 5 – die 1 ist die beste Note", "5", "1"],
+  ["pts", "Punkte (Oberstufe)", "0 bis 15 Punkte – 15 ist am besten", "0", "15"],
+  ["pct", "Prozent / USA", "0 bis 100 % – 100 ist am besten", "0", "100 %"]];
+const OB_FEATURES = [["note", "Notizen & Zeichnen", "Formeln, Tabellen, Stift und Skizzen"], ["cards", "Karteikarten & Quiz", "Lernen mit klugen Wiederholungen"], ["cal", "Planer & Prüfungen", "Termine, Aufgaben, Stundenplan"], ["award", "Noten", "Schnitt und Zielrechner für jedes Fach"], ["timer", "Fokus-Timer", "Konzentriert lernen, Serie halten"], ["spark", "Lumi AI", "Erklärt, fragt ab und fasst zusammen"]];
+const obScaleFor = cc => cc === "DE" ? "de" : cc === "AT" ? "at" : cc === "US" || cc === "CA" ? "pct" : "ch";
 function onboarding() {
-  const O = { step: 0, country: (D.profile.country || (typeof proCountry === "function" ? proCountry() : "")) || "", name: D.profile.name || (CLOUD.user?.email || "").split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase()), level: D.profile.level || "school", goal: D.profile.goalMin || 45, picked: new Set() };
+  const O = { step: 0, country: (D.profile.country || (typeof proCountry === "function" ? proCountry() : "")) || "", name: D.profile.name || (CLOUD.user?.email || "").split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase()), level: D.profile.level || "school", goal: D.profile.goalMin || 45, picked: new Set(), scale: "", scaleSet: false };
+  O.scale = obScaleFor(O.country);
   const root = document.createElement("div"); root.className = "obx"; $("#modal-root").appendChild(root);
   const can = typeof BILL !== "undefined" && BILL.cfg && BILL.cfg.enabled && CLOUD.user && !isPlus(), trial = (BILL.cfg && BILL.cfg.trial) || 14;
   const priceStr = () => can && BILL.cfg.monthly ? money(BILL.cfg.monthly) : "";
-  const STEPS = 5, dots = () => `<div class="obx-dots">${Array.from({ length: STEPS }, (_, i) => `<i class="${i === O.step ? "on" : i < O.step ? "done" : ""}"></i>`).join("")}</div>`;
+  const IDS = ["welcome", "features", "region", "who", "grades", "subjects", "pro"], last = IDS.length - 1;
+  const dots = () => `<div class="obx-dots">${IDS.map((_, i) => `<i class="${i === O.step ? "on" : i < O.step ? "done" : ""}"></i>`).join("")}</div>`;
   const finish = async (buy) => {
-    D.profile.name = O.name.trim(); D.profile.level = O.level; D.profile.goalMin = O.goal; D.profile.onboarded = true; if (O.country) D.profile.country = O.country;
+    D.profile.name = O.name.trim(); D.profile.level = O.level; D.profile.goalMin = O.goal; D.profile.scale = O.scale; D.profile.onboarded = true; if (O.country) D.profile.country = O.country;
     [...O.picked].forEach((n, i) => { const sid = uid(), c = COLORS[i % COLORS.length]; D.subjects.push({ id: sid, name: n, color: c }); D.folders.push({ id: uid(), name: n, parent: "", color: c, subjectId: sid }); }); D.foldersInit = true;
     const wid = uid(); D.docs.unshift({ id: wid, type: "note", title: "Willkommen bei Lumi", subjectId: "", folderId: "", paper: "white", updated: Date.now(), created: Date.now(), text: "" });
     const w = `<h1>Willkommen bei Lumi</h1><p>Das ist deine erste Notiz. Probiere die Werkzeuge oben aus:</p><ul class="chk"><li><input type="checkbox"> Text <b>fett</b>, <i>kursiv</i> oder <mark>markiert</mark> machen</li><li><input type="checkbox"> Eine Tabelle oder ein Bild einfügen</li><li><input type="checkbox"> Mit <b>Lumi AI</b> eine Zusammenfassung oder Karteikarten erstellen</li><li><input type="checkbox"> Oben rechts auf <b>Zeichnen</b> wechseln und Skizzen direkt in die Notiz malen</li><li><input type="checkbox"> Im <b>Planer</b> Hausaufgaben und Prüfungen eintragen</li></ul><p>Tipp: Mit Strg/Cmd + K findest du alles blitzschnell.</p>`;
     KV.set("html:" + wid, w); D.docs[0].text = htmlToText(w);
-    save(); root.remove(); toast("Alles bereit!"); go("today"); buildShell(true);
+    save(); try { proApply(); } catch {} root.remove(); toast("Alles bereit!"); go("today"); buildShell(true);
     if (buy) setTimeout(() => plusBuy("monthly"), 400);
   };
-  const views = [
-    () => `<span class="obx-eyebrow">Willkommen</span><h1>Schön, dass du da bist.</h1><p class="obx-sub">Richte Lumi in 30 Sekunden ein – danach gehört dir dein ganzes Lernen an einem Ort.</p>
+  const hint = () => O.country && priceHint(O.country) ? `Lumi Study Pro: <b>${priceHint(O.country)}</b> nach ${BILL.cfg.trial || 14} Tagen gratis` : "&nbsp;";
+  const V = {
+    welcome: () => `<div class="obx-hero" style="background-image:url(login-hero.webp)"><span class="obx-hero-chip">${ic("spark")}Dein ganzes Lernen an einem Ort</span></div>
+      <h1>Schön, dass du da bist.</h1><p class="obx-sub">Richte Lumi in einer Minute ein – danach passt sich alles an dich an.</p>
       <label class="obx-l" for="ob-n">Wie heißt du?</label><input class="obx-in" id="ob-n" placeholder="Dein Name" value="${esc(O.name)}" autocomplete="given-name">`,
-    () => `<span class="obx-eyebrow">Deine Region</span><h1>Wo lebst du?</h1><p class="obx-sub">Damit Preise und Währung für dich stimmen – CHF, EUR oder USD. Die Steuer richtet sich nach deiner Rechnungsadresse.</p>
-      <label class="obx-l" for="ob-c">Land</label><select class="obx-in obx-sel" id="ob-c"><option value="" ${O.country ? "" : "selected"} disabled>Land wählen …</option>${countryOptions(O.country)}</select>
-      <p class="obx-hint" id="ob-ch">${O.country && priceHint(O.country) ? `Lumi Study Pro: <b>${priceHint(O.country)}</b> nach ${BILL.cfg.trial || 14} Tagen gratis` : "&nbsp;"}</p>`,
-    () => `<span class="obx-eyebrow">Über dich</span><h1>Wie lernst du?</h1><p class="obx-sub">So passen wir Fächer, Noten und Lumi AI an dich an.</p>
-      <div class="obx-cards" id="ob-l"><button data-l="school" class="${O.level === "school" ? "on" : ""}"><b>Schüler:in</b><small>Fächer, Noten 1–6, Hausaufgaben</small></button><button data-l="uni" class="${O.level === "uni" ? "on" : ""}"><b>Student:in</b><small>Module, Prüfungen, Skripte</small></button></div>
+    features: () => `<span class="obx-eyebrow">Das kann Lumi</span><h1>Alles, was du zum Lernen brauchst.</h1><p class="obx-sub">Sechs Werkzeuge, ein Konto – auf iPad, Handy und Computer.</p>
+      <div class="obx-feats">${OB_FEATURES.map(([i, t, d]) => `<div class="obx-feat"><span class="obx-ico">${ic(i)}</span><div><b>${t}</b><small>${d}</small></div></div>`).join("")}</div>`,
+    region: () => `<span class="obx-eyebrow">Deine Region</span><h1>Wo lebst du?</h1><p class="obx-sub">Damit Preise und Währung für dich stimmen – CHF, EUR oder USD. Die Steuer richtet sich nach deiner Rechnungsadresse.</p>
+      <div class="obx-globe">${ic("globe")}</div><label class="obx-l" for="ob-c">Land</label><select class="obx-in obx-sel" id="ob-c"><option value="" ${O.country ? "" : "selected"} disabled>Land wählen …</option>${countryOptions(O.country)}</select>
+      <p class="obx-hint" id="ob-ch">${hint()}</p>`,
+    who: () => `<span class="obx-eyebrow">Über dich</span><h1>Wie lernst du?</h1><p class="obx-sub">So passen wir Fächer, Noten und Lumi AI an dich an.</p>
+      <div class="obx-cards" id="ob-l"><button data-l="school" class="${O.level === "school" ? "on" : ""}"><span class="obx-ico">${ic("book")}</span><b>Schüler:in</b><small>Fächer, Noten, Hausaufgaben</small></button><button data-l="uni" class="${O.level === "uni" ? "on" : ""}"><span class="obx-ico">${ic("award")}</span><b>Student:in</b><small>Module, Prüfungen, Skripte</small></button></div>
       <label class="obx-l">Tagesziel Lernzeit</label><div class="obx-chips" id="ob-g">${[15, 30, 45, 60, 90].map(m => `<button data-g="${m}" class="${O.goal === m ? "on" : ""}">${m} Min.</button>`).join("")}</div>`,
-    () => `<span class="obx-eyebrow">Deine Auswahl</span><h1>${O.level === "uni" ? "Welche Module belegst du?" : "Welche Fächer hast du?"}</h1><p class="obx-sub">Wähle aus – Lumi legt dafür Ordner an. Du kannst alles später ändern.</p>
+    grades: () => `<span class="obx-eyebrow">Notensystem</span><h1>Wie wird bei dir benotet?</h1><p class="obx-sub">Wähle einfach das, was bei dir gilt – du kannst es später in den Einstellungen ändern.</p>
+      <div class="obx-scales" id="ob-sc">${OB_SCALES.map(([k, n, d, a, b]) => `<button data-k="${k}" class="${O.scale === k ? "on" : ""}"><span class="obx-sc-t"><b>${n}</b><small>${d}</small></span><span class="gsc"><i>${a}</i><em></em><i>${b}</i></span></button>`).join("")}</div>
+      <p class="obx-hint">Links schlechter, rechts besser – so sieht dein Notenschnitt später aus.</p>`,
+    subjects: () => `<span class="obx-eyebrow">Deine Auswahl</span><h1>${O.level === "uni" ? "Welche Module belegst du?" : "Welche Fächer hast du?"}</h1><p class="obx-sub">Wähle aus – Lumi legt dafür Ordner an. Du kannst alles später unter „Noten“ ändern.</p>
       <div class="obx-chips wrap" id="ob-s">${PRESETS[O.level].map(x => `<button data-s="${esc(x)}" class="${O.picked.has(x) ? "on" : ""}">${esc(x)}</button>`).join("")}</div>
       ${msReady() ? `<button class="obx-ms ms-btn" id="ob-ms" type="button">${msLogoSvg()}<span>Mit Microsoft anmelden (optional)</span></button>` : ""}`,
-    () => `<span class="obx-eyebrow">Lumi Study Pro</span><h1>${can ? `${trial} Tage gratis testen` : "Mehr Lumi AI mit Pro"}</h1>
+    pro: () => `<span class="obx-eyebrow">Lumi Study Pro</span><h1>${can ? `${trial} Tage gratis testen` : "Mehr Lumi AI mit Pro"}</h1>
       <p class="obx-sub">${can ? `Teste alles ${trial} Tage kostenlos. Danach ${priceStr()} pro Monat – jederzeit kündbar, vor Ablauf erinnern wir dich.` : "Lumi Study Pro schaltet Lumi AI ohne Tageslimit frei. Es ist bald verfügbar."}</p>
-      <div class="obx-pro"><div class="obx-pro-h"><span class="probadge">Pro</span><b>Lumi Study Pro</b><em>${can ? `${trial} Tage gratis` : "Bald verfügbar"}</em></div>
+      <div class="obx-pro"><div class="obx-pro-h"><img src="logo.png" alt="" width="34" height="34"><b>Lumi Study Pro</b><em>${can ? `${trial} Tage gratis` : "Bald verfügbar"}</em></div>
         <ul>${["Lumi AI ohne Tageslimit", "Alle kommenden Pro-Funktionen", "Jederzeit kündbar"].map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>
         ${can ? `<p class="obx-fine">${trial} Tage kostenlos, danach ${priceStr()} / Monat inkl. MwSt.</p>` : ""}</div>`,
-  ];
+  };
   const draw = () => {
+    const id = IDS[O.step];
     root.innerHTML = `<div class="obx-card"><div class="obx-top"><a class="logo" href="#"><i class="mark"></i>Lumi</a>${dots()}</div>
-      <div class="obx-body" data-step="${O.step}">${views[O.step]()}</div>
+      <div class="obx-body" data-step="${id}">${V[id]()}</div>
       <div class="obx-foot">${O.step ? `<button class="obx-back" id="ob-b">Zurück</button>` : "<span></span>"}
-        <div class="obx-acts">${O.step === 4 ? (can ? `<button class="obx-skip" id="ob-skip">Später</button><button class="obx-go" id="ob-buy">${trial} Tage gratis testen</button>` : `<button class="obx-go" id="ob-fin">Los geht's</button>`) : `<button class="obx-go" id="ob-n2">Weiter</button>`}</div></div></div>`;
-    const b = $(".obx-body", root);
+        <div class="obx-acts">${O.step === last ? (can ? `<button class="obx-skip" id="ob-skip">Später</button><button class="obx-go" id="ob-buy">${trial} Tage gratis testen</button>` : `<button class="obx-go" id="ob-fin">Los geht's</button>`) : `<button class="obx-go" id="ob-n2">Weiter</button>`}</div></div></div>`;
     $("#ob-n", root)?.addEventListener("input", e => { O.name = e.target.value; }); $("#ob-n", root)?.addEventListener("keydown", e => { if (e.key === "Enter") $("#ob-n2", root).click(); });
     $$("#ob-l button", root).forEach(x => x.onclick = () => { if (O.level !== x.dataset.l) O.picked.clear(); O.level = x.dataset.l; $$("#ob-l button", root).forEach(y => y.classList.toggle("on", y === x)); });
     $$("#ob-g button", root).forEach(x => x.onclick = () => { O.goal = +x.dataset.g; $$("#ob-g button", root).forEach(y => y.classList.toggle("on", y === x)); });
+    $$("#ob-sc button", root).forEach(x => x.onclick = () => { O.scale = x.dataset.k; O.scaleSet = true; $$("#ob-sc button", root).forEach(y => y.classList.toggle("on", y === x)); });
     $$("#ob-s button", root).forEach(x => x.onclick = () => { O.picked.has(x.dataset.s) ? O.picked.delete(x.dataset.s) : O.picked.add(x.dataset.s); x.classList.toggle("on"); });
     $("#ob-ms", root) && ($("#ob-ms", root).onclick = async () => { await msQuickLogin(); });
     $("#ob-b", root)?.addEventListener("click", () => { O.step--; draw(); });
-    $("#ob-n2", root)?.addEventListener("click", () => { if (O.step === 1 && !O.country) { $("#ob-c", root)?.focus(); toast("Bitte wähle dein Land aus."); return; } O.step++; draw(); });
-    $("#ob-c", root)?.addEventListener("change", e => { O.country = e.target.value; D.profile.country = O.country; save(); try { proApply(); } catch {} const h = $("#ob-ch", root); if (h) h.innerHTML = priceHint(O.country) ? `Lumi Study Pro: <b>${priceHint(O.country)}</b> nach ${BILL.cfg.trial || 14} Tagen gratis` : "&nbsp;"; });
+    $("#ob-n2", root)?.addEventListener("click", () => { if (id === "region" && !O.country) { $("#ob-c", root)?.focus(); toast("Bitte wähle dein Land aus."); return; } O.step++; draw(); });
+    $("#ob-c", root)?.addEventListener("change", e => { O.country = e.target.value; D.profile.country = O.country; if (!O.scaleSet) O.scale = obScaleFor(O.country); save(); try { proApply(); } catch {} const h = $("#ob-ch", root); if (h) h.innerHTML = hint(); });
     $("#ob-fin", root)?.addEventListener("click", () => finish(false)); $("#ob-skip", root)?.addEventListener("click", () => finish(false)); $("#ob-buy", root)?.addEventListener("click", () => finish(true));
     setTimeout(() => $("#ob-n", root)?.focus(), 60);
   };
@@ -102,7 +120,6 @@ function refreshNav() {
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
   ${proChipHtml()}${profBtn}`;
-  $("#prochip", s) && ($("#prochip", s).onclick = () => { window.__setTab = "pro"; go("settings"); });
   $$("[data-st]", s).forEach(b => b.onclick = () => window.__showSetTab && window.__showSetTab(b.dataset.st));
   $("#setback", s) && ($("#setback", s).onclick = () => go("today"));
   $$("[data-go]", s).forEach(b => b.onclick = () => { if (b.dataset.go === "docs") docFolder = ""; go(b.dataset.go); });

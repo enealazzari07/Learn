@@ -9,10 +9,11 @@ module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   if (!L.sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   try {
+    const plansP = L.plans().catch(() => ({ monthly: {}, yearly: {} }));   // läuft parallel zur Anmeldeprüfung
     const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
     const { plan = "monthly", country = "" } = await L.readJson(req);
-    const P = (await L.plans())[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
     const live = await L.liveSubscription(user.id, { fresh: true });   // direkt aus Stripe
+    const P = (await plansP)[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
     if (live && L.ACTIVE.includes(live.status) && live.status !== "past_due") return res.status(409).json({ error: "Du hast Lumi Study Pro bereits – verwalte es unter Einstellungen." });
     const trial = !live, base = L.siteUrl(req), customer = live?.customer, avail = Object.keys(P.opts || {}), cur = avail.length ? L.currencyFor(req, avail, String(country).slice(0, 2)) : "";
     const common = {

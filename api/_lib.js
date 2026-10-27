@@ -121,15 +121,13 @@ function shapeSub(sub, invoices = []) {
 }
 /* Das Abo eines Kontos finden: Stripe-Suche über die Konto-ID (metadata.user_id), Fallback über die Checkout-Sitzungen (sofort aktuell) */
 async function findSubscription(uid) {
-  let list = [];
-  try { const j = await stripe("GET", "/subscriptions/search", { query: `metadata['user_id']:'${uid}'`, limit: 20, expand: ["data.default_payment_method"] }); list = j.data || []; } catch {}
-  if (!list.length) {
-    try {
-      const j = await stripe("GET", "/checkout/sessions", { limit: 100 });
-      const ss = (j.data || []).filter(x => x.mode === "subscription" && x.status === "complete" && x.subscription && (x.client_reference_id === uid || x.metadata?.user_id === uid)).sort((a, b) => b.created - a.created);
-      for (const x of ss.slice(0, 3)) { list.push(await stripe("GET", "/subscriptions/" + (typeof x.subscription === "string" ? x.subscription : x.subscription.id), { expand: ["default_payment_method"] })); }
-    } catch {}
-  }
+  /* beides gleichzeitig: Suche (schnell, kann kurz hinterherhinken) und letzte Checkout-Sitzungen (sofort aktuell) */
+  const [found, sess] = await Promise.all([
+    stripe("GET", "/subscriptions/search", { query: `metadata['user_id']:'${uid}'`, limit: 20, expand: ["data.default_payment_method"] }).then(j => j.data || []).catch(() => []),
+    stripe("GET", "/checkout/sessions", { limit: 30 }).then(j => (j.data || []).filter(x => x.mode === "subscription" && x.status === "complete" && x.subscription && (x.client_reference_id === uid || x.metadata?.user_id === uid)).sort((a, b) => b.created - a.created)).catch(() => []),
+  ]);
+  let list = found;
+  if (!list.length && sess.length) list = await Promise.all(sess.slice(0, 2).map(x => stripe("GET", "/subscriptions/" + (typeof x.subscription === "string" ? x.subscription : x.subscription.id), { expand: ["default_payment_method"] }).catch(() => null))).then(r => r.filter(Boolean));
   if (!list.length) return null;
   const rank = x => (ACTIVE.includes(x.status) ? 1e12 : 0) + (x.created || 0);
   return list.sort((a, b) => rank(b) - rank(a))[0];
