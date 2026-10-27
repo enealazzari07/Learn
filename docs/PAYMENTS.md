@@ -1,12 +1,12 @@
-# Lumi Plus – Bezahlung mit Stripe Managed Payments
+# Lumi Pro – Bezahlung mit Stripe Managed Payments
 
-**Managed Payments** ist Stripes Merchant-of-Record-Lösung: Stripe verkauft Lumi Plus rechtlich selbst, berechnet und kassiert die **Mehrwertsteuer in über 80 Ländern**,
+**Managed Payments** ist Stripes Merchant-of-Record-Lösung: Stripe verkauft Lumi Pro rechtlich selbst, berechnet und kassiert die **Mehrwertsteuer in über 80 Ländern**,
 meldet und führt sie ab, stellt Rechnungen/Belege aus (Kund:innen sehen „Sold through Link“) und übernimmt Betrugsabwehr und Streitfälle. Du musst dich nicht in einzelnen
 Ländern für die MwSt registrieren. In Ländern, die Managed Payments nicht abdeckt, bleibst du selbst steuerpflichtig (dort kannst du Stripe Tax nutzen).
 Gebühren und die Länderliste stehen bei Stripe: https://stripe.com/managed-payments und https://docs.stripe.com/payments/managed-payments
 
-Ablauf: Klick auf „Lumi Plus“ → `/api/checkout` erstellt eine Checkout-Sitzung mit `managed_payments[enabled]=true` → Kauf bei Stripe →
-`/api/stripe-webhook` schreibt den Abo-Status in Supabase (`lumi_subscriptions`) → die App liest ihn und schaltet Plus frei.
+Ablauf: Klick auf „Lumi Pro“ → `/api/checkout` erstellt eine Checkout-Sitzung mit `managed_payments[enabled]=true` → Kauf bei Stripe →
+`/api/stripe-webhook` schreibt den Abo-Status in Supabase (`lumi_subscriptions`) → die App liest ihn und schaltet Pro frei.
 Kündigen/Zahlungsart ändern: `/api/portal` (Kundenportal) oder Link (link.com).
 
 ## 1. Supabase (einmalig)
@@ -15,7 +15,7 @@ Danach *Project Settings → API* → **service_role**-Key kopieren (geheim, nie
 
 ## 2. Stripe einrichten (zuerst im Testmodus/Sandbox)
 1. **Managed Payments aktivieren:** Dashboard → *Settings → Managed Payments* (https://dashboard.stripe.com/settings/managed-payments), Bedingungen akzeptieren.
-2. **Produkt anlegen:** *Product catalog → Create product* → Name „Lumi Plus“, **Product tax code** wählen, der mit **„Eligible for Managed Payments“** markiert ist
+2. **Produkt anlegen:** *Product catalog → Create product* → Name „Lumi Pro“, **Product tax code** wählen, der mit **„Eligible for Managed Payments“** markiert ist
    (für eine Lern-App als Software/SaaS). Preis: wiederkehrend, **Monatlich** 4,99 € → **Preis-ID** (`price_…`) notieren.
    Über das **+** bei *Pricing* einen zweiten Preis **Jährlich** 39,99 € anlegen → zweite Preis-ID.
 3. **Steuer im Preis:** *Settings → Tax → „Include tax in prices“* aktivieren, wenn die Preise Brutto sein sollen (sonst schlägt Stripe die Steuer obendrauf).
@@ -48,10 +48,10 @@ Erst danach auf Live wechseln: Live-Secret-Key, **neuer Live-Webhook** (anderes 
 `legal.html` hat Vorlagen für Impressum, Datenschutz, AGB und Widerruf (Stripe als Verkäufer genannt). Trage deine Angaben in `config.js` unter `legal` ein und lass die
 Texte prüfen. In *Settings → Checkout* kannst du eigene AGB- und Datenschutz-Links für die Checkout-Seite hinterlegen (z. B. `https://DEINE-DOMAIN/legal.html#agb`).
 
-## 5. Wie Plus freigeschaltet wird
+## 5. Wie Pro freigeschaltet wird
 - App: `isPlus()` in `billing.js` (liest die eigene Zeile aus `lumi_subscriptions`, gesichert per Row-Level-Security).
 - Server: `api/ai.js` prüft bei gesetztem `AI_FREE_DAILY` Abo-Status und Tageszähler. Die automatische Rechtschreibkorrektur zählt nicht.
-- Status `active`, `trialing`, `past_due` (kurze Kulanz) gelten als Plus; gekündigte Abos bleiben bis zum Periodenende aktiv.
+- Status `active`, `trialing`, `past_due` (kurze Kulanz) gelten als Pro; gekündigte Abos bleiben bis zum Periodenende aktiv.
 
 ## Hinweise
 - Mit Managed Payments darf `subscription.default_payment_method` nicht per API geändert werden; Kund:innen ändern die Zahlungsart im Kundenportal.

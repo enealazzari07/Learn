@@ -1,4 +1,4 @@
-/* Startet eine Stripe-Checkout-Sitzung für Lumi Plus (Abo) mit Stripe Managed Payments.
+/* Startet eine Stripe-Checkout-Sitzung für Lumi Pro (Abo) mit Stripe Managed Payments.
    Erwartet POST { plan: "monthly" | "yearly" } mit Supabase-Token. Mit Managed Payments ist Stripe Verkäufer (Merchant of Record):
    Mehrwertsteuer in 80+ Ländern, Rechnungen, Abführung, Betrugsabwehr und Streitfälle übernimmt Stripe. */
 const L = require("./_lib");
@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
     const { plan = "monthly" } = await L.readJson(req);
     const P = L.PLANS()[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
     const sub = await L.getSubscription(user.id);
-    if (L.isPlusRow(sub) && sub.status !== "past_due") return res.status(409).json({ error: "Du hast Lumi Plus bereits – verwalte es unter Einstellungen." });
+    if (L.isPlusRow(sub) && sub.status !== "past_due") return res.status(409).json({ error: "Du hast Lumi Pro bereits – verwalte es unter Einstellungen." });
     const base = L.siteUrl(req), customer = sub?.stripe_customer_id;
     const session = await L.stripe("POST", "/checkout/sessions", {
       mode: "subscription", line_items: [{ price: P.price, quantity: 1 }],

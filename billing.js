@@ -1,4 +1,4 @@
-/* Lumi – Lumi Plus (Abo über Stripe Managed Payments). Status liegt in Supabase (lumi_subscriptions), Bezahlung über Stripe Checkout (api/checkout.js, portal.js, stripe-webhook.js). */
+/* Lumi – Lumi Pro (Abo über Stripe Managed Payments). Status liegt in Supabase (lumi_subscriptions), Bezahlung über Stripe Checkout (api/checkout.js, portal.js, stripe-webhook.js). */
 const BILL = { cfg: null, row: null };
 const isPlus = () => !!BILL.row && ["active", "trialing", "past_due"].includes(BILL.row.status) && (!BILL.row.current_period_end || new Date(BILL.row.current_period_end).getTime() > Date.now() - 3 * 864e5);
 async function authHeader() {
@@ -17,14 +17,15 @@ const plusManage = async () => { try { location.href = await billCall("/api/port
 const money = c => new Intl.NumberFormat("de-DE", { style: "currency", currency: (BILL.cfg.currency || "eur").toUpperCase() }).format(c / 100);
 const dateDE = d => new Date(d).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
 
+const PRO_FEATURES = ["Lumi AI ohne Tageslimit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Lumi"];
 function plusPanelHtml() {
-  const c = BILL.cfg; if (!c || !c.enabled || !cloudOn()) return "";
-  const h = `<h2>${ic("award")}Lumi Plus</h2>`;
-  if (!CLOUD.user) return `<div class="panel">${h}<p class="note">Melde dich an, um Lumi Plus zu abonnieren.</p></div>`;
-  const r = BILL.row;
-  if (isPlus()) return `<div class="panel">${h}<div class="msstate ok"><b><i class="ldot on"></i>Lumi Plus ist aktiv</b><span>${r.cancel_at_period_end ? `Gekündigt – läuft bis ${dateDE(r.current_period_end)}.` : r.status === "past_due" ? "Die letzte Zahlung ist fehlgeschlagen – bitte Zahlungsart prüfen." : r.current_period_end ? `Verlängert sich am ${dateDE(r.current_period_end)}.` : ""}</span></div><button class="btn" id="pl-manage">Abo verwalten (Rechnungen, Zahlungsart, kündigen)</button></div>`;
+  const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${PRO_FEATURES.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
+  const head = state => `<div class="prohead"><div><span class="probadge">Pro</span><h2>Lumi Pro</h2></div>${state ? `<span class="prostate">${state}</span>` : ""}</div>`;
+  if (isPlus()) return `<div class="panel propanel">${head("Aktiv")}<p class="note">${r.cancel_at_period_end ? `Gekündigt – läuft bis ${dateDE(r.current_period_end)}.` : r.status === "past_due" ? "Die letzte Zahlung ist fehlgeschlagen – bitte Zahlungsart prüfen." : r.current_period_end ? `Verlängert sich am ${dateDE(r.current_period_end)}.` : "Danke für deine Unterstützung!"}</p>${list}<button class="btn" id="pl-manage">Abo verwalten</button><p class="note">Rechnungen, Zahlungsart und Kündigung.</p></div>`;
+  if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Lumi Pro nutzt du Lumi AI ohne Limit.</p>${list}</div>`;
+  if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Lumi Pro zu abonnieren.</p>${list}</div>`;
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
-  return `<div class="panel">${h}<p class="note">Unbegrenzte Lumi AI und alle zukünftigen Plus-Funktionen. Preise inkl. gesetzlicher Mehrwertsteuer – der Betrag für dein Land wird beim Bezahlen angezeigt. Jederzeit kündbar.</p>
+  return `<div class="panel propanel">${head("")}<p class="note">Preise inkl. gesetzlicher Mehrwertsteuer – der Betrag für dein Land wird beim Bezahlen angezeigt. Jederzeit kündbar.</p>${list}
     <div class="row" style="gap:10px;flex-wrap:wrap">${m ? `<button class="btn primary" id="pl-m">${money(m)} / Monat</button>` : ""}${y ? `<button class="btn ${m ? "" : "primary"}" id="pl-y">${money(y)} / Jahr${save > 0 ? ` · ${save} % sparen` : ""}</button>` : ""}</div>
     <p class="note" style="margin-top:10px">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
 }
@@ -37,7 +38,7 @@ async function plusReturn() {
   const q = new URLSearchParams(location.search), st = q.get("plus"); if (!st) return;
   history.replaceState(null, "", location.pathname + location.hash);
   if (st === "cancel") return toast("Bezahlung abgebrochen – es wurde nichts berechnet.");
-  toast("Danke! Lumi Plus wird freigeschaltet …");
+  window.__setTab = "pro"; toast("Danke! Lumi Pro wird freigeschaltet …");
   for (let i = 0; i < 8 && !isPlus(); i++) { await plusLoad(); if (!isPlus()) await new Promise(r => setTimeout(r, 2000)); }
-  toast(isPlus() ? "Lumi Plus ist aktiv – viel Erfolg beim Lernen!" : "Zahlung eingegangen – die Freischaltung kann einen Moment dauern. Lade die Seite gleich neu."); if (curView === "settings") renderView();
+  toast(isPlus() ? "Lumi Pro ist aktiv – viel Erfolg beim Lernen!" : "Zahlung eingegangen – die Freischaltung kann einen Moment dauern. Lade die Seite gleich neu."); if (curView === "settings") { window.__setTab = "pro"; renderView(); }
 }
