@@ -3403,3 +3403,13 @@ body.noscroll{overflow:hidden}
  @media (max-height:800px){.setsec.paying .proemb-box .embk-m{zoom:.74}}
  @media (max-height:720px){.setsec.paying .proemb-box .embk-m{zoom:.68}}}
 @media (max-width:900px){.setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)}}
+
+/* iPad / Tablet: Einstellungen kleiner, damit alles im guten Verhältnis steht */
+@media (min-width:600px) and (max-width:1300px) and (pointer:coarse), (min-width:600px) and (max-width:1100px){
+  .setpage{zoom:.84}
+  .setpage .pp-card{padding:14px 15px;border-radius:18px;gap:11px}
+  .setpage .pp-t b{font-size:14.5px}.setpage .pp-t small{font-size:12px}.setpage .pp-pr{font-size:13.5px}
+  .setpage .propanel.proside h2{font-size:26px}
+  .setpage .ps-lead{font-size:14px}
+  .setpage .pp-plans{gap:10px;max-width:420px}
+}
