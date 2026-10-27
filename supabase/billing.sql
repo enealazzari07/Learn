@@ -3,10 +3,10 @@
 
 create table if not exists public.lumi_subscriptions (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  ls_customer_id text,
-  ls_subscription_id text unique,
+  stripe_customer_id text unique,
+  stripe_subscription_id text unique,
   status text not null default 'inactive',
-  variant_id text,
+  price_id text,
   interval text,
   current_period_end timestamptz,
   cancel_at_period_end boolean not null default false,

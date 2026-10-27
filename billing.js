@@ -1,4 +1,4 @@
-/* Lumi – Lumi Plus (Abo über Lemon Squeezy). Status liegt in Supabase (lumi_subscriptions), Bezahlung über Lemon-Squeezy-Checkout (api/checkout.js, portal.js, ls-webhook.js). */
+/* Lumi – Lumi Plus (Abo über Stripe Managed Payments). Status liegt in Supabase (lumi_subscriptions), Bezahlung über Stripe Checkout (api/checkout.js, portal.js, stripe-webhook.js). */
 const BILL = { cfg: null, row: null };
 const isPlus = () => !!BILL.row && ["active", "trialing", "past_due"].includes(BILL.row.status) && (!BILL.row.current_period_end || new Date(BILL.row.current_period_end).getTime() > Date.now() - 3 * 864e5);
 async function authHeader() {
@@ -26,7 +26,7 @@ function plusPanelHtml() {
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
   return `<div class="panel">${h}<p class="note">Unbegrenzte Lumi AI und alle zukünftigen Plus-Funktionen. Preise inkl. gesetzlicher Mehrwertsteuer – der Betrag für dein Land wird beim Bezahlen angezeigt. Jederzeit kündbar.</p>
     <div class="row" style="gap:10px;flex-wrap:wrap">${m ? `<button class="btn primary" id="pl-m">${money(m)} / Monat</button>` : ""}${y ? `<button class="btn ${m ? "" : "primary"}" id="pl-y">${money(y)} / Jahr${save > 0 ? ` · ${save} % sparen` : ""}</button>` : ""}</div>
-    <p class="note" style="margin-top:10px">Bezahlung sicher über Lemon Squeezy (Karte, PayPal, Apple Pay, Google Pay u. a.). Verkäufer und Rechnungssteller ist Lemon Squeezy. Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
+    <p class="note" style="margin-top:10px">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
 }
 function plusBindPanel(m) {
   const on = (id, f) => { const b = $(id, m); if (b) b.onclick = f; };

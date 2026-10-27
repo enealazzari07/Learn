@@ -1,5 +1,6 @@
-/* Startet einen Lemon-Squeezy-Checkout für Lumi Plus. Erwartet POST { plan: "monthly" | "yearly" } mit Supabase-Token.
-   Lemon Squeezy ist Verkäufer (Merchant of Record): Mehrwertsteuer je Land, Rechnungen und Abführung übernehmen sie. */
+/* Startet eine Stripe-Checkout-Sitzung für Lumi Plus (Abo) mit Stripe Managed Payments.
+   Erwartet POST { plan: "monthly" | "yearly" } mit Supabase-Token. Mit Managed Payments ist Stripe Verkäufer (Merchant of Record):
+   Mehrwertsteuer in 80+ Ländern, Rechnungen, Abführung, Betrugsabwehr und Streitfälle übernimmt Stripe. */
 const L = require("./_lib");
 
 module.exports = async function handler(req, res) {
@@ -9,13 +10,17 @@ module.exports = async function handler(req, res) {
   try {
     const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
     const { plan = "monthly" } = await L.readJson(req);
-    const P = L.PLANS()[plan]; if (!P?.variant) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
-    const store = process.env.LEMONSQUEEZY_STORE_ID; if (!store) return res.status(503).json({ error: "LEMONSQUEEZY_STORE_ID fehlt in Vercel." });
+    const P = L.PLANS()[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
     const sub = await L.getSubscription(user.id);
     if (L.isPlusRow(sub) && sub.status !== "past_due") return res.status(409).json({ error: "Du hast Lumi Plus bereits – verwalte es unter Einstellungen." });
-    const j = await L.ls("POST", "/checkouts", { data: { type: "checkouts",
-      attributes: { checkout_data: { email: user.email || undefined, custom: { user_id: user.id } }, product_options: { redirect_url: `${L.siteUrl(req)}/?plus=success#/app/settings`, receipt_button_text: "Zurück zu Lumi", receipt_link_url: `${L.siteUrl(req)}/#/app/settings` }, ...(process.env.LS_TEST_MODE === "1" ? { test_mode: true } : {}) },
-      relationships: { store: { data: { type: "stores", id: String(store) } }, variant: { data: { type: "variants", id: String(P.variant) } } } } });
-    return res.status(200).json({ url: j.data.attributes.url });
+    const base = L.siteUrl(req), customer = sub?.stripe_customer_id;
+    const session = await L.stripe("POST", "/checkout/sessions", {
+      mode: "subscription", line_items: [{ price: P.price, quantity: 1 }],
+      managed_payments: { enabled: process.env.STRIPE_MANAGED_PAYMENTS === "off" ? false : true },
+      client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
+      subscription_data: { metadata: { user_id: user.id } }, metadata: { user_id: user.id },
+      success_url: `${base}/?plus=success#/app/settings`, cancel_url: `${base}/?plus=cancel#/app/settings`,
+    });
+    return res.status(200).json({ url: session.url });
   } catch (e) { return res.status(e.status && e.status < 600 ? e.status : 502).json({ error: e.message }); }
 };
