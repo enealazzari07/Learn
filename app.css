@@ -3456,3 +3456,23 @@ body.noscroll{overflow:hidden}
 .mfa-qr{display:grid;place-items:center;margin:8px 0}.mfa-qr img{border:1px solid #e6e6ea;border-radius:16px;padding:10px;background:#fff}
 .mfa-code{text-align:center;font-size:22px;letter-spacing:.35em;font-weight:700}
 .secrow .btn{white-space:nowrap;flex:none}
+
+/* Profil: Raster reicht bis hinter den Pro-Block, oben sichtbar, unten fast weiss, gräulicher in der Mitte/rechts, nicht am Rand */
+.prof-head{margin-bottom:-4px!important}
+.prof-head .pgrid{bottom:-112px!important;overflow:hidden;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0,rgba(0,0,0,.65) 45%,rgba(0,0,0,.08) 100%),linear-gradient(to right,transparent 0,transparent 22%,#000 48%,#000 74%,transparent 94%)!important;
+  mask-image:linear-gradient(to bottom,#000 0,rgba(0,0,0,.65) 45%,rgba(0,0,0,.08) 100%),linear-gradient(to right,transparent 0,transparent 22%,#000 48%,#000 74%,transparent 94%)!important;
+  -webkit-mask-composite:source-in!important;mask-composite:intersect!important}
+.prof-head .pgrid i{border-color:#efeff2}
+.prof-head .pgrid i.f{background:#ededf0}
+.probanner{position:relative;z-index:2;background:rgba(255,255,255,.78)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.aiuse{display:flex;align-items:center;gap:18px;padding:16px 22px!important}
+.aiuse[hidden]{display:none}
+.aiuse .aiu-lg{flex:none;width:52px;height:52px}.aiuse .aiu-lg .aiu{width:52px;height:52px;pointer-events:none;margin:0}.aiuse .aiu-lg svg{width:52px;height:52px}
+.aiuse .aiu circle{stroke-width:2.4}
+.aiuse-t{flex:1;min-width:0;display:grid;gap:3px}
+.aiuse-h{font-size:12.5px;color:#7a7a82;font-weight:600}
+.aiuse-t b{font-size:22px;letter-spacing:-.03em}.aiuse-t b span{font-size:13px;font-weight:500;color:#7a7a82;letter-spacing:0}
+.aiuse-t small{color:#6b6b73;font-size:13px}
+.aiuse .aiu-bar{margin:6px 0 0;max-width:420px}
+@media (max-width:560px){.aiuse{flex-wrap:wrap}}

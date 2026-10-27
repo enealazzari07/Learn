@@ -256,3 +256,16 @@ function confetti() {
     if (el < 4300) requestAnimationFrame(frame); else cv.remove();
   })(t0);
 }
+
+
+/* AI-Verbrauch als Block auf der Profilseite (gleiche Daten wie der Ring) */
+function aiuBlockInner() {
+  if (!AIU.on) return "";
+  const pct = Math.round(aiuPct() * 100), rs = AIU.reset ? new Date(AIU.reset) : null, left = rs ? Math.max(0, rs - Date.now()) : 0, lh = Math.floor(left / 36e5), lm = Math.ceil(left % 36e5 / 6e4);
+  const big = AIU.pro ? `<b>Unbegrenzt</b><small>Mit Lumi Study Pro gibt es kein Limit.</small>` : `<b>${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></b><small>${pct >= 100 ? "Limit erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich in ${lh ? lh + " Std. " : ""}${lm} Min. zurück.` : `Das ${AIU.hours}-Stunden-Fenster startet mit deiner nächsten Anfrage.`}</small>`;
+  return `<span class="aiu-lg">${aiuRingHtml().replace('class="aiu"', 'class="aiu" tabindex="-1"')}</span><div class="aiuse-t"><span class="aiuse-h">Lumi AI Nutzung</span>${big}${AIU.pro ? "" : `<div class="aiu-bar"><i style="width:${pct}%"></i></div>`}</div>${!AIU.pro && BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn" id="aiuse-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
+}
+function aiuBlockFill(m) {
+  const w = $("#aiuse", m); if (!w) return; const h = aiuBlockInner(); w.innerHTML = h; w.hidden = !h;
+  const up = $("#aiuse-up", w); if (up) up.onclick = () => window.__showSetTab && window.__showSetTab("pro");
+}

@@ -450,6 +450,7 @@ V.settings = m => {
   <div class="setsec" data-s="gen">
   <div class="prof-head"><div class="pgrid" aria-hidden="true">${(() => { let x = 7; return Array.from({ length: 140 }, () => { x = (x * 1103515245 + 12345) & 0x7fffffff; return `<i class="${x % 100 < 24 ? "f" : ""}"></i>`; }).join(""); })()}</div><span class="av-xl">${esc((p.name || CLOUD.user?.email || "L").trim()[0].toUpperCase())}</span><div><h1>${esc(p.name || "Dein Name")}${proBadgeHtml()}</h1><p>${esc(CLOUD.user?.email || "Nicht angemeldet")}</p>${proPillHtml()}</div></div>
   ${proBannerHtml()}
+  <div class="panel aiuse setfull" id="aiuse" hidden></div>
   <div class="panel kvcard"><h2>${ic("adduser")}Persönliche Angaben</h2>
     <div class="kv"><span>Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
     <div class="kv"><span>E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
@@ -491,6 +492,7 @@ V.settings = m => {
   const SETN = { gen: "Profil", ai: "Lumi AI", acc: "Konto & Cloud", pro: "Lumi Study Pro", con: "Verbindungen", dat: "Daten" };
   const showT = t => { window.__setTab = t; $(".setpage", m).dataset.t = t; $("#setcrumb", m).textContent = SETN[t] || ""; if (t === "pro" && CLOUD.user && typeof plusRefresh === "function") plusRefresh(m, true).then(() => typeof plusAuto === "function" && plusAuto()); $$("#side [data-st]").forEach(b => b.classList.toggle("on", b.dataset.st === t)); $$(".settabs button", m).forEach(b => b.classList.toggle("on", b.dataset.s === t)); $$(".setsec", m).forEach(x => x.classList.toggle("on", x.dataset.s === t)); };
   $$(".settabs button", m).forEach(b => b.onclick = () => showT(b.dataset.s)); $("#sc", m)?.addEventListener("change", e => { p.country = e.target.value; save(); try { proApply(); } catch {} const hh = $("#sch", m); if (hh) hh.textContent = priceHint(p.country) ? "Lumi Study Pro: " + priceHint(p.country) : ""; const bn = $(".probanner", m); if (bn) { bn.replaceWith(Object.assign(document.createElement("div"), { innerHTML: proBannerHtml() }).firstElementChild); $("#pro-go", m)?.addEventListener("click", () => showT("pro")); } const pp = $(".propanel", m); if (pp) { pp.replaceWith(Object.assign(document.createElement("div"), { innerHTML: plusPanelHtml() }).firstElementChild); plusBindPanel(m); } toast("Region gespeichert"); });
+  aiuBlockFill(m); if (CLOUD.user) aiuLoad().then(() => aiuBlockFill(m));
   window.__showSetTab = showT; showT(window.__setTab || "gen"); $("#pro-go", m)?.addEventListener("click", () => showT("pro"));
   $("#srcs", m)?.addEventListener("change", e => { p.sources = e.target.checked; save(); });
   $("#hed-open", m)?.addEventListener("click", () => homeEditor());
