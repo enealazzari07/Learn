@@ -30,19 +30,23 @@ async function cloudPush() {
     if (up.length) { const { error } = await CLOUD.sb.from("lumi_kv").upsert(up, { onConflict: "user_id,k" }); if (error) throw error; }
     if (rm.length) { const { error } = await CLOUD.sb.from("lumi_kv").delete().eq("user_id", CLOUD.user.id).in("k", rm); if (error) throw error; }
     LS.set("lumi-sync", String(Date.now())); cloudStatus("ok");
-  } catch (e) { items.forEach(i => CLOUD.dirty.add(JSON.stringify(i))); cloudStatus("err"); setTimeout(cloudPush, 15000); }
+  } catch (e) { items.forEach(i => CLOUD.dirty.add(JSON.stringify(i))); cloudStatus("err"); console.error("Cloud-Sync:", e); if (Date.now() - (cloudPush.lastErr || 0) > 60000) { cloudPush.lastErr = Date.now(); toast("Speichern in der Datenbank fehlgeschlagen: " + (e?.message || e?.code || "unbekannt")); } setTimeout(cloudPush, 15000); }
   CLOUD.busy = false;
 }
+/* Die Datenbank gilt immer: Cloud-Daten ersetzen lokale Daten, kein Rückfrage-Popup.
+   Nur wenn die Cloud noch leer ist (neues Konto), wird der vorhandene lokale Stand hochgeladen.
+   Gehören die lokalen Daten zu einem anderen Konto (lumi-owner), werden sie verworfen und das Konto startet frisch. */
 async function cloudPull() {
   const { data, error } = await CLOUD.sb.from("lumi_kv").select("k,v,updated_at"); if (error) throw error;
-  const last = +LS.get("lumi-sync") || 0, localHas = D.profile.onboarded || D.docs.length > 1;
-  if (!data.length) { // Cloud leer → lokalen Stand hochladen
+  const owner = LS.get("lumi-owner"), foreign = !!owner && owner !== CLOUD.user.id;
+  if (foreign) { for (const k of await cloudLocalKeys()) await KV._raw.del(k); LS.set("lumi-sync", "0"); }
+  LS.set("lumi-owner", CLOUD.user.id);
+  const last = foreign ? 0 : +LS.get("lumi-sync") || 0;
+  if (!data.length) {
+    if (foreign) return true;                                   // neues Konto auf fremdem Gerätestand: leer starten
     for (const k of await cloudLocalKeys()) CLOUD.dirty.add(JSON.stringify([k, false])); await cloudPush(); return false;
   }
-  if (!last && localHas && !confirm("In deinem Konto liegen bereits Daten.\n\nOK = Cloud-Daten laden (lokale Daten dieses Geräts werden ersetzt)\nAbbrechen = lokale Daten hochladen und die Cloud überschreiben")) {
-    for (const k of await cloudLocalKeys()) CLOUD.dirty.add(JSON.stringify([k, false])); await cloudPush(); return false;
-  }
-  const fresh = data.filter(r => !last || new Date(r.updated_at).getTime() > last); if (!fresh.length) return false;
+  const fresh = data.filter(r => !last || new Date(r.updated_at).getTime() > last); if (!fresh.length) return foreign;
   for (const r of fresh) await KV._raw.set(r.k, r.v);
   LS.set("lumi-sync", String(Date.now())); return true;
 }
