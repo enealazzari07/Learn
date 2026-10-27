@@ -138,7 +138,10 @@ async function findSubscription(uid) {
   if (!list.length && sess.length) list = await Promise.all(sess.slice(0, 2).map(x => stripe("GET", "/subscriptions/" + (typeof x.subscription === "string" ? x.subscription : x.subscription.id), { expand: ["default_payment_method"] }).catch(() => null))).then(r => r.filter(Boolean));
   if (!list.length) return null;
   const rank = x => (ACTIVE.includes(x.status) ? 1e12 : 0) + (x.created || 0);
-  return list.sort((a, b) => rank(b) - rank(a))[0];
+  /* Abos gelöschter Kunden zählen nicht (z. B. nach dem Aufräumen von Testdaten in Stripe) – so verhält sich das Konto wieder wie neu */
+  const sorted = list.sort((a, b) => rank(b) - rank(a)), checked = new Map();
+  for (const s of sorted) { const cid = typeof s.customer === "string" ? s.customer : s.customer?.id; if (!checked.has(cid)) checked.set(cid, await validCustomer(cid)); if (checked.get(cid)) return s; }
+  return null;
 }
 async function liveSubscription(uid, { fresh = false, withInvoices = false } = {}) {
   const c = subCache.get(uid);
