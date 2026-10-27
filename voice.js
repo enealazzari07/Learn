@@ -2,7 +2,15 @@
 /* Lumi Voice – Sprachgespräch mit Lumi AI: Mikrofon → Antwort derselben KI-Modelle → natürliche Stimme (Google Gemini TTS, sonst Systemstimme).
    Die animierte Kugel ist eigens gezeichnet (Canvas) und reagiert auf Zuhören, Denken und Sprechen. */
 
-const VC_VOICES = [["Kore", "Kore · ruhig"], ["Aoede", "Aoede · leicht"], ["Zephyr", "Zephyr · hell"], ["Leda", "Leda · jung"], ["Puck", "Puck · lebhaft"], ["Charon", "Charon · sachlich"], ["Fenrir", "Fenrir · kräftig"], ["Orus", "Orus · tief"]];
+const VC_VOICES = [["de_DE-thorsten-medium", "Thorsten · klar"], ["de_DE-thorsten_emotional-medium", "Thorsten · lebhaft"]];
+/* Sprachausgabe: Piper (MIT, Stimme „Thorsten“ CC0) läuft direkt im Browser – kein Server, kein Limit. Modell (~60 MB) wird einmal geladen und im Browser gespeichert. */
+const VC_PIPER = "https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.5/+esm", VC_ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.27.0/dist/";
+let vcMod = null, vcSes = {};
+async function vcPiper(voiceId) {
+  vcMod = vcMod || await import(VC_PIPER);
+  if (!vcSes[voiceId]) { vcMod.TtsSession._instance = null; vcSes[voiceId] = vcMod.TtsSession.create({ voiceId, wasmPaths: { ...vcMod.TtsSession.WASM_LOCATIONS, onnxWasm: VC_ORT } }).catch(e => { delete vcSes[voiceId]; throw e; }); }
+  return vcSes[voiceId];
+}
 const vcLang = () => (D.profile.country || (typeof proCountry === "function" ? proCountry() : "")) === "DE" ? "de-DE" : (D.profile.country === "AT" ? "de-AT" : "de-CH");
 
 /* ---------- die Kugel ---------- */
@@ -62,7 +70,7 @@ function vcOrb(cv, get) {
 V.voice = m => {
   m.classList.add("voicepg");
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const S = { state: "idle", level: 0, hist: [], paused: false, alive: true, voice: LS.get("lumi-voice") || "Kore", ac: null, mic: null, micAn: null, outAn: null, src: null, rec: null, token: 0, chat: null, ttsOk: true };
+  const S = { state: "idle", level: 0, hist: [], paused: false, alive: true, voice: (VC_VOICES.find(v => v[0] === LS.get("lumi-voice")) || VC_VOICES[0])[0], ac: null, mic: null, micAn: null, outAn: null, src: null, rec: null, token: 0, chat: null, pip: null, pipQ: Promise.resolve() };
   const serverOk = typeof serverAI !== "undefined" && serverAI && typeof CLOUD !== "undefined" && CLOUD.user;
   m.innerHTML = `<div class="vc"><div class="vc-top"><button class="btn ghost small" id="vc-back" type="button">${ic("back")}Lumi AI</button>
       <label class="vc-v"><span>Stimme</span><select id="vc-sel" class="field flat">${VC_VOICES.map(([k, n]) => `<option value="${k}" ${S.voice === k ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>
@@ -122,7 +130,7 @@ V.voice = m => {
   const sentences = t => { const out = []; let cur = ""; const m1 = t.match(/^(.{20,140}?[.!?…])\s+(?=\S)/); if (m1 && t.length > m1[0].length + 20) { out.push(m1[1]); t = t.slice(m1[0].length); } for (const s of t.split(/(?<=[.!?…])\s+/)) { if ((cur + " " + s).trim().length > 230 && cur) { out.push(cur.trim()); cur = s; } else cur = (cur + " " + s).trim(); } if (cur) out.push(cur); return out.length ? out : [t]; };
   async function speak(text, tk) {
     setSt("speaking", "Spreche …"); const parts = sentences(text);
-    const fetchPart = p => S.ttsOk ? vcPost("/api/tts", { text: p, voice: S.voice }).then(async j => { const bin = atob(j.wav), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return await ctx().decodeAudioData(u8.buffer); }).catch(e => { toast(e.limit ? e.message : "Stimme nicht verfügbar – nutze Systemstimme (" + (e.message || "Fehler") + ")"); S.ttsOk = false; return null; }) : Promise.resolve(null);
+    const fetchPart = p => S.pip ? (S.pipQ = S.pipQ.catch(() => {}).then(() => S.pip.predict(p)).then(bl => bl.arrayBuffer()).then(ab => ctx().decodeAudioData(ab))).catch(() => null) : Promise.resolve(null);
     let next = fetchPart(parts[0]);
     for (let i = 0; i < parts.length; i++) {
       if (tk !== S.token || !S.alive) return; const buf = await next; next = i + 1 < parts.length ? fetchPart(parts[i + 1]) : null;
@@ -140,7 +148,10 @@ V.voice = m => {
   /* ---- Bedienung ---- */
   $mic.onclick = () => { ctx().resume?.(); try { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } catch {} if (S.state === "listening") { S.paused = true; interrupt(); setSt("idle", "Pausiert – tippe auf das Mikrofon"); } else { S.paused = false; interrupt(); listen(); } };
   $("#vc-orb", m).onclick = () => { if (S.state === "speaking") { interrupt(); S.paused = false; listen(); } };
-  $("#vc-sel", m).onchange = e => { S.voice = e.target.value; LS.set("lumi-voice", S.voice); S.ttsOk = true; speak("Hallo, so klingt diese Stimme.", ++S.token).then(() => !S.paused && listen()); };
+  const loadVoice = (say) => { S.pip = null; vcPiper(S.voice).then(ses => { if (!S.alive) return; S.pip = ses; say && speak("Hallo, so klingt diese Stimme.", ++S.token).then(() => !S.paused && listen()); }).catch(() => toast("Natürliche Stimme konnte nicht geladen werden – es wird die Systemstimme genutzt.")); };
+  $("#vc-sel", m).onchange = e => { S.voice = e.target.value; LS.set("lumi-voice", S.voice); interrupt(); toast("Stimme wird geladen …"); loadVoice(true); };
+  if (!vcSes[S.voice]) toast("Natürliche Stimme wird einmalig geladen (ca. 60 MB) …");
+  loadVoice(false);
   const leave = () => { S.alive = false; interrupt(); stopOrb(); try { S.mic && S.mic.getTracks().forEach(t => t.stop()); S.ac && S.ac.close(); } catch {} };
   LEAVE.push(leave);
   $("#vc-back", m).onclick = () => go("ai"); $("#vc-end", m).onclick = () => go("ai");
