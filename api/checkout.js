@@ -14,9 +14,9 @@ module.exports = async function handler(req, res) {
     const P = (await L.plans())[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
     const sub = await L.getSubscription(user.id);
     if (L.isPlusRow(sub) && sub.status !== "past_due") return res.status(409).json({ error: "Du hast Lumi Study Pro bereits – verwalte es unter Einstellungen." });
-    const trial = !sub?.stripe_customer_id, base = L.siteUrl(req), customer = sub?.stripe_customer_id, avail = Object.keys(P.opts || {}), cur = avail.length > 1 ? L.currencyFor(req, avail, String(country).slice(0, 2)) : "";
+    const trial = !sub?.stripe_customer_id, base = L.siteUrl(req), customer = sub?.stripe_customer_id, avail = Object.keys(P.opts || {}), cur = avail.length ? L.currencyFor(req, avail, String(country).slice(0, 2)) : "";
     const session = await L.stripe("POST", "/checkout/sessions", {
-      mode: "subscription", line_items: [{ price: P.price, quantity: 1 }],
+      mode: "subscription", line_items: [{ price: (cur && P.ids?.[cur]) || P.price, quantity: 1 }],
       ...(cur ? { currency: cur } : {}),
       managed_payments: { enabled: process.env.STRIPE_MANAGED_PAYMENTS === "off" ? false : true },
       client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),

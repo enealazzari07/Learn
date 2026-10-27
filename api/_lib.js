@@ -17,9 +17,17 @@ async function plans() {
     try {
       const j = await stripe("GET", "/prices", { active: "true", type: "recurring", limit: 50, expand: ["data.product", "data.currency_options"] }), want = process.env.STRIPE_PRODUCT_ID;
       const ok = j.data.filter(p => p.product && typeof p.product === "object" && p.product.active && (want ? p.product.id === want : /lumi\s*(study\s*)?(pro|plus)/i.test(p.product.name || "")));
+      /* Pro Intervall alle passenden Preise einsammeln: entweder je Währung ein eigener Preis oder ein Preis mit currency_options. Der neueste gewinnt je Währung. */
       for (const [k, iv] of [["monthly", "month"], ["yearly", "year"]]) {
-        const p = !out[k].price && ok.filter(x => x.recurring?.interval === iv && x.recurring.interval_count === 1 && x.unit_amount).sort((x, y) => y.created - x.created)[0];
-        if (p) { out[k] = { price: p.id, cents: p.unit_amount, opts: { [p.currency]: p.unit_amount, ...Object.fromEntries(Object.entries(p.currency_options || {}).map(([c, v]) => [c, v.unit_amount])) } }; out.currency = p.currency; }
+        if (out[k].price) continue;
+        const list = ok.filter(x => x.recurring?.interval === iv && x.recurring.interval_count === 1 && x.unit_amount).sort((x, y) => y.created - x.created);
+        if (!list.length) continue;
+        const opts = {}, ids = {};
+        for (const p of list) {
+          const add = (cur, cents) => { if (cents && !(cur in opts)) { opts[cur] = cents; ids[cur] = p.id; } };
+          add(p.currency, p.unit_amount); Object.entries(p.currency_options || {}).forEach(([c, v]) => add(c, v.unit_amount));
+        }
+        out[k] = { price: list[0].id, cents: list[0].unit_amount, opts, ids }; out.currency = list[0].currency;
       }
     } catch (e) { if (priceCache.v) return priceCache.v; }
   }
