@@ -134,3 +134,41 @@ function proPillHtml() {
   if (!isPlus()) return ""; const r = BILL.row, n = daysLeft(r.current_period_end);
   return `<span class="trialpill ${r.cancel_at_period_end ? "end" : ""}">${r.cancel_at_period_end ? `Gekündigt – Zugang bis ${dateDE(r.current_period_end)}` : r.status === "trialing" ? `Testversion endet in ${dIn(n)}` : `Pro aktiv · verlängert am ${dateDE(r.current_period_end)}`}</span>`;
 }
+
+
+/* ===== KI-Verbrauch (Token pro Tag) – Ring wie der Kontext-Ring bei Claude ===== */
+const AIU = { on: false, pro: false, used: 0, limit: 0, reset: "" };
+const aiuNum = n => Math.round(n).toLocaleString("de-CH").replace(/’/g, "’");
+async function aiuLoad() {
+  if (typeof CLOUD === "undefined" || !CLOUD.user) return;
+  try { const r = await fetch("/api/usage", { method: "POST", headers: await authHeader() }); if (!r.ok) return; const j = await r.json(); Object.assign(AIU, { on: !!j.enabled, pro: !!j.pro, used: j.used || 0, limit: j.limit || 0, reset: j.reset || "" }); aiuPaint(); } catch {}
+}
+function aiuSet(u) { if (!u) return; if (u.limit == null) AIU.pro = true; else { AIU.pro = false; AIU.used = u.used; AIU.limit = u.limit; } AIU.on = true; aiuPaint(); }
+const aiuPct = () => AIU.pro || !AIU.limit ? 0 : Math.min(1, AIU.used / AIU.limit);
+function aiuRingHtml() {
+  if (!AIU.on) return "";
+  return `<button type="button" class="aiu" aria-label="Lumi-AI-Verbrauch heute"><svg viewBox="0 0 24 24" width="24" height="24"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="${(aiuPct() * 100).toFixed(1)} 100"/></svg></button>`;
+}
+function aiuPaint() {
+  document.querySelectorAll(".aiu").forEach(b => { const p = b.querySelector(".aiu-p"); if (p) p.setAttribute("stroke-dasharray", (aiuPct() * 100).toFixed(1) + " 100"); b.classList.toggle("hot", aiuPct() >= .85); });
+}
+function aiuMount(host, after) {
+  if (!host) return; host.querySelectorAll(".aiu").forEach(x => x.remove());
+  const t = document.createElement("div"); t.innerHTML = aiuRingHtml(); const b = t.firstChild; if (!b) return;
+  after ? after.before(b) : host.appendChild(b); b.onclick = e => { e.stopPropagation(); aiuPop(b); };
+}
+function aiuPop(btn) {
+  const old = document.querySelector(".aiu-pop"); if (old) { old.remove(); return; }
+  const pct = Math.round(aiuPct() * 100), at = AIU.reset ? new Date(AIU.reset).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" }) : "";
+  const pop = document.createElement("div"); pop.className = "aiu-pop";
+  pop.innerHTML = AIU.pro
+    ? `<b>Lumi AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Mit Lumi Study Pro gibt es kein Tageslimit.</p>`
+    : `<b>Lumi AI heute</b><p class="aiu-big">${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div>
+       <p class="aiu-s">${pct >= 100 ? "Dein Tageslimit ist erreicht." : `${100 - pct} % übrig.`} Zurückgesetzt wird heute um ${at} Uhr.</p>
+       <p class="aiu-s">Gratis: schnelles Lite-Modell, kürzere Antworten, ohne Websuche.</p>
+       ${BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn small aiu-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
+  document.body.appendChild(pop);
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth; pop.style.top = r.bottom + 8 + "px"; pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + "px";
+  const up = pop.querySelector(".aiu-up"); if (up) up.onclick = () => { pop.remove(); plusBuy("monthly"); };
+  setTimeout(() => document.addEventListener("click", function h(e) { if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener("click", h); } }), 0);
+}

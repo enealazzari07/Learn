@@ -355,10 +355,10 @@ V.ai = m => {
   let filter = "";
   const page = () => {
     const cur = chatState();
-    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><span class="aip-logo">${ic("spark")}</span><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span><button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
+    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><span class="aip-logo">${ic("spark")}</span><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span>${aiuRingHtml()}<button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
     aside(); mountChat($("#cbox", m), false); hdr();
     $("#ct", m).onchange = e => { chatState().title = e.target.value.trim() || "Neuer Chat"; save(); aside(); };
-    $("#ci", m).onclick = instrModal; $("#cmob", m).onclick = e => menu(e.currentTarget, [{ label: "Neuer Chat", icon: "plus", fn: () => { newChat(filter); page(); } }, ...D.chats.slice(0, 12).map(c => ({ label: c.title, icon: "note", fn: () => { D.curChat = c.id; page(); } }))]);
+    $("#ci", m).onclick = instrModal; $(".aiu", m) && ($(".aiu", m).onclick = e => { e.stopPropagation(); aiuPop(e.currentTarget); }); aiuLoad().then(() => { const ta = $(".aip-ta", m); if (ta && !$(".aiu", ta)) aiuMount(ta, $("#ci", ta)); }); $("#cmob", m).onclick = e => menu(e.currentTarget, [{ label: "Neuer Chat", icon: "plus", fn: () => { newChat(filter); page(); } }, ...D.chats.slice(0, 12).map(c => ({ label: c.title, icon: "note", fn: () => { D.curChat = c.id; page(); } }))]);
   };
   const hdr = () => { const c = chatState(), p = D.cprojects.find(x => x.id === c.projectId); const e = $("#cpj", m); if (e) e.textContent = p ? p.name : ""; };
   const aside = () => {
@@ -400,14 +400,14 @@ V.ai = m => {
 function mountDock(m) {
   document.getElementById("hdock")?.remove();
   const el = document.createElement("div"); el.id = "hdock"; el.className = "hdock";
-  el.innerHTML = `<div class="hd-bg"></div><div class="hd-in"><div class="hd-top"><button type="button" class="btn small hd-new">${ic("plus")}Neuer Chat</button><button type="button" class="icon-btn hd-x" aria-label="Schließen">${ic("x")}</button></div><div class="chatbox flat" id="hcb"></div></div>`;
+  el.innerHTML = `<div class="hd-bg"></div><div class="hd-in"><div class="hd-top"><button type="button" class="btn small hd-new">${ic("plus")}Neuer Chat</button>${aiuRingHtml()}<button type="button" class="icon-btn hd-x" aria-label="Schließen">${ic("x")}</button></div><div class="chatbox flat" id="hcb"></div></div>`;
   document.body.appendChild(el);
   if (!window.__dockFresh) { window.__dockFresh = true; if (chatMsgs().length) newChat(); }
   const mount = () => { mountChat($("#hcb", el), false); const t = $(".tin", el); t.addEventListener("input", () => tog(true)); $(".t-in", el).addEventListener("submit", () => tog(true), true); };
   const fit = () => { const r0 = m.getBoundingClientRect(), r = { left: r0.left, width: r0.width, top: Math.max(0, r0.top), bottom: Math.min(innerHeight, r0.bottom) }; el.style.setProperty("--dl", r.left + "px"); el.style.setProperty("--dw", r.width + "px"); el.style.setProperty("--gx", (parseFloat(getComputedStyle(m).paddingLeft) || 22) + "px"); el.style.setProperty("--dt", r.top + "px"); const tin = $(".t-in", el), bh = (tin ? tin.offsetHeight : 100) + 24; el.style.setProperty("--dtc", r.bottom - bh + "px"); if (innerWidth > 900) m.style.setProperty("padding-bottom", bh + "px", "important"); el.style.setProperty("--db", innerHeight - r.bottom + "px"); };
   const tog = o => { if (o === el.classList.contains("open")) return; fit(); el.classList.toggle("open", o); document.body.classList.toggle("hd-open2", o); if (!o) { document.activeElement?.blur?.(); $(".msgs", el).scrollTop = 1e9; } else setTimeout(() => { const ms = $(".msgs", el); ms.scrollTop = ms.scrollHeight; }, 60); };
   const key = e => { if (e.key === "Escape" && el.classList.contains("open") && !document.querySelector(".popmenu,.mpop,.modal")) tog(false); };
-  $(".hd-x", el).onclick = () => tog(false);
+  $(".hd-x", el).onclick = () => tog(false); $(".aiu", el) && ($(".aiu", el).onclick = e => { e.stopPropagation(); aiuPop(e.currentTarget); }); aiuLoad().then(() => { const h = $(".hd-top", el); if (h && !$(".aiu", h)) aiuMount(h, $(".hd-x", h)); });
   $(".hd-new", el).onclick = () => { newChat(); mount(); $(".tin", el).focus(); };
   addEventListener("resize", fit); document.addEventListener("keydown", key); mount(); fit(); setTimeout(fit, 300);
   /* folgt dem Raster, wenn die Seitenleiste ein-/ausgeklappt wird (iPad, Drehen, Fenstergröße) */

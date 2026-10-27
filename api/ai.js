@@ -3,7 +3,7 @@
      GEMINI_API_KEY  (kostenloser Key: https://aistudio.google.com/apikey)
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur
      GEMINI_MODEL    (optional, Standard: gemini-flash-lite-latest)
-     AI_FREE_DAILY   (optional: KI-Anfragen pro Tag für Gratis-Konten; leer = unbegrenzt. Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
+     AI_FREE_DAILY_TOKENS (optional: Token pro Tag für Gratis-Konten, Standard 20000; 0 = unbegrenzt. Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
    Mindestens einer der beiden Keys genügt. Die Keys erreichen nie den Browser. */
 const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];
@@ -17,7 +17,7 @@ const MODELS = [
   { id: "groq:openai/gpt-oss-120b", p: "groq", m: "openai/gpt-oss-120b" },
 ];
 const L = require("./_lib");
-const FREE_DAILY = +process.env.AI_FREE_DAILY || 0;
+const FREE_MODELS = ["gemini-flash-lite-latest", "groq:llama-3.1-8b-instant"];
 const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY });
 const available = () => { const h = have(); return MODELS.filter(x => h[x.p]); };
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
@@ -49,7 +49,7 @@ async function callGemini(model, key, { system, messages, max, image, signal, so
   const j = await r.json().catch(() => ({}));
   let text = r.ok ? (j.candidates?.[0]?.content?.parts || []).map(p => p.text || "").join("") : "", src = [];
   if (text && sources) { const c = withCitations(text, j.candidates?.[0]?.groundingMetadata); text = c.text; src = c.sources; }
-  return { status: r.status, ok: r.ok, text, sources: src, error: j.error?.message, blocked: j.promptFeedback?.blockReason };
+  return { status: r.status, ok: r.ok, text, sources: src, error: j.error?.message, blocked: j.promptFeedback?.blockReason, tokens: j.usageMetadata?.totalTokenCount || 0 };
 }
 async function callGroq(model, key, { system, messages, max, temperature = 0.4, signal }) {
   const msgs = [{ role: "system", content: String(system).slice(0, 30000) || "You are a helpful study assistant." }, ...messages.slice(-24).map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content ?? "").slice(0, 60000) || " " }))];
@@ -60,27 +60,33 @@ async function callGroq(model, key, { system, messages, max, temperature = 0.4, 
   const j = await r.json().catch(() => ({}));
   let text = r.ok ? String(j.choices?.[0]?.message?.content || "") : "";
   text = text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-  return { status: r.status, ok: r.ok, text, error: j.error?.message };
+  return { status: r.status, ok: r.ok, text, error: j.error?.message, tokens: j.usage?.total_tokens || 0 };
 }
 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   const h = have();
-  if (req.method === "GET") return res.status(200).json({ ok: true, freeDaily: FREE_DAILY, provider: h.gemini ? "gemini" : "groq", model: h.gemini ? MODEL() : "groq", configured: h.gemini || h.groq, gemini: h.gemini, groq: h.groq, models: available().map(x => x.id) });
+  if (req.method === "GET") return res.status(200).json({ ok: true, freeTokens: L.FREE_TOKENS, provider: h.gemini ? "gemini" : "groq", model: h.gemini ? MODEL() : "groq", configured: h.gemini || h.groq, gemini: h.gemini, groq: h.groq, models: available().map(x => x.id) });
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   if (!h.gemini && !h.groq) return res.status(503).json({ error: "Weder GEMINI_API_KEY noch GROQ_API_KEY ist in Vercel gesetzt." });
   if (!sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
-  const { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false, bg = false } = body || {};
+  let { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false, bg = false } = body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "Keine Nachricht" });
-  if (FREE_DAILY && !bg) {   // optional: AI_FREE_DAILY=30 → Gratis-Konten haben 30 KI-Anfragen pro Tag, Lumi Study Pro unbegrenzt (Hintergrund-Korrektur zählt nicht)
+  /* Gratis-Konten: Tagesbudget in Token, eingeschränktes Modell, keine Websuche. Lumi Study Pro: unbegrenzt. Ohne Service-Key oder SQL bleibt alles offen. */
+  let acct = null;
+  if (L.FREE_TOKENS && !bg) {
     try {
       const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte melde dich an, um Lumi AI zu nutzen." });
-      if (!(await L.isProLive(user.id)) && !(await L.sb("POST", "rpc/lumi_ai_bump", { p_user: user.id, p_limit: FREE_DAILY })))
-        return res.status(429).json({ error: `Tageslimit erreicht (${FREE_DAILY} KI-Anfragen). Mit Lumi Study Pro nutzt du Lumi AI unbegrenzt.`, limit: true });
-    } catch (e) { return res.status(503).json({ error: "Limit-Prüfung nicht erreichbar: " + e.message }); }
+      const pro = await L.isProLive(user.id), used = pro ? 0 : await L.aiUsed(user.id);
+      if (used === null) acct = null;
+      else { acct = { id: user.id, pro, used }; if (!pro && used >= L.FREE_TOKENS) return res.status(429).json({ error: "Dein Tageslimit ist erreicht. Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.", limit: true, usage: { used, limit: L.FREE_TOKENS } }); }
+    } catch (e) { acct = null; }
   }
+  const free = !!acct && !acct.pro;
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
+
+  if (free) { sources = false; max = Math.min(+max || 1024, 800); wanted = FREE_MODELS.includes(wanted) ? wanted : FREE_MODELS[0]; }
 
   /* Reihenfolge: gewünschtes Modell → Rest des Anbieters → anderer Anbieter */
   const want = MODELS.find(x => x.id === wanted && h[x.p]);
@@ -88,6 +94,7 @@ module.exports = async function handler(req, res) {
   const groqList = h.groq ? MODELS.filter(x => x.p === "groq") : [];
   let cands = [want, ...(want?.p === "groq" ? [...groqList, ...geminiList] : [...geminiList, ...groqList])].filter(Boolean);
   if (image || (sources && h.gemini && want?.p !== "groq")) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
+  if (free) cands = cands.filter(c => FREE_MODELS.includes(c.id) || c.id === "gemini-2.5-flash-lite");
   const seen = new Set(); cands = cands.filter(c => !seen.has(c.id) && seen.add(c.id));
   if (!cands.length) return res.status(422).json({ error: "Für Bilder wird GEMINI_API_KEY benötigt." });
 
@@ -98,7 +105,11 @@ module.exports = async function handler(req, res) {
       const args = { system, messages, max, image, sources: !!sources, signal: ctl.signal, temperature: typeof temperature === "number" ? Math.max(0, Math.min(1, temperature)) : undefined };
       const out = c.p === "gemini" ? await callGemini(c.m, process.env.GEMINI_API_KEY, args) : await callGroq(c.m, process.env.GROQ_API_KEY, args);
       last = { ...out, c };
-      if (out.ok && out.text) return res.status(200).json({ text: out.text, model: c.id, sources: out.sources || [] });
+      if (out.ok && out.text) {
+        let usage = null;
+        if (acct) { const t = out.tokens || Math.ceil((JSON.stringify(messages).length + out.text.length) / 4); const used = await L.aiAdd(acct.id, t); usage = { used: acct.pro ? null : (used ?? acct.used + t), limit: acct.pro ? null : L.FREE_TOKENS }; }
+        return res.status(200).json({ text: out.text, model: c.id, sources: out.sources || [], usage });
+      }
       if (out.ok && !out.text) continue;                                // leere Antwort → nächstes Modell
       if (![404, 429, 500, 502, 503].includes(out.status)) break;      // echter Fehler (z. B. 400/401) → abbrechen
     }

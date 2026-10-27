@@ -145,4 +145,9 @@ async function liveSubscription(uid, { fresh = false, withInvoices = false } = {
 const isProLive = async uid => { try { const s = await liveSubscription(uid); return !!s && ACTIVE.includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5); } catch { return false; } };
 const dropSubCache = uid => subCache.delete(uid);
 
-module.exports = { liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+/* KI-Tagesbudget (Token) für Gratis-Konten. Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
+const FREE_TOKENS = process.env.AI_FREE_DAILY_TOKENS === undefined || process.env.AI_FREE_DAILY_TOKENS === "" ? 20000 : +process.env.AI_FREE_DAILY_TOKENS || 0;
+const aiUsed = async uid => { try { const n = await sb("POST", "rpc/lumi_ai_tokens", { p_user: uid }); return typeof n === "number" ? n : +n || 0; } catch { return null; } };
+const aiAdd = async (uid, t) => { try { const n = await sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: Math.max(0, Math.round(t)) }); return typeof n === "number" ? n : +n || null; } catch { return null; } };
+
+module.exports = { FREE_TOKENS, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };

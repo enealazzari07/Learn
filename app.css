@@ -3207,3 +3207,59 @@ body.hed-open{overflow:hidden}
 .gsc em{width:74px;height:7px;border-radius:99px;background:linear-gradient(90deg,#e5484d,#f59e0b,#0e9f6e)}
 .obx-pro-h img{border-radius:9px}
 @media (max-width:560px){.obx-feats{grid-template-columns:1fr}.obx-hero{height:140px}.obx-scales button{flex-direction:column;align-items:flex-start;gap:8px}.gsc em{width:110px}}
+
+/* ===== KI-Verbrauchsring ===== */
+.aiu{display:grid;place-items:center;width:34px;height:34px;border:0;background:none;border-radius:50%;cursor:pointer;color:var(--ink,#111);flex:none;transition:background .15s}
+.aiu:hover{background:rgba(0,0,0,.06)}
+.aiu svg{transform:rotate(-90deg);overflow:visible}
+.aiu circle{fill:none;stroke-width:2.6}
+.aiu-t{stroke:currentColor;opacity:.16}
+.aiu-p{stroke:currentColor;stroke-linecap:round;transition:stroke-dasharray .6s cubic-bezier(.2,.8,.2,1)}
+.aiu.hot .aiu-p{stroke-width:3.2}
+.aiu-pop{position:fixed;z-index:400;width:280px;padding:16px 18px;border-radius:18px;background:#fff;color:#111;box-shadow:0 18px 50px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.06);animation:aiuIn .18s ease}
+@keyframes aiuIn{from{opacity:0;transform:translateY(-4px) scale(.98)}to{opacity:1;transform:none}}
+.aiu-pop b{font-size:13px;color:#666;font-weight:600}
+.aiu-big{margin:6px 0 10px;font-size:24px;font-weight:700;letter-spacing:-.03em}
+.aiu-big span{font-size:13px;font-weight:500;color:#777;letter-spacing:0}
+.aiu-bar{height:6px;border-radius:99px;background:#eee;overflow:hidden;margin-bottom:10px}
+.aiu-bar i{display:block;height:100%;background:#111;border-radius:99px}
+.aiu-s{margin:0 0 8px;font-size:12.5px;line-height:1.45;color:#666}
+.aiu-up{margin-top:6px;width:100%;justify-content:center}
+.hd-top .aiu{margin-left:auto;margin-right:2px}
+.aip-ta .aiu{margin-right:4px}
+:root[data-theme="dark"] .aiu:hover{background:rgba(255,255,255,.1)}
+:root[data-theme="dark"] .aiu-pop{background:#1c1c1e;color:#f2f2f2;box-shadow:0 18px 50px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.1)}
+:root[data-theme="dark"] .aiu-bar{background:#333}:root[data-theme="dark"] .aiu-bar i{background:#f2f2f2}
+:root[data-theme="dark"] .aiu-big span,:root[data-theme="dark"] .aiu-s,:root[data-theme="dark"] .aiu-pop b{color:#aaa}
+
+/* ===== Abschluss-Seite nach dem Onboarding ===== */
+.wsp{position:fixed;inset:0;z-index:600;display:grid;place-items:center;overflow:auto;padding:24px 16px;background:#f3f3f4;opacity:0;transition:opacity .4s ease}
+.wsp.on{opacity:1}
+.wsp-in{width:min(520px,100%);background:#fff;border-radius:28px;padding:36px 32px 28px;box-shadow:0 30px 80px rgba(0,0,0,.08);text-align:center;transform:translateY(16px) scale(.98);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.wsp.on .wsp-in{transform:none}
+.wsp-ck{display:block;margin:0 auto 18px;transform:rotate(-90deg)}
+.wsp-c,.wsp-v{fill:none;stroke:#111;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:100;stroke-dashoffset:100}
+.wsp-v{transform:rotate(90deg);transform-origin:48px 48px}
+.wsp.on .wsp-c{animation:wspDraw .9s .25s cubic-bezier(.65,0,.35,1) forwards}
+.wsp.on .wsp-v{animation:wspDraw .5s 1s ease-out forwards}
+@keyframes wspDraw{to{stroke-dashoffset:0}}
+.wsp h1,.wsp-s,.wsp-card,.wsp-act{opacity:0;transform:translateY(12px)}
+.wsp.on h1{animation:wspUp .6s 1.2s ease forwards}.wsp.on .wsp-s{animation:wspUp .6s 1.35s ease forwards}
+.wsp.on .wsp-card{animation:wspUp .6s 1.5s ease forwards}.wsp.on .wsp-act{animation:wspUp .6s 1.7s ease forwards}
+@keyframes wspUp{to{opacity:1;transform:none}}
+.wsp h1{margin:0 0 6px;font-size:30px;letter-spacing:-.04em}
+.wsp-s{margin:0 0 20px;color:#666;font-size:15px}
+.wsp-card{text-align:left;border-radius:20px;background:#f6f6f7;padding:6px 14px}
+.wsp-row{display:flex;gap:14px;align-items:flex-start;padding:13px 2px}
+.wsp-row+.wsp-row{border-top:1px solid #e6e6e8}
+.wsp-row b{display:block;font-size:14.5px}.wsp-row small{display:block;margin-top:2px;font-size:12.5px;line-height:1.45;color:#777}
+.wsp-ring{flex:none;width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:#fff;color:#111}
+.wsp-ring svg{transform:rotate(-90deg)}.wsp-ring circle{fill:none;stroke-width:2.8}
+.wsp-rp{stroke:currentColor;stroke-linecap:round;stroke-dasharray:0 100}
+.wsp.on .wsp-rp{animation:wspRing 1.6s 1.8s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes wspRing{to{stroke-dasharray:28 100}}
+.wsp-act{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){.wsp *{animation-duration:.01s!important;animation-delay:0s!important}}
+.obx-sec{background:#fff;color:#111;border:1px solid #d9d9dc;border-radius:999px;padding:15px 24px;font-size:15px;font-weight:600;cursor:pointer}
+.obx-sec:hover{background:#f6f6f7}
+.obx-ico image{filter:invert(1)}

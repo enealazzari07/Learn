@@ -22,3 +22,19 @@ begin
   return used is not null;   -- false = Tageslimit erreicht
 end $$;
 revoke all on function public.lumi_ai_bump(uuid, integer) from public, anon, authenticated;
+
+-- Token-Budget pro Tag (Gratis: AI_FREE_DAILY_TOKENS, Standard 20000). Zusätzlich einmalig ausführen:
+alter table public.lumi_ai_usage add column if not exists tokens bigint not null default 0;
+
+create or replace function public.lumi_ai_tokens(p_user uuid)
+returns bigint language sql security definer set search_path = public as $$
+  select coalesce((select tokens from lumi_ai_usage where user_id = p_user and day = current_date), 0)
+$$;
+create or replace function public.lumi_ai_add(p_user uuid, p_tokens bigint)
+returns bigint language sql security definer set search_path = public as $$
+  insert into lumi_ai_usage(user_id, day, n, tokens) values (p_user, current_date, 1, p_tokens)
+  on conflict (user_id, day) do update set n = lumi_ai_usage.n + 1, tokens = lumi_ai_usage.tokens + p_tokens
+  returning tokens
+$$;
+revoke all on function public.lumi_ai_tokens(uuid) from public, anon, authenticated;
+revoke all on function public.lumi_ai_add(uuid, bigint) from public, anon, authenticated;

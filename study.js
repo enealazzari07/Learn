@@ -26,6 +26,20 @@ const OB_SCALES = [   // Notensystem in einfachen Worten: links schlecht, rechts
   ["pct", "Prozent / USA", "0 bis 100 % – 100 ist am besten", "0", "100 %"]];
 const OB_FEATURES = [["note", "Notizen & Zeichnen", "Formeln, Tabellen, Stift und Skizzen"], ["cards", "Karteikarten & Quiz", "Lernen mit klugen Wiederholungen"], ["cal", "Planer & Prüfungen", "Termine, Aufgaben, Stundenplan"], ["award", "Noten", "Schnitt und Zielrechner für jedes Fach"], ["timer", "Fokus-Timer", "Konzentriert lernen, Serie halten"], ["spark", "Lumi AI", "Erklärt, fragt ab und fasst zusammen"]];
 const obScaleFor = cc => cc === "DE" ? "de" : cc === "AT" ? "at" : cc === "US" || cc === "CA" ? "pct" : "ch";
+/* Abschluss-Seite nach dem Onboarding: Animation + was der Gratis-Plan enthält (KI mit Tageslimit) */
+function welcomeSplash(name, canBuy) {
+  const lim = (typeof AIU !== "undefined" && AIU.limit) || 20000, first = (name || "").trim().split(/\s+/)[0];
+  const el = document.createElement("div"); el.className = "wsp";
+  el.innerHTML = `<div class="wsp-in"><svg class="wsp-ck" viewBox="0 0 96 96" width="96" height="96"><circle class="wsp-c" cx="48" cy="48" r="42" pathLength="100"/><path class="wsp-v" d="M30 50l13 13 24-28" pathLength="100"/></svg>
+    <h1>Alles bereit${first ? ", " + esc(first) : ""}.</h1><p class="wsp-s">Dein Lumi ist eingerichtet. Das ist in deinem Gratis-Konto enthalten:</p>
+    <div class="wsp-card"><div class="wsp-row"><span class="wsp-ring"><svg viewBox="0 0 24 24" width="30" height="30"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p wsp-rp" cx="12" cy="12" r="9" pathLength="100"/></svg></span><div><b>Lumi AI · ${aiuNum(lim)} Token pro Tag</b><small>Schnelles Lite-Modell, kürzere Antworten, ohne Websuche. Deinen Verbrauch siehst du im Ring.</small></div></div>
+      <div class="wsp-row"><span class="obx-ico">${ic("note")}</span><div><b>Alles andere ohne Limit</b><small>Notizen, Karteikarten, Planer, Prüfungen, Noten und Fokus-Timer.</small></div></div>
+      <div class="wsp-row"><span class="obx-ico">${ic("spark")}</span><div><b>Mehr mit Lumi Study Pro</b><small>Lumi AI ohne Tageslimit, stärkere Modelle und Websuche.</small></div></div></div>
+    <div class="wsp-act">${canBuy ? `<button class="obx-sec" id="wsp-pro" type="button">14 Tage Pro gratis testen</button>` : ""}<button class="obx-go" id="wsp-go" type="button">Los geht’s</button></div></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  const close = () => { el.classList.remove("on"); setTimeout(() => el.remove(), 350); };
+  $("#wsp-go", el).onclick = close; const p = $("#wsp-pro", el); if (p) p.onclick = () => { close(); plusBuy("monthly"); };
+}
 function onboarding() {
   const O = { step: 0, country: (D.profile.country || (typeof proCountry === "function" ? proCountry() : "")) || "", name: D.profile.name || (CLOUD.user?.email || "").split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, c => c.toUpperCase()), level: D.profile.level || "school", goal: D.profile.goalMin || 45, picked: new Set(), scale: "", scaleSet: false };
   O.scale = obScaleFor(O.country);
@@ -40,8 +54,8 @@ function onboarding() {
     const wid = uid(); D.docs.unshift({ id: wid, type: "note", title: "Willkommen bei Lumi", subjectId: "", folderId: "", paper: "white", updated: Date.now(), created: Date.now(), text: "" });
     const w = `<h1>Willkommen bei Lumi</h1><p>Das ist deine erste Notiz. Probiere die Werkzeuge oben aus:</p><ul class="chk"><li><input type="checkbox"> Text <b>fett</b>, <i>kursiv</i> oder <mark>markiert</mark> machen</li><li><input type="checkbox"> Eine Tabelle oder ein Bild einfügen</li><li><input type="checkbox"> Mit <b>Lumi AI</b> eine Zusammenfassung oder Karteikarten erstellen</li><li><input type="checkbox"> Oben rechts auf <b>Zeichnen</b> wechseln und Skizzen direkt in die Notiz malen</li><li><input type="checkbox"> Im <b>Planer</b> Hausaufgaben und Prüfungen eintragen</li></ul><p>Tipp: Mit Strg/Cmd + K findest du alles blitzschnell.</p>`;
     KV.set("html:" + wid, w); D.docs[0].text = htmlToText(w);
-    save(); try { proApply(); } catch {} root.remove(); toast("Alles bereit!"); go("today"); buildShell(true);
-    if (buy) setTimeout(() => plusBuy("monthly"), 400);
+    save(); try { proApply(); } catch {} root.remove(); go("today"); buildShell(true);
+    if (buy) { toast("Alles bereit!"); setTimeout(() => plusBuy("monthly"), 400); } else welcomeSplash(D.profile.name, can);
   };
   const hint = () => O.country && priceHint(O.country) ? `Lumi Study Pro: <b>${priceHint(O.country)}</b> nach ${BILL.cfg.trial || 14} Tagen gratis` : "&nbsp;";
   const V = {

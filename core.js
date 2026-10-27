@@ -263,6 +263,7 @@ async function aiCore(prompt, { system = "", history = [], max = 1500, image = n
     try {
       const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ ...(bg ? { bg: true } : {}), system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
+      if (j.usage && typeof aiuSet === "function") aiuSet(j.usage);
       if (!r.ok) throw new Error(r.status === 429 && !j.limit ? "Das kostenlose Lumi-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
