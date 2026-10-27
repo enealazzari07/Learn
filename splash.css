@@ -17,3 +17,9 @@
 #splash .sp-word span{display:inline-block;opacity:0}
 #splash.out{pointer-events:none}
 @media(max-width:560px){#splash .sp-stage{transform:scale(.72)}#splash .sp-logo{width:68px;height:68px}#splash .sp-word{font-size:54px}}
+/* Login-Variante: Animation nur auf der linken Seite, rechts das Bild */
+#splash.lg{display:block;background:#fff}
+#splash.lg .sp-stage{position:absolute;left:calc(5 / 11 * 50%);top:50%}
+#splash .sp-hero{display:none}
+#splash.lg .sp-hero{display:block;position:absolute;top:14px;bottom:14px;right:14px;width:calc(6 / 11 * 100% - 14px);border-radius:34px;background:url(login-hero.webp) center/cover no-repeat #ddd}
+html[data-theme="dark"] #splash.lg .sp-hero{filter:invert(1) hue-rotate(180deg)}

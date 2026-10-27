@@ -3739,3 +3739,6 @@ html[data-theme="dark"] :is(.fold,.f3d,.fsvg,.ffront,.drc,.plw-b){filter:none!im
 html[data-theme="dark"] .qa-btn,html[data-theme="dark"] .qa-s{border:1px solid #e3e3e7}
 html[data-theme="dark"] .settabs.sdock{border-color:#e6e6ea}
 html[data-theme="dark"] .pgrid{opacity:.35}
+/* Dunkelmodus Login: nur das Bild behält seine Farben, der Rahmen darum wird dunkel */
+html[data-theme="dark"] .authhero{filter:none!important;background:#fff}
+html[data-theme="dark"] .authhero::before{filter:invert(1) hue-rotate(180deg)}

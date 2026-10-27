@@ -4,6 +4,9 @@
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, root = document.createElement("div");
   root.id = "splash"; root.setAttribute("aria-hidden", "true");
   root.innerHTML = '<div class="sp-stage"></div>'; document.body.appendChild(root);
+  /* Ohne Anmeldung folgt die Login-Seite: Animation nur links, rechts steht schon das Bild */
+  var guest = false; try { guest = innerWidth > 860 && /^#\/app/.test(location.hash) && !Object.keys(localStorage).some(function (k) { return /^sb-.*-auth-token$/.test(k) && localStorage.getItem(k); }); } catch (e) {}
+  if (guest) { root.classList.add("lg"); var hero = document.createElement("div"); hero.className = "sp-hero"; root.appendChild(hero); }
   var st = root.firstChild, done = false, loaded = document.readyState === "complete";
   addEventListener("load", function () { loaded = true; });
   var G = ['<path d="M5 12.5l4.5 4.5L19 7.5"/>', '<path d="M12 5v14M5 12h14"/>', '<path d="M9 4L7 20M17 4l-2 16M4 9h16M3 15h16"/>', '<path d="M15 4L9 20"/>', '<path d="M5 8h14M5 12h14M5 16h9"/>', '<path d="M12 4l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 16.4 7 19.2l1.2-5.6L4 9.8l5.6-.6z"/>', '<circle cx="12" cy="12" r="3.2"/>', '<path d="M7 7h4v4H7zM13 13h4v4h-4z"/>'];
