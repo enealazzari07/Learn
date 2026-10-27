@@ -3563,3 +3563,9 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .nav-f-e{margin:4px 10px;font-size:12.5px;color:#9a9aa3}
 .shell.collapsed .nav-chev,.shell.collapsed .nav-tree{display:none}
 @media(max-width:900px){.nav-chev,.nav-tree{display:none}}
+/* Dateiliste: alle Spalten exakt gleich mittig in der Zeile */
+.dtr>span{display:flex!important;align-items:center;align-self:center!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;position:static!important;transform:none!important;line-height:1.2;min-width:0}
+.dtr .dsj{gap:7px}
+.dtr .dt2 .tag{display:block;line-height:1.2}
+.dtr .tag{position:static!important;transform:none!important;inset:auto!important;box-shadow:none!important;rotate:none!important;animation:none!important;margin:0!important}
+.dtr>span{justify-content:flex-start!important;text-align:left!important}
