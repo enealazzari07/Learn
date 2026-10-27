@@ -26,15 +26,15 @@ const OB_SCALES = [   // Notensystem in einfachen Worten: links schlecht, rechts
   ["pct", "Prozent / USA", "0 bis 100 % – 100 ist am besten", "0", "100 %"]];
 const OB_FEATURES = [["note", "Notizen & Zeichnen", "Formeln, Tabellen, Stift und Skizzen"], ["cards", "Karteikarten & Quiz", "Lernen mit klugen Wiederholungen"], ["cal", "Planer & Prüfungen", "Termine, Aufgaben, Stundenplan"], ["award", "Noten", "Schnitt und Zielrechner für jedes Fach"], ["timer", "Fokus-Timer", "Konzentriert lernen, Serie halten"], ["spark", "Lumi AI", "Erklärt, fragt ab und fasst zusammen"]];
 const obScaleFor = cc => cc === "DE" ? "de" : cc === "AT" ? "at" : cc === "US" || cc === "CA" ? "pct" : "ch";
-/* Abschluss-Seite nach dem Onboarding: Animation + was der Gratis-Plan enthält (KI mit Tageslimit) */
+/* Abschluss-Seite nach dem Onboarding: Animation + was der Gratis-Plan enthält (KI mit Limit) */
 function welcomeSplash(name, canBuy) {
-  const lim = (typeof AIU !== "undefined" && AIU.limit) || 20000, first = (name || "").trim().split(/\s+/)[0];
+  const lim = (typeof AIU !== "undefined" && AIU.limit) || 10000, first = (name || "").trim().split(/\s+/)[0];
   const el = document.createElement("div"); el.className = "wsp";
   el.innerHTML = `<div class="wsp-in"><svg class="wsp-ck" viewBox="0 0 96 96" width="96" height="96"><circle class="wsp-c" cx="48" cy="48" r="42" pathLength="100"/><path class="wsp-v" d="M30 50l13 13 24-28" pathLength="100"/></svg>
     <h1>Alles bereit${first ? ", " + esc(first) : ""}.</h1><p class="wsp-s">Dein Lumi ist eingerichtet. Das ist in deinem Gratis-Konto enthalten:</p>
-    <div class="wsp-card"><div class="wsp-row"><span class="wsp-ring"><svg viewBox="0 0 24 24" width="30" height="30"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p wsp-rp" cx="12" cy="12" r="9" pathLength="100"/></svg></span><div><b>Lumi AI · ${aiuNum(lim)} Token pro Tag</b><small>Schnelles Lite-Modell, kürzere Antworten, ohne Websuche. Deinen Verbrauch siehst du im Ring.</small></div></div>
+    <div class="wsp-card"><div class="wsp-row"><span class="wsp-ring"><svg viewBox="0 0 24 24" width="30" height="30"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p wsp-rp" cx="12" cy="12" r="9" pathLength="100"/></svg></span><div><b>Lumi AI · ${aiuNum(lim)} Token alle ${(typeof AIU !== "undefined" && AIU.hours) || 5} Stunden</b><small>Alle Modelle nutzbar: Gemini Pro zählt 5×, Gemini 1×, Groq 0,5×. Deinen Verbrauch siehst du im Ring.</small></div></div>
       <div class="wsp-row"><span class="obx-ico">${ic("note")}</span><div><b>Alles andere ohne Limit</b><small>Notizen, Karteikarten, Planer, Prüfungen, Noten und Fokus-Timer.</small></div></div>
-      <div class="wsp-row"><span class="obx-ico">${ic("spark")}</span><div><b>Mehr mit Lumi Study Pro</b><small>Lumi AI ohne Tageslimit, stärkere Modelle und Websuche.</small></div></div></div>
+      <div class="wsp-row"><span class="obx-ico">${ic("spark")}</span><div><b>Mehr mit Lumi Study Pro</b><small>Lumi AI ohne Limit und längere Antworten.</small></div></div></div>
     <div class="wsp-act">${canBuy ? `<button class="obx-sec" id="wsp-pro" type="button">14 Tage Pro gratis testen</button>` : ""}<button class="obx-go" id="wsp-go" type="button">Los geht’s</button></div></div>`;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
   const close = () => { el.classList.remove("on"); setTimeout(() => el.remove(), 350); };
@@ -77,9 +77,9 @@ function onboarding() {
       <div class="obx-chips wrap" id="ob-s">${PRESETS[O.level].map(x => `<button data-s="${esc(x)}" class="${O.picked.has(x) ? "on" : ""}">${esc(x)}</button>`).join("")}</div>
       ${msReady() ? `<button class="obx-ms ms-btn" id="ob-ms" type="button">${msLogoSvg()}<span>Mit Microsoft anmelden (optional)</span></button>` : ""}`,
     pro: () => `<span class="obx-eyebrow">Lumi Study Pro</span><h1>${can ? `${trial} Tage gratis testen` : "Mehr Lumi AI mit Pro"}</h1>
-      <p class="obx-sub">${can ? `Teste alles ${trial} Tage kostenlos. Danach ${priceStr()} pro Monat – jederzeit kündbar, vor Ablauf erinnern wir dich.` : "Lumi Study Pro schaltet Lumi AI ohne Tageslimit frei. Es ist bald verfügbar."}</p>
+      <p class="obx-sub">${can ? `Teste alles ${trial} Tage kostenlos. Danach ${priceStr()} pro Monat – jederzeit kündbar, vor Ablauf erinnern wir dich.` : "Lumi Study Pro schaltet Lumi AI ohne Limit frei. Es ist bald verfügbar."}</p>
       <div class="obx-pro"><div class="obx-pro-h"><img src="logo.png" alt="" width="34" height="34"><b>Lumi Study Pro</b><em>${can ? `${trial} Tage gratis` : "Bald verfügbar"}</em></div>
-        <ul>${["Lumi AI ohne Tageslimit", "Alle kommenden Pro-Funktionen", "Jederzeit kündbar"].map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>
+        <ul>${["Lumi AI ohne Limit", "Alle kommenden Pro-Funktionen", "Jederzeit kündbar"].map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>
         ${can ? `<p class="obx-fine">${trial} Tage kostenlos, danach ${priceStr()} / Monat inkl. MwSt.</p>` : ""}</div>`,
   };
   const draw = () => {

@@ -23,18 +23,20 @@ begin
 end $$;
 revoke all on function public.lumi_ai_bump(uuid, integer) from public, anon, authenticated;
 
--- Token-Budget pro Tag (Gratis: AI_FREE_DAILY_TOKENS, Standard 20000). Zusätzlich einmalig ausführen:
-alter table public.lumi_ai_usage add column if not exists tokens bigint not null default 0;
-
-create or replace function public.lumi_ai_tokens(p_user uuid)
-returns bigint language sql security definer set search_path = public as $$
-  select coalesce((select tokens from lumi_ai_usage where user_id = p_user and day = current_date), 0)
+-- Token-Budget pro Zeitfenster (Standard 5 Stunden; Länge und Budget stellst du in Vercel ein: AI_WINDOW_HOURS, AI_FREE_WINDOW_TOKENS). Einmalig ausführen:
+drop function if exists public.lumi_ai_tokens(uuid);
+drop function if exists public.lumi_ai_add(uuid, bigint);
+create table if not exists public.lumi_ai_window (user_id uuid primary key references auth.users(id) on delete cascade, started timestamptz not null default now(), tokens bigint not null default 0);
+alter table public.lumi_ai_window enable row level security;
+create or replace function public.lumi_ai_tokens(p_user uuid, p_hours integer) returns jsonb language sql security definer set search_path = public as $$
+  select coalesce((select case when now() - started >= make_interval(hours => p_hours) then jsonb_build_object('tokens', 0, 'started', null) else jsonb_build_object('tokens', tokens, 'started', started) end from lumi_ai_window where user_id = p_user), jsonb_build_object('tokens', 0, 'started', null))
 $$;
-create or replace function public.lumi_ai_add(p_user uuid, p_tokens bigint)
-returns bigint language sql security definer set search_path = public as $$
-  insert into lumi_ai_usage(user_id, day, n, tokens) values (p_user, current_date, 1, p_tokens)
-  on conflict (user_id, day) do update set n = lumi_ai_usage.n + 1, tokens = lumi_ai_usage.tokens + p_tokens
-  returning tokens
+create or replace function public.lumi_ai_add(p_user uuid, p_tokens bigint, p_hours integer) returns jsonb language sql security definer set search_path = public as $$
+  insert into lumi_ai_window(user_id, started, tokens) values (p_user, now(), p_tokens)
+  on conflict (user_id) do update set
+    started = case when now() - lumi_ai_window.started >= make_interval(hours => p_hours) then now() else lumi_ai_window.started end,
+    tokens = case when now() - lumi_ai_window.started >= make_interval(hours => p_hours) then p_tokens else lumi_ai_window.tokens + p_tokens end
+  returning jsonb_build_object('tokens', tokens, 'started', started)
 $$;
-revoke all on function public.lumi_ai_tokens(uuid) from public, anon, authenticated;
-revoke all on function public.lumi_ai_add(uuid, bigint) from public, anon, authenticated;
+revoke all on function public.lumi_ai_tokens(uuid, integer) from public, anon, authenticated;
+revoke all on function public.lumi_ai_add(uuid, bigint, integer) from public, anon, authenticated;

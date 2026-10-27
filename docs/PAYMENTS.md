@@ -37,7 +37,8 @@ Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in St
 | `STRIPE_API_VERSION` | optional, Standard `2025-03-31.basil` |
 | `STRIPE_MANAGED_PAYMENTS` | `off` schaltet Managed Payments für Tests ab |
 | `PRO_TRIAL_DAYS` | Testversion in Tagen, Standard `14` |
-| `AI_FREE_DAILY` | optional: KI-Anfragen pro Tag für Gratis-Konten (z. B. `30`); braucht `SUPABASE_SERVICE_ROLE_KEY` und `supabase/billing.sql` (nur der Tageszähler) |
+| `AI_FREE_WINDOW_TOKENS` | KI-Token pro Zeitfenster für Gratis-Konten (Standard `10000`, `0` = unbegrenzt) |
+| `AI_WINDOW_HOURS` | Länge des Fensters in Stunden (Standard `5`; startet mit der ersten Anfrage); beide brauchen `SUPABASE_SERVICE_ROLE_KEY` und `supabase/billing.sql` |
 
 Prüfen: `https://DEINE-DOMAIN/api/config` muss `"plus":{"enabled":true,…}` mit den drei Währungen unter `opts.monthly` zeigen.
 Testkauf mit `4242 4242 4242 4242`. Für Live: Live-Key, Produkt und Preise im Livemodus neu anlegen.

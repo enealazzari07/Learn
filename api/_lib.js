@@ -145,9 +145,12 @@ async function liveSubscription(uid, { fresh = false, withInvoices = false } = {
 const isProLive = async uid => { try { const s = await liveSubscription(uid); return !!s && ACTIVE.includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5); } catch { return false; } };
 const dropSubCache = uid => subCache.delete(uid);
 
-/* KI-Tagesbudget (Token) für Gratis-Konten. Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
-const FREE_TOKENS = process.env.AI_FREE_DAILY_TOKENS === undefined || process.env.AI_FREE_DAILY_TOKENS === "" ? 20000 : +process.env.AI_FREE_DAILY_TOKENS || 0;
-const aiUsed = async uid => { try { const n = await sb("POST", "rpc/lumi_ai_tokens", { p_user: uid }); return typeof n === "number" ? n : +n || 0; } catch { return null; } };
-const aiAdd = async (uid, t) => { try { const n = await sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: Math.max(0, Math.round(t)) }); return typeof n === "number" ? n : +n || null; } catch { return null; } };
+/* KI-Budget (Token) für Gratis-Konten pro Zeitfenster (Standard 5 Stunden, wie bei Claude): das Fenster startet mit der ersten Anfrage und endet nach AI_WINDOW_HOURS.
+   AI_FREE_WINDOW_TOKENS = Token pro Fenster (Standard 10000, 0 = unbegrenzt). Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
+const num = (v, d) => v === undefined || v === "" ? d : (+v || 0);
+const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 10000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 5)));
+const win = j => j && typeof j === "object" ? { used: +j.tokens || 0, reset: j.started ? new Date(new Date(j.started).getTime() + WINDOW_H * 36e5).toISOString() : null } : null;
+const aiUsed = async uid => { try { return win(await sb("POST", "rpc/lumi_ai_tokens", { p_user: uid, p_hours: WINDOW_H })); } catch { return null; } };
+const aiAdd = async (uid, t) => { try { return win(await sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: Math.max(0, Math.round(t)), p_hours: WINDOW_H })); } catch { return null; } };
 
-module.exports = { FREE_TOKENS, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+module.exports = { FREE_TOKENS, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };

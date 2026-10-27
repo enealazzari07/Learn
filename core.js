@@ -247,11 +247,11 @@ const swissOn = () => true;   // Lumi ist für die Schweiz gemacht
 const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
 const AI_MODELS = [
-  ["gemini-flash-lite-latest", "Lite", "Schnell · hohes Gratis-Limit", "Gemini"], ["gemini-flash-latest", "Flash", "Ausgewogen · bessere Antworten", "Gemini"], ["gemini-pro-latest", "Pro", "Gründlich · im Gratis-Tarif stark begrenzt", "Gemini"],
-  ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B", "Groq"]];
+  ["gemini-flash-lite-latest", "Lite", "Schnell · zählt 1×", "Gemini"], ["gemini-flash-latest", "Flash", "Ausgewogen · zählt 1×", "Gemini"], ["gemini-pro-latest", "Pro", "Am gründlichsten · zählt 5×", "Gemini"],
+  ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell · zählt 0,5×", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug · zählt 0,5×", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B · zählt 0,5×", "Groq"]];
 const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq" };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
-const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !m[0].startsWith("groq:")); if (typeof AIU !== "undefined" && AIU.on && !AIU.pro) { const F = L.filter(m => m[0] === "gemini-flash-lite-latest" || m[0] === "groq:llama-3.1-8b-instant"); if (F.length) L = F; } return L; };
+const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !m[0].startsWith("groq:")); return L; };
 /* Lumi Study Pro nutzt standardmässig Gemini Pro (stärkstes Modell, längere Antworten), Gratis das Lite-Modell */
 const aiModelId = () => { const L = aiModelList(), mine = L.find(m => m[0] === D.profile.aiModel); if (mine) return mine[0]; const pro = typeof AIU !== "undefined" && AIU.pro && L.find(m => m[0] === "gemini-pro-latest"); return (pro || L[0] || AI_MODELS[0])[0]; };
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];

@@ -35,7 +35,7 @@ const SUB_STATUS = { trialing: "Testversion", active: "Aktiv", past_due: "Zahlun
 const INV_STATUS = { paid: "Bezahlt", open: "Offen", draft: "Entwurf", void: "Storniert", uncollectible: "Uneinbringlich" };
 const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American Express", discover: "Discover", jcb: "JCB", diners: "Diners Club", unionpay: "UnionPay" })[b] || (b ? b[0].toUpperCase() + b.slice(1) : "Karte");
 
-const PRO_FEATURES = ["Lumi AI ohne Tageslimit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Lumi"];
+const PRO_FEATURES = ["Lumi AI ohne Limit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Lumi"];
 function plusPanelHtml() {
   const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${PRO_FEATURES.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
   const eligible = !r, trialD = (c && c.trial) || 14;
@@ -136,14 +136,14 @@ function proPillHtml() {
 }
 
 
-/* ===== KI-Verbrauch (Token pro Tag) – Ring wie der Kontext-Ring bei Claude ===== */
-const AIU = { on: false, pro: false, used: 0, limit: 0, reset: "" };
+/* ===== KI-Verbrauch (Token pro 5-Stunden-Fenster) – Ring wie der Kontext-Ring bei Claude ===== */
+const AIU = { on: false, pro: false, used: 0, limit: 0, reset: "", hours: 5 };
 const aiuNum = n => Math.round(n).toLocaleString("de-CH").replace(/’/g, "’");
 async function aiuLoad() {
   if (typeof CLOUD === "undefined" || !CLOUD.user) return;
-  try { const r = await fetch("/api/usage", { method: "POST", headers: await authHeader() }); if (!r.ok) return; const j = await r.json(); Object.assign(AIU, { on: !!j.enabled, pro: !!j.pro, used: j.used || 0, limit: j.limit || 0, reset: j.reset || "" }); aiuPaint(); } catch {}
+  try { const r = await fetch("/api/usage", { method: "POST", headers: await authHeader() }); if (!r.ok) return; const j = await r.json(); Object.assign(AIU, { on: !!j.enabled, pro: !!j.pro, used: j.used || 0, limit: j.limit || 0, reset: j.reset || "", hours: j.hours || 5 }); aiuPaint(); } catch {}
 }
-function aiuSet(u) { if (!u) return; if (u.limit == null) AIU.pro = true; else { AIU.pro = false; AIU.used = u.used; AIU.limit = u.limit; } AIU.on = true; aiuPaint(); }
+function aiuSet(u) { if (!u) return; if (u.limit == null) AIU.pro = true; else { AIU.pro = false; AIU.used = u.used; AIU.limit = u.limit; if (u.reset !== undefined) AIU.reset = u.reset || ""; } AIU.on = true; aiuPaint(); }
 const aiuPct = () => AIU.pro || !AIU.limit ? 0 : Math.min(1, AIU.used / AIU.limit);
 function aiuRingHtml() {
   if (!AIU.on) return "";
@@ -159,13 +159,14 @@ function aiuMount(host, after) {
 }
 function aiuPop(btn) {
   const old = document.querySelector(".aiu-pop"); if (old) { old.remove(); return; }
-  const pct = Math.round(aiuPct() * 100), at = AIU.reset ? new Date(AIU.reset).toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" }) : "";
+  const pct = Math.round(aiuPct() * 100), rs = AIU.reset ? new Date(AIU.reset) : null;
+  const left = rs ? Math.max(0, rs - Date.now()) : 0, lh = Math.floor(left / 36e5), lm = Math.ceil(left % 36e5 / 6e4), at = rs ? `${rs.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })} Uhr (in ${lh ? lh + " Std. " : ""}${lm} Min.)` : "";
   const pop = document.createElement("div"); pop.className = "aiu-pop";
   pop.innerHTML = AIU.pro
-    ? `<b>Lumi AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Mit Lumi Study Pro gibt es kein Tageslimit.</p>`
-    : `<b>Lumi AI heute</b><p class="aiu-big">${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div>
-       <p class="aiu-s">${pct >= 100 ? "Dein Tageslimit ist erreicht." : `${100 - pct} % übrig.`} Zurückgesetzt wird heute um ${at} Uhr.</p>
-       <p class="aiu-s">Gratis: schnelles Lite-Modell, kürzere Antworten, ohne Websuche.</p>
+    ? `<b>Lumi AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Mit Lumi Study Pro gibt es kein Limit.</p>`
+    : `<b>Lumi AI · ${AIU.hours} Std.-Fenster</b><p class="aiu-big">${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div>
+       <p class="aiu-s">${pct >= 100 ? "Dein Limit ist erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich um ${at} zurück.` : `Das Fenster startet mit deiner nächsten Anfrage und dauert ${AIU.hours} Stunden.`}</p>
+       <p class="aiu-s">Alle Modelle sind nutzbar: Gemini Pro zählt 5×, Gemini Flash 1×, Groq 0,5×.</p>
        ${BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn small aiu-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
   document.body.appendChild(pop);
   const r = btn.getBoundingClientRect(), w = pop.offsetWidth; pop.style.top = r.bottom + 8 + "px"; pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + "px";

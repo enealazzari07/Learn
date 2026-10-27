@@ -3,7 +3,7 @@
      GEMINI_API_KEY  (kostenloser Key: https://aistudio.google.com/apikey)
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur
      GEMINI_MODEL    (optional, Standard: gemini-flash-lite-latest)
-     AI_FREE_DAILY_TOKENS (optional: Token pro Tag für Gratis-Konten, Standard 20000; 0 = unbegrenzt. Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
+     AI_FREE_WINDOW_TOKENS (optional: Token pro Zeitfenster für Gratis-Konten, Standard 10000; 0 = unbegrenzt) und AI_WINDOW_HOURS (Länge des Fensters, Standard 5). Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
    Mindestens einer der beiden Keys genügt. Die Keys erreichen nie den Browser. */
 const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];
@@ -17,7 +17,8 @@ const MODELS = [
   { id: "groq:openai/gpt-oss-120b", p: "groq", m: "openai/gpt-oss-120b" },
 ];
 const L = require("./_lib");
-const FREE_MODELS = ["gemini-flash-lite-latest", "groq:llama-3.1-8b-instant"];
+/* Token-Gewicht je Modell: Gemini Pro zählt 5×, Gemini Flash/Lite 1×, Groq 0,5× */
+const WEIGHT = id => /pro/.test(id) && !/^groq:/.test(id) ? 5 : /^groq:/.test(id) ? 0.5 : 1;
 const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY });
 const available = () => { const h = have(); return MODELS.filter(x => h[x.p]); };
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
@@ -73,20 +74,17 @@ module.exports = async function handler(req, res) {
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
   let { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false, bg = false } = body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "Keine Nachricht" });
-  /* Gratis-Konten: Tagesbudget in Token, eingeschränktes Modell, keine Websuche. Lumi Study Pro: unbegrenzt. Ohne Service-Key oder SQL bleibt alles offen. */
+  /* Gratis-Konten: Token-Budget pro Zeitfenster (Standard 5 Stunden), eingeschränktes Modell, keine Websuche. Lumi Study Pro: unbegrenzt. Ohne Service-Key oder SQL bleibt alles offen. */
   let acct = null;
   if (L.FREE_TOKENS && !bg) {
     try {
       const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte melde dich an, um Lumi AI zu nutzen." });
-      const pro = await L.isProLive(user.id), used = pro ? 0 : await L.aiUsed(user.id);
-      if (used === null) acct = null;
-      else { acct = { id: user.id, pro, used }; if (!pro && used >= L.FREE_TOKENS) return res.status(429).json({ error: "Dein Tageslimit ist erreicht. Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.", limit: true, usage: { used, limit: L.FREE_TOKENS } }); }
+      const pro = await L.isProLive(user.id), w = pro ? { used: 0, reset: null } : await L.aiUsed(user.id);
+      if (!w) acct = null;
+      else { acct = { id: user.id, pro, used: w.used }; if (!pro && w.used >= L.FREE_TOKENS) return res.status(429).json({ error: `Dein Lumi-AI-Limit ist erreicht. Es setzt sich in ein paar Stunden zurück – oder nutze Lumi Study Pro ohne Limit.`, limit: true, usage: { used: w.used, limit: L.FREE_TOKENS, reset: w.reset } }); }
     } catch (e) { acct = null; }
   }
-  const free = !!acct && !acct.pro;
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
-
-  if (free) { sources = false; max = Math.min(+max || 1024, 800); wanted = FREE_MODELS.includes(wanted) ? wanted : FREE_MODELS[0]; }
 
   /* Reihenfolge: gewünschtes Modell → Rest des Anbieters → anderer Anbieter */
   const want = MODELS.find(x => x.id === wanted && h[x.p]);
@@ -94,7 +92,6 @@ module.exports = async function handler(req, res) {
   const groqList = h.groq ? MODELS.filter(x => x.p === "groq") : [];
   let cands = [want, ...(want?.p === "groq" ? [...groqList, ...geminiList] : [...geminiList, ...groqList])].filter(Boolean);
   if (image || (sources && h.gemini && want?.p !== "groq")) cands = [...cands.filter(c => c.p === "gemini"), ...(image ? [] : cands.filter(c => c.p !== "gemini"))];   // Bilder und Quellen nur mit Gemini (Quellen: Gemini zuerst)
-  if (free) cands = cands.filter(c => FREE_MODELS.includes(c.id) || c.id === "gemini-2.5-flash-lite");
   const seen = new Set(); cands = cands.filter(c => !seen.has(c.id) && seen.add(c.id));
   if (!cands.length) return res.status(422).json({ error: "Für Bilder wird GEMINI_API_KEY benötigt." });
 
@@ -107,7 +104,7 @@ module.exports = async function handler(req, res) {
       last = { ...out, c };
       if (out.ok && out.text) {
         let usage = null;
-        if (acct) { const t = out.tokens || Math.ceil((JSON.stringify(messages).length + out.text.length) / 4); const used = await L.aiAdd(acct.id, t); usage = { used: acct.pro ? null : (used ?? acct.used + t), limit: acct.pro ? null : L.FREE_TOKENS }; }
+        if (acct) { const t = WEIGHT(c.id) * (out.tokens || Math.ceil((JSON.stringify(messages).length + out.text.length) / 4)); const w = await L.aiAdd(acct.id, t); usage = { used: acct.pro ? null : (w ? w.used : acct.used + t), limit: acct.pro ? null : L.FREE_TOKENS, reset: w ? w.reset : null }; }
         return res.status(200).json({ text: out.text, model: c.id, sources: out.sources || [], usage });
       }
       if (out.ok && !out.text) continue;                                // leere Antwort → nächstes Modell
