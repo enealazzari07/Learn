@@ -3752,3 +3752,7 @@ html[data-theme="dark"] .authhero::before{filter:invert(1) hue-rotate(180deg)}
 .sdock button.on .sdk-i svg{stroke-width:2.1}
 .sdock .sdk-sep{height:24px;margin:0 4px}
 .sdock .sdk-tip{display:none}
+.pp-gift{width:22px;height:22px;display:grid;place-items:center;color:#111;flex:none}.pp-gift svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.pp-card:not(.on) .pp-gift{color:#8a8a92}
+#pl-m .ic{width:18px;height:18px;margin-right:2px}
+.sdock .sdk-i svg g[fill]{stroke:none}
