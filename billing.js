@@ -106,11 +106,11 @@ function plusPanelHtml() {
   if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.</p>${list}</div>`;
   if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Lumi Study Pro zu abonnieren.</p>${list}</div>`;
   if (c.pk && c.monthly && !r) {   // Plan-Auswahl links, Bezahlformular rechts
-    const m = c.monthly, y = c.yearly, cur = window.__plan || "trial", save = y ? Math.max(0, m * 12 - y) : 0;
+    const m = c.monthly, y = c.yearly, cur = window.__plan || "trial", save = y ? Math.max(0, m * 12 - y) : 0, pct = y && m ? Math.round(save / (m * 12) * 100) : 0;
     const P = [["trial", `${trialD} Tage gratis testen`, `Danach ${money(m)} pro Monat. Nur einmal pro Konto möglich – jederzeit vorher kündbar.`, "Gratis"],
-      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${money(save)} im Jahr – das sind ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Lumi Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
+      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${pct} % (${money(save)}) gegenüber 12 Monaten – nur ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Lumi Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
     return `<div class="propanel proside"><span class="probadge">Pro</span><h2>Lumi Study Pro</h2><p class="ps-lead">Wähle deinen Plan. Mehrwertsteuer ist immer inklusive.</p>
-      <div class="pp-plans" role="radiogroup">${P.map(([k, t, d, pr], i) => `<button type="button" class="pp-card${k === cur ? " on" : ""}" data-plan="${k}" role="radio" aria-checked="${k === cur}" style="--d:${i}"><i class="pp-dot"></i><span class="pp-t"><b>${t}</b><small>${d}</small></span><span class="pp-pr">${pr}</span>${k === "trial" ? `<em>Neu</em>` : ""}</button>`).join("")}</div>
+      <div class="pp-plans" role="radiogroup">${P.map(([k, t, d, pr], i) => `<button type="button" class="pp-card${k === cur ? " on" : ""}" data-plan="${k}" role="radio" aria-checked="${k === cur}" style="--d:${i}"><i class="pp-dot"></i><span class="pp-t"><b>${t}</b><small>${d}</small></span><span class="pp-pr">${pr}</span>${k === "trial" ? `<em>Neu</em>` : k === "yearly" && pct ? `<em>−${pct} %</em>` : ""}</button>`).join("")}</div>
       <p class="ps-fine">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
   }
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;

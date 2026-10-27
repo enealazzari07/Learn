@@ -29,9 +29,12 @@ async function plans() {
         }
         out[k] = { price: list[0].id, cents: list[0].unit_amount, opts, ids, product: list[0].product.id }; out.currency = list[0].currency;
       }
-      /* Jahresabo ohne eigenen Stripe-Preis: aus dem Produkt des Monatspreises ableiten (Standard 60 pro Jahr, PRO_YEARLY_CENTS) */
+      /* Preise: Monat 6 (PRO_MONTHLY_CENTS) in jeder Währung; Jahr = 12 Monate minus 40 % Rabatt (PRO_YEARLY_DISCOUNT), sofern in Stripe kein eigener Jahrespreis existiert */
+      const mc = +process.env.PRO_MONTHLY_CENTS || 600;
+      if (out.monthly.product && Object.keys(out.monthly.opts || {}).length) { Object.keys(out.monthly.opts).forEach(c => { out.monthly.opts[c] = mc; }); out.monthly.cents = mc; }
       if (!out.yearly.price && out.monthly.product && Object.keys(out.monthly.opts || {}).length) {
-        const yc = +process.env.PRO_YEARLY_CENTS || 6000, opts = {}; Object.keys(out.monthly.opts).forEach(c => { opts[c] = yc; });
+        const disc = process.env.PRO_YEARLY_DISCOUNT === undefined || process.env.PRO_YEARLY_DISCOUNT === "" ? 40 : Math.min(90, Math.max(0, +process.env.PRO_YEARLY_DISCOUNT || 0));
+        const yc = +process.env.PRO_YEARLY_CENTS || Math.round(mc * 12 * (100 - disc) / 100), opts = {}; Object.keys(out.monthly.opts).forEach(c => { opts[c] = yc; });
         out.yearly = { price: "dyn", cents: yc, opts, ids: {}, product: out.monthly.product };
       }
     } catch (e) { if (priceCache.v) return priceCache.v; }
