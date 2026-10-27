@@ -5,9 +5,9 @@
    Bezahlung (Stripe Managed Payments) siehe docs/PAYMENTS.md; "plus" zeigt nur Preise, keine Schlüssel.
    Die Client-ID ist bei einer Single-Page-App öffentlich und kein Passwort. Es gibt kein Client-Secret. */
 const L = require("./_lib");
-module.exports = function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
   const id = String(process.env.MS_CLIENT_ID || "").trim(), tenant = String(process.env.MS_TENANT || "").trim() || "common";
-  const P = L.PLANS(); res.status(200).json({ plus: { enabled: !!L.billingReady(), monthly: P.monthly.price ? P.monthly.cents : 0, yearly: P.yearly.price ? P.yearly.cents : 0, currency: L.CURRENCY() }, msClientId: /^[0-9a-f-]{36}$/i.test(id) ? id : "", msTenant: /^[\w.-]{1,80}$/.test(tenant) ? tenant : "common" });
+  const P = await L.plans(); res.status(200).json({ plus: { enabled: await L.billingReady(), monthly: P.monthly.price ? P.monthly.cents : 0, yearly: P.yearly.price ? P.yearly.cents : 0, currency: P.currency || L.CURRENCY() }, msClientId: /^[0-9a-f-]{36}$/i.test(id) ? id : "", msTenant: /^[\w.-]{1,80}$/.test(tenant) ? tenant : "common" });
 };

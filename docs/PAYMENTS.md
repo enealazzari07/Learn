@@ -31,10 +31,8 @@ Danach *Project Settings → API* → **service_role**-Key kopieren (geheim, nie
 |---|---|
 | `STRIPE_SECRET_KEY` | `sk_test_…` (später `sk_live_…`) |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` |
-| `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_YEARLY` | Preis-IDs aus Schritt 2 (mindestens eine) |
+| `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_YEARLY` | optional. Ohne sie sucht der Server selbst die aktiven Preise des Stripe-Produkts „Lumi Pro“ (monatlich/jährlich, Betrag aus Stripe). Mit `STRIPE_PRODUCT_ID` lässt sich das Produkt festlegen |
 | `SUPABASE_SERVICE_ROLE_KEY` | service_role-Key aus Supabase |
-| `PLUS_MONTHLY_CENTS` / `PLUS_YEARLY_CENTS` | nur Anzeige auf der Preisseite, Standard `499` / `3999` – muss zu den Stripe-Preisen passen |
-| `PLUS_CURRENCY` | Anzeige-Währung, Standard `eur` |
 | `SITE_URL` | optional, z. B. `https://lumi.example.ch` |
 | `STRIPE_API_VERSION` | optional, Standard `2025-03-31.basil` (so im Stripe-Beispiel für Managed Payments; neuere Versionen funktionieren ebenfalls) |
 | `STRIPE_MANAGED_PAYMENTS` | `off` schaltet Managed Payments für Tests ab |

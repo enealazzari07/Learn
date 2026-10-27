@@ -10,7 +10,7 @@ module.exports = async function handler(req, res) {
   try {
     const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
     const { plan = "monthly" } = await L.readJson(req);
-    const P = L.PLANS()[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
+    const P = (await L.plans())[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
     const sub = await L.getSubscription(user.id);
     if (L.isPlusRow(sub) && sub.status !== "past_due") return res.status(409).json({ error: "Du hast Lumi Pro bereits – verwalte es unter Einstellungen." });
     const base = L.siteUrl(req), customer = sub?.stripe_customer_id;
