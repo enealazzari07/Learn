@@ -2,6 +2,7 @@
    Erwartet POST { plan: "monthly" | "yearly" } mit Supabase-Token. Mit Managed Payments ist Stripe Verkäufer (Merchant of Record):
    Mehrwertsteuer in 80+ Ländern, Rechnungen, Abführung, Betrugsabwehr und Streitfälle übernimmt Stripe. */
 const L = require("./_lib");
+const PK = () => String(process.env.STRIPE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "").trim();
 const TRIAL = +process.env.PRO_TRIAL_DAYS || 14;   // 14 Tage gratis für alle, die noch nie ein Abo hatten
 
 module.exports = async function handler(req, res) {
@@ -25,7 +26,7 @@ module.exports = async function handler(req, res) {
     /* MwSt. ist im Preis immer enthalten (tax_behavior: inclusive), egal in welcher Währung */
     const amount = cur && P.opts?.[cur];
     /* Eingebettet (im Lumi-Fenster, ohne Weiterleitung), wenn STRIPE_PUBLISHABLE_KEY gesetzt ist; sonst oder bei Ablehnung: Stripe-Seite */
-    const pk = String(process.env.STRIPE_PUBLISHABLE_KEY || "").trim(), embed = !!(embedded && /^pk_(test|live)_/.test(pk));
+    const pk = PK(), embed = !!(embedded && /^pk_(test|live)_/.test(pk));
     const mk = async (extra) => {
       const base2 = { ...common, ...extra };
       if (P.product && amount) {

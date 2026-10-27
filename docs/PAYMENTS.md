@@ -33,7 +33,7 @@ Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in St
 | `STRIPE_SECRET_KEY` | `sk_test_…` bzw. `sk_live_…` (einzige Pflichtvariable) |
 | `STRIPE_PRODUCT_ID` | optional, falls das Produkt nicht „Lumi Study Pro“ heißt |
 | `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_YEARLY` | optional, feste Preis-IDs statt automatischer Suche |
-| `STRIPE_PUBLISHABLE_KEY` | `pk_test_…` / `pk_live_…` (öffentlicher Schlüssel): schaltet den **eingebetteten Checkout** im Lumi-Fenster ein, ohne Weiterleitung. Ohne ihn (oder falls Stripe das für Managed Payments ablehnt) öffnet sich die Stripe-Seite |
+| `STRIPE_PUBLISHABLE_KEY` (oder `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`) | `pk_test_…` / `pk_live_…` (öffentlicher Schlüssel): schaltet den **eingebetteten Checkout** im Lumi-Fenster ein, ohne Weiterleitung. Ohne ihn (oder falls Stripe das für Managed Payments ablehnt) öffnet sich die Stripe-Seite |
 | `SITE_URL` | optional, z. B. `https://lumi.example.ch` |
 | `STRIPE_API_VERSION` | optional, Standard `2025-03-31.basil` |
 | `STRIPE_MANAGED_PAYMENTS` | `off` schaltet Managed Payments für Tests ab |
