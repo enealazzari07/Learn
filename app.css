@@ -3742,3 +3742,13 @@ html[data-theme="dark"] .pgrid{opacity:.35}
 /* Dunkelmodus Login: nur das Bild behält seine Farben, der Rahmen darum wird dunkel */
 html[data-theme="dark"] .authhero{filter:none!important;background:#fff}
 html[data-theme="dark"] .authhero::before{filter:invert(1) hue-rotate(180deg)}
+
+/* Einstellungs-Leiste: einfache Box, bessere Icons, kein Hover-Effekt, kein Blur/Schatten */
+.settabs.sdock{background:#fff!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;border:1px solid #e6e6ea;border-radius:18px;height:auto;padding:5px;gap:2px;align-items:center!important}
+.sdock button,.sdock .theme-tg{--s:40px!important;width:40px;height:40px;border-radius:12px;color:#8a8a92;background:none!important;transition:none}
+.sdock button:hover,.sdock .theme-tg:hover{background:none!important;color:#8a8a92}
+.sdock button.on,.sdock button.on:hover{color:#111;background:#f1f1f3!important}
+.sdock .sdk-i svg{width:22px!important;height:22px!important;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sdock button.on .sdk-i svg{stroke-width:2.1}
+.sdock .sdk-sep{height:24px;margin:0 4px}
+.sdock .sdk-tip{display:none}
