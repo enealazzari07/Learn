@@ -3869,3 +3869,19 @@ html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore 
   .setsec.paying .proemb-box{max-width:none!important;margin:0!important}
   .setsec.paying .proemb-box .embk-m{zoom:.9}
 }
+
+/* ======== Was ist inbegriffen (Gratis / Pro) ======== */
+.prowhat{margin-top:18px}
+.prowhat>h2{display:flex;align-items:center;gap:9px}
+.pc-t{display:grid;margin:0 22px 6px}
+.pc-h,.pc-r{display:grid;grid-template-columns:minmax(0,1fr) 120px 120px;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid #f0f0f3;font-size:14.5px}
+.pc-h{padding:6px 0 10px;font-size:12.5px;color:#8a8a98;text-transform:uppercase;letter-spacing:.05em}.pc-h b{font-weight:700;text-align:center}
+.pc-r:last-child{border-bottom:0}
+.pc-r>span:first-child small{display:block;margin-top:2px;color:#8a8a98;font-size:12px;line-height:1.4}
+.pc-r>span:not(:first-child){text-align:center;color:#3b3b45}
+.pc-y svg{width:18px;height:18px;margin:0 auto;stroke:#0f0f12;stroke-width:2.2}.pc-n{color:#c4c4cc}
+.setsec[data-s=pro] .prowhat{grid-column:1/-1}
+@media (max-width:560px){.pc-h,.pc-r{grid-template-columns:minmax(0,1fr) 78px 78px;font-size:13.5px}.pc-t{margin:0 16px 4px}}
+.pc-land{max-width:760px;margin:34px auto 0;border:1px solid #ececf0;border-radius:22px;background:#fff;overflow:hidden;padding-bottom:10px}
+.pc-land>h2{font-size:20px;letter-spacing:-.02em;margin:0;padding:18px 22px 6px}
+.pc-land .note{margin:6px 22px 8px;font-size:12px;color:#8a8a98}

@@ -254,7 +254,9 @@ const SUBJ = () => isUni() ? "Module" : "Fächer";
 
 /* ---------- AI ---------- */
 let serverAI = false, serverInfo = null;
-async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; } catch {} }
+/* Studix-AI-Budget pro Woche (Server liefert die echten Werte über GET /api/ai) */
+const AIQ = { free: 25000, pro: 150000, hours: 168 };
+async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; if (j.freeTokens) AIQ.free = j.freeTokens; if (j.proTokens) AIQ.pro = j.proTokens; } catch {} }
 const hasKey = () => serverAI || !!D.profile.apiKey;
 function sysBase(extra = "") {
   const p = D.profile;

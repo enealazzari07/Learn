@@ -40,8 +40,9 @@ Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in St
 | `PRO_MONTHLY_CENTS` | optional: Monatspreis in Rappen/Cent, in jeder Währung – überschreibt die Stripe-Preise. Ohne Angabe gelten die Preise des Produkts in Stripe |
 | `PRO_YEARLY_DISCOUNT` | Rabatt des Jahresabos in % gegenüber 12 Monaten (Standard `40`); der Jahrespreis wird daraus berechnet, wenn Stripe keinen eigenen Jahrespreis hat. Alternativ `PRO_YEARLY_CENTS` fest |
 | `PRO_TRIAL_DAYS` | Testversion in Tagen, Standard `14` |
-| `AI_FREE_WINDOW_TOKENS` | KI-Token pro Zeitfenster für Gratis-Konten (Standard `5000` Studix-Token = echte Token ÷ 10, `0` = unbegrenzt) |
-| `AI_WINDOW_HOURS` | Länge des Fensters in Stunden (Standard `5`; startet mit der ersten Anfrage); beide brauchen `SUPABASE_SERVICE_ROLE_KEY` und `supabase/billing.sql` |
+| `AI_FREE_WINDOW_TOKENS` | KI-Token pro Woche für Gratis-Konten (Standard `25000` Studix-Token = echte Token ÷ 10, `0` = unbegrenzt) |
+| `AI_PRO_WINDOW_TOKENS` | KI-Token pro Woche für Studix Study Pro (Standard `150000`, `0` = unbegrenzt) |
+| `AI_WINDOW_HOURS` | Länge des Fensters in Stunden (Standard `168` = eine Woche; startet mit der ersten Anfrage); alle drei brauchen `SUPABASE_SERVICE_ROLE_KEY` und `supabase/billing.sql` |
 
 Prüfen: `https://DEINE-DOMAIN/api/config` muss `"plus":{"enabled":true,…}` mit den drei Währungen unter `opts.monthly` zeigen.
 Testkauf mit `4242 4242 4242 4242`. Für Live: Live-Key, Produkt und Preise im Livemodus neu anlegen.

@@ -81,10 +81,18 @@ const SUB_STATUS = { trialing: "Testversion", active: "Aktiv", past_due: "Zahlun
 const INV_STATUS = { paid: "Bezahlt", open: "Offen", draft: "Entwurf", void: "Storniert", uncollectible: "Uneinbringlich" };
 const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American Express", discover: "Discover", jcb: "JCB", diners: "Diners Club", unionpay: "UnionPay" })[b] || (b ? b[0].toUpperCase() + b.slice(1) : "Karte");
 
-const PRO_FEATURES = ["Studix AI ohne Limit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
+const proFeatures = () => [`Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche (Gratis: ${aiuNum(AIQ.free)})`, "Längere Antworten", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
+/* Was ist in Gratis und in Pro enthalten – Tabelle (Einstellungen → Pro und Startseite) */
+function planCompareHtml(cls = "") {
+  const ck = `<span class="pc-y">${ic("check")}</span>`, no = `<span class="pc-n">–</span>`;
+  const rows = [["Notizen, Zeichnen, Dateien &amp; PDFs", ck, ck], ["Karteikarten &amp; Quiz", ck, ck], ["Planer, Noten, Prüfungen &amp; Fokus-Timer", ck, ck], ["Sync auf allen Geräten", ck, ck],
+    [`Studix AI pro Woche <small>Gemini &amp; Groq – der Verbrauch setzt sich eine Woche nach deiner ersten Anfrage zurück</small>`, `<b>${aiuNum(AIQ.free)}</b> Token`, `<b>${aiuNum(AIQ.pro)}</b> Token`], ["Längere Antworten", no, ck], ["Neue Pro-Funktionen zuerst", no, ck]];
+  return `<section class="panel prowhat ${cls}"><h2>Was ist inbegriffen</h2><div class="pc-t" role="table"><div class="pc-h" role="row"><span></span><b>Gratis</b><b>Pro</b></div>${rows.map(([t, a, b]) => `<div class="pc-r" role="row"><span>${t}</span><span>${a}</span><span>${b}</span></div>`).join("")}</div><p class="note">Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Gemini Pro zählt 5×, Gemini Flash 1×, Groq 0,5×.</p></section>`;
+}
 
-function plusPanelHtml() {
-  const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${PRO_FEATURES.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
+function plusPanelHtml() { return plusPanelCore() + planCompareHtml(); }
+function plusPanelCore() {
+  const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${proFeatures().map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
   const eligible = !r, trialD = (c && c.trial) || 14;
   const head = state => `<div class="prohead"><div><span class="probadge">Pro</span><h2>Studix Study Pro</h2></div>${state ? `<span class="prostate">${state}</span>` : ""}</div>`;
   if (CLOUD.user && c && c.enabled && !BILL.loaded) return `<div class="panel propanel">${head("")}<p class="note">Abo wird bei Stripe geladen …</p></div>`;
@@ -115,7 +123,7 @@ function plusPanelHtml() {
       <div class="row subacts">${cancelled ? `<button class="btn primary" id="pl-resume">Abo wieder aktivieren</button>` : `<button class="btn" id="pl-cancel">${trialing ? "Testversion beenden / Abo kündigen" : "Abo kündigen"}</button>`}<button class="btn" id="pl-pay">Zahlungsart ändern</button><button class="btn" id="pl-manage">Alle Rechnungen &amp; Belege</button><button class="btn ghost" id="pl-reload" type="button">${ic("rot")}Aktualisieren</button></div>
       <p class="note">${cancelled ? "" : trialing ? "Kündigst du während der Testversion, wird dir nichts berechnet und du behältst Pro bis zum Ende der Testversion." : "Du behältst Pro bis zum Ende des bezahlten Zeitraums."} Alle Angaben kommen live von Stripe.</p></div>`;
   }
-  if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Studix Study Pro nutzt du Studix AI ohne Limit.</p>${list}</div>`;
+  if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Studix Study Pro bekommst du ${aiuNum(AIQ.pro)} statt ${aiuNum(AIQ.free)} Token pro Woche für Studix AI.</p>${list}</div>`;
   if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Studix Study Pro zu abonnieren.</p>${list}</div>`;
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
   return `<div class="panel propanel">${head(r ? SUB_STATUS[r.status] || "" : "")}<p class="note">${eligible ? `<b>${trialD} Tage kostenlos testen</b>, danach ${m ? money(m) + " / Monat" : y ? money(y) + " / Jahr" : "der normale Preis"}. ` : ""}Preis inkl. Mehrwertsteuer – in jeder Währung. Jederzeit kündbar.</p>${list}
@@ -160,7 +168,7 @@ function proBannerHtml() {
     ? (r.cancel_at_period_end ? `Gekündigt – Zugang bis ${dateDE(r.current_period_end)}`
       : r.status === "trialing" ? `Testversion endet in ${dIn(daysLeft(r.current_period_end))} (am ${dateDE(r.current_period_end)})`
       : r.current_period_end ? `Aktiv · verlängert sich am ${dateDE(r.current_period_end)}` : "Aktiv")
-    : can && price ? `${r ? "" : td + " Tage gratis, danach "}${price}` : "Studix AI ohne Limit – bald verfügbar";
+    : can && price ? `${r ? "" : td + " Tage gratis, danach "}${price}` : `Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche – bald verfügbar`;
   return `<div class="probanner"><div class="pb-l"><span class="probadge">Pro</span><div><b>Studix Study Pro</b><small>${t}</small></div></div><button class="btn primary" id="pro-go">${isPlus() ? (isTrial() ? "Testversion verwalten" : "Abo verwalten") : can ? (r ? "Studix Study Pro holen" : `${td} Tage gratis testen`) : "Mehr erfahren"}</button></div>`;
 }
 
@@ -200,18 +208,18 @@ function proPillHtml() {
 }
 
 
-/* ===== KI-Verbrauch (Token pro 5-Stunden-Fenster) – Ring wie der Kontext-Ring bei Claude ===== */
-const AIU = { on: false, pro: false, used: 0, limit: 0, reset: "", hours: 5 };
+/* ===== KI-Verbrauch (Token pro Woche, Gratis 25 000 / Pro 150 000) – Ring wie der Kontext-Ring bei Claude ===== */
+const AIU = { on: false, pro: false, unl: false, used: 0, limit: 0, reset: "", hours: 168 };
 const aiuNum = n => Math.round(n).toLocaleString("de-CH").replace(/’/g, "’");
 async function aiuLoad() {
   if (typeof CLOUD === "undefined" || !CLOUD.user) return;
-  try { const r = await fetch("/api/usage", { method: "POST", headers: await authHeader() }); if (!r.ok) return; const j = await r.json(); Object.assign(AIU, { on: !!j.enabled, pro: !!j.pro, used: j.used || 0, limit: j.limit || 0, reset: j.reset || "", hours: j.hours || 5 }); aiuPaint(); } catch {}
+  try { const r = await fetch("/api/usage", { method: "POST", headers: await authHeader() }); if (!r.ok) return; const j = await r.json(); Object.assign(AIU, { on: !!j.enabled, pro: !!j.pro, unl: !!j.enabled && j.limit == null, used: j.used || 0, limit: j.limit || 0, reset: j.reset || "", hours: j.hours || 168 }); if (j.limit) AIQ[j.pro ? "pro" : "free"] = j.limit; aiuPaint(); } catch {}
 }
-function aiuSet(u) { if (!u) return; if (u.limit == null) AIU.pro = true; else { AIU.pro = false; AIU.used = u.used; AIU.limit = u.limit; if (u.reset !== undefined) AIU.reset = u.reset || ""; } AIU.on = true; aiuPaint(); }
-const aiuPct = () => AIU.pro || !AIU.limit ? 0 : Math.min(1, AIU.used / AIU.limit);
+function aiuSet(u) { if (!u) return; if (u.limit == null) AIU.unl = true; else { AIU.unl = false; AIU.used = u.used; AIU.limit = u.limit; if (u.reset !== undefined) AIU.reset = u.reset || ""; } AIU.on = true; aiuPaint(); }
+const aiuPct = () => AIU.unl || !AIU.limit ? 0 : Math.min(1, AIU.used / AIU.limit);
 function aiuRingHtml() {
   if (!AIU.on) return "";
-  return `<button type="button" class="aiu" aria-label="Studix-AI-Verbrauch heute"><svg viewBox="0 0 24 24" width="24" height="24"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="${(aiuPct() * 100).toFixed(1)} 100"/></svg></button>`;
+  return `<button type="button" class="aiu" aria-label="Studix-AI-Verbrauch diese Woche"><svg viewBox="0 0 24 24" width="24" height="24"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="${(aiuPct() * 100).toFixed(1)} 100"/></svg></button>`;
 }
 function aiuPaint() {
   document.querySelectorAll(".aiu").forEach(b => { const p = b.querySelector(".aiu-p"); if (p) p.setAttribute("stroke-dasharray", (aiuPct() * 100).toFixed(1) + " 100"); b.classList.toggle("hot", aiuPct() >= .85); });
@@ -221,17 +229,20 @@ function aiuMount(host, after) {
   const t = document.createElement("div"); t.innerHTML = aiuRingHtml(); const b = t.firstChild; if (!b) return;
   after ? after.before(b) : host.appendChild(b); b.onclick = e => { e.stopPropagation(); aiuPop(b); };
 }
+const aiuLeft = ms => { const d = Math.floor(ms / 864e5), h = Math.floor(ms % 864e5 / 36e5), m = Math.ceil(ms % 36e5 / 6e4); return d ? `${d} Tg. ${h} Std.` : h ? `${h} Std. ${m} Min.` : `${m} Min.`; };
+const aiuAt = rs => rs ? (AIU.hours >= 24 ? rs.toLocaleDateString("de-CH", { weekday: "short", day: "numeric", month: "short" }) + ", " : "") + rs.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" }) + " Uhr" : "";
+const aiuWin = () => AIU.hours >= 168 ? "Wochenlimit" : AIU.hours + " Std.-Fenster";
+const aiuUp = () => BILL.cfg && BILL.cfg.enabled && !isPlus() ? `Mehr mit Pro (${aiuNum(AIQ.pro)} pro Woche)` : "";
 function aiuPop(btn) {
   const old = document.querySelector(".aiu-pop"); if (old) { old.remove(); return; }
-  const pct = Math.round(aiuPct() * 100), rs = AIU.reset ? new Date(AIU.reset) : null;
-  const left = rs ? Math.max(0, rs - Date.now()) : 0, lh = Math.floor(left / 36e5), lm = Math.ceil(left % 36e5 / 6e4), at = rs ? `${rs.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })} Uhr (in ${lh ? lh + " Std. " : ""}${lm} Min.)` : "";
+  const pct = Math.round(aiuPct() * 100), rs = AIU.reset ? new Date(AIU.reset) : null, left = rs ? Math.max(0, rs - Date.now()) : 0;
   const pop = document.createElement("div"); pop.className = "aiu-pop";
-  pop.innerHTML = AIU.pro
-    ? `<b>Studix AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Mit Studix Study Pro gibt es kein Limit.</p>`
-    : `<b>Studix AI · ${AIU.hours} Std.-Fenster</b><p class="aiu-big">${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div>
-       <p class="aiu-s">${pct >= 100 ? "Dein Limit ist erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich um ${at} zurück.` : `Das Fenster startet mit deiner nächsten Anfrage und dauert ${AIU.hours} Stunden.`}</p>
+  pop.innerHTML = AIU.unl
+    ? `<b>Studix AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Für dein Konto gibt es kein Limit.</p>`
+    : `<b>Studix AI · ${aiuWin()}${AIU.pro ? " · Pro" : ""}</b><p class="aiu-big">${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div>
+       <p class="aiu-s">${pct >= 100 ? "Dein Limit ist erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich am ${aiuAt(rs)} zurück (in ${aiuLeft(left)}).` : `Der Zeitraum startet mit deiner nächsten Anfrage und dauert ${AIU.hours >= 168 ? "eine Woche" : AIU.hours + " Stunden"}.`}</p>
        <p class="aiu-s">Alle Modelle sind nutzbar: Gemini Pro zählt 5×, Gemini Flash 1×, Groq 0,5×.</p>
-       ${BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn small aiu-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
+       ${aiuUp() ? `<button class="btn small aiu-up" type="button">${aiuUp()}</button>` : ""}`;
   document.body.appendChild(pop);
   const r = btn.getBoundingClientRect(), w = pop.offsetWidth; pop.style.top = r.bottom + 8 + "px"; pop.style.left = Math.max(12, Math.min(innerWidth - w - 12, r.right - w)) + "px";
   const up = pop.querySelector(".aiu-up"); if (up) up.onclick = () => { pop.remove(); plusBuy(planDefault()); };
@@ -261,9 +272,9 @@ function confetti() {
 /* AI-Verbrauch als Block auf der Profilseite (gleiche Daten wie der Ring) */
 function aiuBlockInner() {
   if (!AIU.on) return "";
-  const pct = Math.round(aiuPct() * 100), rs = AIU.reset ? new Date(AIU.reset) : null, left = rs ? Math.max(0, rs - Date.now()) : 0, lh = Math.floor(left / 36e5), lm = Math.ceil(left % 36e5 / 6e4);
-  const big = AIU.pro ? `<b>Unbegrenzt</b><small>Mit Studix Study Pro gibt es kein Limit.</small>` : `<b>${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></b><small>${pct >= 100 ? "Limit erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich in ${lh ? lh + " Std. " : ""}${lm} Min. zurück.` : `Das ${AIU.hours}-Stunden-Fenster startet mit deiner nächsten Anfrage.`}</small>`;
-  return `<span class="aiu-lg">${aiuRingHtml().replace('class="aiu"', 'class="aiu" tabindex="-1"')}</span><div class="aiuse-t"><span class="aiuse-h">Studix AI Nutzung</span>${big}${AIU.pro ? "" : `<div class="aiu-bar"><i style="width:${pct}%"></i></div>`}</div>${!AIU.pro && BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn" id="aiuse-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
+  const pct = Math.round(aiuPct() * 100), rs = AIU.reset ? new Date(AIU.reset) : null, left = rs ? Math.max(0, rs - Date.now()) : 0;
+  const big = AIU.unl ? `<b>Unbegrenzt</b><small>Für dein Konto gibt es kein Limit.</small>` : `<b>${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token pro ${AIU.hours >= 168 ? "Woche" : "Zeitraum"}</span></b><small>${pct >= 100 ? "Limit erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich in ${aiuLeft(left)} zurück.` : `Der Zeitraum startet mit deiner nächsten Anfrage.`}</small>`;
+  return `<span class="aiu-lg">${aiuRingHtml().replace('class="aiu"', 'class="aiu" tabindex="-1"')}</span><div class="aiuse-t"><span class="aiuse-h">Studix AI Nutzung${AIU.pro ? " · Pro" : ""}</span>${big}${AIU.unl ? "" : `<div class="aiu-bar"><i style="width:${pct}%"></i></div>`}</div>${!AIU.unl && aiuUp() ? `<button class="btn" id="aiuse-up" type="button">${aiuUp()}</button>` : ""}`;
 }
 function aiuBlockFill(m) {
   const w = $("#aiuse", m); if (!w) return; const h = aiuBlockInner(); w.innerHTML = h; w.hidden = !h;

@@ -158,10 +158,14 @@ const isProLive = async uid => { try { const s = await liveSubscription(uid); re
 const validCustomer = async id => { if (!id) return null; try { const c = await stripe("GET", "/customers/" + id); return c && !c.deleted ? id : null; } catch { return null; } };
 const dropSubCache = uid => subCache.delete(uid);
 
-/* KI-Budget (Token) für Gratis-Konten pro Zeitfenster (Standard 5 Stunden, wie bei Claude): das Fenster startet mit der ersten Anfrage und endet nach AI_WINDOW_HOURS.
-   AI_FREE_WINDOW_TOKENS = Token pro Fenster (Standard 5000, 0 = unbegrenzt). Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
+/* KI-Budget (Token) pro Zeitfenster: Standard eine Woche (168 Std.), das Fenster startet mit der ersten Anfrage und endet nach AI_WINDOW_HOURS.
+   AI_FREE_WINDOW_TOKENS = Token pro Woche für Gratis-Konten (Standard 25000), AI_PRO_WINDOW_TOKENS = Token pro Woche für Studix Study Pro (Standard 150000); jeweils 0 = unbegrenzt.
+   Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
 const num = (v, d) => v === undefined || v === "" ? d : (+v || 0);
-const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 5000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 5)));
+const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 25000), PRO_TOKENS = num(process.env.AI_PRO_WINDOW_TOKENS, 150000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 168)));
+const limitFor = pro => pro ? PRO_TOKENS : FREE_TOKENS;   // 0 = unbegrenzt
+const nf = n => Math.round(n).toLocaleString("de-CH");
+const limitMsg = (pro, hours) => `Dein ${hours >= 168 ? "Wochenlimit" : "Limit"} für Studix AI ist erreicht. Es setzt sich ${hours >= 168 ? "eine Woche nach deiner ersten Anfrage" : "nach Ablauf des Zeitfensters"} zurück${pro ? "." : ` – oder nutze Studix Study Pro mit ${nf(PRO_TOKENS)} Token statt ${nf(FREE_TOKENS)}.`}`;
 const win = j => j && typeof j === "object" ? { used: +j.tokens || 0, reset: j.started ? new Date(new Date(j.started).getTime() + WINDOW_H * 36e5).toISOString() : null } : null;
 const aiUsed = async uid => { try { return win(await sb("POST", "rpc/lumi_ai_tokens", { p_user: uid, p_hours: WINDOW_H })); } catch { return null; } };
 const aiAdd = async (uid, t) => { try { return win(await sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: Math.max(0, Math.round(t)), p_hours: WINDOW_H })); } catch { return null; } };
@@ -170,9 +174,9 @@ const aiAdd = async (uid, t) => { try { return win(await sb("POST", "rpc/lumi_ai
 async function aiGate(req) {
   const user = await userFromReq(req); if (!user) return { deny: [401, { error: "Bitte melde dich an, um Studix AI zu nutzen." }] };
   if (!FREE_TOKENS) return { acct: { id: user.id, pro: false, free: false } };
-  const pro = await isProLive(user.id), w = pro ? { used: 0, reset: null } : await aiUsed(user.id);
+  const pro = await isProLive(user.id), w = await aiUsed(user.id), lim = limitFor(pro);
   if (!w) return { acct: { id: user.id, pro, free: false } };
-  if (!pro && w.used >= FREE_TOKENS) return { deny: [429, { error: "Dein Studix-AI-Limit ist erreicht. Es setzt sich in ein paar Stunden zurück – oder nutze Studix Study Pro ohne Limit.", limit: true, usage: { used: w.used, limit: FREE_TOKENS, reset: w.reset } }] };
-  return { acct: { id: user.id, pro, free: !pro } };
+  if (lim && w.used >= lim) return { deny: [429, { error: limitMsg(pro, WINDOW_H), limit: true, usage: { used: w.used, limit: lim, reset: w.reset } }] };
+  return { acct: { id: user.id, pro, free: true } };   // free = Verbrauch wird mitgezählt (auch bei Pro, dort mit höherem Limit)
 }
-module.exports = { aiGate, validCustomer, FREE_TOKENS, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+module.exports = { aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitMsg, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
