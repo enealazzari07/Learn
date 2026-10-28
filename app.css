@@ -4007,3 +4007,12 @@ html[data-theme="dark"] .authhero iframe{filter:none!important}
 .timerbox .btn.big:active{transform:scale(.97)}
 .timerbox .btn.big.ghost{background:#f1f1f4!important;border-color:transparent!important;color:#0f0f12!important}
 .timerbox .chip{border-radius:999px;padding:9px 16px}
+
+/* Fach-Icons */
+.nav-f i.sji{width:17px;height:17px;border-radius:0;background:none;display:grid;place-items:center}.nav-f i.sji svg{width:17px;height:17px}
+.fold .fico{position:absolute;right:10%;top:44%;width:30px;height:30px;border-radius:10px;background:rgba(255,255,255,.88);color:var(--c);display:grid;place-items:center;box-shadow:0 2px 8px rgba(30,20,90,.12);pointer-events:none;z-index:2}
+.fold .fico svg{width:18px;height:18px}.fold.add .fico{display:none}
+.sji-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.sji-b{aspect-ratio:1;border-radius:12px;border:1.5px solid #e6e6ec;background:#fff;color:#444;display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s,border-color .15s,transform .1s}
+.sji-b svg{width:22px;height:22px}.sji-b:hover{background:#f4f4f7}.sji-b:active{transform:scale(.94)}
+.sji-b.on{background:var(--c,#0f0f12);border-color:var(--c,#0f0f12);color:#fff}
