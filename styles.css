@@ -362,3 +362,59 @@ body{background:#fff}
 .hl.mk{background-image:linear-gradient(var(--c),var(--c));background-position:0 62%;background-size:0 .86em;border-radius:.25em;opacity:1}
 .hl.mk.on{background-size:100% .86em}
 @media (prefers-reduced-motion:reduce){.hl{transition:none}}
+
+/* ======== Bento-Raster (nach Magic UI) ======== */
+.bento3{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:22rem;gap:16px}
+.bn-card{position:relative;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;border-radius:26px;background:#fff;box-shadow:0 0 0 1px rgba(10,10,20,.08),0 2px 4px rgba(0,0,0,.03),0 12px 28px rgba(20,20,50,.06);transition:box-shadow .3s,transform .3s;isolation:isolate}
+.bn-card:hover{box-shadow:0 0 0 1px rgba(10,10,20,.1),0 4px 8px rgba(0,0,0,.05),0 22px 44px rgba(20,20,50,.12)}
+.bn-card.b-a,.bn-card.b-d{grid-column:span 1}.bn-card.b-b,.bn-card.b-c{grid-column:span 2}
+.bn-bg{position:absolute;inset:0;z-index:0;pointer-events:none}
+.bn-c{position:relative;z-index:2;display:flex;flex-direction:column;gap:4px;padding:24px;transition:transform .3s ease-out;pointer-events:none}
+.bn-card:hover .bn-c{transform:translateY(-36px)}
+.bn-i{width:40px;height:40px;color:#3b3b45;transform-origin:left;transition:transform .3s ease-out}.bn-i svg{width:100%;height:100%;stroke-width:1.5}
+.bn-card:hover .bn-i{transform:scale(.75)}
+.bn-c h3{font-size:20px;letter-spacing:-.025em;color:#1c1c24}
+.bn-c p{max-width:34rem;font-size:14.5px;line-height:1.5;color:#6b6b78}
+.bn-cta{position:absolute;left:0;bottom:0;z-index:3;display:flex;align-items:center;gap:8px;padding:16px 24px;font-size:14px;font-weight:650;color:#0f0f12;opacity:0;transform:translateY(40px);transition:transform .3s ease-out,opacity .3s}
+.bn-cta svg{width:16px;height:16px}
+.bn-card:hover .bn-cta{opacity:1;transform:none}
+.bn-card::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,0);transition:background .3s}.bn-card:hover::after{background:rgba(0,0,0,.025)}
+/* Marquee Dateien */
+.bn-marq{position:absolute;left:0;right:0;top:40px;display:flex;overflow:hidden;-webkit-mask-image:linear-gradient(to top,transparent 40%,#000 100%);mask-image:linear-gradient(to top,transparent 40%,#000 100%);--gap:12px}
+.bn-mt{display:flex;flex:none;gap:var(--gap);padding-right:var(--gap);animation:bnMarq 24s linear infinite}
+.bn-card:hover .bn-mt{animation-play-state:paused}
+@keyframes bnMarq{to{transform:translateX(-100%)}}
+.bn-file{flex:none;width:136px;border-radius:14px;padding:14px;background:rgba(10,10,20,.015);box-shadow:0 0 0 1px rgba(10,10,20,.1);filter:blur(1px);transition:filter .3s,background .3s;cursor:pointer}
+.bn-file:hover{filter:none;background:rgba(10,10,20,.05)}
+.bn-file figcaption{font-size:13px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bn-file blockquote{margin-top:8px;font-size:11px;line-height:1.45;color:#555}
+/* Animierte Liste */
+.bn-list{position:absolute;top:16px;right:8px;left:8px;height:320px;display:flex;flex-direction:column;gap:12px;padding:0 6%;overflow:hidden;transform:scale(.8);transform-origin:top center;transition:transform .3s ease-out;-webkit-mask-image:linear-gradient(to top,transparent 10%,#000 100%);mask-image:linear-gradient(to top,transparent 10%,#000 100%)}
+.bn-card:hover .bn-list{transform:scale(.9)}
+.bn-li{display:flex;align-items:center;gap:12px;width:100%;max-width:400px;margin:0 auto;padding:14px 16px;border-radius:16px;background:#fff;box-shadow:0 0 0 1px rgba(10,10,20,.06),0 -20px 40px -20px rgba(255,255,255,.1) inset,0 4px 14px rgba(20,20,50,.08);animation:bnIn .5s cubic-bezier(.2,1.2,.3,1) both;flex:none}
+.bn-li span{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;flex:none}.bn-li span svg{width:19px;height:19px}
+.bn-li b{display:block;font-size:14.5px;letter-spacing:-.01em}.bn-li small{display:block;font-size:12px;color:#8a8a98;margin-top:2px}
+@keyframes bnIn{from{opacity:0;transform:translateY(-14px) scale(.86)}to{opacity:1;transform:none}}
+/* Strahlen zu den KI-Anbietern */
+.bm{position:absolute;top:10px;left:50%;width:440px;height:300px;transform:translateX(-50%) scale(.85);transform-origin:top center;transition:transform .3s ease-out;-webkit-mask-image:linear-gradient(to top,transparent 2%,#000 55%);mask-image:linear-gradient(to top,transparent 2%,#000 55%)}
+.bn-card:hover .bm{transform:translateX(-50%) scale(.9)}
+.bm>svg{position:absolute;inset:0;width:100%;height:100%}
+.bm-b{stroke:#e2e2e8;stroke-width:2;stroke-linecap:round}
+.bm-a{stroke:url(#none);stroke:#8b5cf6;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:14 86;animation:bmFlow 2.8s linear infinite}
+@keyframes bmFlow{from{stroke-dashoffset:14}to{stroke-dashoffset:-86}}
+.bm-n{position:absolute;width:48px;height:48px;transform:translate(-50%,-50%);border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 0 0 1px rgba(10,10,20,.08),0 6px 18px rgba(20,20,50,.12);z-index:1}
+.bm-n svg{width:24px;height:24px}.bm-n .ic{width:22px;height:22px;color:#3b3b45}
+.bm-n.ctr{width:68px;height:68px;background:#fff}.bm-n.ctr .mark{width:36px;height:36px;display:block;background:url(logo-mark.png) center/contain no-repeat}
+.bm-n.prv{width:56px;height:56px}.bm-n.prv svg{width:28px;height:28px}
+.bm-l{position:absolute;transform:translateX(-50%);font-size:12px;font-weight:650;color:#55555f}
+/* Kalender */
+.bn-cal{position:absolute;top:40px;right:0;left:0;margin:0 auto;width:min(300px,86%);transform-origin:top;transform:scale(.85);transition:transform .3s ease-out;border-radius:16px;padding:16px;background:#fff;box-shadow:0 0 0 1px rgba(10,10,20,.1);-webkit-mask-image:linear-gradient(to top,transparent 40%,#000 100%);mask-image:linear-gradient(to top,transparent 40%,#000 100%)}
+.bn-card:hover .bn-cal{transform:scale(.95)}
+.bn-cal>b{display:block;text-align:center;font-size:14px;margin-bottom:10px}
+.bn-cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:12.5px}
+.bn-cg small{color:#8a8a98;font-size:11px;padding-bottom:4px}.bn-cg span{padding:6px 0;border-radius:9px}.bn-cg span.on{background:#0f0f12;color:#fff}.bn-cg span.ex{background:#eceaff;color:#5b3df5;font-weight:700}
+@media (max-width:900px){
+  .bento3{grid-template-columns:1fr;grid-auto-rows:22rem}.bn-card.b-a,.bn-card.b-b,.bn-card.b-c,.bn-card.b-d{grid-column:auto}
+  .bm{transform:translateX(-50%) scale(.78)}.bn-card:hover .bm{transform:translateX(-50%) scale(.82)}
+}
+@media (prefers-reduced-motion:reduce){.bn-mt,.bm-a,.bn-li{animation:none}}

@@ -55,14 +55,35 @@ function mountGrid(hero) {
   const size = () => { const top = emb.offsetTop, h = Math.round(top + emb.offsetHeight / 2); box.style.height = h + "px"; cols = Math.max(1, Math.ceil(box.clientWidth / SZ)); rows = Math.max(1, Math.ceil(h / SZ)); sqs.forEach(place); };
   new ResizeObserver(size).observe(hero); size();
 }
+/* Bento-Raster (nach Magic UI): Dateien-Marquee, animierte Erinnerungsliste, Strahlen zu den KI-Anbietern, Kalender */
+const BENTO_FILES = [["Zellatmung.note", "In den Mitochondrien wird Glukose mit Sauerstoff zu CO₂ und Wasser abgebaut – dabei entsteht ATP."], ["Vokabeln Unit 4.deck", "48 Karten · 18 heute fällig. Spaced Repetition zeigt sie genau dann, wenn du sie fast vergessen hast."], ["Skript Analysis.pdf", "Grenzwerte, Ableitungen und Integrale – mit Markierungen und Notizen direkt im PDF."], ["Skizze Zelle.draw", "Zeichnung mit Stift, Marker und Formen – im selben Dokument wie deine Notizen."], ["Referat Geschichte.note", "Gliederung, Quellen und Stichpunkte – Studix AI fasst dir alles in fünf Punkten zusammen."]];
+const BENTO_LIST = [["cal", "#2563eb", "Mathe-Klausur in 6 Tagen", "Prüfungen"], ["cards", "#0e9f6e", "18 Karteikarten fällig", "Lernen"], ["check", "#ff6a3d", "Aufgaben S. 54 morgen fällig", "Planer"], ["spark", "#5b3df5", "Quiz aus deinen Notizen bereit", "Studix AI"], ["note", "#d6431f", "Referat Biologie: Entwurf speichern", "Dokumente"], ["cal", "#8b5cf6", "Fokus-Block 25 Min. abgeschlossen", "Fokus"]];
+const GEMINI_SVG = '<svg viewBox="0 0 24 24"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gm)" d="M12 1.5C12.7 7.6 16.4 11.3 22.5 12 16.4 12.7 12.7 16.4 12 22.5 11.3 16.4 7.6 12.7 1.5 12 7.6 11.3 11.3 7.6 12 1.5Z"/></svg>';
+const GROQ_SVG = '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#f55036"/><path fill="#fff" d="M12.1 5.2a6.8 6.8 0 1 0 4.1 12.2l-1.4-1.6a4.7 4.7 0 1 1 1.5-3.4v.4h-3.7v2.1h6v-2.5a6.8 6.8 0 0 0-6.5-7.2z"/></svg>';
+function bentoHtml() {
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth(), first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+  const cal = `<div class="bn-cal"><b>${now.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</b><div class="bn-cg">${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(d => `<small>${d}</small>`).join("")}${"<i></i>".repeat(first)}${Array.from({ length: days }, (_, i) => `<span class="${i + 1 === now.getDate() ? "on" : [6, 14, 21].includes(i + 1) ? "ex" : ""}">${i + 1}</span>`).join("")}</div></div>`;
+  const file = f => `<figure class="bn-file"><figcaption>${f[0]}</figcaption><blockquote>${f[1]}</blockquote></figure>`;
+  const nd = (x, y, inner, cls = "") => `<div class="bm-n ${cls}" style="left:${x / 4.4}%;top:${y / 3}%">${inner}</div>`;
+  const beams = [[60, 60, 188, 150, 0], [60, 150, 188, 150, 1], [60, 240, 188, 150, 2], [252, 150, 376, 95, 3], [252, 150, 376, 205, 4]].map(([x1, y1, x2, y2, i]) => `<path d="M${x1} ${y1}C${(x1 + x2) / 2} ${y1},${(x1 + x2) / 2} ${y2},${x2} ${y2}" fill="none" class="bm-b"/><path d="M${x1} ${y1}C${(x1 + x2) / 2} ${y1},${(x1 + x2) / 2} ${y2},${x2} ${y2}" fill="none" pathLength="100" class="bm-a" style="animation-delay:${i * .45}s"/>`).join("");
+  const card = (cls, icon, name, desc, href, bg) => `<a class="bn-card ${cls}" href="${href}"><div class="bn-bg">${bg}</div><div class="bn-c"><span class="bn-i">${ic(icon)}</span><h3>${name}</h3><p>${desc}</p></div><div class="bn-cta"><span>Ausprobieren</span>${ic("arrow")}</div></a>`;
+  return `<section class="sec feat" id="how"><h2>Alles, was du zum Lernen brauchst.</h2><div class="bento3">
+    ${card("b-a", "file", "Alles an einem Ort", "Notizen, Skizzen, PDFs und Karteikarten – automatisch gespeichert, während du schreibst.", "#/app/docs", `<div class="bn-marq">${[0, 1].map(() => `<div class="bn-mt">${BENTO_FILES.map(file).join("")}</div>`).join("")}</div>`)}
+    ${card("b-b", "cal", "Erinnerungen", "Prüfungen, fällige Karten und Hausaufgaben – du verpasst nichts mehr.", "#/app/planner", `<div class="bn-list" id="bn-list"></div>`)}
+    ${card("b-c", "spark", "Studix AI mit starken Modellen", "Studix AI läuft zurzeit mit Gemini und Groq – schnell, und für jede Frage das passende Modell.", "#/app/ai", `<div class="bm"><svg viewBox="0 0 440 300" aria-hidden="true">${beams}</svg>${nd(60, 60, ic("note"))}${nd(60, 150, ic("file"))}${nd(60, 240, ic("cards"))}${nd(220, 150, '<i class="mark"></i>', "ctr")}${nd(376, 95, GEMINI_SVG, "prv")}${nd(376, 205, GROQ_SVG, "prv")}<span class="bm-l" style="left:${376 / 4.4}%;top:${(95 - 44) / 3}%">Gemini</span><span class="bm-l" style="left:${376 / 4.4}%;top:${(205 + 44) / 3}%">Groq</span></div>`)}
+    ${card("b-d", "cal", "Kalender & Planer", "Stundenplan, Prüfungen und Abgaben – alles nach Datum gefiltert.", "#/app/planner", cal)}
+  </div></section>`;
+}
+function mountBento(root) {
+  const list = $("#bn-list", root); if (!list) return; let i = 0, t = null;
+  const item = d => `<div class="bn-li"><span style="background:${d[1]}">${ic(d[0])}</span><div><b>${d[2]}</b><small>${d[3]} · gerade eben</small></div></div>`;
+  const push = () => { list.insertAdjacentHTML("afterbegin", item(BENTO_LIST[i++ % BENTO_LIST.length])); while (list.children.length > 6) list.lastElementChild.remove(); };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { for (let k = 3; k >= 0; k--) list.insertAdjacentHTML("beforeend", item(BENTO_LIST[k])); return; }
+  new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting && !t) { push(); t = setInterval(push, 1700); } else if (!e.isIntersecting && t) { clearInterval(t); t = null; } }), { threshold: .2 }).observe(list);
+}
 function renderLanding() {
   landingEl.dataset.r = 1; const go = 'href="#/app"';
-  const FEAT = [
-    ["f1", "edit", "Schreiben", "Notizen, Skizzen und Dateien an einem Ort", "Editor mit Überschriften, Tabellen, Formeln – dazu Stift, Marker und Formen im selben Dokument.", `<div class="fm-note"><b></b><i></i><i class="s"></i><u>Studix AI</u><i></i><i class="s"></i></div>`],
-    ["f2", "cards", "Lernen", "Karteikarten und Quiz, die hängenbleiben", "Spaced Repetition zeigt dir jede Karte genau dann, wenn du sie fast vergessen hast.", `<div class="fm-cards"><div>Mitochondrien?</div><div>Kraftwerk der Zelle</div><div class="t">18 fällig</div></div>`],
-    ["f3", "cal", "Planen", "Stundenplan, Hausaufgaben, Prüfungen", "Alle Termine im Blick – mit Kalender, Erinnerungen und Fokus-Timer.", `<div class="fm-plan">${[["Mathe", "#2563eb", "Morgen"], ["Biologie", "#0e9f6e", "Fr"], ["Englisch", "#ff6a3d", "Mo"]].map(r => `<div><i style="background:${r[1]}"></i><span>${r[0]}</span><small>${r[2]}</small></div>`).join("")}</div>`],
-    ["f4 dk", "spark", "Studix AI", "Ein Tutor, der dich nie nervt", "Erklärt Schritt für Schritt, fragt dich ab und kennt deine Unterlagen.", `<div class="fm-chat"><div class="u">Fass das in 5 Punkten zusammen</div><div class="a">Erledigt – 12 Karten im Stapel „Biologie“.</div></div>`],
-  ];
   landingEl.innerHTML = `
   <header class="pnav" id="nav"><a class="logo" href="#/"><i class="mark"></i>Studix</a>
     <nav class="pnav-links"><a href="#how">Funktionen</a><a href="#ai">Studix AI</a>${BILL.cfg?.enabled ? '<a href="#pricing">Preise</a>' : ""}<a href="#faq">Fragen</a></nav>
@@ -77,8 +98,7 @@ function renderLanding() {
       <div class="emb-view"><iframe src="index.html?embed=1#/app/today" title="Studix App" loading="eager"></iframe><div class="emb-live" aria-hidden="true">${[["u1", "#18a957", "Lena"], ["u2", "#3b82f6", "Marc"], ["u3", "#f59e0b", "Sofia"]].map(u => `<div class="cur ${u[0]}" style="--c:${u[1]}"><svg viewBox="0 0 16 20"><path d="M1 1l13 7-6 2-2 7z" fill="currentColor" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg><span>${u[2]}</span></div>`).join("")}</div></div></div>
     <p class="emb-hint">Das ist die echte App – klick dich durch.</p>
   </section>
-  <section class="sec feat" id="how"><h2>Alles, was du zum Lernen brauchst.</h2>
-    <div class="fgrid">${FEAT.map(f => `<article class="fcard ${f[0]}"><div class="fc-t"><span class="ico2">${ic(f[1])}</span><small>${f[2]}</small><h3>${f[3]}</h3><p>${f[4]}</p></div><div class="fc-m">${f[5]}</div></article>`).join("")}</div></section>
+  ${bentoHtml()}
   <section class="sec" id="ai"><div class="dark-card"><div><span class="pill-l dk"><b>Studix AI</b> eingebaut</span><h2>Frag, was du willst. Studix hilft.</h2><p class="lead">Zusammenfassungen, Quiz, Erklärungen und Hausaufgaben-Hinweise – direkt in deinen Unterlagen.</p><a class="btn accent" ${go} style="margin-top:26px">Mit dem Tutor sprechen</a></div>
     <div class="chat-demo"><div class="m u">Erkläre mir die Zellatmung wie einem Zehntklässler.</div><div class="m a">Stell dir die Zelle als Kraftwerk vor: Aus Zucker und Sauerstoff entsteht Energie (ATP). Soll ich dich danach abfragen?</div><div class="m u">Ja, und mach Karteikarten daraus.</div><div class="m a">Erledigt – 12 Karten sind in deinem Stapel „Biologie“.</div></div></div>
     <div class="grid3">${[["note", "#5b3df5", "Notiz-Editor", "Formatierung, Tabellen, Formeln, Bilder und Checklisten."], ["brush", "#ff6a3d", "Schreiben und Zeichnen", "Stift, Marker, Formen und Text – auch mit Apple Pencil."], ["cards", "#0e9f6e", "Karteikarten", "Lernen mit Wiederholungs-Algorithmus."], ["help", "#2563eb", "Quiz-Training", "Prüfungsfragen aus deinen Unterlagen."], ["cal", "#8b5cf6", "Planer", "Stundenplan, Aufgaben, Kalender und Prüfungen."], ["award", "#111", "Noten & Fokus", "Notenschnitt, Zielrechner und Pomodoro-Timer."]].map(([i, c, t, d]) => `<div class="card"><div class="ico" style="background:${c}">${ic(i)}</div><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></section>
@@ -88,6 +108,7 @@ function renderLanding() {
   <footer><div><a class="logo" href="#/"><i class="mark"></i>Studix</a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Rechtliches", ["Impressum", "legal.html#impressum"], ["Datenschutz", "legal.html#datenschutz"], ["AGB", "legal.html#agb"], ["Widerruf", "legal.html#widerruf"]]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => Array.isArray(x) ? `<a href="${x[1]}">${x[0]}</a>` : `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Studix</div>`;
   mountEmbed($("#emb", landingEl));
   mountGrid($(".hero3", landingEl));
+  mountBento(landingEl);
   { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); setTimeout(() => e.target.classList.add("on"), e.target.classList.contains("mk") ? 1300 : 700); } }), { threshold: .6 }); $$(".hl", landingEl).forEach(h => io.observe(h)); }
   $$(".pnav-links a", landingEl).forEach(a => a.addEventListener("click", () => $("#nav").classList.remove("open")));
 }
