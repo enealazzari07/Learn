@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – Word-ähnliche Formatierungsleiste für Notizen: Absatzformat, Schriftart, Schriftgrösse, Ausrichtung, Zeilenabstand, Einzug,
+/* Studix – Word-ähnliche Formatierungsleiste für Notizen: Absatzformat, Schriftart, Schriftgrösse, Ausrichtung, Zeilenabstand, Einzug,
    hoch-/tiefgestellt, Format löschen sowie „Design“ (Dokumentstile), Seitenbreite und Zoom. */
 const Format = (() => {
   const S = (p, extra = "") => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" ${extra}>${p}</svg>`;

@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – core helpers: DOM, icons, storage (IndexedDB), AI, modals */
+/* Studix – core helpers: DOM, icons, storage (IndexedDB), AI, modals */
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -260,10 +260,10 @@ async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return
 const hasKey = () => serverAI || !!D.profile.apiKey;
 function sysBase(extra = "") {
   const p = D.profile;
-  return `You are Lumi, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural. Use the Swiss school context: grades 1–6 (6 = best, 4 = pass), Swiss school types and Swiss dates (TT.MM.JJJJ), currency CHF." : ""}${extra ? "\n" + extra : ""}`;
+  return `You are Studix, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural. Use the Swiss school context: grades 1–6 (6 = best, 4 = pass), Swiss school types and Swiss dates (TT.MM.JJJJ), currency CHF." : ""}${extra ? "\n" + extra : ""}`;
 }
 const sourcesOn = () => D.profile.sources !== false && !!(serverInfo && serverInfo.gemini);
-const swissOn = () => true;   // Lumi ist für die Schweiz gemacht
+const swissOn = () => true;   // Studix ist für die Schweiz gemacht
 const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
 const AI_MODELS = [
@@ -272,23 +272,23 @@ const AI_MODELS = [
 const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq" };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
 const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !m[0].startsWith("groq:")); return L; };
-/* Lumi Study Pro nutzt standardmässig Gemini Pro (stärkstes Modell, längere Antworten), Gratis das Lite-Modell */
+/* Studix Study Pro nutzt standardmässig Gemini Pro (stärkstes Modell, längere Antworten), Gratis das Lite-Modell */
 const aiModelId = () => { const L = aiModelList(), mine = L.find(m => m[0] === D.profile.aiModel); if (mine) return mine[0]; const pro = typeof AIU !== "undefined" && AIU.pro && L.find(m => m[0] === "gemini-pro-latest"); return (pro || L[0] || AI_MODELS[0])[0]; };
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
 /* schnelles Modell für Hintergrundaufgaben (Auto-Korrektur): bevorzugt Groq */
 const autoModelId = () => { const L = aiModelList(), pick = D.profile.autoModel && L.find(m => m[0] === D.profile.autoModel); return (pick || L.find(m => m[0] === "groq:llama-3.1-8b-instant") || L.find(m => m[0] === "gemini-flash-lite-latest") || L[0] || AI_MODELS[0])[0]; };
 async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature, sources = false, bg = false } = {}) {
   window.lastAiSources = [];
-  if (!hasKey()) { if (!quiet) toast("Lumi AI ist noch nicht eingerichtet (Einstellungen → Lumi AI). Lokale Hilfe wird verwendet."); return null; }
+  if (!hasKey()) { if (!quiet) toast("Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI). Lokale Hilfe wird verwendet."); return null; }
   if (serverAI) {
     try {
       const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ ...(bg ? { bg: true } : {}), system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
       if (j.usage && typeof aiuSet === "function") aiuSet(j.usage);
-      if (!r.ok) throw new Error(r.status === 429 && !j.limit ? "Das kostenlose Lumi-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
+      if (!r.ok) throw new Error(r.status === 429 && !j.limit ? "Das kostenlose Studix-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
-    } catch (e) { if (!quiet) toast("Lumi-AI-Fehler: " + e.message); return null; }
+    } catch (e) { if (!quiet) toast("Studix-AI-Fehler: " + e.message); return null; }
   }
   const content = image ? [{ type: "image", source: { type: "base64", media_type: image.type || "image/jpeg", data: image.data } }, { type: "text", text: prompt }] : prompt;
   const messages = [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content }];
@@ -301,7 +301,7 @@ async function aiCore(prompt, { system = "", history = [], max = 1500, image = n
     const j = await r.json();
     if (!r.ok) throw new Error(j.error?.message || r.status);
     return j.content.map(c => c.text || "").join("");
-  } catch (e) { toast("Lumi-AI-Fehler: " + e.message); return null; }
+  } catch (e) { toast("Studix-AI-Fehler: " + e.message); return null; }
 }
 function parseJSON(t) { if (!t) return null; try { const a = t.search(/[\[{]/); const b = Math.max(t.lastIndexOf("}"), t.lastIndexOf("]")); return JSON.parse(t.slice(a, b + 1)); } catch { return null; } }
 

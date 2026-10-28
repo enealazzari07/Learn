@@ -1,4 +1,4 @@
-/* Start-Animation: verstreute Bausteine setzen sich zusammen, werden zum Lumi-Zeichen, dann erscheint der Name */
+/* Start-Animation: verstreute Bausteine setzen sich zusammen, werden zum Studix-Zeichen, dann erscheint der Name */
 #splash{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:#fff;color:#111;overflow:hidden;cursor:default;-webkit-user-select:none;user-select:none}
 #splash .sp-stage{position:relative;width:0;height:0}
 #splash .sp-t{position:absolute;left:-20px;top:-20px;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;opacity:0;will-change:transform,opacity}

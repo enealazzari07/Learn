@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – Apple-Kalender (und jeder andere Kalender mit ICS-Adresse): Abo über „Öffentlicher Kalender“, nur lesend, ohne Passwort.
+/* Studix – Apple-Kalender (und jeder andere Kalender mit ICS-Adresse): Abo über „Öffentlicher Kalender“, nur lesend, ohne Passwort.
    Termine der nächsten 90 Tage liegen in D.apple.events und erscheinen auf Startseite, Planer und Kalender. */
 const APPLE_COLORS = ["#ff3b30", "#ff9500", "#34c759", "#007aff", "#af52de", "#5856d6"];
 const appleCfg = () => D.apple || (D.apple = { feeds: [], events: [], lastSync: 0 });
@@ -75,7 +75,7 @@ const appleAuto = () => { const c = D.apple; if (c && c.feeds.length && Date.now
 function applePanelHtml() {
   const c = appleCfg();
   return `<div class="panel apl"><h2>${ic("cal")} Apple Kalender</h2>
-  <p class="note">Lumi zeigt deine Termine der nächsten 90 Tage – nur lesend, ohne Passwort. Funktioniert auch mit Google- und anderen Kalendern, die einen ICS-Link haben.</p>
+  <p class="note">Studix zeigt deine Termine der nächsten 90 Tage – nur lesend, ohne Passwort. Funktioniert auch mit Google- und anderen Kalendern, die einen ICS-Link haben.</p>
   ${c.feeds.map(f => `<div class="apf"><i style="background:${f.color}"></i><span><b>${esc(f.name)}</b><small>${f.err ? `<em class="bad">${esc(f.err)}</em>` : (f.count != null ? f.count + " Termine" : "noch nicht geladen")}</small></span><button class="icon-btn" data-apx="${f.id}" aria-label="Entfernen">${ic("trash")}</button></div>`).join("")}
   <div class="apadd"><input class="field" id="ap-n" placeholder="Name, z. B. Schule" maxlength="40"><input class="field" id="ap-u" placeholder="Kalender-Link (webcal://… oder https://…)" autocomplete="off" inputmode="url"><button class="btn accent" id="ap-a">${ic("plus")}Verbinden</button></div>
   <div class="row" style="margin-top:8px">${c.feeds.length ? `<button class="btn ghost" id="ap-s">${ic("rot")}Jetzt synchronisieren</button><span class="note" style="margin:0">${c.lastSync ? "Zuletzt " + fmtAgo(c.lastSync) : ""}</span>` : ""}</div>

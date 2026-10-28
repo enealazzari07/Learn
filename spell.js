@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – lokale Rechtschreibkorrektur für Deutsch (Schweiz) ohne KI.
+/* Studix – lokale Rechtschreibkorrektur für Deutsch (Schweiz) ohne KI.
    Wörterbuch (de-words.txt, ~150k Wortformen nach Häufigkeit) + Regeln. Liefert Korrekturen als {start,end,replace}.
    Ziel: eindeutige Tippfehler lokal beheben, damit die KI nur noch bei unklaren Wörtern gefragt wird. */
 const Spell = (() => {

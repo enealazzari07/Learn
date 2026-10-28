@@ -1,4 +1,4 @@
-/* Startet eine Stripe-Checkout-Sitzung für Lumi Study Pro (Abo) mit Stripe Managed Payments.
+/* Startet eine Stripe-Checkout-Sitzung für Studix Study Pro (Abo) mit Stripe Managed Payments.
    Erwartet POST { plan: "monthly" | "yearly" } mit Supabase-Token. Mit Managed Payments ist Stripe Verkäufer (Merchant of Record):
    Mehrwertsteuer in 80+ Ländern, Rechnungen, Abführung, Betrugsabwehr und Streitfälle übernimmt Stripe. */
 const L = require("./_lib");
@@ -15,7 +15,7 @@ module.exports = async function handler(req, res) {
     const body = await L.readJson(req), { country = "", embedded = false } = body, wantTrial = body.plan === "trial" || body.trial === true, plan = body.plan === "yearly" ? "yearly" : "monthly";
     const live = await L.liveSubscription(user.id, { fresh: true });   // direkt aus Stripe
     const P = (await plansP)[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
-    if (live && L.ACTIVE.includes(live.status) && live.status !== "past_due") return res.status(409).json({ error: "Du hast Lumi Study Pro bereits – verwalte es unter Einstellungen." });
+    if (live && L.ACTIVE.includes(live.status) && live.status !== "past_due") return res.status(409).json({ error: "Du hast Studix Study Pro bereits – verwalte es unter Einstellungen." });
     const trial = wantTrial && !live, base = L.siteUrl(req), customer = await L.validCustomer(live?.customer), avail = Object.keys(P.opts || {}), cur = avail.length ? L.currencyFor(req, avail, String(country).slice(0, 2)) : "";
     const common = {
       mode: "subscription", managed_payments: { enabled: process.env.STRIPE_MANAGED_PAYMENTS === "off" ? false : true },
@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
     };
     /* MwSt. ist im Preis immer enthalten (tax_behavior: inclusive), egal in welcher Währung */
     const amount = cur && P.opts?.[cur];
-    /* Eingebettet (im Lumi-Fenster, ohne Weiterleitung), wenn STRIPE_PUBLISHABLE_KEY gesetzt ist; sonst oder bei Ablehnung: Stripe-Seite */
+    /* Eingebettet (im Studix-Fenster, ohne Weiterleitung), wenn STRIPE_PUBLISHABLE_KEY gesetzt ist; sonst oder bei Ablehnung: Stripe-Seite */
     const pk = PK(), embed = !!(embedded && /^pk_(test|live)_/.test(pk));
     const mk = async (extra) => {
       const base2 = { ...common, ...extra };

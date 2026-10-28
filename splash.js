@@ -1,4 +1,4 @@
-/* Lumi Start-Animation. Läuft einmal pro Browser-Tab; Klick, Taste oder Esc überspringt sie. */
+/* Studix Start-Animation. Läuft einmal pro Browser-Tab; Klick, Taste oder Esc überspringt sie. */
 (function () {
   var S; try { if (sessionStorage.getItem("lumi-splash") === "1") return; sessionStorage.setItem("lumi-splash", "1"); } catch (e) {}
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, root = document.createElement("div");
@@ -17,7 +17,7 @@
   for (var r = 0; r < 4; r++) for (var c = 0; c < 6; c++) { if (r > 0 && r < 3 && c > 1 && c < 4) continue; var k = kinds[(n * 7 + r * 3 + c) % kinds.length]; mk(k, (c - 2.5) * 48, (r - 1.5) * 48, G[(n * 5 + c) % G.length]); n++; }
   [[-190, -80, "sp-dot"], [200, -96, "sp-o"], [-176, 96, "sp-o"], [190, 84, "sp-dot"], [-110, -150, "sp-dot"], [120, 150, "sp-o"], [8, -146, "sp-dot"], [-24, 154, "sp-dot"]].forEach(function (d) { mk(d[2], d[0], d[1]); });
   var doc = document.createElement("div"); doc.className = "sp-t sp-doc"; doc.innerHTML = '<i style="top:22px;width:34px"></i><i style="top:36px;width:50px"></i><i style="top:50px;width:26px"></i>'; st.appendChild(doc);
-  var lock = document.createElement("div"); lock.className = "sp-lock"; lock.innerHTML = '<div class="sp-logo"></div><div class="sp-word">' + "Lumi".split("").map(function (ch) { return "<span>" + ch + "</span>"; }).join("") + "</div>"; st.appendChild(lock);
+  var lock = document.createElement("div"); lock.className = "sp-lock"; lock.innerHTML = '<div class="sp-logo"></div><div class="sp-word">' + "Studix".split("").map(function (ch) { return "<span>" + ch + "</span>"; }).join("") + "</div>"; st.appendChild(lock);
   var logo = lock.firstChild, word = lock.lastChild, ease = "cubic-bezier(.2,.9,.25,1)";
   var A = function (el, kf, o) { if (!el.animate) { var l = kf[kf.length - 1]; for (var p in l) if (p !== "offset") el.style[p] = l[p]; return { finished: Promise.resolve() }; } o.fill = "forwards"; return el.animate(kf, o); };
   var wait = function (ms) { return new Promise(function (res) { setTimeout(res, ms); }); };

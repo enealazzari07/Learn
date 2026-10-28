@@ -1,4 +1,4 @@
-/* Lumi study app styles */
+/* Studix study app styles */
 :root{--violet:#5b3df5;--lime:#cdf56b;--line:#ececf1;--panel:#fff;--soft:#f1f0ee;--muted:#6b6b76;--appbg:#f3f3f7}
 .field{width:100%;border:1.5px solid var(--line);border-radius:16px;padding:11px 14px;background:#fff;outline:0;font-size:15px;transition:border-color .15s}
 .field:focus{border-color:var(--violet)}
@@ -1688,7 +1688,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .send .ic image,.btn.primary .ic image,.aip-new .ic image{filter:invert(1)}
 .nav-i .ic image{opacity:1}
 
-/* v62: nur schwarzes Lumi-AI-Icon, kein gelbes Bild; Nav-Icon outline → gefüllt beim Aktivieren */
+/* v62: nur schwarzes Studix-AI-Icon, kein gelbes Bild; Nav-Icon outline → gefüllt beim Aktivieren */
 .ai-ic,.aipane .ai-ic,.hai-h .ai-ic{background:none!important;color:#0f0f12!important;width:40px;height:40px;border-radius:0!important;box-shadow:none!important}
 .ai-ic svg{display:block!important;width:36px;height:36px}
 .aipane .ai-ic{width:40px;height:40px;border-radius:0!important}
@@ -1696,7 +1696,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .mark{background:url(logo.png) center/contain no-repeat!important;border-radius:0!important}
 .nav-i .ic image.ld{transform-box:fill-box}
 
-/* v63: schönere Lumi-AI-Generierungs-Animation – Logo schwebt, kippt und wird von einem Lichtband durchlaufen */
+/* v63: schönere Studix-AI-Generierungs-Animation – Logo schwebt, kippt und wird von einem Lichtband durchlaufen */
 .m.think .ld,.aic-think .ld{animation:none!important;opacity:1}
 .m.think svg,.aic-think svg{width:28px;height:28px;overflow:visible;transform-origin:center;
   animation:lgFloat 2.4s ease-in-out infinite,lgSweep 1.5s linear infinite;
@@ -1708,7 +1708,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .m.think{gap:12px;padding:12px 18px 12px 14px}
 @media (prefers-reduced-motion:reduce){.m.think svg,.aic-think svg{animation:none;-webkit-mask-image:none;mask-image:none}}
 
-/* v64: Lumi-AI-Seitenleiste */
+/* v64: Studix-AI-Seitenleiste */
 #aiside{position:fixed;top:68px;right:12px;bottom:12px;width:min(410px,calc(100vw - 24px));z-index:80;background:#fff;border-radius:30px;box-shadow:0 2px 8px rgba(0,0,0,.05),0 24px 70px rgba(0,0,0,.16);display:flex;flex-direction:column;overflow:hidden;transform:translateX(calc(100% + 24px));opacity:0;pointer-events:none;transition:transform .5s cubic-bezier(.3,.9,.3,1),opacity .3s}
 #aiside.on{transform:none;opacity:1;pointer-events:auto}
 #aiside header{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 6px 20px}
@@ -1750,7 +1750,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .bento .w-cd .cd-h{display:flex;justify-content:space-between;align-items:center}.bento .w-cd .cd-h b{font-size:13px}
 .bento .w-cd .cd-i{display:flex;align-items:center;gap:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bento .w-cd .cd-i i{width:6px;height:6px;border-radius:50%;background:#0f0f12;flex:none}.bento .w-cd .cd-i.kexam i{background:#d93a3a}
 .bento .w-cd .none{color:#a0a0ae}
-/* Von Lumi AI Erstelltes: Symbol + Link, kein eigener Block */
+/* Von Studix AI Erstelltes: Symbol + Link, kein eigener Block */
 .acts{gap:4px}
 .acts .act,.aipane .act,.aipane .acts .act{background:none!important;box-shadow:none!important;border-radius:0!important;padding:2px 0!important;font-size:14px;font-weight:600;gap:8px;color:#0f0f12}
 .acts .act svg{width:17px;height:17px;flex:none}
@@ -1888,7 +1888,7 @@ ins.sg-ins.sg-mini{background:none;border-radius:0;padding:0 1px;margin:0;box-sh
 /* Logo in der dunklen Markier-Leiste weiß */
 .bubble button svg:has(image){filter:invert(1)}
 
-/* ======== v71: Lumi AI wohnt im Rahmen – der weiße Rahmen rechts wird breiter ======== */
+/* ======== v71: Studix AI wohnt im Rahmen – der weiße Rahmen rechts wird breiter ======== */
 @media (min-width:901px){
   #aiside{top:0;right:0;bottom:0;width:410px;border-radius:0;box-shadow:none;background:#fff;transform:translateX(100%);opacity:1}
   #aiside.on{transform:none}
@@ -2349,7 +2349,7 @@ body.hed-open{overflow:hidden}
 .hed-grid{grid-auto-rows:minmax(64px,1fr);overflow:auto}
 @media (max-width:900px){.hb-bar button span{display:none}.hb-bar button{padding:0;width:32px}}
 
-/* ======== v95: Raster mit festen Zellen – Position (Spalte/Reihe) + Größe, Lumi-AI-Platz gesperrt ======== */
+/* ======== v95: Raster mit festen Zellen – Position (Spalte/Reihe) + Größe, Studix-AI-Platz gesperrt ======== */
 @media (min-width:901px){
   .bento .b-grid{grid-auto-flow:row!important}
   .bento .b-grid>*{grid-column:var(--c,1) / span var(--w,2)!important;grid-row:var(--r,1) / span var(--h,2)!important}
@@ -2598,7 +2598,7 @@ body.hed-open{overflow:hidden}
   .pdfpager{right:12px;bottom:12px}
 }
 
-/* v102: Lumi AI ist ein fester Block im Raster (wie die anderen: weiß, ohne Schatten, 2 × 2), im Editor gesperrt */
+/* v102: Studix AI ist ein fester Block im Raster (wie die anderen: weiß, ohne Schatten, 2 × 2), im Editor gesperrt */
 .bento .w-ai{padding:0;gap:0}
 .w-ai .hai-h{display:flex;gap:12px;align-items:center;padding:18px 20px 8px;flex:none}
 .w-ai .hai-h b{font-size:15px;display:block;letter-spacing:-.02em}.w-ai .hai-h small{font-size:12px;color:var(--muted);display:block}
@@ -3394,7 +3394,7 @@ html[data-theme="dark"] .theme-tg .tg-moon{opacity:1;transform:none}
 .bento .w-cal .cd-i.ph:not(:has(.cd-t:empty)) .cd-t{font-size:12.5px}
 @media (min-width:901px) and (max-height:820px){.bento .w-cd{display:flex!important}.bento .w-cal .w-cd{height:84px;min-height:84px}}
 
-/* ===== Lumi Voice ===== */
+/* ===== Studix Voice ===== */
 .main.voicepg{display:flex;flex-direction:column;padding:0!important;overflow:hidden}
 .vc{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;padding:16px 24px 18px;background:radial-gradient(70% 55% at 50% 38%,#f6f7fc 0,#fff 70%)}
 .vc-top{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px}

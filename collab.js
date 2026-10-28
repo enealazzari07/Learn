@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi Zusammenarbeit: Notiz per Link teilen, gemeinsam schreiben (Supabase Realtime) – Teilnehmer erscheinen neben den drei Punkten.
+/* Studix Zusammenarbeit: Notiz per Link teilen, gemeinsam schreiben (Supabase Realtime) – Teilnehmer erscheinen neben den drei Punkten.
    Modell: Wer den Link hat und angemeldet ist, kann mitschreiben. Zeichen: letzter Stand gewinnt (Cursor bleibt erhalten). */
 const CO_COL = ["#e5484d", "#f59e0b", "#16a34a", "#2563eb", "#7c3aed", "#ec4899"];
 const coColor = s => CO_COL[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % CO_COL.length];

@@ -1,4 +1,4 @@
-/* Lumi – Lumi Study Pro (Abo über Stripe Managed Payments). Das Abo wird live aus Stripe gelesen (api/subscription.js) – nichts davon liegt in unserer Datenbank.
+/* Studix – Studix Study Pro (Abo über Stripe Managed Payments). Das Abo wird live aus Stripe gelesen (api/subscription.js) – nichts davon liegt in unserer Datenbank.
    Kauf: api/checkout.js · Zahlungsart/Rechnungen: Stripe-Kundenportal (api/portal.js) · Kündigen/Fortsetzen: api/subscription.js */
 const BILL = { cfg: null, row: null, loaded: false };
 const isPlus = () => !!BILL.row && ["active", "trialing", "past_due"].includes(BILL.row.status) && (!BILL.row.current_period_end || new Date(BILL.row.current_period_end).getTime() > Date.now() - 3 * 864e5);
@@ -81,22 +81,22 @@ const SUB_STATUS = { trialing: "Testversion", active: "Aktiv", past_due: "Zahlun
 const INV_STATUS = { paid: "Bezahlt", open: "Offen", draft: "Entwurf", void: "Storniert", uncollectible: "Uneinbringlich" };
 const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American Express", discover: "Discover", jcb: "JCB", diners: "Diners Club", unionpay: "UnionPay" })[b] || (b ? b[0].toUpperCase() + b.slice(1) : "Karte");
 
-const PRO_FEATURES = ["Lumi AI ohne Limit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Lumi"];
+const PRO_FEATURES = ["Studix AI ohne Limit", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
 
 function plusPanelHtml() {
   const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${PRO_FEATURES.map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
   const eligible = !r, trialD = (c && c.trial) || 14;
-  const head = state => `<div class="prohead"><div><span class="probadge">Pro</span><h2>Lumi Study Pro</h2></div>${state ? `<span class="prostate">${state}</span>` : ""}</div>`;
+  const head = state => `<div class="prohead"><div><span class="probadge">Pro</span><h2>Studix Study Pro</h2></div>${state ? `<span class="prostate">${state}</span>` : ""}</div>`;
   if (CLOUD.user && c && c.enabled && !BILL.loaded) return `<div class="panel propanel">${head("")}<p class="note">Abo wird bei Stripe geladen …</p></div>`;
   const cancelling = isPlus() && r.cancel_at_period_end;
   if (c && c.pk && c.monthly && c.enabled && cloudOn() && CLOUD.user && (!isPlus() || cancelling)) {   // Plan-Auswahl links, Bezahlformular rechts
     const m = c.monthly, y = c.yearly, off = cancelling, def = r ? "monthly" : "trial", cur = off ? "" : (window.__plan && !(window.__plan === "trial" && r) ? window.__plan : def), save = y ? Math.max(0, m * 12 - y) : 0, pct = y && m ? Math.round(save / (m * 12) * 100) : 0;
     const P = [!r ? ["trial", `${trialD} Tage gratis testen`, `Danach ${money(m)} pro Monat. Nur einmal pro Konto möglich – jederzeit vorher kündbar.`, "Gratis"] : null,
-      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${pct} % (${money(save)}) – nur ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Lumi Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
+      ["monthly", "Monatsabo", "Jederzeit kündbar, monatlich flexibel.", `${money(m)} / Monat`], y ? ["yearly", "Jahresabo", save ? `Du sparst ${pct} % (${money(save)}) – nur ${money(Math.round(y / 12))} pro Monat.` : "Ein Jahr Studix Study Pro.", `${money(y)} / Jahr`] : null].filter(Boolean);
     const days = cancelling ? daysLeft(r.current_period_end) : 0;
     const top = cancelling ? `<div class="pp-run"><b>Aktives Abo läuft in ${dIn(days)} ab</b><small>Zugang bis ${dateDE(r.current_period_end)}. Danach kannst du hier ein neues Abo abschliessen.</small><button class="btn" type="button" id="pl-resume">Abo wieder aktivieren</button></div>`
       : r ? `<p class="pp-ended">Dein letztes Abo ist beendet${r.ended_at || r.current_period_end ? ` (${dateDE(r.ended_at || r.current_period_end)})` : ""}. Schön, dass du zurück bist.</p>` : "";
-    return `<div class="propanel proside${off ? " is-off" : ""}"><span class="probadge">Pro</span><h2>Lumi Study Pro</h2>${top}<p class="ps-lead">${off ? "Neue Pläne sind erst nach Ablauf wählbar." : "Wähle deinen Plan. Mehrwertsteuer ist immer inklusive."}</p>
+    return `<div class="propanel proside${off ? " is-off" : ""}"><span class="probadge">Pro</span><h2>Studix Study Pro</h2>${top}<p class="ps-lead">${off ? "Neue Pläne sind erst nach Ablauf wählbar." : "Wähle deinen Plan. Mehrwertsteuer ist immer inklusive."}</p>
       <div class="pp-plans" role="radiogroup">${P.map(([k, t, d, pr], i) => `<button type="button" class="pp-card${k === cur ? " on" : ""}" data-plan="${k}" role="radio" aria-checked="${k === cur}" ${off ? "disabled" : ""} style="--d:${i}">${k === "trial" ? `<span class="pp-gift">${ic("gift")}</span>` : `<i class="pp-dot"></i>`}<span class="pp-t"><b>${t}</b><small>${d}</small></span><span class="pp-pr">${pr}</span>${k === "trial" ? `<em>Neu</em>` : k === "yearly" && pct ? `<em>−${pct} %</em>` : ""}</button>`).join("")}</div>
       <p class="ps-fine">Bezahlung sicher über Stripe (Karte, Apple Pay, Google Pay, Link u. a.). Verkäufer und Rechnungssteller ist Stripe („Sold through Link“). Mit dem Kauf gelten <a href="legal.html#agb" target="_blank" rel="noopener">AGB</a> und <a href="legal.html#widerruf" target="_blank" rel="noopener">Widerrufsbelehrung</a>.</p></div>`;
   }
@@ -106,7 +106,7 @@ function plusPanelHtml() {
     const unit = r.interval === "year" ? "Jahr" : "Monat", price = r.amount != null ? `${money(r.amount, r.currency)} / ${unit} · ${r.tax_behavior === "exclusive" ? "zzgl." : "inkl."} MwSt.` : "–";
     const title = cancelled ? `Gekündigt – Zugang bis ${dateDE(r.current_period_end)}` : trialing ? `Testversion endet in ${dIn(left)}` : r.status === "past_due" ? "Zahlung überfällig" : "Aktives Abo";
     const sub = cancelled ? "Danach wird nichts mehr berechnet. Du kannst das Abo bis dahin jederzeit wieder aktivieren." : trialing ? `Die Testversion endet am ${dateDE(r.current_period_end)}. Danach ${price}, wenn du nicht vorher kündigst.` : r.status === "past_due" ? "Die letzte Zahlung ist fehlgeschlagen – bitte aktualisiere deine Zahlungsart." : `Nächste Zahlung am ${dateDE(r.current_period_end)}: ${price}.`;
-    const kv = [["Status", `${SUB_STATUS[r.status] || r.status}${cancelled ? " (gekündigt)" : ""}`], ["Plan", `Lumi Study Pro · ${r.interval === "year" ? "jährlich" : "monatlich"}`], ["Preis", price], ["Abo gestartet", r.created ? dateDE(r.created) : "–"],
+    const kv = [["Status", `${SUB_STATUS[r.status] || r.status}${cancelled ? " (gekündigt)" : ""}`], ["Plan", `Studix Study Pro · ${r.interval === "year" ? "jährlich" : "monatlich"}`], ["Preis", price], ["Abo gestartet", r.created ? dateDE(r.created) : "–"],
       trialing ? ["Testversion endet", dateDE(r.trial_end || r.current_period_end)] : null, [cancelled ? "Zugang bis" : "Nächste Zahlung", r.current_period_end ? dateDE(r.current_period_end) : "–"],
       ["Zahlungsmittel", r.card ? `${cardName(r.card.brand)} •••• ${r.card.last4} · gültig bis ${String(r.card.exp_month).padStart(2, "0")}/${String(r.card.exp_year).slice(-2)}` : "Bei Stripe hinterlegt"], ["Abo-ID", `<code>${esc(r.id)}</code>`]].filter(Boolean);
     const inv = Array.isArray(r.invoices) ? (r.invoices.length ? `<div class="invl"><h3>Rechnungen</h3>${r.invoices.map(i => `<div class="inv"><span>${i.created ? dateShort(i.created) : ""}</span><span>${esc(i.number || "Rechnung")}</span><b>${money(i.total, i.currency)}</b><em class="${i.status === "paid" ? "ok" : ""}">${INV_STATUS[i.status] || i.status}</em>${i.url ? `<a href="${esc(i.url)}" target="_blank" rel="noopener">Ansehen</a>` : "<span></span>"}</div>`).join("")}</div>` : `<div class="invl"><h3>Rechnungen</h3><p class="note">Noch keine Rechnung – die erste kommt nach der Testversion.</p></div>`) : "";
@@ -115,8 +115,8 @@ function plusPanelHtml() {
       <div class="row subacts">${cancelled ? `<button class="btn primary" id="pl-resume">Abo wieder aktivieren</button>` : `<button class="btn" id="pl-cancel">${trialing ? "Testversion beenden / Abo kündigen" : "Abo kündigen"}</button>`}<button class="btn" id="pl-pay">Zahlungsart ändern</button><button class="btn" id="pl-manage">Alle Rechnungen &amp; Belege</button><button class="btn ghost" id="pl-reload" type="button">${ic("rot")}Aktualisieren</button></div>
       <p class="note">${cancelled ? "" : trialing ? "Kündigst du während der Testversion, wird dir nichts berechnet und du behältst Pro bis zum Ende der Testversion." : "Du behältst Pro bis zum Ende des bezahlten Zeitraums."} Alle Angaben kommen live von Stripe.</p></div>`;
   }
-  if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Lumi Study Pro nutzt du Lumi AI ohne Limit.</p>${list}</div>`;
-  if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Lumi Study Pro zu abonnieren.</p>${list}</div>`;
+  if (!c || !c.enabled || !cloudOn()) return `<div class="panel propanel">${head("Bald verfügbar")}<p class="note">Mit Studix Study Pro nutzt du Studix AI ohne Limit.</p>${list}</div>`;
+  if (!CLOUD.user) return `<div class="panel propanel">${head("")}<p class="note">Melde dich unter „Konto“ an, um Studix Study Pro zu abonnieren.</p>${list}</div>`;
   const y = c.yearly, m = c.monthly, save = y && m ? Math.round((1 - y / (m * 12)) * 100) : 0;
   return `<div class="panel propanel">${head(r ? SUB_STATUS[r.status] || "" : "")}<p class="note">${eligible ? `<b>${trialD} Tage kostenlos testen</b>, danach ${m ? money(m) + " / Monat" : y ? money(y) + " / Jahr" : "der normale Preis"}. ` : ""}Preis inkl. Mehrwertsteuer – in jeder Währung. Jederzeit kündbar.</p>${list}
     <div class="row" style="gap:10px;flex-wrap:wrap">${m ? `<button class="btn primary" id="pl-m">${eligible ? `${ic("gift")}${trialD} Tage gratis testen` : `${money(m)} / Monat`}</button>` : ""}${y ? `<button class="btn ${m ? "" : "primary"}" id="pl-y">${eligible ? `${money(y)} / Jahr · ${trialD} Tage gratis` : `${money(y)} / Jahr${save > 0 ? ` · ${save} % sparen` : ""}`}</button>` : ""}</div>
@@ -149,7 +149,7 @@ async function plusAfter() {
   window.__setTab = "pro"; toast("Danke! Deine Testversion wird geladen …");
   for (let i = 0; i < 8 && !isPlus(); i++) { await plusLoad(true); if (!isPlus()) await new Promise(r => setTimeout(r, 2000)); }
   if (isPlus()) confetti();
-  toast(isPlus() ? "Lumi Study Pro ist aktiv – viel Erfolg beim Lernen!" : "Zahlung eingegangen – das Abo erscheint gleich. Lade die Seite in ein paar Sekunden neu."); try { refreshNav(); } catch {} if (curView === "settings") { window.__setTab = "pro"; renderView(); }
+  toast(isPlus() ? "Studix Study Pro ist aktiv – viel Erfolg beim Lernen!" : "Zahlung eingegangen – das Abo erscheint gleich. Lade die Seite in ein paar Sekunden neu."); try { refreshNav(); } catch {} if (curView === "settings") { window.__setTab = "pro"; renderView(); }
 }
 
 /* Pro-Block ganz oben in den Einstellungen */
@@ -160,8 +160,8 @@ function proBannerHtml() {
     ? (r.cancel_at_period_end ? `Gekündigt – Zugang bis ${dateDE(r.current_period_end)}`
       : r.status === "trialing" ? `Testversion endet in ${dIn(daysLeft(r.current_period_end))} (am ${dateDE(r.current_period_end)})`
       : r.current_period_end ? `Aktiv · verlängert sich am ${dateDE(r.current_period_end)}` : "Aktiv")
-    : can && price ? `${r ? "" : td + " Tage gratis, danach "}${price}` : "Lumi AI ohne Limit – bald verfügbar";
-  return `<div class="probanner"><div class="pb-l"><span class="probadge">Pro</span><div><b>Lumi Study Pro</b><small>${t}</small></div></div><button class="btn primary" id="pro-go">${isPlus() ? (isTrial() ? "Testversion verwalten" : "Abo verwalten") : can ? (r ? "Lumi Study Pro holen" : `${td} Tage gratis testen`) : "Mehr erfahren"}</button></div>`;
+    : can && price ? `${r ? "" : td + " Tage gratis, danach "}${price}` : "Studix AI ohne Limit – bald verfügbar";
+  return `<div class="probanner"><div class="pb-l"><span class="probadge">Pro</span><div><b>Studix Study Pro</b><small>${t}</small></div></div><button class="btn primary" id="pro-go">${isPlus() ? (isTrial() ? "Testversion verwalten" : "Abo verwalten") : can ? (r ? "Studix Study Pro holen" : `${td} Tage gratis testen`) : "Mehr erfahren"}</button></div>`;
 }
 
 /* Chip in der Seitenleiste: Testphase bzw. Kündigung immer sichtbar */
@@ -211,7 +211,7 @@ function aiuSet(u) { if (!u) return; if (u.limit == null) AIU.pro = true; else {
 const aiuPct = () => AIU.pro || !AIU.limit ? 0 : Math.min(1, AIU.used / AIU.limit);
 function aiuRingHtml() {
   if (!AIU.on) return "";
-  return `<button type="button" class="aiu" aria-label="Lumi-AI-Verbrauch heute"><svg viewBox="0 0 24 24" width="24" height="24"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="${(aiuPct() * 100).toFixed(1)} 100"/></svg></button>`;
+  return `<button type="button" class="aiu" aria-label="Studix-AI-Verbrauch heute"><svg viewBox="0 0 24 24" width="24" height="24"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="${(aiuPct() * 100).toFixed(1)} 100"/></svg></button>`;
 }
 function aiuPaint() {
   document.querySelectorAll(".aiu").forEach(b => { const p = b.querySelector(".aiu-p"); if (p) p.setAttribute("stroke-dasharray", (aiuPct() * 100).toFixed(1) + " 100"); b.classList.toggle("hot", aiuPct() >= .85); });
@@ -227,8 +227,8 @@ function aiuPop(btn) {
   const left = rs ? Math.max(0, rs - Date.now()) : 0, lh = Math.floor(left / 36e5), lm = Math.ceil(left % 36e5 / 6e4), at = rs ? `${rs.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" })} Uhr (in ${lh ? lh + " Std. " : ""}${lm} Min.)` : "";
   const pop = document.createElement("div"); pop.className = "aiu-pop";
   pop.innerHTML = AIU.pro
-    ? `<b>Lumi AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Mit Lumi Study Pro gibt es kein Limit.</p>`
-    : `<b>Lumi AI · ${AIU.hours} Std.-Fenster</b><p class="aiu-big">${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div>
+    ? `<b>Studix AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Mit Studix Study Pro gibt es kein Limit.</p>`
+    : `<b>Studix AI · ${AIU.hours} Std.-Fenster</b><p class="aiu-big">${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div>
        <p class="aiu-s">${pct >= 100 ? "Dein Limit ist erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich um ${at} zurück.` : `Das Fenster startet mit deiner nächsten Anfrage und dauert ${AIU.hours} Stunden.`}</p>
        <p class="aiu-s">Alle Modelle sind nutzbar: Gemini Pro zählt 5×, Gemini Flash 1×, Groq 0,5×.</p>
        ${BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn small aiu-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
@@ -262,8 +262,8 @@ function confetti() {
 function aiuBlockInner() {
   if (!AIU.on) return "";
   const pct = Math.round(aiuPct() * 100), rs = AIU.reset ? new Date(AIU.reset) : null, left = rs ? Math.max(0, rs - Date.now()) : 0, lh = Math.floor(left / 36e5), lm = Math.ceil(left % 36e5 / 6e4);
-  const big = AIU.pro ? `<b>Unbegrenzt</b><small>Mit Lumi Study Pro gibt es kein Limit.</small>` : `<b>${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></b><small>${pct >= 100 ? "Limit erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich in ${lh ? lh + " Std. " : ""}${lm} Min. zurück.` : `Das ${AIU.hours}-Stunden-Fenster startet mit deiner nächsten Anfrage.`}</small>`;
-  return `<span class="aiu-lg">${aiuRingHtml().replace('class="aiu"', 'class="aiu" tabindex="-1"')}</span><div class="aiuse-t"><span class="aiuse-h">Lumi AI Nutzung</span>${big}${AIU.pro ? "" : `<div class="aiu-bar"><i style="width:${pct}%"></i></div>`}</div>${!AIU.pro && BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn" id="aiuse-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
+  const big = AIU.pro ? `<b>Unbegrenzt</b><small>Mit Studix Study Pro gibt es kein Limit.</small>` : `<b>${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></b><small>${pct >= 100 ? "Limit erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich in ${lh ? lh + " Std. " : ""}${lm} Min. zurück.` : `Das ${AIU.hours}-Stunden-Fenster startet mit deiner nächsten Anfrage.`}</small>`;
+  return `<span class="aiu-lg">${aiuRingHtml().replace('class="aiu"', 'class="aiu" tabindex="-1"')}</span><div class="aiuse-t"><span class="aiuse-h">Studix AI Nutzung</span>${big}${AIU.pro ? "" : `<div class="aiu-bar"><i style="width:${pct}%"></i></div>`}</div>${!AIU.pro && BILL.cfg && BILL.cfg.enabled && !isPlus() ? `<button class="btn" id="aiuse-up" type="button">Unbegrenzt mit Pro</button>` : ""}`;
 }
 function aiuBlockFill(m) {
   const w = $("#aiuse", m); if (!w) return; const h = aiuBlockInner(); w.innerHTML = h; w.hidden = !h;

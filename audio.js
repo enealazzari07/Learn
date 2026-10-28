@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi audio notes: record while you write. Every stroke / sticker made during a recording remembers its moment (s.t in ms, s.a = recording id);
+/* Studix audio notes: record while you write. Every stroke / sticker made during a recording remembers its moment (s.t in ms, s.a = recording id);
    double-tap such ink with the select or laser tool and the recording jumps to that moment. Recordings live in IndexedDB under "aud:<docId>". */
 
 async function attachAudio(m, d, ink, AUD) {

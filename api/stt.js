@@ -1,4 +1,4 @@
-/* Lumi Voice – Spracherkennung für Browser ohne eingebaute Funktion (Firefox, Windows-App). Nutzt Gemini zur Transkription.
+/* Studix Voice – Spracherkennung für Browser ohne eingebaute Funktion (Firefox, Windows-App). Nutzt Gemini zur Transkription.
    POST { audio: base64, mime } → { text }. Vercel: GEMINI_API_KEY. */
 const L = require("./_lib");
 module.exports = async function handler(req, res) {

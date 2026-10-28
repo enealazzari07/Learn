@@ -1,9 +1,9 @@
-/* Lumi AI proxy (Vercel serverless function) – Google Gemini und/oder Groq.
+/* Studix AI proxy (Vercel serverless function) – Google Gemini und/oder Groq.
    Vercel → Project Settings → Environment Variables:
      GEMINI_API_KEY  (kostenloser Key: https://aistudio.google.com/apikey)
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur
      GEMINI_MODEL    (optional, Standard: gemini-flash-lite-latest)
-     AI_FREE_WINDOW_TOKENS (optional: Token pro Zeitfenster für Gratis-Konten, Standard 5000 (Lumi-Token = echte Token ÷ 10); 0 = unbegrenzt) und AI_WINDOW_HOURS (Länge des Fensters, Standard 5). Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
+     AI_FREE_WINDOW_TOKENS (optional: Token pro Zeitfenster für Gratis-Konten, Standard 5000 (Studix-Token = echte Token ÷ 10); 0 = unbegrenzt) und AI_WINDOW_HOURS (Länge des Fensters, Standard 5). Braucht SUPABASE_SERVICE_ROLE_KEY und supabase/billing.sql)
    Mindestens einer der beiden Keys genügt. Die Keys erreichen nie den Browser. */
 const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];
@@ -17,7 +17,7 @@ const MODELS = [
   { id: "groq:openai/gpt-oss-120b", p: "groq", m: "openai/gpt-oss-120b" },
 ];
 const L = require("./_lib");
-/* Lumi-Token = echte Token ÷ 10, dazu Gewicht je Modell: Gemini Pro zählt 5×, Gemini Flash/Lite 1×, Groq 0,5× */
+/* Studix-Token = echte Token ÷ 10, dazu Gewicht je Modell: Gemini Pro zählt 5×, Gemini Flash/Lite 1×, Groq 0,5× */
 const WEIGHT = id => /pro/.test(id) && !/^groq:/.test(id) ? 5 : /^groq:/.test(id) ? 0.5 : 1;
 const have = () => ({ gemini: !!process.env.GEMINI_API_KEY, groq: !!process.env.GROQ_API_KEY });
 const available = () => { const h = have(); return MODELS.filter(x => h[x.p]); };
@@ -74,14 +74,14 @@ module.exports = async function handler(req, res) {
   let body = req.body; if (typeof body === "string") { try { body = JSON.parse(body); } catch { return res.status(400).json({ error: "Ungültige Anfrage" }); } }
   let { system = "", messages = [], max = 1024, image = null, model: wanted = "", temperature, sources = false, bg = false } = body || {};
   if (!Array.isArray(messages) || !messages.length) return res.status(400).json({ error: "Keine Nachricht" });
-  /* Gratis-Konten: Token-Budget pro Zeitfenster (Standard 5 Stunden), eingeschränktes Modell, keine Websuche. Lumi Study Pro: unbegrenzt. Ohne Service-Key oder SQL bleibt alles offen. */
+  /* Gratis-Konten: Token-Budget pro Zeitfenster (Standard 5 Stunden), eingeschränktes Modell, keine Websuche. Studix Study Pro: unbegrenzt. Ohne Service-Key oder SQL bleibt alles offen. */
   let acct = null;
   if (L.FREE_TOKENS && !bg) {
     try {
-      const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte melde dich an, um Lumi AI zu nutzen." });
+      const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte melde dich an, um Studix AI zu nutzen." });
       const pro = await L.isProLive(user.id), w = pro ? { used: 0, reset: null } : await L.aiUsed(user.id);
       if (!w) acct = null;
-      else { acct = { id: user.id, pro, used: w.used }; if (!pro && w.used >= L.FREE_TOKENS) return res.status(429).json({ error: `Dein Lumi-AI-Limit ist erreicht. Es setzt sich in ein paar Stunden zurück – oder nutze Lumi Study Pro ohne Limit.`, limit: true, usage: { used: w.used, limit: L.FREE_TOKENS, reset: w.reset } }); }
+      else { acct = { id: user.id, pro, used: w.used }; if (!pro && w.used >= L.FREE_TOKENS) return res.status(429).json({ error: `Dein Studix-AI-Limit ist erreicht. Es setzt sich in ein paar Stunden zurück – oder nutze Studix Study Pro ohne Limit.`, limit: true, usage: { used: w.used, limit: L.FREE_TOKENS, reset: w.reset } }); }
     } catch (e) { acct = null; }
   }
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });

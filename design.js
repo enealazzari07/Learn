@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi Design-Studio – Übersicht, Editor (Vorlagen, Elemente, Text, Hintergrund, Bilder, Ebenen) und Export (PNG/JPG/PDF).
+/* Studix Design-Studio – Übersicht, Editor (Vorlagen, Elemente, Text, Hintergrund, Bilder, Ebenen) und Export (PNG/JPG/PDF).
    Aufbau wie in Canva: Seitenleiste mit Tabs, schwebende Werkzeugleiste für die Auswahl, Seiten-Leiste unten. */
 
 const DS_TPL_FMT = { neon: "poster", cream: "poster", yellow: "poster", study: "poster", pastel: "ig", sunset: "story", navy: "slide", quote: "ig", invite: "invite", title: "slide", cert: "cert", party: "ig" };
@@ -140,7 +140,7 @@ function dsCreateDialog(pre = {}) {
     const f = fmt === "custom" ? { k: "custom", n: "Eigene Größe", w: Math.max(100, Math.min(6000, +$("#dc-w", el).value || 1000)), h: Math.max(100, Math.min(6000, +$("#dc-h", el).value || 1000)) } : dsFmt(fmt), topic = "", t = DS_TEMPLATES.find(x => x.k === tpl);
     const title = $("#dc-n", el).value.trim() || (t ? t.n : "Unbenanntes Design"); close();
     let texts = null;
-    if (t && topic) { if (hasKey()) { toast("Lumi AI schreibt die Texte …"); const r = await ai(`Schreibe kurze deutsche Texte für ein ${f.n}-Design (Vorlage „${t.n}“) zum Thema: ${topic}\nAntworte NUR mit JSON: {"title":"max. 4 Wörter, kurz und stark","sub":"ein kurzer Untertitel","body":"1–2 kurze Zeilen mit Details","date":"Datum/Ort oder kurze Zeile","name":"Name falls passend"}`, { max: 400, quiet: true }); try { texts = parseJSON(r); } catch {} if (!texts) toast("Die KI hat nichts Brauchbares geliefert – Standardtexte"); } else toast("Lumi AI ist nicht eingerichtet – Standardtexte"); }
+    if (t && topic) { if (hasKey()) { toast("Studix AI schreibt die Texte …"); const r = await ai(`Schreibe kurze deutsche Texte für ein ${f.n}-Design (Vorlage „${t.n}“) zum Thema: ${topic}\nAntworte NUR mit JSON: {"title":"max. 4 Wörter, kurz und stark","sub":"ein kurzer Untertitel","body":"1–2 kurze Zeilen mit Details","date":"Datum/Ort oder kurze Zeile","name":"Name falls passend"}`, { max: 400, quiet: true }); try { texts = parseJSON(r); } catch {} if (!texts) toast("Die KI hat nichts Brauchbares geliefert – Standardtexte"); } else toast("Studix AI ist nicht eingerichtet – Standardtexte"); }
     const page = t ? dsPageFromTemplate(t, f.w, f.h, texts) : dsBlankPage(f.w, f.h), id = uid();
     await KV.set("design:" + id, { pages: [page] }); D.designs.unshift({ id, folderId: folder, title, fmt: f.k, w: f.w, h: f.h, updated: Date.now(), created: Date.now(), thumb: "", pagesN: 1 }); save(); go("design/" + id);
   };

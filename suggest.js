@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – Änderungsvorschläge direkt im Text (wie „Änderungen nachverfolgen“): durchgestrichen = alt, markiert = neu, ✓ übernehmen · ✕ verwerfen */
+/* Studix – Änderungsvorschläge direkt im Text (wie „Änderungen nachverfolgen“): durchgestrichen = alt, markiert = neu, ✓ übernehmen · ✕ verwerfen */
 const Suggest = (() => {
   let seq = 0;
   const IC_OK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>', IC_NO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';

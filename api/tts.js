@@ -1,4 +1,4 @@
-/* Lumi Voice – Sprachausgabe mit Google Gemini TTS (natürliche, mehrsprachige Stimmen, im kostenlosen Gemini-Kontingent).
+/* Studix Voice – Sprachausgabe mit Google Gemini TTS (natürliche, mehrsprachige Stimmen, im kostenlosen Gemini-Kontingent).
    POST { text, voice } → { wav: base64 } (24 kHz, mono). Vercel: GEMINI_API_KEY; optional GEMINI_TTS_MODEL (Standard gemini-2.5-flash-preview-tts). */
 const L = require("./_lib");
 const VOICES = ["Kore", "Aoede", "Zephyr", "Leda", "Puck", "Charon", "Fenrir", "Orus"];

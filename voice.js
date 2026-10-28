@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi Voice – Sprachgespräch mit Lumi AI: Mikrofon → Antwort derselben KI-Modelle → natürliche Stimme (Google Gemini TTS, sonst Systemstimme).
+/* Studix Voice – Sprachgespräch mit Studix AI: Mikrofon → Antwort derselben KI-Modelle → natürliche Stimme (Google Gemini TTS, sonst Systemstimme).
    Die animierte Kugel ist eigens gezeichnet (Canvas) und reagiert auf Zuhören, Denken und Sprechen. */
 
 const VC_VOICES = [["de_DE-thorsten-medium", "Thorsten · klar"], ["de_DE-thorsten_emotional-medium", "Thorsten · lebhaft"]];
@@ -72,13 +72,13 @@ V.voice = m => {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   const S = { state: "idle", level: 0, hist: [], paused: false, alive: true, voice: (VC_VOICES.find(v => v[0] === LS.get("lumi-voice")) || VC_VOICES[0])[0], ac: null, mic: null, micAn: null, outAn: null, src: null, rec: null, token: 0, chat: null, pip: null, pipQ: Promise.resolve() };
   const serverOk = typeof serverAI !== "undefined" && serverAI && typeof CLOUD !== "undefined" && CLOUD.user;
-  m.innerHTML = `<div class="vc"><div class="vc-top"><button class="btn ghost small" id="vc-back" type="button">${ic("back")}Lumi AI</button>
+  m.innerHTML = `<div class="vc"><div class="vc-top"><button class="btn ghost small" id="vc-back" type="button">${ic("back")}Studix AI</button>
       <label class="vc-v"><span>Stimme</span><select id="vc-sel" class="field flat">${VC_VOICES.map(([k, n]) => `<option value="${k}" ${S.voice === k ? "selected" : ""}>${n}</option>`).join("")}</select></label></div>
     <div class="vc-stage" data-keep-colors><canvas id="vc-orb" aria-hidden="true"></canvas></div>
     <p class="vc-st" id="vc-st" aria-live="polite">Bereit</p>
     <div class="vc-sub"><p class="vc-u" id="vc-u"></p><p class="vc-a" id="vc-a"></p></div>
     <div class="vc-ctl"><button class="vc-mic" id="vc-mic" type="button" aria-label="Mikrofon an oder aus">${ic("mic")}</button><button class="btn ghost" id="vc-end" type="button">Beenden</button></div>
-    <p class="ai-note vc-note">Lumi AI ist eine KI und kann Fehler machen – prüfe wichtige Antworten. Lumi AI wird mit Unterstützung von Google Gemini und Groq betrieben.</p></div>`;
+    <p class="ai-note vc-note">Studix AI ist eine KI und kann Fehler machen – prüfe wichtige Antworten. Studix AI wird mit Unterstützung von Google Gemini und Groq betrieben.</p></div>`;
   const $$st = $("#vc-st", m), $u = $("#vc-u", m), $a = $("#vc-a", m), $mic = $("#vc-mic", m);
   const setSt = (st, text) => { S.state = st; $$st.textContent = text; $mic.classList.toggle("on", st === "listening"); m.dataset.vs = st; };
   const stopOrb = vcOrb($("#vc-orb", m), () => ({ state: S.state, level: S.level }));
@@ -160,7 +160,7 @@ V.voice = m => {
   LEAVE.push(leave);
   $("#vc-back", m).onclick = () => go("ai"); $("#vc-end", m).onclick = () => go("ai");
 
-  if (!serverOk) { setSt("idle", "Melde dich an, um mit Lumi AI zu sprechen"); $mic.disabled = true; return; }
+  if (!serverOk) { setSt("idle", "Melde dich an, um mit Studix AI zu sprechen"); $mic.disabled = true; return; }
   if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) { setSt("idle", "Dieser Browser erlaubt kein Mikrofon"); $mic.disabled = true; return; }
   setSt("idle", "Tippe auf das Mikrofon und sprich los"); $a.textContent = "Frag mich etwas zu deinen Fächern, lass dir etwas erklären oder übe mit mir.";
 };

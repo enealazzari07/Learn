@@ -7,7 +7,7 @@ const SB_ANON = () => process.env.SUPABASE_ANON_KEY || "sb_publishable_1AJLgVlp0
 const SB_SERVICE = () => process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const stripeKey = () => process.env.STRIPE_SECRET_KEY || "";
 
-/* Pro-Tarife: kommen direkt aus Stripe. Gesucht werden aktive, wiederkehrende Preise des Produkts "Lumi Study Pro" (oder STRIPE_PRODUCT_ID);
+/* Pro-Tarife: kommen direkt aus Stripe. Gesucht werden aktive, wiederkehrende Preise des Produkts "Studix Study Pro" (oder STRIPE_PRODUCT_ID);
    monatlich = interval month, jährlich = interval year. STRIPE_PRICE_MONTHLY / STRIPE_PRICE_YEARLY überschreiben die Suche. */
 let priceCache = { at: 0, v: null };
 async function plans() {
@@ -16,7 +16,7 @@ async function plans() {
   if (stripeKey() && (!out.monthly.price || !out.yearly.price)) {
     try {
       const j = await stripe("GET", "/prices", { active: "true", type: "recurring", limit: 50, expand: ["data.product", "data.currency_options"] }), want = process.env.STRIPE_PRODUCT_ID;
-      const ok = j.data.filter(p => p.product && typeof p.product === "object" && p.product.active && (want ? p.product.id === want : /lumi\s*(study\s*)?(pro|plus)/i.test(p.product.name || "")));
+      const ok = j.data.filter(p => p.product && typeof p.product === "object" && p.product.active && (want ? p.product.id === want : /(lumi|studix)\s*(study\s*)?(pro|plus)/i.test(p.product.name || "")));
       /* Pro Intervall alle passenden Preise einsammeln: entweder je Währung ein eigener Preis oder ein Preis mit currency_options. Der neueste gewinnt je Währung. */
       for (const [k, iv] of [["monthly", "month"], ["yearly", "year"]]) {
         if (out[k].price) continue;
@@ -168,11 +168,11 @@ const aiAdd = async (uid, t) => { try { return win(await sb("POST", "rpc/lumi_ai
 
 /* Gemeinsame Prüfung für KI-Aufrufe (Anmeldung, Gratis-Budget). Gibt { acct } oder { deny: [status, body] } zurück. */
 async function aiGate(req) {
-  const user = await userFromReq(req); if (!user) return { deny: [401, { error: "Bitte melde dich an, um Lumi AI zu nutzen." }] };
+  const user = await userFromReq(req); if (!user) return { deny: [401, { error: "Bitte melde dich an, um Studix AI zu nutzen." }] };
   if (!FREE_TOKENS) return { acct: { id: user.id, pro: false, free: false } };
   const pro = await isProLive(user.id), w = pro ? { used: 0, reset: null } : await aiUsed(user.id);
   if (!w) return { acct: { id: user.id, pro, free: false } };
-  if (!pro && w.used >= FREE_TOKENS) return { deny: [429, { error: "Dein Lumi-AI-Limit ist erreicht. Es setzt sich in ein paar Stunden zurück – oder nutze Lumi Study Pro ohne Limit.", limit: true, usage: { used: w.used, limit: FREE_TOKENS, reset: w.reset } }] };
+  if (!pro && w.used >= FREE_TOKENS) return { deny: [429, { error: "Dein Studix-AI-Limit ist erreicht. Es setzt sich in ein paar Stunden zurück – oder nutze Studix Study Pro ohne Limit.", limit: true, usage: { used: w.used, limit: FREE_TOKENS, reset: w.reset } }] };
   return { acct: { id: user.id, pro, free: !pro } };
 }
 module.exports = { aiGate, validCustomer, FREE_TOKENS, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };

@@ -1,10 +1,10 @@
-# Implementation Plan: Goodnotes-inspired Features für Lumi
+# Implementation Plan: Goodnotes-inspired Features für Studix
 
 Basis: nur öffentlich dokumentierte Funktionen (Goodnotes-Blog, Reviews, App-Store). Keine Dekompilierung, kein Code, keine Assets, kein Branding kopiert. Alles wird eigenständig neu gebaut.
 
-## Vergleich: Goodnotes vs. Lumi (Ist-Stand)
+## Vergleich: Goodnotes vs. Studix (Ist-Stand)
 
-| Funktion (Goodnotes, öffentlich) | Lumi heute | Status |
+| Funktion (Goodnotes, öffentlich) | Studix heute | Status |
 |---|---|---|
 | Stift, Marker, Radierer, Formen | `ink.js` | vorhanden |
 | Lasso (verschieben/skalieren) | `ink.js` | vorhanden |

@@ -1,4 +1,4 @@
-/* Kalender-Abo (ICS) für Lumi: lädt eine öffentliche Kalender-Adresse (z. B. Apple „Öffentlicher Kalender“, webcal://…) serverseitig,
+/* Kalender-Abo (ICS) für Studix: lädt eine öffentliche Kalender-Adresse (z. B. Apple „Öffentlicher Kalender“, webcal://…) serverseitig,
    weil Browser Kalender-Server wegen CORS nicht direkt lesen dürfen. Nur https, keine internen Adressen, max. 5 MB, nur lesend. */
 const sameOrigin = req => { const o = req.headers.origin || req.headers.referer || ""; try { return new URL(o).host === req.headers.host; } catch { return false; } };
 const blocked = h => !h || h === "localhost" || /\.(local|internal|localdomain|lan|home)$/i.test(h) || /^[\d.]+$/.test(h) || h.includes(":") || h.startsWith("[");
@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
     let r = null;
     for (let hop = 0; hop < 4; hop++) {
       if (url.protocol !== "https:" || blocked(url.hostname) || (url.port && url.port !== "443")) return res.status(400).json({ error: "Nur öffentliche https-Kalenderadressen sind erlaubt" });
-      r = await fetch(url, { redirect: "manual", signal: ctl.signal, headers: { "user-agent": "Lumi-Kalender/1.0", accept: "text/calendar, text/plain, */*" } });
+      r = await fetch(url, { redirect: "manual", signal: ctl.signal, headers: { "user-agent": "Studix-Kalender/1.0", accept: "text/calendar, text/plain, */*" } });
       if (r.status >= 300 && r.status < 400 && r.headers.get("location")) { url = new URL(r.headers.get("location"), url); continue; }
       break;
     }

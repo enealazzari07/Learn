@@ -1,6 +1,6 @@
 "use strict";
-/* Lumi – Startseite anpassen: echtes Raster (6 Spalten × 4 Reihen). Blöcke liegen auf festen Zellen, lassen sich ersetzen, verschieben und in der Größe ziehen.
-   Unter dem Raster bleibt immer ein Bereich für die Lumi-AI-Eingabe frei. Layout liegt in D.profile.home = [{id,type,c,r,w,h}]. */
+/* Studix – Startseite anpassen: echtes Raster (6 Spalten × 4 Reihen). Blöcke liegen auf festen Zellen, lassen sich ersetzen, verschieben und in der Größe ziehen.
+   Unter dem Raster bleibt immer ein Bereich für die Studix-AI-Eingabe frei. Layout liegt in D.profile.home = [{id,type,c,r,w,h}]. */
 const HB = {
   tasks: { n: "Aufgaben", d: "Heutige Aufgaben abhaken", i: "list", w: 2, h: 2, mw: 2, mh: 1 },
   cal: { n: "Kalender", d: "Termine, Prüfungen, Abgaben", i: "cal", w: 2, h: 2, mw: 2, mh: 2 },
@@ -35,7 +35,7 @@ const homeUid = () => "b" + Math.random().toString(36).slice(2, 7);
 const homeOv = (a, b) => a.c < b.c + b.w && b.c < a.c + a.w && a.r < b.r + b.h && b.r < a.r + a.h;
 const homeMin = b => ({ w: HB[b.type]?.mw || 1, h: HB[b.type]?.mh || 1 });
 const homeClamp = (b) => { const mn = homeMin(b); b.w = Math.max(mn.w, Math.min(HOME_COLS, b.w | 0 || 2)); b.h = Math.max(mn.h, Math.min(HOME_ROWS, b.h | 0 || 2)); b.c = Math.max(1, Math.min(HOME_COLS + 1 - b.w, b.c | 0 || 1)); b.r = Math.max(1, Math.min(HOME_MAXROW + 1 - b.h, b.r | 0 || 1)); return b; };
-/* Kollisionen auflösen: der bewegte Block behält seinen Platz, andere rutschen nach unten (Lumi-AI-Platz bleibt frei) */
+/* Kollisionen auflösen: der bewegte Block behält seinen Platz, andere rutschen nach unten (Studix-AI-Platz bleibt frei) */
 function homeResolve(L, firstId) {
   const placed = [], order = [...L].sort((a, b) => (a.id === firstId ? -1 : b.id === firstId ? 1 : 0) || a.r - b.r || a.c - b.c);
   for (const b of order) {
@@ -74,7 +74,7 @@ function homeEditor() {
   const draw = () => {
     const N = rowsN(), cells = Array.from({ length: N * HOME_COLS }, (_, i) => `<i class="hc" style="grid-column:${i % HOME_COLS + 1};grid-row:${Math.floor(i / HOME_COLS) + 1}"></i>`).join("");
     root.innerHTML = `<div class="hed-top"><div><h2>Startseite bearbeiten</h2><p>Blöcke ziehen rastet auf das Raster ein · Ecke unten rechts ändert die Größe · „Ersetzen“ tauscht den Inhalt.</p></div><div class="hed-act"><button class="btn ghost" id="hd-t">${ic("table")}Vorlagen</button><button class="btn ghost" id="hd-a">${ic("plus")}Block</button><button class="btn ghost" id="hd-r">Zurücksetzen</button><button class="btn accent" id="hd-d">Fertig</button></div></div>
-    <div class="hed-stage"><div class="hed-grid" id="hd-g" style="--n:${N}">${cells}${L.map(blockEl).join("")}<i class="hed-fold" style="top:${12 + Math.max(0, innerHeight - 180)}px"><span>Ab hier scrollt die Startseite</span></i></div></div><p class="hed-note">Ganz unten bleibt immer Platz für die Lumi-AI-Eingabe. Auf dem Handy stehen die Blöcke untereinander – in der Reihenfolge von oben nach unten wie hier.</p>`;
+    <div class="hed-stage"><div class="hed-grid" id="hd-g" style="--n:${N}">${cells}${L.map(blockEl).join("")}<i class="hed-fold" style="top:${12 + Math.max(0, innerHeight - 180)}px"><span>Ab hier scrollt die Startseite</span></i></div></div><p class="hed-note">Ganz unten bleibt immer Platz für die Studix-AI-Eingabe. Auf dem Handy stehen die Blöcke untereinander – in der Reihenfolge von oben nach unten wie hier.</p>`;
     bind();
   };
   const metrics = () => { const g = $("#hd-g", root), cs = $$(".hc", g), a = cs[0].getBoundingClientRect(), b = cs[1].getBoundingClientRect(), c = cs[HOME_COLS].getBoundingClientRect(); return { g, x0: a.left, y0: a.top, sx: b.left - a.left, sy: c.top - a.top }; };

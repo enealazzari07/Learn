@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – A4-Seitenansicht für Notizen: der Text fließt auf echten Seiten (Seitenränder, Lücken zwischen den Seiten, Seitenzahlen).
+/* Studix – A4-Seitenansicht für Notizen: der Text fließt auf echten Seiten (Seitenränder, Lücken zwischen den Seiten, Seitenzahlen).
    Umbrüche entstehen nur durch Abstände vor Blöcken (data-pg) – gespeichert wird immer der bereinigte Text (lumiHtml). */
 function lumiHtml(body) {
   if (!body.querySelector("[data-pg]")) return body.innerHTML;

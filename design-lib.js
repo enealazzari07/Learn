@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi Design-Studio – Bibliothek: Formate, Schriften, Formen, Sticker, Deko-Packs und Vorlagen.
+/* Studix Design-Studio – Bibliothek: Formate, Schriften, Formen, Sticker, Deko-Packs und Vorlagen.
    Alle Objekte sind einfache Daten ({type:"text"|"shape"|"image", x, y, w, h, rot, …}), die DOM-Editor und Export-Renderer gemeinsam nutzen. */
 
 const DS_FORMATS = [
@@ -152,7 +152,7 @@ const DS_TEMPLATES = [
     o.push(dsShape("circle", wide ? W * .62 : W * .38, wide ? H * .12 : H * .5, wide ? H * .78 : W * .74, wide ? H * .78 : W * .74, "#d9734e"), dsShape("star", W - pad - 9 * k, pad, 9 * k, 9 * k, "#1f1b16"));
     o.push(dsShape("rect", pad, pad - 1 * k, 12 * k, .5 * k, "#1f1b16"));
     const t0 = dsText("MAGAZIN · AUSGABE 07 · 2026", pad, pad + 1 * k, tw, 2.1 * k, { font: "Space Grotesk", weight: 700, ls: 3, color: "#1f1b16", role: "date" }), t1 = dsText("Die Kunst\ndes Lernens", pad, 0, tw, wide ? 11 * k : 13.5 * k, { font: "Playfair Display", weight: 800, color: "#1f1b16", lh: 1.02, role: "title" }), t2 = dsText("Wie Neugier, Rhythmus und kleine Gewohnheiten aus Wissen Können machen.", pad, 0, tw * .86, 3.4 * k, { font: "Lora", italic: true, weight: 400, color: "#3b342d", lh: 1.4, role: "sub" });
-    dsFlow(H * (wide ? .26 : .17), 3 * k, [t1, t2]); o.push(t0, t1, t2, dsText("Lumi · Lernmagazin", pad, H - pad - 2.5 * k, tw, 2.4 * k, { font: "Space Grotesk", weight: 700, color: "#1f1b16", ls: 2, upper: true, role: "body" }));
+    dsFlow(H * (wide ? .26 : .17), 3 * k, [t1, t2]); o.push(t0, t1, t2, dsText("Studix · Lernmagazin", pad, H - pad - 2.5 * k, tw, 2.4 * k, { font: "Space Grotesk", weight: 700, color: "#1f1b16", ls: 2, upper: true, role: "body" }));
     return { bg: "#f4ede4", objs: o }; } },
   { k: "yellow", n: "Bold Yellow", cat: "Plakat", make: (W, H) => {
     const k = Math.sqrt(W * H) / 100, wide = W > H * 1.2, pad = 7 * k, tw = W - pad * 2, o = [];
