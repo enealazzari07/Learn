@@ -193,6 +193,46 @@ Object.assign(P, {
 P.sparkO = '<g transform="translate(1.5 .8) scale(.0105)" stroke-width="171" stroke-linejoin="round" stroke-linecap="round"><path d="Ebene_2"/><path d="M1408.48,875.37v8.71h463.78c36.28,0,65.69-28.93,65.69-64.62V285.26c0-35.69-29.41-64.62-65.69-64.62h-844.77c-36.28,0-65.69,28.93-65.69,64.62v121.23l9.64-.08"/><path d="M961.81,406.49H448.23c-23.69,0-45.55,12.55-57.2,32.85L70.54,997.72c-5.56,9.7-8.49,20.64-8.49,31.77h0c0,28.67,23.66,51.9,52.8,51.85l554.61-1.01c36.33-.07,65.81,28.89,65.81,64.62v569.79c0,35.69,29.41,64.62,65.69,64.62h0c6.89,0,13.62-2.02,19.33-5.8l557.86-368.95c18.1-11.97,28.98-32,29.04-53.45l1.3-467.08"/></g>';
 P["sparkO-f"] = '<g transform="translate(1.5 .8) scale(.0105)"><path fill="currentColor" stroke="none" d="Ebene_2"/><path fill="currentColor" stroke="none" d="M1408.49,884.08h463.78c36.28,0,65.69-28.93,65.69-64.62V285.26c0-35.69-29.41-64.62-65.69-64.62h-844.77c-36.28,0-65.69,28.93-65.69,64.62v121.23l380.31-3.14c36.49-.3,66.23,28.71,66.24,64.6l.13,416.14Z"/><path fill="currentColor" stroke="none" d="M1407.19,1351.16l1.3-467.08h-380.99c-36.28,0-65.69-28.93-65.69-64.62v-412.97H448.23c-23.69,0-45.55,12.55-57.2,32.85L70.54,997.72c-5.56,9.7-8.49,20.64-8.49,31.77h0c0,28.67,23.66,51.9,52.8,51.85l554.61-1.01c36.33-.07,65.81,28.89,65.81,64.62v569.79c0,35.69,29.41,64.62,65.69,64.62h0c6.89,0,13.62-2.02,19.33-5.8l557.86-368.95c18.1-11.97,28.98-32,29.04-53.45Z"/></g>';
 P.alert = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.8v5M12 16.2h.01"/>';
+/* Eigene Zeichnungen statt Fremd-Icons: alle Formen selbst auf dem 24er-Raster gebaut (runde Ecken, Strichstaerke 1.8) */
+(() => {
+  const HOUSE = 'M5 10.6c0-.7.3-1.3.8-1.7l5-4.1c.7-.6 1.7-.6 2.4 0l5 4.1c.5.4.8 1 .8 1.7V17a3.2 3.2 0 0 1-3.2 3.2H8.2A3.2 3.2 0 0 1 5 17z';
+  const FOLD = 'M3.8 8.2a2.8 2.8 0 0 1 2.8-2.8h2.9c.6 0 1.1.2 1.5.6l.7.8c.4.4.9.6 1.5.6h4.2a2.8 2.8 0 0 1 2.8 2.8v6.6a3 3 0 0 1-3 3H6.8a3 3 0 0 1-3-3z';
+  const PAGE = 'M8 3.8h5.8L19 9v8a3.2 3.2 0 0 1-3.2 3.2H8A3.2 3.2 0 0 1 4.8 17V7A3.2 3.2 0 0 1 8 3.8z';
+  const CAL = '<rect x="3.8" y="5" width="16.4" height="15.2" rx="4.6"/>';
+  const ticks = Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4, f = r => (12 + r * Math.cos(a)).toFixed(2) + " " + (12 + r * Math.sin(a)).toFixed(2); return `M${f(8.1)}L${f(9.9)}`; }).join("");
+  Object.assign(P, {
+    home: `<path d="${HOUSE}"/><path d="M10 15.8h4"/>`,
+    "home-f": `<path fill="currentColor" d="${HOUSE}"/><path ${KO} d="M10 15.8h4"/>`,
+    folder: `<path d="${FOLD}"/><path d="M10 14.6h4"/>`,
+    "folder-f": `<path fill="currentColor" d="${FOLD}"/><path ${KO} d="M10 14.6h4"/>`,
+    note: `<path d="${PAGE}"/><path d="M13.8 3.8V7a2 2 0 0 0 2 2H19M8.6 13.2h6.8M8.6 16.6h4"/>`,
+    "note-f": `<path fill="currentColor" d="${PAGE}"/><path ${KO} d="M13.8 3.8V7a2 2 0 0 0 2 2H19M8.6 13.2h6.8M8.6 16.6h4"/>`,
+    newnote: `<path d="${PAGE}"/><path d="M13.8 3.8V7a2 2 0 0 0 2 2H19M12 11.6v5.2M9.4 14.2h5.2"/>`,
+    pen: '<path d="M5 19l.9-3.9L16.4 4.6a2.1 2.1 0 0 1 3 3L8.9 18.1z"/><path d="M14.6 6.4l3 3M12.6 20.4h6.6"/>',
+    edit: '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="5.2"/><path d="M9 15.2l.5-2.3 4.7-4.7a1.5 1.5 0 0 1 2.1 2.1l-4.7 4.7z"/><path d="M13 9.4l1.6 1.6"/>',
+    cal: CAL + '<path d="M3.8 10.2h16.4M8.2 3.2v3.4M15.8 3.2v3.4M12.8 15.2h3"/>',
+    "cal-f": `<rect fill="currentColor" x="3.8" y="5" width="16.4" height="15.2" rx="4.6"/><path d="M8.2 3.2v3.4M15.8 3.2v3.4"/><path ${KO} d="M3.8 10.2h16.4M12.8 15.2h3"/>`,
+    gear: `<circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.9"/><path d="${ticks}"/>`,
+    upload: '<path d="M12 15.4V5.8M8.2 9.4L12 5.6l3.8 3.8M5 14.6v1.7A3.2 3.2 0 0 0 8.2 19.5h7.6a3.2 3.2 0 0 0 3.2-3.2v-1.7"/>',
+    image: '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="5"/><circle cx="9" cy="9.2" r="1.6"/><path d="M4.4 16.4l4.2-3.7c.7-.6 1.7-.6 2.4 0l2.3 2.1 2-1.7c.6-.5 1.5-.5 2.1 0l2.2 2"/>',
+    adduser: '<circle cx="10" cy="8.4" r="3.4"/><path d="M3.8 19.2c.4-3.2 2.9-5.1 6.2-5.1 1.3 0 2.5.3 3.5.9"/><path d="M18 9.2v5.6M15.2 12h5.6"/>',
+    filter: '<path d="M5 7.5h6.6M16.4 7.5H19M5 16.5h2.6M12.4 16.5H19"/><circle cx="14" cy="7.5" r="2.2"/><circle cx="10" cy="16.5" r="2.2"/>',
+    logout: '<path d="M10 4.6H7.5A3.2 3.2 0 0 0 4.3 7.8v8.4a3.2 3.2 0 0 0 3.2 3.2H10"/><path d="M15 8l4 4-4 4M19 12H9.5"/>',
+    login: '<path d="M14 4.6h2.5a3.2 3.2 0 0 1 3.2 3.2v8.4a3.2 3.2 0 0 1-3.2 3.2H14"/><path d="M9 8l-4 4 4 4M5 12h9.5"/>',
+    gift: '<rect x="4" y="9.2" width="16" height="10.8" rx="3.2"/><path d="M4 12.8h16M12 9.2V20"/><path d="M12 9.2C10.6 9.2 8.4 8.8 8.4 7A1.9 1.9 0 0 1 10.3 5.2c1.4 0 1.7 2.1 1.7 4zM12 9.2c1.4 0 3.6-.4 3.6-2.2a1.9 1.9 0 0 0-1.9-1.8c-1.4 0-1.7 2.1-1.7 4z"/>',
+    globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.8 5.2 3.8 8.5s-1.2 6.1-3.8 8.5c-2.6-2.4-3.8-5.2-3.8-8.5S9.4 5.9 12 3.5z"/>',
+    clip: '<path d="M18.6 10.4l-7.5 7.5a3.9 3.9 0 0 1-5.5-5.5l7.7-7.7a2.6 2.6 0 0 1 3.7 3.7l-7.6 7.6a1.3 1.3 0 0 1-1.8-1.8l6.9-6.9"/>',
+    more: '<g stroke-width="3.2"><path d="M6 12h.01M12 12h.01M18 12h.01"/></g>',
+    gemini: '<circle cx="9.2" cy="12" r="5"/><circle cx="14.8" cy="12" r="5"/>',
+    groq: '<path d="M5 17.2a8 8 0 1 1 14 0"/><path d="M12 13.4l3-4.2"/><circle cx="12" cy="14" r="1.2" fill="currentColor" stroke="none"/>',
+  });
+  P.file = P.note; P.brush = P.pen;
+  P.bookmark = '<rect x="4" y="3.5" width="16" height="17" rx="5"/><path d="M10 3.5v7l2.4-1.6 2.4 1.6v-7"/>';
+  P["bookmark-f"] = `<rect fill="currentColor" x="4" y="3.5" width="16" height="17" rx="5"/><path ${KO} d="M10 3.5v7l2.4-1.6 2.4 1.6v-7"/>`;
+  P.star = P.bookmark;
+  P["adduser-f"] = '<g stroke-width="2.7">' + P.adduser + '</g>';
+})();
+P.log = '<rect x="4" y="3.8" width="16" height="16.4" rx="5"/><path d="M8.4 9h.01M11.6 9h4M8.4 12.4h.01M11.6 12.4h4M8.4 15.8h.01M11.6 15.8h2.4"/>';
 const icOn = n => P[n + "-f"] ? n + "-f" : n;
 const ic = (n, c = "ic") => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ""}</svg>`;
 

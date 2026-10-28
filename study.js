@@ -132,6 +132,21 @@ function onboarding() {
 /* ---------- shell ---------- */
 let curView = "today";
 function go(path) { location.hash = "#/app/" + path; }
+/* Changelog: neueste Aenderungen zuerst; Karte unten in der ausgeklappten Seitenleiste */
+const CHANGELOG = [
+  ["2026-10-28", "Workspace", "Neue Seite: gemeinsam in Ordnern arbeiten, Mitglieder per Link einladen, Rollen für Admins."],
+  ["2026-10-28", "Studix AI im Chat", "Nachdenken, Quellen und Hinweise (z. B. Limit erreicht) werden als aufklappbare Zeilen angezeigt."],
+  ["2026-10-28", "Neues Aussehen", "Neues Logo und neue Schrift für „Studix“, überarbeitete Icons und Icons für Fächer."],
+  ["2026-10-28", "Fokus-Timer", "Schlankerer Ring, kleinerer Zieh-Punkt und rundere Buttons."],
+  ["2026-10-28", "Anmelden mit Google", "Du kannst dich jetzt mit deinem Google-Konto anmelden."],
+];
+const clogDate = d => new Date(d + "T12:00:00").toLocaleDateString("de-CH", { day: "numeric", month: "short" });
+const clogSeen = () => LS.get("lumi-clog") === CHANGELOG[0][0] + CHANGELOG[0][1];
+const clogHtml = () => `<button type="button" class="clog hide-mob" id="clog" aria-label="Changelog öffnen"><span class="clog-h"><i class="clog-ic">${ic("log")}</i><b>Neu in Studix</b>${clogSeen() ? "" : `<em class="clog-n">Neu</em>`}</span><span class="clog-l">${CHANGELOG.slice(0, 3).map(c => `<span><i></i>${esc(c[1])}</span>`).join("")}</span></button>`;
+function clogOpen() {
+  LS.set("lumi-clog", CHANGELOG[0][0] + CHANGELOG[0][1]); $$(".clog-n").forEach(e => e.remove());
+  modal(`<h3>Changelog</h3><p class="note">Die letzten Änderungen an Studix.</p><div class="clog-list">${CHANGELOG.map(c => `<div class="clog-i"><small>${clogDate(c[0])}</small><b>${esc(c[1])}</b><p>${esc(c[2])}</p></div>`).join("")}</div>`);
+}
 function buildShell(force) {
   const app = $("#app");
   if (!force && $(".shell", app)) { refreshNav(); return; }
@@ -154,12 +169,12 @@ function refreshNav() {
   <button class="nav-i setback" id="setback" title="Zurück">${ic("back")}<span class="nl">Zurück zu Studix</span></button>
   <div class="nav-lbl nl">Einstellungen</div>
   <div class="nav-grp">${SET.map(([k, l, i]) => `<button class="nav-i ${(window.__setTab || "gen") === k ? "on" : ""}" data-st="${k}" title="${l}">${ic((window.__setTab || "gen") === k ? icOn(i) : i)}<span class="nl">${l}</span></button>`).join("")}</div>
-  <div class="sp hide-mob"></div>${proChipHtml()}${profBtn}` : `<div class="rail-top"><span class="brand"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></span><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="4"/><path d="M9.5 4.5v15"/></svg></button></div>
+  <div class="sp hide-mob"></div>${clogHtml()}${proChipHtml()}${profBtn}` : `<div class="rail-top"><span class="brand"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></span><button class="rail-tgl" id="sidetgl" aria-label="Seitenleiste ein- oder ausklappen" title="Seitenleiste ein-/ausklappen"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="4"/><path d="M9.5 4.5v15"/></svg></button></div>
   <div class="qa-row"><button class="qa-btn" id="qabtn" type="button" title="Quick Actions"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/><path d="M13 7.5l-3.5 5h3l-1 4 3.5-5h-3z"/></svg><span class="qa-t">Quick Actions</span>${/Mac|iPhone|iPad/.test(navigator.platform || "") ? "<kbd>⇧⌘K</kbd>" : ""}</button><button class="qa-s" id="qasch" type="button" title="Suche" aria-label="Suche"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg><kbd>/</kbd></button></div>
   <div class="nav-grp">${NAVS.map(([k, l, i]) => `<button class="nav-i ${on(k) ? "on" : ""} ${["board", "quiz", "grades", "focus", "voice", "search", "settings", "designs"].includes(k) ? "hide-mob" : ""}" data-go="${k}" title="${l}">${ic(on(k) ? icOn(i) : i)}<span class="nl">${l}</span>${k === "cards" && dueCardCount() ? `<b class="badge">${dueCardCount()}</b>` : ""}${k === "docs" ? `<span class="nav-chev ${LS.get("lumi-docs-open") === "1" ? "open" : ""}" id="docchev" role="button" tabindex="0" aria-label="Ordner ein- oder ausklappen"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>` : ""}</button>${k === "docs" ? `<div class="nav-tree" id="doctree" ${LS.get("lumi-docs-open") === "1" ? "" : "hidden"}>${(() => { const T = folderTree(), last = T.map((x, i) => { for (let j = i + 1; j < T.length; j++) { if (T[j].depth < x.depth) return true; if (T[j].depth === x.depth) return false; } return true; }); return T.map(({ f, depth }, i) => { let g = ""; for (let l = 0; l < depth; l++) { let a = i; while (a >= 0 && T[a].depth > l) a--; if (a >= 0 && !last[a] && T[a].depth === l) g += `<u class="tl-v" style="left:${6 + l * 14}px"></u>`; } g += `<u class="tl-e ${last[i] ? "end" : ""}" style="left:${6 + depth * 14}px"></u>`; return `<button class="nav-f ${curView === "docs" && docFolder === f.id ? "on" : ""}" data-gf="${f.id}" style="padding-left:${26 + depth * 14}px" title="${esc(f.name)}">${g}<i class="sji" style="color:${f.color}">${sji(sjiOf(f))}</i><span class="nl">${esc(f.name)}</span></button>`; }).join(""); })() || `<p class="nav-f-e">Noch keine Ordner</p>`}</div>` : ""}`).join("")}
   <button class="nav-i mob-only" id="morebtn">${ic("more")}<span class="nl">Mehr</span></button></div>
   <div class="sp hide-mob"></div>
-  ${proChipHtml()}${profBtn}`;
+  ${clogHtml()}${proChipHtml()}${profBtn}`;
   $$("[data-st]", s).forEach(b => b.onclick = () => window.__showSetTab && window.__showSetTab(b.dataset.st));
   $("#setback", s) && ($("#setback", s).onclick = () => go("today"));
   $$("[data-go]", s).forEach(b => b.onclick = () => { if (b.dataset.go === "docs") docFolder = ""; go(b.dataset.go); });
@@ -168,6 +183,7 @@ function refreshNav() {
   $("#newbtn", s) && ($("#newbtn", s).onclick = e => newMenu(e.currentTarget));
   $("#qabtn", s) && ($("#qabtn", s).onclick = e => newMenu(e.currentTarget)); $("#qasch", s) && ($("#qasch", s).onclick = () => go("search"));
   $("#profbtn", s).onclick = e => profileMenu(e.currentTarget);
+  $("#clog", s) && ($("#clog", s).onclick = clogOpen);
   $("#sidetgl", s).onclick = () => { sideOpen = !sideOpen; try { localStorage.setItem("lumi-side", sideOpen ? "1" : "0"); } catch {} applyRail(); };
   $("#morebtn", s) && ($("#morebtn", s).onclick = e => menu(e.currentTarget, [...NAVS, ["settings", "Einstellungen", "gear"]].filter(n => !mob.find(m => m[0] === n[0])).map(([k, l, i]) => ({ label: l, icon: i, fn: () => go(k) }))));
 }
@@ -292,7 +308,7 @@ const SDK = {
   week: '<rect x="3" y="4.5" width="18" height="15.5" rx="3"/><path d="M3 9.5h18M7.5 13h2M11 13h2M14.5 13h2M7.5 16.5h2M11 16.5h2"/>',
   tasks: '<rect x="4" y="4" width="16" height="16" rx="4.5"/><path d="M8.5 12.2l2.5 2.5 4.6-5"/>',
   tt: '<rect x="3" y="4.5" width="18" height="15.5" rx="3"/><path d="M3 9.5h18M9 9.5V20M15 9.5V20"/>',
-  cal: '<path class="cb" d="M15.8145 4.42146H8.19413C5.55056 4.42146 3.90039 5.89357 3.90039 8.59942V16.7452C3.90039 19.4938 5.55056 21 8.19413 21H15.8067C18.4581 21 20.1004 19.5201 20.1004 16.8133V8.59942C20.1082 5.89357 18.4658 4.42146 15.8145 4.42146Z"/><path d="M15.8145 4.42146H8.19413C5.55056 4.42146 3.90039 5.89357 3.90039 8.59942V16.7452C3.90039 19.4938 5.55056 21 8.19413 21H15.8067C18.4581 21 20.1004 19.5201 20.1004 16.8133V8.59942C20.1082 5.89357 18.4658 4.42146 15.8145 4.42146Z"/><path class="cd" d="M3.98401 9.66451H20.0255"/><path d="M15.6407 3V5.96174"/><path d="M8.37 3V5.96174"/><path class="cd" d="M12.5165 16.3917H16.1516"/>',
+  cal: '<rect class="cb" x="3.8" y="5" width="16.4" height="15.2" rx="4.6"/><path d="M3.8 10.2h16.4M8.2 3.2v3.4M15.8 3.2v3.4M12.8 15.2h3"/>',
   day: '<circle cx="12" cy="12" r="3.8"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',
   month: '<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/>',
   quarter: '<path d="M12 3.5l8.5 4.6-8.5 4.6-8.5-4.6z"/><path d="M3.5 12.4l8.5 4.6 8.5-4.6M3.5 16.4l8.5 4.6 8.5-4.6"/>',
