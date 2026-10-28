@@ -3860,3 +3860,12 @@ html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore 
   .aip-t.pagehead{margin:12px 21px 18px}
 }
 @media (max-width:900px){.setcrumb{align-content:flex-start}}
+
+/* Abo auf iPad/Tablet: Auswahlblöcke wie bisher, das Bezahlformular darunter in voller Breite – so zeigt Stripe wie am Computer links den Preis und rechts die Zahlung */
+@media (min-width:600px) and (max-width:1300px) and (pointer:coarse), (min-width:600px) and (max-width:1100px){
+  .setsec[data-s=pro].on.paying{grid-template-columns:minmax(0,1fr)!important;gap:22px!important}
+  .setsec.paying .propanel.proside{max-width:560px;width:100%}
+  .setsec.paying .proemb{margin:0!important}
+  .setsec.paying .proemb-box{max-width:none!important;margin:0!important}
+  .setsec.paying .proemb-box .embk-m{zoom:.9}
+}
