@@ -3,7 +3,7 @@
 
 V.board = m => {
   const draws = D.docs.filter(d => d.type === "draw").sort((a, b) => b.updated - a.updated);
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Skizzen, Formeln, Mindmaps</p><h1>Zeichnen</h1></div><button class="btn accent" id="nw">${ic("plus")}Neue Zeichnung</button></div>
+  m.innerHTML = `<div class="page">${pageHead("<b>Zeichnen</b>", dkAct("plus", "Neue Zeichnung", 'id="nw"'))}
   ${draws.length ? `<div class="docgrid">${draws.map(docCard).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("brush")}</div><h3>Dein digitales Whiteboard</h3><p>Zeichne mit Finger, Maus oder Apple Pencil: Stift, Marker, Radierer, Formen, Text und Bilder. Perfekt für Mathe-Skizzen, Mindmaps und Tafelbilder.</p><button class="btn accent big" id="nw2">Los zeichnen</button></div>`}</div>`;
   $("#nw", m).onclick = () => docDialog("draw"); $("#nw2", m) && ($("#nw2", m).onclick = () => docDialog("draw")); bindCommon(m);
 };

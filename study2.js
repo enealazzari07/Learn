@@ -12,7 +12,7 @@ async function newDeck(subjectId = "") {
 }
 V.cards = (m, id) => {
   if (id) return V.deck(m, id);
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Spaced Repetition</p><h1>Karteikarten</h1></div><div class="row"><button class="btn ghost" id="gen">${ic("spark")}Mit Studix AI erstellen</button><button class="btn accent" id="nd">${ic("plus")}Neuer Stapel</button></div></div>
+  m.innerHTML = `<div class="page">${pageHead("<b>Karteikarten</b>", dkAct("spark", "Mit Studix AI erstellen", 'id="gen"') + dkAct("plus", "Neuer Stapel", 'id="nd"'))}
   ${D.decks.length ? `<div class="deckgrid">${D.decks.map(d => { const due = d.cards.filter(c => c.due <= iso()).length, s = subj(d.subjectId), mastered = d.cards.filter(c => c.box >= 4).length; return `<div class="deck" data-k="${d.id}"><div class="dtop">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)}` : "&nbsp;"}</div><h3>${esc(d.title)}</h3><p>${d.cards.length} Karten · ${mastered} gelernt</p><div class="bar2"><i style="width:${d.cards.length ? mastered / d.cards.length * 100 : 0}%"></i></div><div class="row"><span class="due ${due ? "on" : ""}">${due ? due + " fällig" : "alles erledigt"}</span><button class="btn small" data-s="${d.id}" ${d.cards.length ? "" : "disabled"}>Lernen</button></div></div>`; }).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("cards")}</div><h3>Noch keine Stapel</h3><p>Erstelle Karten selbst oder lass sie von Studix AI aus deinen Notizen, PDFs oder einem Thema erzeugen.</p><div class="row" style="justify-content:center"><button class="btn accent" id="nd2">Stapel erstellen</button><button class="btn ghost" id="gen2">Mit Studix AI erstellen</button></div></div>`}</div>`;
   const gen = () => genCardsModal(); $("#gen", m).onclick = gen; $("#gen2", m) && ($("#gen2", m).onclick = gen);
   $("#nd", m).onclick = () => newDeck(); $("#nd2", m) && ($("#nd2", m).onclick = () => newDeck());
@@ -81,7 +81,7 @@ V.study = (m, id, mode) => {
 
 /* ---------- quiz ---------- */
 V.quiz = m => {
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Prüfungstraining</p><h1>Quiz</h1></div></div>
+  m.innerHTML = `<div class="page">${pageHead("<b>Quiz</b>")}
   <div class="panel"><h2>Neues Quiz</h2><div class="seg" id="qs"><button data-s="topic" class="on">Thema</button><button data-s="doc">Aus Dokument</button></div>
   <div id="q-topic"><input class="field" id="qt" placeholder="Thema, z. B. „Mitose und Meiose“ oder „Ableitungsregeln“"></div><div id="q-doc" hidden><select class="field" id="qd">${D.docs.filter(d => d.type !== "draw").map(d => `<option value="${d.id}">${esc(d.title)}</option>`).join("") || "<option value=''>Keine Dokumente</option>"}</select></div>
   <div class="row"><div><label class="lbl">Fragen</label><select class="field" id="qn"><option>5</option><option selected>8</option><option>12</option><option>20</option></select></div><div><label class="lbl">Schwierigkeit</label><select class="field" id="ql"><option>leicht</option><option selected>mittel</option><option>schwer</option></select></div></div>
@@ -197,7 +197,7 @@ function weekView(pb, m) {
     body = `<div class="plw-qtr">${[0, 1, 2].map(k => { const y = cur.getFullYear(), mo = q + k, cells = mcells(y, mo); return `<div class="plw-qm"><button class="plw-qt" data-d="${iso(new Date(y, mo, 1))}" data-go="month">${fmt(new Date(y, mo, 1), { month: "long" })}</button><div class="plw-qg">${["M", "D", "M", "D", "F", "S", "S"].map(x => `<small>${x}</small>`).join("")}${cells.map(d => { if (!d) return "<span></span>"; const i = iso(d), it = dayItems(i), n = it.blocks.length + it.allday.length, c = (it.blocks[0] || it.allday[0] || {}).c; return `<button class="${i === todayIso ? "today" : ""} ${n ? "has" : ""}" data-d="${i}" data-go="day" ${n ? `style="--c:${c}"` : ""}>${d.getDate()}</button>`; }).join("")}</div></div>`; }).join("")}</div>`;
   }
   const feed = activityFeed();
-  pb.innerHTML = `<div class="plw"><section class="plw-main"><div class="plw-hd"><button class="icon-btn" id="wp" aria-label="Zurück">${ic("back")}</button><b>${esc(label)}</b><button class="icon-btn" id="wn" aria-label="Weiter" style="transform:scaleX(-1)">${ic("back")}</button><nav class="plw-sw settabs sdock" role="tablist" aria-label="Zeitraum">${[["day", "Tag"], ["week", "Woche"], ["month", "Monat"], ["quarter", "Quartal"]].map(([k, l]) => sdkBtn(k, l, `class="${plMode === k ? "on" : ""}" data-pm="${k}"`)).join("")}</nav><button class="btn ghost small" id="wt">Heute</button></div>${body}</section>
+  pb.innerHTML = `<div class="plw"><section class="plw-main"><div class="plw-hd"><button class="icon-btn" id="wp" aria-label="Zurück">${ic("back")}</button><b>${esc(label)}</b><button class="icon-btn" id="wn" aria-label="Weiter" style="transform:scaleX(-1)">${ic("back")}</button><div class="plw-sw ltr" role="tablist" aria-label="Zeitraum">${[["day", "T", "Tag"], ["week", "W", "Woche"], ["month", "M", "Monat"], ["quarter", "Q", "Quartal"]].map(([k, c, l]) => `<button type="button" class="${plMode === k ? "on" : ""}" data-pm="${k}" title="${l}" aria-label="${l}">${c}</button>`).join("")}</div><button class="btn ghost small" id="wt">Heute</button></div>${body}</section>
   <aside class="plw-act"><h3>Aktivität</h3>${feed.length ? `<ol>${feed.map(a => `<li><span class="plw-ai">${ic(a.ic)}</span><div><small>${actWhen(a.ts)}</small><b>${esc(a.h)}</b><em>${esc(a.s)}</em></div></li>`).join("")}</ol>` : `<p class="note">Sobald du lernst, Aufgaben abhakst oder Noten einträgst, erscheint hier dein Verlauf.</p>`}</aside></div>`;
   const redo = () => V.planner(m), step = n => { const d = new Date(cur); if (plMode === "day") d.setDate(d.getDate() + n); else if (plMode === "week") d.setDate(d.getDate() + 7 * n); else if (plMode === "month") d.setMonth(d.getMonth() + n, 1); else d.setMonth(d.getMonth() + 3 * n, 1); plDay = iso(d); redo(); };
   $("#wp", pb).onclick = () => step(-1); $("#wn", pb).onclick = () => step(1);
@@ -208,8 +208,8 @@ function weekView(pb, m) {
   $$("[data-l]", pb).forEach(b => b.onclick = () => ttModal(0, D.tt.find(x => x.id === b.dataset.l)));
 }
 V.planner = m => {
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Organisation</p><h1>Planer</h1></div><nav class="settabs sdock pt-dock" id="pt" role="tablist" aria-label="Planer">${[["week", "Woche"], ["tasks", "Aufgaben"], ["tt", "Stundenplan"], ["cal", "Kalender"]].map(([k, l]) => sdkBtn(k, l, `data-t="${k}"`)).join("")}</nav><button class="btn accent" id="nt">${ic("plus")}Aufgabe</button></div><div id="pb"></div></div>`;
-  $$("#pt button", m).forEach(b => { b.classList.toggle("on", b.dataset.t === plTab); b.onclick = () => { plTab = b.dataset.t; V.planner(m); }; });
+  m.innerHTML = `<div class="page">${pageHead("<b>Planer</b>", [["week", "Woche"], ["tasks", "Aufgaben"], ["tt", "Stundenplan"], ["cal", "Kalender"]].map(([k, l]) => sdkBtn(k, l, `data-t="${k}"`)).join("") + '<i class="sdk-sep" aria-hidden="true"></i>' + dkAct("plus", "Aufgabe hinzufügen", 'id="nt"'), 'id="pt"')}<div id="pb"></div></div>`;
+  $$("#pt button[data-t]", m).forEach(b => { b.classList.toggle("on", b.dataset.t === plTab); b.onclick = () => { plTab = b.dataset.t; V.planner(m); }; });
   $("#nt", m).onclick = () => taskModal();
   const pb = $("#pb", m);
   if (plTab === "week") weekView(pb, m);
@@ -258,7 +258,7 @@ function gradeModal(g) {
 }
 V.grades = m => {
   const all = D.grades, avg = wavg(all), by = D.subjects.map(s => ({ s, l: D.grades.filter(g => g.subjectId === s.id) })).filter(x => x.l.length);
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">${SC().n}</p><h1>Noten</h1></div><div class="row"><button class="btn ghost" id="goal">${ic("star")}Zielrechner</button><button class="btn accent" id="ng">${ic("plus")}Note</button></div></div>
+  m.innerHTML = `<div class="page">${pageHead("<b>Noten</b>", dkAct("goal", "Zielrechner", 'id="goal"') + dkAct("plus", "Note eintragen", 'id="ng"'))}
   <div class="tiles"><div class="tile big"><small>Gesamtschnitt</small><b style="color:${avg == null ? "inherit" : gcol(avg)}">${gfmt(avg)}</b></div><div class="tile"><small>Einträge</small><b>${all.length}</b></div><div class="tile"><small>Beste/r</small><b>${by.length ? esc([...by].sort((a, b) => SC().lowGood ? wavg(a.l) - wavg(b.l) : wavg(b.l) - wavg(a.l))[0].s.name) : "–"}</b></div></div>
   <section class="subjsec"><div class="subjhd"><div><h2>${SUBJ()}</h2><p class="note">${D.subjects.length ? `${D.subjects.length} ${isUni() ? "Module" : "Fächer"} – Farbe und Name legst du hier fest, tippe auf den Namen zum Umbenennen.` : `Lege hier deine ${SUBJ()} an, dann kannst du Noten eintragen.`}</p></div><button class="btn" id="as">${ic("plus")}${isUni() ? "Modul" : "Fach"} hinzufügen</button></div>
   <div class="subjgrid">${D.subjects.map(s => { const l = D.grades.filter(g => g.subjectId === s.id), a = l.length ? wavg(l) : null; return `<div class="scard" data-sid="${s.id}"><label class="scol" title="Farbe ändern" style="--c:${s.color}"><input type="color" value="${s.color}" data-c="${s.id}" aria-label="Farbe"></label><div class="sinfo"><input class="sname" value="${esc(s.name)}" data-n="${s.id}" aria-label="Name"><small>${l.length ? `${l.length} ${l.length === 1 ? "Note" : "Noten"} · Ø <b style="color:${gcol(a)}">${gfmt(a)}</b>` : "Noch keine Noten"}</small></div><button class="icon-btn" data-x="${s.id}" aria-label="Löschen" title="Entfernen">${ic("trash")}</button></div>`; }).join("")}<button class="scard add" id="as2" type="button">${ic("plus")}<span>${isUni() ? "Modul" : "Fach"} hinzufügen</span></button></div></section>
@@ -310,7 +310,7 @@ function timerReset() { const el = T.total - T.left; if (T.mode === "focus" && e
 function timerSet(f, b) { clearInterval(T.iv); T.running = false; T.focusLen = f; T.breakLen = b; T.mode = "focus"; T.total = T.left = f * 60; }
 V.focus = m => {
   const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return [d.toLocaleDateString("de-CH", { weekday: "short" }), D.stats.days[iso(d)] || 0]; }), mx = Math.max(30, ...week.map(w => w[1]));
-  m.innerHTML = `<div class="page narrow"><div class="hd"><div><p class="eyebrow">Pomodoro</p><h1>Fokus</h1></div></div>
+  m.innerHTML = `<div class="page narrow">${pageHead("<b>Fokus</b>")}
   <div class="timerbox"><div class="tring" id="tring"><div class="inner"><small id="tt-mode">Fokus</small><b id="tt-time">25:00</b></div></div>
   <div class="row" style="justify-content:center"><button class="btn big accent" id="tt-go"></button><button class="btn big ghost" id="tt-rs">${ic("rot")}Zurück</button></div>
   <div class="chips" style="justify-content:center;margin-top:18px">${[[25, 5], [50, 10], [15, 3], [90, 15]].map(([f, b]) => `<button class="chip ${T.focusLen === f ? "on" : ""}" data-p="${f},${b}">${f}/${b} Min.</button>`).join("")}</div><div style="max-width:260px;margin:14px auto 0">${subjectSelect(T.subjectId, "ts")}</div></div>
@@ -416,7 +416,7 @@ V.ai = m => {
   let filter = "";
   const page = () => {
     const cur = chatState();
-    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><span class="aip-logo">${ic("spark")}</span><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span>${aiuRingHtml()}<button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
+    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t setcrumb pagehead"><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><span>Studix AI</span><i>/</i><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><nav class="settabs sdock aip-ta"><span class="aip-pj" id="cpj"></span>${aiuRingHtml()}${dkAct("instr", "Anweisungen", 'id="ci"')}</nav></header><div class="chatbox flat" id="cbox"></div></section></div>`;
     aside(); mountChat($("#cbox", m), false); hdr();
     $("#ct", m).onchange = e => { chatState().title = e.target.value.trim() || "Neuer Chat"; save(); aside(); };
     $("#ci", m).onclick = instrModal; $(".aiu", m) && ($(".aiu", m).onclick = e => { e.stopPropagation(); aiuPop(e.currentTarget); }); aiuLoad().then(() => { const ta = $(".aip-ta", m); if (ta && !$(".aiu", ta)) aiuMount(ta, $("#ci", ta)); }); $("#cmob", m).onclick = e => menu(e.currentTarget, [{ label: "Neuer Chat", icon: "plus", fn: () => { newChat(filter); page(); } }, ...D.chats.slice(0, 12).map(c => ({ label: c.title, icon: "note", fn: () => { D.curChat = c.id; page(); } }))]);

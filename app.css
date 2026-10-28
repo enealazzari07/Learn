@@ -3796,3 +3796,30 @@ html[data-theme="dark"] .authhero::before{filter:invert(1) hue-rotate(180deg)}
 html[data-theme="dark"] .docspaper .fold .f3d,html[data-theme="dark"] .docspaper .fold:hover .f3d,html[data-theme="dark"] .f3d,html[data-theme="dark"] .fsvg{filter:none!important}
 html[data-theme="dark"] .f3d svg g[filter] rect{fill:#fff}
 html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore svg{text-shadow:none!important;filter:none!important}
+
+/* ======== Einheitlicher Seitenkopf (wie Einstellungen): Titel links · Icon-Leiste rechts · feine Linie darunter ======== */
+.pagehead{font-size:16px}
+.pagehead .cr{background:none;border:0;padding:0;color:#6b6b73;font:inherit;cursor:pointer}.pagehead .cr:hover{color:var(--violet)}.pagehead .cr.drop{color:var(--violet);text-decoration:underline}
+.pagehead .ph-m{font-style:normal;font-size:13px;color:#9a9aa8;margin-left:6px}
+.docsed>.pagehead{margin:28px 28px 16px}
+@media (max-width:900px){.docsed>.pagehead{margin:20px 16px 12px}}
+.main.doc-full .docsed>.pagehead{border-bottom-color:#ececf0}
+/* Suche in der Leiste: Icon, klappt beim Fokus auf */
+.dk-search{display:flex;align-items:center;height:44px;width:44px;border-radius:22px;overflow:hidden;color:#8a8a92;cursor:text;transition:width .28s cubic-bezier(.3,.9,.3,1),background .2s;flex:none}
+.dk-search .sdk-i{width:44px;height:44px;flex:none}.dk-search .sdk-i svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.dk-search input{flex:1;min-width:0;border:0;background:none;outline:0;font-size:14px;color:#0f0f12;padding:0 14px 0 0}
+.dk-search:focus-within,.dk-search.has{width:min(260px,40vw);background:#f4f4f6;color:#111}
+.dk-search input::placeholder{color:#9a9aa8}
+@media (max-width:900px){.dk-search:focus-within,.dk-search.has{width:100%;flex:1}}
+/* Zeitraum im Planer: nur Buchstaben, keine Box */
+.plw-sw.ltr{display:flex;gap:2px;padding:0;background:none!important;border:0;box-shadow:none;margin-left:auto;width:auto}
+.plw-sw.ltr button{width:32px;height:32px;padding:0;border:0;border-radius:8px;background:none;box-shadow:none;font:600 14px/32px inherit;font-family:inherit;color:#9a9aa8;cursor:pointer;transition:color .15s;position:relative;flex:none}
+.plw-sw.ltr button:hover{color:#111}
+.plw-sw.ltr button.on{color:#111;background:none;box-shadow:none}
+.plw-sw.ltr button.on::after{content:"";position:absolute;left:50%;bottom:2px;width:14px;height:2px;margin-left:-7px;border-radius:2px;background:#111}
+/* Studix AI: Titel-Eingabe als letzter Teil des Pfads */
+.aip-t.pagehead{display:flex;align-items:center;gap:10px;padding:0 0 16px;margin:0 28px 8px;grid-template-columns:none}
+.aip-t.pagehead #ct{flex:1;min-width:0;max-width:420px;border:0;background:none;outline:0;font:600 16px/1.2 inherit;font-family:inherit;color:#0f0f12;padding:2px 0;text-overflow:ellipsis}
+.aip-t.pagehead .aip-ta{margin-left:auto}
+@media (max-width:900px){.aip-t.pagehead{margin:14px 14px 8px;flex-wrap:nowrap}.aip-t.pagehead .aip-ta{width:auto}}
+.pagehead #nw,.docsed .pagehead #nw{background:none!important;color:#8a8a92!important}.pagehead #nw svg{filter:none}.pagehead #nw:hover{color:#111!important}
