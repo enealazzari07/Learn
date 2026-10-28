@@ -314,3 +314,30 @@ body{background:#fff}
   .fgrid{grid-template-columns:1fr}.fcard{min-height:0;padding:26px;border-radius:28px}
 }
 .sec.feat,#ai.sec,#faq.sec{max-width:1240px;margin-inline:auto;padding-inline:16px}
+
+/* v89: Menüleiste weniger rund · Live-Cursor in der Workspace-Vorschau */
+.pnav{border-radius:18px}
+@media (max-width:900px){.pnav{border-radius:16px}}
+.pnav .btn,.pnav-links a{border-radius:12px}.pnav .burger{border-radius:12px}
+.emb-av{display:flex;align-items:center;margin-left:auto;flex:none}
+.emb-av i{width:26px;height:26px;border-radius:50%;background:var(--c);color:#fff;font:700 11px/26px var(--font);text-align:center;border:2px solid #f4f4f7;margin-left:-7px;animation:avPop .5s both}
+.emb-av i:nth-child(2){animation-delay:.15s}.emb-av i:nth-child(3){animation-delay:.3s}
+.emb-av em{font-style:normal;font-size:12px;color:#5a5a66;margin-left:8px;display:flex;align-items:center;gap:6px}
+.emb-av em::before{content:"";width:7px;height:7px;border-radius:50%;background:#18a957;animation:livePulse 1.6s ease-out infinite}
+.emb-url{margin-left:12px}
+@keyframes avPop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(24,169,87,.5)}100%{box-shadow:0 0 0 8px rgba(24,169,87,0)}}
+.emb-live{position:absolute;inset:0;pointer-events:none;z-index:3;overflow:hidden}
+.cur{position:absolute;left:0;top:0;color:var(--c);filter:drop-shadow(0 3px 6px rgba(0,0,0,.25))}
+.cur svg{width:20px;height:24px}
+.cur span{position:absolute;left:16px;top:18px;background:var(--c);color:#fff;font-size:12px;font-weight:700;padding:3px 9px;border-radius:8px 8px 8px 2px;white-space:nowrap}
+.cur.u1{animation:cu1 11s cubic-bezier(.45,.05,.35,1) infinite}
+.cur.u2{animation:cu2 13s cubic-bezier(.45,.05,.35,1) infinite;animation-delay:-4s}
+.cur.u3{animation:cu3 9s cubic-bezier(.45,.05,.35,1) infinite;animation-delay:-2s}
+@keyframes cu1{0%,100%{left:26%;top:38%}20%{left:52%;top:22%}40%{left:64%;top:52%}60%{left:40%;top:70%}80%{left:18%;top:56%}}
+@keyframes cu2{0%,100%{left:72%;top:30%}25%{left:48%;top:46%}50%{left:30%;top:24%}75%{left:80%;top:66%}}
+@keyframes cu3{0%,100%{left:44%;top:76%}33%{left:76%;top:48%}66%{left:58%;top:18%}}
+.cur.u1 span::after{content:"";display:inline-block;width:2px;height:11px;background:#fff;margin-left:5px;vertical-align:-1px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.cur,.emb-av i,.emb-av em::before{animation:none}.cur.u1{left:40%;top:40%}.cur.u2{left:60%;top:30%}.cur.u3{left:50%;top:65%}}
+@media (max-width:900px){.emb-av em{display:none}.cur span{font-size:10px}}

@@ -65,8 +65,8 @@ function renderLanding() {
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
     <div class="emb" id="emb"><div class="emb-bar"><span class="dots"><i></i><i></i><i></i></span>
       <div class="emb-tabs" role="tablist">${EMBED_TABS.map((t, i) => `<button class="emb-tab ${i ? "" : "on"}" data-v="${t[1]}" role="tab">${ic(t[2])}<span>${t[0]}</span></button>`).join("")}</div>
-      <span class="emb-url">studix.app</span></div>
-      <div class="emb-view"><iframe src="index.html?embed=1#/app/today" title="Studix App" loading="eager"></iframe></div></div>
+      <span class="emb-av"><i style="--c:#18a957">L</i><i style="--c:#3b82f6">M</i><i style="--c:#f59e0b">S</i><em>3 online</em></span><span class="emb-url">studix.app</span></div>
+      <div class="emb-view"><iframe src="index.html?embed=1#/app/today" title="Studix App" loading="eager"></iframe><div class="emb-live" aria-hidden="true">${[["u1", "#18a957", "Lena"], ["u2", "#3b82f6", "Marc"], ["u3", "#f59e0b", "Sofia"]].map(u => `<div class="cur ${u[0]}" style="--c:${u[1]}"><svg viewBox="0 0 16 20"><path d="M1 1l13 7-6 2-2 7z" fill="currentColor" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg><span>${u[2]}</span></div>`).join("")}</div></div></div>
     <p class="emb-hint">Das ist die echte App – klick dich durch.</p>
   </section>
   <section class="sec feat" id="how"><h2>Alles, was du zum Lernen brauchst.</h2>
