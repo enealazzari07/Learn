@@ -176,7 +176,7 @@ const ic = (n, c = "ic") => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="
 
 /* ---------- toast & modal ---------- */
 let _tt;
-function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove("on"), 2800); }
+function toast(m) { if (/^(ab|an)gemeldet\b/i.test(String(m).trim())) return; const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove("on"), 2800); }
 function modal(html, cls = "") {
   const m = document.createElement("div"); m.className = "mask";
   m.innerHTML = `<div class="st-modal ${cls}" role="dialog" aria-modal="true"><button class="x" aria-label="Schließen">${ic("x")}</button>${html}</div>`;
