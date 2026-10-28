@@ -195,23 +195,23 @@ P["sparkO-f"] = '<g transform="translate(1.5 .8) scale(.0105)"><path fill="curre
 P.alert = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.8v5M12 16.2h.01"/>';
 /* Eigene Zeichnungen statt Fremd-Icons: alle Formen selbst auf dem 24er-Raster gebaut (runde Ecken, Strichstaerke 1.8) */
 (() => {
-  const HOUSE = 'M5 10.6c0-.7.3-1.3.8-1.7l5-4.1c.7-.6 1.7-.6 2.4 0l5 4.1c.5.4.8 1 .8 1.7V17a3.2 3.2 0 0 1-3.2 3.2H8.2A3.2 3.2 0 0 1 5 17z';
-  const FOLD = 'M3.8 8.2a2.8 2.8 0 0 1 2.8-2.8h2.9c.6 0 1.1.2 1.5.6l.7.8c.4.4.9.6 1.5.6h4.2a2.8 2.8 0 0 1 2.8 2.8v6.6a3 3 0 0 1-3 3H6.8a3 3 0 0 1-3-3z';
-  const PAGE = 'M8 3.8h5.8L19 9v8a3.2 3.2 0 0 1-3.2 3.2H8A3.2 3.2 0 0 1 4.8 17V7A3.2 3.2 0 0 1 8 3.8z';
-  const CAL = '<rect x="3.8" y="5" width="16.4" height="15.2" rx="4.6"/>';
+  const HOUSE = 'M3.6 11c0-.9.4-1.8 1.1-2.4l5.9-4.9c.8-.7 2-.7 2.8 0l5.9 4.9c.7.6 1.1 1.5 1.1 2.4v6.2A3.8 3.8 0 0 1 16.6 21H7.4a3.8 3.8 0 0 1-3.8-3.8z'; const HOUSE_OLD = 'M5 10.6c0-.7.3-1.3.8-1.7l5-4.1c.7-.6 1.7-.6 2.4 0l5 4.1c.5.4.8 1 .8 1.7V17a3.2 3.2 0 0 1-3.2 3.2H8.2A3.2 3.2 0 0 1 5 17z';
+  const FOLD = 'M3.6 10.2C3.6 6.4 5.2 4.2 8.2 4.2c1.6 0 2.5.4 3.3 1.4.8 1 1.5 1.7 2.7 1.7h2.5c2.2 0 3.7 1.6 3.7 3.8v6.1c0 2.2-1.6 3.7-3.7 3.7H7.3c-2.1 0-3.7-1.5-3.7-3.7z'; const FOLD_OLD = 'M3.8 8.2a2.8 2.8 0 0 1 2.8-2.8h2.9c.6 0 1.1.2 1.5.6l.7.8c.4.4.9.6 1.5.6h4.2a2.8 2.8 0 0 1 2.8 2.8v6.6a3 3 0 0 1-3 3H6.8a3 3 0 0 1-3-3z';
+  const PAGE = 'M8 3.2h6.2c.6 0 1.1.2 1.5.6l3.7 3.7c.4.4.6.9.6 1.5v8A4 4 0 0 1 16 21H8a4 4 0 0 1-4-4V7.2a4 4 0 0 1 4-4z'; const PAGE_OLD = 'M8 3.8h5.8L19 9v8a3.2 3.2 0 0 1-3.2 3.2H8A3.2 3.2 0 0 1 4.8 17V7A3.2 3.2 0 0 1 8 3.8z';
+  const CAL = '<rect x="3.2" y="5" width="17.6" height="15.8" rx="5"/>';
   const ticks = Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4, f = r => (12 + r * Math.cos(a)).toFixed(2) + " " + (12 + r * Math.sin(a)).toFixed(2); return `M${f(8.1)}L${f(9.9)}`; }).join("");
   Object.assign(P, {
-    home: `<path d="${HOUSE}"/><path d="M10 15.8h4"/>`,
-    "home-f": `<path fill="currentColor" d="${HOUSE}"/><path ${KO} d="M10 15.8h4"/>`,
-    folder: `<path d="${FOLD}"/><path d="M10 14.6h4"/>`,
-    "folder-f": `<path fill="currentColor" d="${FOLD}"/><path ${KO} d="M10 14.6h4"/>`,
-    note: `<path d="${PAGE}"/><path d="M13.8 3.8V7a2 2 0 0 0 2 2H19M8.6 13.2h6.8M8.6 16.6h4"/>`,
-    "note-f": `<path fill="currentColor" d="${PAGE}"/><path ${KO} d="M13.8 3.8V7a2 2 0 0 0 2 2H19M8.6 13.2h6.8M8.6 16.6h4"/>`,
-    newnote: `<path d="${PAGE}"/><path d="M13.8 3.8V7a2 2 0 0 0 2 2H19M12 11.6v5.2M9.4 14.2h5.2"/>`,
+    home: `<path d="${HOUSE}"/><path d="M9.4 16.4h5.2"/>`,
+    "home-f": `<path fill="currentColor" d="${HOUSE}"/><path ${KO} d="M9.4 16.4h5.2"/>`,
+    folder: `<path d="${FOLD}"/><path d="M8.6 14.4h6.8"/>`,
+    "folder-f": `<path fill="currentColor" d="${FOLD}"/><path ${KO} d="M8.6 14.4h6.8"/>`,
+    note: `<path d="${PAGE}"/><path d="M14.4 3.4V7a1.6 1.6 0 0 0 1.6 1.6h3.6M8.2 12.6h4.2M8.2 16h6.4"/>`,
+    "note-f": `<path fill="currentColor" d="${PAGE}"/><path ${KO} d="M14.4 3.4V7a1.6 1.6 0 0 0 1.6 1.6h3.6M8.2 12.6h4.2M8.2 16h6.4"/>`,
+    newnote: `<path d="${PAGE}"/><path d="M14.4 3.4V7a1.6 1.6 0 0 0 1.6 1.6h3.6M12 11.8v5.2M9.4 14.4h5.2"/>`,
     pen: '<path d="M5 19l.9-3.9L16.4 4.6a2.1 2.1 0 0 1 3 3L8.9 18.1z"/><path d="M14.6 6.4l3 3M12.6 20.4h6.6"/>',
     edit: '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="5.2"/><path d="M9 15.2l.5-2.3 4.7-4.7a1.5 1.5 0 0 1 2.1 2.1l-4.7 4.7z"/><path d="M13 9.4l1.6 1.6"/>',
-    cal: CAL + '<path d="M3.8 10.2h16.4M8.2 3.2v3.4M15.8 3.2v3.4M12.8 15.2h3"/>',
-    "cal-f": `<rect fill="currentColor" x="3.8" y="5" width="16.4" height="15.2" rx="4.6"/><path d="M8.2 3.2v3.4M15.8 3.2v3.4"/><path ${KO} d="M3.8 10.2h16.4M12.8 15.2h3"/>`,
+    cal: CAL + '<path d="M3.2 10.2h17.6M8 3.2v3.4M16 3.2v3.4M13 15.4h3"/>',
+    "cal-f": `<rect fill="currentColor" x="3.2" y="5" width="17.6" height="15.8" rx="5"/><path d="M8 3.2v3.4M16 3.2v3.4"/><path ${KO} d="M3.2 10.2h17.6M13 15.4h3"/>`,
     gear: `<circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.9"/><path d="${ticks}"/>`,
     upload: '<path d="M12 15.4V5.8M8.2 9.4L12 5.6l3.8 3.8M5 14.6v1.7A3.2 3.2 0 0 0 8.2 19.5h7.6a3.2 3.2 0 0 0 3.2-3.2v-1.7"/>',
     image: '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="5"/><circle cx="9" cy="9.2" r="1.6"/><path d="M4.4 16.4l4.2-3.7c.7-.6 1.7-.6 2.4 0l2.3 2.1 2-1.7c.6-.5 1.5-.5 2.1 0l2.2 2"/>',
@@ -227,8 +227,8 @@ P.alert = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.8v5M12 16.2h.01"/>';
     groq: '<path d="M5 17.2a8 8 0 1 1 14 0"/><path d="M12 13.4l3-4.2"/><circle cx="12" cy="14" r="1.2" fill="currentColor" stroke="none"/>',
   });
   P.file = P.note; P.brush = P.pen;
-  P.bookmark = '<rect x="4" y="3.5" width="16" height="17" rx="5"/><path d="M10 3.5v7l2.4-1.6 2.4 1.6v-7"/>';
-  P["bookmark-f"] = `<rect fill="currentColor" x="4" y="3.5" width="16" height="17" rx="5"/><path ${KO} d="M10 3.5v7l2.4-1.6 2.4 1.6v-7"/>`;
+  P.bookmark = '<rect x="3" y="3" width="18" height="18" rx="5.6"/><path d="M11.5 3v9.9l2.6-1.5 2.6 1.5V3"/>';
+  P["bookmark-f"] = `<rect fill="currentColor" x="3" y="3" width="18" height="18" rx="5.6"/><path ${KO} d="M11.5 3v9.9l2.6-1.5 2.6 1.5V3"/>`;
   P.star = P.bookmark;
   P["adduser-f"] = '<g stroke-width="2.7">' + P.adduser + '</g>';
 })();

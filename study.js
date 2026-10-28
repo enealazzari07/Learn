@@ -308,7 +308,7 @@ const SDK = {
   week: '<rect x="3" y="4.5" width="18" height="15.5" rx="3"/><path d="M3 9.5h18M7.5 13h2M11 13h2M14.5 13h2M7.5 16.5h2M11 16.5h2"/>',
   tasks: '<rect x="4" y="4" width="16" height="16" rx="4.5"/><path d="M8.5 12.2l2.5 2.5 4.6-5"/>',
   tt: '<rect x="3" y="4.5" width="18" height="15.5" rx="3"/><path d="M3 9.5h18M9 9.5V20M15 9.5V20"/>',
-  cal: '<rect class="cb" x="3.8" y="5" width="16.4" height="15.2" rx="4.6"/><path d="M3.8 10.2h16.4M8.2 3.2v3.4M15.8 3.2v3.4M12.8 15.2h3"/>',
+  cal: '<rect class="cb" x="3.2" y="5" width="17.6" height="15.8" rx="5"/><path d="M3.2 10.2h17.6M8 3.2v3.4M16 3.2v3.4M13 15.4h3"/>',
   day: '<circle cx="12" cy="12" r="3.8"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/>',
   month: '<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/>',
   quarter: '<path d="M12 3.5l8.5 4.6-8.5 4.6-8.5-4.6z"/><path d="M3.5 12.4l8.5 4.6 8.5-4.6M3.5 16.4l8.5 4.6 8.5-4.6"/>',
