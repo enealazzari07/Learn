@@ -69,6 +69,28 @@ const BENTO_FILES = [["Zellatmung.note", "In den Mitochondrien wird Glukose mit 
 const BENTO_LIST = [["cal", "#2563eb", "Mathe-Klausur in 6 Tagen", "Prüfungen"], ["cards", "#0e9f6e", "18 Karteikarten fällig", "Lernen"], ["check", "#ff6a3d", "Aufgaben S. 54 morgen fällig", "Planer"], ["spark", "#5b3df5", "Quiz aus deinen Notizen bereit", "Studix AI"], ["note", "#d6431f", "Referat Biologie: Entwurf speichern", "Dokumente"], ["cal", "#8b5cf6", "Fokus-Block 25 Min. abgeschlossen", "Fokus"]];
 const GEMINI_SVG = '<svg viewBox="0 0 24 24"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gm)" d="M12 1.5C12.7 7.6 16.4 11.3 22.5 12 16.4 12.7 12.7 16.4 12 22.5 11.3 16.4 7.6 12.7 1.5 12 7.6 11.3 11.3 7.6 12 1.5Z"/></svg>';
 const GROQ_SVG = '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#f55036"/><path fill="#fff" d="M12.1 5.2a6.8 6.8 0 1 0 4.1 12.2l-1.4-1.6a4.7 4.7 0 1 1 1.5-3.4v.4h-3.7v2.1h6v-2.5a6.8 6.8 0 0 0-6.5-7.2z"/></svg>';
+/* Zusätzliche Landing-Abschnitte (Farbe, Bewegung, mehr Inhalt) */
+const LP_SUBJ = [["Mathe", "#2563eb"], ["Biologie", "#0e9f6e"], ["Deutsch", "#ff6a3d"], ["Geschichte", "#a16207"], ["Chemie", "#8b5cf6"], ["Physik", "#0891b2"], ["Englisch", "#e11d48"], ["Informatik", "#4f46e5"], ["Recht", "#475569"], ["Medizin", "#db2777"], ["Wirtschaft", "#d97706"], ["Kunst", "#16a34a"]];
+function extraHtml(go) {
+  const chips = [...LP_SUBJ, ...LP_SUBJ].map(([n, c]) => `<span class="mq-chip" style="--c:${c}"><i></i>${n}</span>`).join("");
+  const tiles = [
+    ["#ffe9d6", "#ff6a3d", "note", "Notizen, die mitwachsen", "Schreib wie in einem Dokument: Überschriften, Tabellen, Formeln, Bilder – oder zeichne direkt dazu.", `<div class="xv xv-note"><b></b><i></i><i></i><i class="s"></i><u></u></div>`],
+    ["#dff5ea", "#0e9f6e", "cards", "Karteikarten, die sitzen", "Wiederholt genau dann, wenn du kurz vorm Vergessen bist. Aus jeder Notiz in einem Klick.", `<div class="xv xv-cards"><span>Was ist ATP?</span><span>Energieträger der Zelle</span></div>`],
+    ["#e0eaff", "#2563eb", "cal", "Planer ohne Chaos", "Stundenplan, Aufgaben, Prüfungen und Kalender an einem Ort – mit Erinnerungen vor der Deadline.", `<div class="xv xv-plan">${["Mo", "Di", "Mi", "Do", "Fr"].map((d, i) => `<em style="--h:${[60, 85, 45, 95, 70][i]}%">${d}</em>`).join("")}</div>`],
+    ["#f0e6ff", "#8b5cf6", "spark", "Ein Tutor, der Zeit hat", "Frag Studix AI zu deinen Unterlagen: erklären, zusammenfassen, abfragen – rund um die Uhr.", `<div class="xv xv-ai"><p>Erkläre mir die Zellatmung</p><p class="a">Stell dir die Zelle als Kraftwerk vor …</p></div>`]];
+  const steps = [["#ff6a3d", "1", "Sammeln", "Schreib mit, zeichne, importiere PDFs und Bilder – alles landet geordnet in deinen Fächern."], ["#2563eb", "2", "Verstehen", "Lass dir Stoff erklären, zusammenfassen und in Karteikarten und Quiz verwandeln."], ["#0e9f6e", "3", "Behalten", "Der Lernplan erinnert dich genau dann, wenn Wiederholen am meisten bringt."]];
+  const uses = [["#e11d48", "Schule", "Hausaufgaben, Vokabeln und Klassenarbeiten im Griff."], ["#2563eb", "Uni", "Skripte, Zusammenfassungen und Altklausuren an einem Ort."], ["#0e9f6e", "Ausbildung", "Berichtsheft, Lernfelder und Prüfungsvorbereitung."], ["#d97706", "Selbststudium", "Eigene Ziele, Lernpläne und Fokus-Timer."]];
+  const stats = [["0 €", "zum Start – kostenlos"], ["3", "Geräte: iPad, Handy, PC"], ["100 %", "offline nutzbar"], ["✎", "Apple Pencil unterstützt"]];
+  return `
+  <section class="sec xs" id="subjects"><p class="xs-k rv">Für jedes Fach</p><div class="mq rv"><div class="mq-t">${chips}</div></div></section>
+  <section class="sec xs" id="tiles"><h2 class="rv">Vier Werkzeuge. Ein Workflow.</h2><p class="lead rv">Vier Werkzeuge, die zusammenarbeiten – statt vier Apps, die du jonglieren musst.</p>
+    <div class="xt">${tiles.map(([bg, c, i, t, d, v], k) => `<article class="xt-c rv" style="--bg:${bg};--c:${c};--d:${k * 90}ms"><span class="xt-i">${ic(i)}</span><h3>${t}</h3><p>${d}</p>${v}</article>`).join("")}</div></section>
+  <section class="sec xs" id="steps"><h2 class="rv">So lernst du mit Studix.</h2>
+    <div class="xst">${steps.map(([c, n, t, d], k) => `<div class="xst-c rv" style="--c:${c};--d:${k * 120}ms"><b>${n}</b><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></section>
+  <section class="sec xs" id="stats"><div class="xsb rv">${stats.map(([a, b]) => `<div><b data-n>${a}</b><span>${b}</span></div>`).join("")}</div></section>
+  <section class="sec xs" id="uses"><h2 class="rv">Für alle, die lernen.</h2>
+    <div class="xus">${uses.map(([c, t, d], k) => `<a class="xus-c rv" ${go} style="--c:${c};--d:${k * 90}ms"><h3>${t}</h3><p>${d}</p><span>Ausprobieren →</span></a>`).join("")}</div></section>`;
+}
 function bentoHtml() {
   const now = new Date(), y = now.getFullYear(), m = now.getMonth(), first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
   const cal = `<div class="bn-cal"><b>${now.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</b><div class="bn-cg">${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(d => `<small>${d}</small>`).join("")}${"<i></i>".repeat(first)}${Array.from({ length: days }, (_, i) => `<span class="${i + 1 === now.getDate() ? "on" : [6, 14, 21].includes(i + 1) ? "ex" : ""}">${i + 1}</span>`).join("")}</div></div>`;
@@ -108,6 +130,7 @@ function renderLanding() {
     <p class="emb-hint">Das ist die echte App – klick ins Fenster, um sie auszuprobieren.</p>
   </section>
   ${bentoHtml()}
+  ${extraHtml(go)}
   <section class="sec" id="ai"><div class="dark-card"><div><span class="pill-l dk"><b>Studix AI</b> eingebaut</span><h2>Frag, was du willst. Studix hilft.</h2><p class="lead">Zusammenfassungen, Quiz, Erklärungen und Hausaufgaben-Hinweise – direkt in deinen Unterlagen.</p><a class="btn accent" ${go} style="margin-top:26px">Mit dem Tutor sprechen</a></div>
     <div class="chat-demo"><div class="m u">Erkläre mir die Zellatmung wie einem Zehntklässler.</div><div class="m a">Stell dir die Zelle als Kraftwerk vor: Aus Zucker und Sauerstoff entsteht Energie (ATP). Soll ich dich danach abfragen?</div><div class="m u">Ja, und mach Karteikarten daraus.</div><div class="m a">Erledigt – 12 Karten sind in deinem Stapel „Biologie“.</div></div></div>
     <div class="grid3">${[["note", "#5b3df5", "Notiz-Editor", "Formatierung, Tabellen, Formeln, Bilder und Checklisten."], ["brush", "#ff6a3d", "Schreiben und Zeichnen", "Stift, Marker, Formen und Text – auch mit Apple Pencil."], ["cards", "#0e9f6e", "Karteikarten", "Lernen mit Wiederholungs-Algorithmus."], ["help", "#2563eb", "Quiz-Training", "Prüfungsfragen aus deinen Unterlagen."], ["cal", "#8b5cf6", "Planer", "Stundenplan, Aufgaben, Kalender und Prüfungen."], ["award", "#111", "Noten & Fokus", "Notenschnitt, Zielrechner und Pomodoro-Timer."]].map(([i, c, t, d]) => `<div class="card"><div class="ico" style="background:${c}">${ic(i)}</div><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></section>
@@ -117,6 +140,7 @@ function renderLanding() {
   <footer><div><a class="logo" href="#/"><i class="mark"></i>Studix</a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Rechtliches", ["Impressum", "legal.html#impressum"], ["Datenschutz", "legal.html#datenschutz"], ["AGB", "legal.html#agb"], ["Widerruf", "legal.html#widerruf"]]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => Array.isArray(x) ? `<a href="${x[1]}">${x[0]}</a>` : `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Studix</div>`;
   mountEmbed($("#emb", landingEl));
   mountBento(landingEl);
+  { const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } }), { threshold: .15 }); $$(".rv", landingEl).forEach(x => io2.observe(x)); }
   { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); setTimeout(() => e.target.classList.add("on"), e.target.classList.contains("mk") ? 1300 : 700); } }), { threshold: .6 }); $$(".hl", landingEl).forEach(h => io.observe(h)); }
   $$(".pnav-links a", landingEl).forEach(a => a.addEventListener("click", () => $("#nav").classList.remove("open")));
 }
