@@ -544,7 +544,7 @@ body{background:#fff}
 /* ======== v7: info + tools live in the white area; only the document sits in the grey rounded panel ======== */
 .main.doc-full{--docbg:#f3f3f7;--panel:#fff;margin:0;border-radius:0;background:#fff;min-height:100dvh;padding:0;overflow-x:clip}
 .ned-bar{background:#fff;border-radius:0;border-bottom:0;padding-bottom:2px}
-.ned-paper{background:var(--docbg)!important;border-radius:38px!important;margin:0 12px 12px 0;min-height:calc(100dvh - 76px);overflow:hidden;padding-bottom:140px}
+.ned-paper{background:var(--docbg)!important;border-radius:38px!important;margin:0 12px 12px;min-height:calc(100dvh - 76px);overflow:hidden;padding-bottom:140px}
 .dhead{position:sticky;top:0;z-index:50;background:#fff}
 .dhead .ned-bar{position:static}
 .editor.board.dfull .opts.flat{padding:2px 24px 12px}

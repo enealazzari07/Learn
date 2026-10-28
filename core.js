@@ -257,6 +257,7 @@ function demoData() {
     note("d4", "Referat Klimawandel", "s2", "Gliederung, Quellen und Stichpunkte für das Referat am Freitag.", 30),
     note("d5", "Unit 4 – Vocabulary", "s3", "Wichtige Wörter und Wendungen zum Thema „Travelling“.", 50),
   ];
+  d.docs.forEach(x => { if (x.type === "note") KV.mem.set("html:" + x.id, `<h1>${x.title}</h1><p>${x.text}</p>`); });
   d.tasks = [
     { id: "t1", title: "Aufgaben S. 54 Nr. 3–7", type: "hw", due: at(1), subjectId: "s1", note: "", done: false },
     { id: "t2", title: "Referat Zellatmung vorbereiten", type: "task", due: at(0), subjectId: "s2", note: "", done: false },

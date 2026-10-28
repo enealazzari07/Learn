@@ -38,40 +38,51 @@ function pricingHtml(go) {
 }
 const EMBED_TABS = [["Heute", "today", "home"], ["Dokumente", "docs", "folder"], ["Karteikarten", "cards", "cards"], ["Planer", "planner", "cal"], ["Studix AI", "ai", "spark"]];
 function mountEmbed(root) {
-  const fr = $("iframe", root), box = $(".emb-view", root), tabs = $$(".emb-tab", root), W = 1280, BASE = 780, MAXH = 1300; let H = BASE;
+  const fr = $("iframe", root), box = $(".emb-view", root), tabs = $$(".emb-tab", root), W = 1280, H = 780;
   const fit = () => { const w = box.clientWidth, k = w / W; fr.style.height = H + "px"; box.style.height = Math.round(H * k) + "px"; fr.style.transform = `scale(${k})`; };
-  /* Jede Seite ist nur so hoch wie ihr Inhalt (mindestens BASE), damit man in der Vorschau nie scrollen muss */
-  const measure = () => { try { const d = fr.contentDocument, m = d.querySelector("#main"); if (!m) return; H = BASE; fit(); let ex = 0; [m, ...m.querySelectorAll("*")].forEach(e => { if (e.scrollHeight > e.clientHeight + 4 && /auto|scroll/.test(fr.contentWindow.getComputedStyle(e).overflowY)) ex = Math.max(ex, e.scrollHeight - e.clientHeight); }); H = Math.min(MAXH, BASE + ex); fit(); } catch {} };
-  const remeasure = () => [150, 700, 1600].forEach(t => setTimeout(measure, t));
   new ResizeObserver(fit).observe(box); fit();
   const mark = () => { let v = ""; try { v = (fr.contentWindow.location.hash.replace(/^#\/?/, "").split("/")[1] || "today"); } catch {} tabs.forEach(t => t.classList.toggle("on", t.dataset.v === v || (v === "doc" && t.dataset.v === "docs") || (v === "deck" && t.dataset.v === "cards"))); };
   /* Die Vorschau bedient niemand selbst: Sofia klickt sich automatisch durch die App, Lena und Marc sind nur im geteilten Dokument zu sehen */
   const live = $(".emb-live", root), sofia = $(".cur.u3", root); let tour = 0, alive = true, tid = 0;
   const wait = ms => new Promise(r => { tid = setTimeout(r, ms); });
+  const q = s => { try { return fr.contentDocument.querySelector(s); } catch { return null; } };
   const hashGo = v => { try { fr.contentWindow.location.hash = "#/app/" + v; } catch { fr.src = "index.html?embed=1#/app/" + v; } };
-  const moveTo = (sel, fx = .5, fy = .5) => { try { const e = fr.contentDocument.querySelector(sel), k = box.clientWidth / W; if (e) { const r = e.getBoundingClientRect(); sofia.style.left = (r.left + r.width * fx) * k + "px"; sofia.style.top = (r.top + r.height * fy) * k + "px"; return true; } } catch {} sofia.style.left = "52%"; sofia.style.top = "46%"; return false; };
-  const click = () => { sofia.classList.remove("clk"); void sofia.offsetWidth; sofia.classList.add("clk"); };
-  const visit = async (v, sel) => { moveTo(sel || `.nav-i[data-go="${v}"]`, .4, .5); await wait(1300); click(); await wait(250); hashGo(v); await wait(700); };
+  const moveTo = (sel, fx = .5, fy = .5) => { const e = q(sel), k = box.clientWidth / W; if (!e) return false; const r = e.getBoundingClientRect(); sofia.style.left = (r.left + r.width * fx) * k + "px"; sofia.style.top = (r.top + r.height * fy) * k + "px"; return true; };
+  const ripple = () => { sofia.classList.remove("clk"); void sofia.offsetWidth; sofia.classList.add("clk"); };
+  /* Echter Klick in der App: Cursor fährt hin, klickt, die App reagiert */
+  const press = async (sel, fb) => { const ok = moveTo(sel, .4, .5); await wait(1300); ripple(); await wait(220); const e = q(sel); if (e) e.click(); else if (fb) hashGo(fb); await wait(900); return ok; };
+  const type = async (body, txt) => { for (const ch of txt) { fr.contentDocument.execCommand("insertText", false, ch); await wait(70 + Math.random() * 50); } };
+  const write = async () => {
+    const d = fr.contentDocument, body = q("#body"); if (!body) return; const orig = body.innerHTML;
+    live.classList.add("collab"); moveTo("#body h1", .5, .5); await wait(1500);
+    body.focus({ preventScroll: true }); const s = d.getSelection(), r = d.createRange(); r.selectNodeContents(body); r.collapse(false); s.removeAllRanges(); s.addRange(r);
+    d.execCommand("insertParagraph"); moveTo("#body p:last-child", .3, .6);
+    const txt = "Merke: ATP ist die Energiewährung der Zelle."; await type(body, txt); await wait(700);
+    /* Wort „Energiewährung“ markieren und anstreichen */
+    const tn = s.anchorNode, at = txt.indexOf("Energiewährung"); if (tn && tn.nodeType === 3 && tn.length >= at + 14) { const w = d.createRange(); w.setStart(tn, tn.length - txt.length + at); w.setEnd(tn, tn.length - txt.length + at + 14); s.removeAllRanges(); s.addRange(w); ripple(); d.execCommand("hiliteColor", false, "#ffe58a"); d.execCommand("underline"); await wait(2200); }
+    s.removeAllRanges(); await wait(1200); body.innerHTML = orig; body.dispatchEvent(new Event("input", { bubbles: true })); body.blur(); live.classList.remove("collab");
+  };
   const run = async () => {
-    const mine = ++tour; await wait(2500);
+    const mine = ++tour; await wait(2200);
     while (alive && mine === tour) {
-      live.classList.remove("collab"); await visit("docs"); await wait(1400);
-      moveTo('[data-id="d1"],[data-doc="d1"],.dcard,.doc-card,.doc,main a', .5, .5); await wait(1300); click(); await wait(250); hashGo("doc/d1"); await wait(900);
-      live.classList.add("collab"); moveTo(".ed, .editor, [contenteditable], #main", .35, .4); await wait(6500);
-      live.classList.remove("collab"); await visit("today"); await wait(3000);
-      await visit("exams"); await wait(2600);
-      await visit("planner"); await wait(2600);
-      await visit("grades"); await wait(2400);
+      await press('.nav-i[data-go="docs"]', "docs"); await wait(900);
+      if (!q('[data-d="d1"]')) await press(".fcard, .folder, .fol", null);
+      await press('[data-d="d1"]', "doc/d1"); await wait(900); if (!q("#body")) hashGo("doc/d1"); await wait(900);
+      await write(); if (!(alive && mine === tour)) break;
+      await press('.nav-i[data-go="today"]'); await wait(2800);
+      await press('.nav-i[data-go="exams"]'); await wait(2600);
+      await press('.nav-i[data-go="planner"]'); await wait(2600);
+      await press('.nav-i[data-go="grades"]'); await wait(2400);
       hashGo("cards"); moveTo("#main", .5, .4); await wait(2600);
-      await visit("ai"); await wait(3200);
-      await visit("today"); await wait(2200);
+      await press('.nav-i[data-go="ai"]'); await wait(3000);
+      await press('.nav-i[data-go="today"]'); await wait(2000);
     }
   };
   const vis = new IntersectionObserver(es => es.forEach(e => { alive = e.isIntersecting; if (alive) run(); else { clearTimeout(tid); tour++; } }), { threshold: .2 }); vis.observe(root);
   /* Hell/Dunkel der Vorschau folgt immer dem Thema der Seite (auch wenn es nach dem Laden gewechselt wird) */
   const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  fr.addEventListener("load", () => { theme(); mark(); remeasure(); try { fr.contentWindow.addEventListener("hashchange", remeasure); fr.contentDocument.addEventListener("click", remeasure, true); } catch {} try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
+  fr.addEventListener("load", () => { theme(); mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
 }
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
 function mountGrid(hero) {
