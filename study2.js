@@ -337,7 +337,7 @@ const safeUrl = u => /^https?:\/\//i.test(u) ? u : "#";
 function citeHtml(html, srcs) { if (!srcs || !srcs.length) return html; return html.replace(/\[(\d{1,2})\]/g, (m, n) => { const s = srcs.find(x => x.n === +n); return s ? `<a class="cite" href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer" title="${esc(s.title)}">${n}</a>` : m; }); }
 function srcsHtml(srcs) { return srcs && srcs.length ? `<div class="srcs"><span class="srcs-t">${ic("globe")}Quellen</span>${srcs.map(s => `<a class="src" href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer" title="${esc(s.title)}"><i>${s.n}</i><span>${esc(s.title)}</span>${ic("ext")}</a>`).join("")}</div>` : ""; }
 function chatHistory() {
-  const raw = chatMsgs().slice(0, -1).filter(x => x && x.text && (x.role === "user" || x.role === "assistant")).slice(-24);
+  const raw = chatMsgs().slice(0, -1).filter(x => x && x.text && !x.sys && (x.role === "user" || x.role === "assistant")).slice(-24);
   const out = [];
   for (const x of raw) { const t = String(x.text).slice(0, 4000); if (out.length && out[out.length - 1].role === x.role) out[out.length - 1].text += "\n\n" + t; else out.push({ role: x.role, text: t }); }
   while (out.length && out[0].role !== "user") out.shift();
@@ -346,15 +346,27 @@ function chatHistory() {
   return out;
 }
 const TK_SPIN = '<svg class="tk-sp" viewBox="0 0 24 24" aria-hidden="true">' + Array.from({ length: 8 }, (_, i) => `<circle cx="${(12 + 8.6 * Math.sin(i * Math.PI / 4)).toFixed(2)}" cy="${(12 - 8.6 * Math.cos(i * Math.PI / 4)).toFixed(2)}" r="1.9" style="--i:${i}"/>`).join("") + "</svg>";
-/* Denk-Animation: Schritte erscheinen nacheinander (Nachdenken → Gesehen → Formulieren), erledigte werden grau mit Haken */
+/* Trace-Zeilen (Denken, Quellen, Systemhinweise): Icon + Titel, optional aufklappbar */
+const trRow = (st, icon, title, body, open) => body
+  ? `<details class="tr-c" ${open ? "open" : ""}><summary class="tr-l ${st}"><i class="tr-ic">${icon}</i><span class="tr-t">${title}</span><i class="tr-chev">${ic("chev")}</i></summary><div class="tr-b">${body}</div></details>`
+  : `<div class="tr-l ${st}"><i class="tr-ic">${icon}</i><span class="tr-t">${title}</span></div>`;
+const trSources = srcs => srcs && srcs.length ? trRow("", ic("globe"), `${srcs.length} ${srcs.length === 1 ? "Quelle" : "Quellen"} verwendet`, srcs.map(s => `<a class="tr-l link" href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer"><i class="tr-ic">${ic("globe")}</i><span class="tr-t">${esc(s.title)}</span><i class="tr-ic">${ic("ext")}</i></a>`).join("")) : "";
+const traceHtml = x => { const rows = [];
+  if (x.thought) rows.push(trRow("", ic("check"), `Nachgedacht für ${x.thought} Sek.`, x.seen && x.seen.length ? `Gelesen: ${x.seen.map(t => `<b>${esc(t)}</b>`).join(", ")}` : ""));
+  const so = trSources(x.sources); if (so) rows.push(so);
+  return rows.length ? `<div class="trace">${rows.join("")}</div>` : ""; };
+const sysHtml = sy => { const hasU = typeof AIU !== "undefined" && AIU.on && !AIU.unl && (sy.kind === "limit" || sy.kind === "pro") && typeof aiuRows === "function";
+  return `<div class="trace">${trRow("err", ic("alert"), esc(sy.title), `<p>${esc(sy.text)}</p>${hasU ? `<div class="aiu-rows">${aiuRows()}</div>` : ""}${sy.kind === "pro" || sy.kind === "limit" ? `<button class="btn small" data-up="1">Study Pro ansehen</button>` : ""}`, true)}</div>`; };
+/* Denk-Animation: Schritte erscheinen nacheinander (Nachdenken → Gelesen → Formulieren), erledigte bekommen einen Haken */
 function thinkSeq(el, msgs) {
-  const row = (cls, html) => { if (!el.isConnected) return null; const r = document.createElement("div"); r.className = "tk-row " + cls; r.innerHTML = html; el.appendChild(r); msgs.scrollTop = msgs.scrollHeight; return r; };
-  const done = (r, txt, icon = "check") => { if (!r) return; r.classList.remove("on"); r.classList.add("done"); r.innerHTML = `<i class="tk-ok">${ic(icon)}</i><span>${txt}</span>`; };
+  const tr = el.firstElementChild;
+  const row = (st, icon, title) => { if (!el.isConnected) return null; const r = document.createElement("div"); r.className = "tr-l " + st; r.innerHTML = `<i class="tr-ic">${icon}</i><span class="tr-t">${title}</span>`; tr.appendChild(r); msgs.scrollTop = msgs.scrollHeight; return r; };
+  const done = (r, txt, icon = "check") => { if (!r) return; r.classList.remove("run"); r.innerHTML = `<i class="tr-ic">${ic(icon)}</i><span class="tr-t">${txt}</span>`; };
   const seen = [...chatCtx].map(id => D.docs.find(x => x.id === id)).filter(Boolean).slice(0, 3);
-  const r1 = el.firstElementChild;
-  setTimeout(() => { if (!el.isConnected) return; done(r1, "Nachgedacht", "bulb");
-    if (seen.length) { const r2 = row("on", `${TK_SPIN}<span class="shim">Liest ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")} …</span>`); setTimeout(() => { done(r2, `Gesehen: ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")}`, "eye"); const r3 = row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1500); }
-    else row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1400);
+  const r1 = tr.firstElementChild;
+  setTimeout(() => { if (!el.isConnected) return; done(r1, "Nachgedacht", "check");
+    if (seen.length) { const r2 = row("run", TK_SPIN, `<span class="shim">Liest ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")} …</span>`); setTimeout(() => { done(r2, `Gelesen: ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")}`, "eye"); row("run", TK_SPIN, `<span class="shim">Formuliert die Antwort …</span>`); }, 1500); }
+    else row("run", TK_SPIN, `<span class="shim">Formuliert die Antwort …</span>`); }, 1400);
 }
 /* Chat-Antworten: Markdown (#, **fett**, Listen) wird direkt als Formatierung angezeigt; frische Antworten erscheinen Wort für Wort */
 function chatMd(text, fresh) {
@@ -364,9 +376,10 @@ function chatMd(text, fresh) {
 }
 function mountChat(box, compact) {
   const draw = () => {
-    const msgs = $(".msgs", box); msgs.innerHTML = (chatMsgs().length ? chatMsgs() : [{ role: "assistant", text: `Hi${D.profile.name ? " " + D.profile.name.split(" ")[0] : ""}! Ich bin dein Lern-Tutor. Frag mich etwas, lass dir ein Thema erklären.${hasKey() ? "" : "\n\n(Studix AI ist noch nicht eingerichtet – siehe Einstellungen → Studix AI.)"}` }]).map((x, i) => `<div class="m ${x.role === "user" ? "u" : "a"}">${x.img ? `<img src="${x.img}" alt="">` : ""}${citeHtml(x.role === "user" ? esc(x.text) : chatMd(x.text, x.fresh), x.sources)}${srcsHtml(x.sources)}${x.acts?.length ? `<div class="acts" style="--base:${x.fresh ? Math.min(2600, (x.text.split(/\s+/).length) * 30 + 200) : 0}ms">${x.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : /^doc\//.test(a.go || "") ? "note" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}${x.role === "assistant" && chatMsgs().length ? `<div class="macts"><button data-cp="${i}" title="Kopieren">${ic("copy")}</button><button data-sv="${i}" title="Als Notiz speichern">${ic("note")}</button></div>` : ""}</div>`).join("");
+    const msgs = $(".msgs", box); msgs.innerHTML = (chatMsgs().length ? chatMsgs() : [{ role: "assistant", text: `Hi${D.profile.name ? " " + D.profile.name.split(" ")[0] : ""}! Ich bin dein Lern-Tutor. Frag mich etwas, lass dir ein Thema erklären.${hasKey() ? "" : "\n\n(Studix AI ist noch nicht eingerichtet – siehe Einstellungen → Studix AI.)"}` }]).map((x, i) => `<div class="m ${x.role === "user" ? "u" : "a"}${x.sys ? " sysm" : ""}">${x.sys ? sysHtml(x.sys) : `${x.img ? `<img src="${x.img}" alt="">` : ""}${x.role === "user" ? "" : traceHtml(x)}${citeHtml(x.role === "user" ? esc(x.text) : chatMd(x.text, x.fresh), x.sources)}`}${x.acts?.length ? `<div class="acts" style="--base:${x.fresh ? Math.min(2600, (x.text.split(/\s+/).length) * 30 + 200) : 0}ms">${x.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : /^doc\//.test(a.go || "") ? "note" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}${x.role === "assistant" && !x.sys && chatMsgs().length ? `<div class="macts"><button data-cp="${i}" title="Kopieren">${ic("copy")}</button><button data-sv="${i}" title="Als Notiz speichern">${ic("note")}</button></div>` : ""}</div>`).join("");
     msgs.scrollTop = msgs.scrollHeight;
     $$("[data-ag]", msgs).forEach(b => b.onclick = () => go(b.dataset.ag));
+    $$("[data-up]", msgs).forEach(b => b.onclick = () => { if (typeof proUpsell === "function") proUpsell(); else go("settings"); });
     $$("[data-cp]", msgs).forEach(b => b.onclick = () => { navigator.clipboard?.writeText(chatMsgs()[+b.dataset.cp].text); toast("Kopiert"); });
     $$("[data-sv]", msgs).forEach(b => b.onclick = () => limitHit("doc") || newNote("", textToHtml(chatMsgs()[+b.dataset.sv].text), "Studix-AI-Notiz"));
     const cx = $(".ctxbar", box); if (cx) { cx.innerHTML = [...chatCtx].map(id => { const d = D.docs.find(x => x.id === id); return d ? `<span class="cx" title="${esc(d.title)}">${ic("file")}<b>${esc(d.title)}</b><button type="button" data-rm="${id}" aria-label="Entfernen">${ic("x")}</button></span>` : ""; }).join(""); cx.hidden = !chatCtx.size; $$("[data-rm]", cx).forEach(b => b.onclick = () => { chatCtx.delete(b.dataset.rm); draw(); }); $("#att", box)?.classList.toggle("on", chatCtx.size > 0); }
@@ -376,12 +389,12 @@ function mountChat(box, compact) {
   const send = async text => {
     text = (text || "").trim(); if (!text && !chatImg) return; const img = chatImg; chatImg = null;
     { const cc = chatState(); cc.msgs.push({ role: "user", text: text || "Bitte erkläre das Bild.", img: img?.url }); cc.updated = Date.now(); if (cc.title === "Neuer Chat" && text) cc.title = text.slice(0, 40); } draw(); window.onChatsChanged && window.onChatsChanged();
-    const msgs = $(".msgs", box); const tkEl = document.createElement("div"); tkEl.className = "m a think tkb"; tkEl.innerHTML = `<div class="tk-row on">${ic("spark")}<span class="shim">Studix AI denkt nach …</span></div>`; msgs.appendChild(tkEl); thinkSeq(tkEl, msgs); msgs.scrollTop = msgs.scrollHeight;
-    const c = await ctxText(), hist = chatHistory(); let r;
-    if (hasKey()) r = await ai(text || "Bitte erkläre das Bild.", { sources: sourcesOn() && !img && aiModelProv(aiModelId()) === "Gemini", history: hist, system: sysBase(MODES[chatMode][1] + "\n\nFormatiere Antworten mit Markdown: **fett** für Schlüsselbegriffe, ## kurze Überschriften bei längeren Antworten, \"- \" Listen und \"1. \" nummerierte Listen. Keine Tabellen." + (chatInstr() ? "\n\n" + chatInstr() : "") + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), max: 2000, image: img ? { data: img.data, type: "image/jpeg" } : null });
+    const msgs = $(".msgs", box); const tkEl = document.createElement("div"); tkEl.className = "m a think tkb"; tkEl.innerHTML = `<div class="trace"><div class="tr-l run">${TK_SPIN.replace("tk-sp","tk-sp")}<span class="tr-t"><span class="shim">Denkt nach …</span></span></div></div>`; msgs.appendChild(tkEl); thinkSeq(tkEl, msgs); msgs.scrollTop = msgs.scrollHeight;
+    const t0 = Date.now(), seenT = [...chatCtx].map(id => D.docs.find(x => x.id === id)).filter(Boolean).slice(0, 3).map(d => d.title), c = await ctxText(), hist = chatHistory(); let r;
+    if (hasKey()) r = await ai(text || "Bitte erkläre das Bild.", { sources: sourcesOn() && !img && aiModelProv(aiModelId()) === "Gemini", history: hist, system: sysBase(MODES[chatMode][1] + "\n\nFormatiere Antworten mit Markdown: **fett** für Schlüsselbegriffe, ## kurze Überschriften bei längeren Antworten, \"- \" Listen und \"1. \" nummerierte Listen. Keine Tabellen." + (chatInstr() ? "\n\n" + chatInstr() : "") + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), max: 2000, quiet: true, image: img ? { data: img.data, type: "image/jpeg" } : null });
     else { await new Promise(r => setTimeout(r, 500)); r = c && chatMode === "sum" ? "Zusammenfassung (lokal):\n" + localSummary(c) : "Studix AI ist noch nicht eingerichtet, deshalb kann ich keine echten Antworten erzeugen. Hinterlege unter Einstellungen → Studix AI den Gemini-Key (Vercel) – dann erkläre ich Themen, frage dich ab und helfe bei Hausaufgaben. Zusammenfassungen, Karteikarten und Quiz aus Dokumenten funktionieren schon jetzt auch offline."; }
     const srcs = (window.lastAiSources || []).slice(); let acts = []; if (r && hasKey()) { try { const o = await runAgent(r); r = o.text; acts = o.acts; } catch (e) { r = r.replace(/<lumi-actions>[\s\S]*/i, "").trim(); } }
-    { const cc = chatState(); cc.msgs.push({ role: "assistant", text: r || "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts, sources: srcs, fresh: true }); cc.msgs = cc.msgs.slice(-80); cc.updated = Date.now(); draw(); cc.msgs.forEach(x => delete x.fresh); }
+    { const cc = chatState(); const issue = !r && hasKey() ? window.lastAiIssue : null; cc.msgs.push(issue ? { role: "assistant", text: issue.text, sys: issue } : { role: "assistant", text: r || "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts, sources: srcs, fresh: true, thought: Math.max(1, Math.round((Date.now() - t0) / 1000)), seen: seenT }); cc.msgs = cc.msgs.slice(-80); cc.updated = Date.now(); draw(); cc.msgs.forEach(x => delete x.fresh); }
     save();
   };
   box.innerHTML = `${compact ? `<header>${ic("spark")}<b>Studix AI</b><button class="icon-btn" data-full title="Vollbild">${ic("up")}</button><button class="icon-btn" data-close aria-label="Schließen">${ic("x")}</button></header>` : ""}<div class="modes" ${compact ? "hidden" : ""}>${Object.entries(MODES).map(([k, v]) => `<button class="chip ${chatMode === k ? "on" : ""}" data-m="${k}">${v[0]}</button>`).join("")}</div><div class="msgs"></div><div class="imgprev" hidden></div>

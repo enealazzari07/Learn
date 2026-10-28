@@ -192,6 +192,7 @@ Object.assign(P, {
 /* Studix-AI-Icon in der Seitenleiste: Umriss (inaktiv) und gefuellt (aktiv) */
 P.sparkO = '<g transform="translate(1.5 .8) scale(.0105)" stroke-width="171" stroke-linejoin="round" stroke-linecap="round"><path d="Ebene_2"/><path d="M1408.48,875.37v8.71h463.78c36.28,0,65.69-28.93,65.69-64.62V285.26c0-35.69-29.41-64.62-65.69-64.62h-844.77c-36.28,0-65.69,28.93-65.69,64.62v121.23l9.64-.08"/><path d="M961.81,406.49H448.23c-23.69,0-45.55,12.55-57.2,32.85L70.54,997.72c-5.56,9.7-8.49,20.64-8.49,31.77h0c0,28.67,23.66,51.9,52.8,51.85l554.61-1.01c36.33-.07,65.81,28.89,65.81,64.62v569.79c0,35.69,29.41,64.62,65.69,64.62h0c6.89,0,13.62-2.02,19.33-5.8l557.86-368.95c18.1-11.97,28.98-32,29.04-53.45l1.3-467.08"/></g>';
 P["sparkO-f"] = '<g transform="translate(1.5 .8) scale(.0105)"><path fill="currentColor" stroke="none" d="Ebene_2"/><path fill="currentColor" stroke="none" d="M1408.49,884.08h463.78c36.28,0,65.69-28.93,65.69-64.62V285.26c0-35.69-29.41-64.62-65.69-64.62h-844.77c-36.28,0-65.69,28.93-65.69,64.62v121.23l380.31-3.14c36.49-.3,66.23,28.71,66.24,64.6l.13,416.14Z"/><path fill="currentColor" stroke="none" d="M1407.19,1351.16l1.3-467.08h-380.99c-36.28,0-65.69-28.93-65.69-64.62v-412.97H448.23c-23.69,0-45.55,12.55-57.2,32.85L70.54,997.72c-5.56,9.7-8.49,20.64-8.49,31.77h0c0,28.67,23.66,51.9,52.8,51.85l554.61-1.01c36.33-.07,65.81,28.89,65.81,64.62v569.79c0,35.69,29.41,64.62,65.69,64.62h0c6.89,0,13.62-2.02,19.33-5.8l557.86-368.95c18.1-11.97,28.98-32,29.04-53.45Z"/></g>';
+P.alert = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.8v5M12 16.2h.01"/>';
 const icOn = n => P[n + "-f"] ? n + "-f" : n;
 const ic = (n, c = "ic") => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ""}</svg>`;
 
@@ -348,18 +349,18 @@ const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
 /* schnelles Modell für Hintergrundaufgaben (Auto-Korrektur): bevorzugt Groq */
 const autoModelId = () => { const L = aiModelList(), pick = D.profile.autoModel && L.find(m => m[0] === D.profile.autoModel); return (pick || L.find(m => m[0] === "groq:llama-3.1-8b-instant") || L.find(m => m[0] === "gemini-flash-lite-latest") || L[0] || AI_MODELS[0])[0]; };
 async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature, sources = false, bg = false } = {}) {
-  window.lastAiSources = [];
+  window.lastAiSources = []; window.lastAiIssue = null;
   if (!hasKey()) { if (!quiet) toast("Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI). Lokale Hilfe wird verwendet."); return null; }
   if (serverAI) {
     try {
       const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ ...(bg ? { bg: true } : {}), system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
       if (j.usage && typeof aiuSet === "function") aiuSet(j.usage);
-      if (r.status === 402 && j.pro && typeof proUpsell === "function") { if (!quiet) proUpsell(j.error); return null; }
-      if (!r.ok) throw new Error(r.status === 429 && !j.limit ? "Das kostenlose Studix-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
+      if (r.status === 402 && j.pro) { window.lastAiIssue = { kind: "pro", title: "Study Pro nötig", text: j.error || "Diese Funktion gehört zu Study Pro." }; if (!quiet && typeof proUpsell === "function") proUpsell(j.error); return null; }
+      if (!r.ok) { const msg = r.status === 429 && !j.limit ? "Das kostenlose Studix-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || String(r.status)); window.lastAiIssue = r.status === 429 ? { kind: "limit", title: j.limit ? "Limit erreicht" : "Gerade viel los", text: msg } : { kind: "error", title: "Studix AI konnte nicht antworten", text: msg }; throw new Error(msg); }
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
-    } catch (e) { if (!quiet) toast("Studix-AI-Fehler: " + e.message); return null; }
+    } catch (e) { if (!window.lastAiIssue) window.lastAiIssue = { kind: "error", title: "Studix AI nicht erreichbar", text: String(e.message || e) }; if (!quiet) toast("Studix-AI-Fehler: " + e.message); return null; }
   }
   const content = image ? [{ type: "image", source: { type: "base64", media_type: image.type || "image/jpeg", data: image.data } }, { type: "text", text: prompt }] : prompt;
   const messages = [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content }];

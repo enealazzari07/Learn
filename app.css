@@ -4038,3 +4038,24 @@ html[data-theme="dark"] .authhero iframe{filter:none!important}
 .brand{font-size:24px}.brand .mark{width:26px!important;height:26px!important;margin:0 5px 0 0!important}
 .ah-logo{gap:7px!important;font-size:28px!important}.ah-logo img{width:34px!important;height:34px!important}
 .wm{line-height:1}
+
+/* Trace: Denken, Quellen und Systemhinweise im Chat (Icon + Titel, aufklappbar) */
+.trace{display:flex;flex-direction:column;gap:2px;margin:0 0 12px;max-width:100%}
+.tr-l{display:flex;align-items:center;gap:8px;min-height:26px;font-size:13.5px;line-height:1.3;color:#6e6e7c;text-decoration:none;border:0;background:none;padding:0;text-align:left}
+.tr-c>summary{list-style:none;cursor:pointer;border-radius:8px}.tr-c>summary::-webkit-details-marker{display:none}
+.tr-c>summary:hover{color:#0f0f12}
+.tr-ic{width:16px;height:16px;flex:none;display:grid;place-items:center;font-style:normal}.tr-ic svg{width:15px;height:15px;stroke-width:1.9}
+.tr-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tr-t b{font-weight:600;color:#2a2a33}
+.tr-chev{width:14px;height:14px;flex:none;opacity:0;transition:opacity .15s,transform .2s;display:grid;place-items:center;font-style:normal}.tr-chev svg{width:14px;height:14px}
+.tr-c>summary:hover .tr-chev,.tr-c[open]>summary .tr-chev{opacity:.7}.tr-c[open]>summary .tr-chev{transform:rotate(180deg)}
+.tr-l.run{color:#0f0f12}.tr-l.run .tk-sp{width:16px;height:16px}
+.tr-l.err{color:#d93a3a}
+.tr-b{margin:4px 0 10px 7px;padding:2px 0 2px 16px;border-left:1.6px solid #e6e6ec;font-size:13px;line-height:1.5;color:#6e6e7c;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.tr-b p{margin:0;white-space:normal}.tr-b .aiu-rows{width:100%;margin:2px 0}
+.tr-b a.tr-l.link{color:#4a4a52}.tr-b a.tr-l.link:hover{color:#0f0f12}.tr-b a.tr-l.link .tr-t{text-decoration:underline;text-decoration-color:rgba(15,15,18,.2);text-underline-offset:3px}
+.m.sysm{background:none!important;box-shadow:none!important;padding-left:0;padding-right:0}
+.m.think{background:none!important}.m.think .trace{margin:0}
+.m.think .tr-ic svg{width:15px!important;height:15px!important;animation:none!important;-webkit-mask-image:none!important;mask-image:none!important;filter:none!important;color:currentColor;overflow:visible}
+.m.think svg.tk-sp{width:16px!important;height:16px!important}
+.m.think .tr-l{color:#9a9aa8}.m.think .tr-l.run{color:#0f0f12}
+.trace .tr-t,.tr-b a.tr-l.link .tr-t{font-weight:500}.trace .tr-t b{font-weight:650}
