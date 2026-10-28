@@ -21,6 +21,14 @@ function cloudMark(k, removed) {
   if (!CLOUD.user || !syncable(k)) return;
   CLOUD.dirty.add(JSON.stringify([k, !!removed])); clearTimeout(CLOUD.timer); CLOUD.timer = setTimeout(cloudPush, 1800);
 }
+/* Das Konto wurde in Supabase gelöscht, der Browser hat aber noch die alte Anmeldung: Speichern scheitert dann mit einem Fremdschlüssel-Fehler (lumi_kv_user_id_fkey) – wir melden ab, statt es endlos zu versuchen */
+const cloudAccountMissing = e => !!e && (e.code === "23503" || /lumi_kv_user_id_fkey|foreign key|sub claim|user.*does not exist/i.test(e.message || e.details || ""));
+async function cloudAccountGone() {
+  CLOUD.dirty.clear(); clearTimeout(CLOUD.timer);
+  try { await CLOUD.sb.auth.signOut({ scope: "local" }); } catch {}
+  CLOUD.user = null; try { BILL.row = null; } catch {} LS.set("lumi-sync", "0");
+  toast("Dein Konto existiert nicht mehr – bitte melde dich neu an oder registriere dich.");
+}
 async function cloudPush() {
   if (!CLOUD.user || CLOUD.busy || !CLOUD.dirty.size) return; CLOUD.busy = true;
   const items = [...CLOUD.dirty].map(x => JSON.parse(x)); CLOUD.dirty.clear();
@@ -30,7 +38,7 @@ async function cloudPush() {
     if (up.length) { const { error } = await CLOUD.sb.from("lumi_kv").upsert(up, { onConflict: "user_id,k" }); if (error) throw error; }
     if (rm.length) { const { error } = await CLOUD.sb.from("lumi_kv").delete().eq("user_id", CLOUD.user.id).in("k", rm); if (error) throw error; }
     LS.set("lumi-sync", String(Date.now())); cloudStatus("ok");
-  } catch (e) { items.forEach(i => CLOUD.dirty.add(JSON.stringify(i))); cloudStatus("err"); console.error("Cloud-Sync:", e); if (Date.now() - (cloudPush.lastErr || 0) > 60000) { cloudPush.lastErr = Date.now(); toast("Speichern in der Datenbank fehlgeschlagen: " + (e?.message || e?.code || "unbekannt")); } setTimeout(cloudPush, 15000); }
+  } catch (e) { if (cloudAccountMissing(e)) { CLOUD.busy = false; return cloudAccountGone(); } items.forEach(i => CLOUD.dirty.add(JSON.stringify(i))); cloudStatus("err"); console.error("Cloud-Sync:", e); if (Date.now() - (cloudPush.lastErr || 0) > 60000) { cloudPush.lastErr = Date.now(); toast("Speichern in der Datenbank fehlgeschlagen: " + (e?.message || e?.code || "unbekannt")); } setTimeout(cloudPush, 15000); }
   CLOUD.busy = false;
 }
 /* Die Datenbank gilt immer: Cloud-Daten ersetzen lokale Daten, kein Rückfrage-Popup.
@@ -61,6 +69,7 @@ async function cloudInit() {
   try { await loadSupabaseLib(); } catch { return; }
   CLOUD.sb = window.supabase.createClient(window.LUMI_CONFIG.supabaseUrl, window.LUMI_CONFIG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true } });
   const { data } = await CLOUD.sb.auth.getSession(); CLOUD.user = data.session?.user || null;
+  if (CLOUD.user) { try { const { error } = await CLOUD.sb.auth.getUser(); if (error && ([401, 403, 404].includes(error.status) || /sub claim|does not exist|not found/i.test(error.message || ""))) { await CLOUD.sb.auth.signOut({ scope: "local" }); CLOUD.user = null; } } catch {} }   // gelöschtes Konto: alte Anmeldung verwerfen
   if (CLOUD.user && (cloudUnconfirmed(CLOUD.user) || !(await mfaGate()))) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }
   if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
   CLOUD.sb.auth.onAuthStateChange((ev, s) => { const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { BILL.row = null; LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
