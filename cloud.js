@@ -61,18 +61,47 @@ async function cloudInit() {
   try { await loadSupabaseLib(); } catch { return; }
   CLOUD.sb = window.supabase.createClient(window.LUMI_CONFIG.supabaseUrl, window.LUMI_CONFIG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true } });
   const { data } = await CLOUD.sb.auth.getSession(); CLOUD.user = data.session?.user || null;
-  if (CLOUD.user && !(await mfaGate())) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }
+  if (CLOUD.user && (cloudUnconfirmed(CLOUD.user) || !(await mfaGate()))) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }
   if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
   CLOUD.sb.auth.onAuthStateChange((ev, s) => { const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { BILL.row = null; LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
   addEventListener("online", cloudPush);
 }
 async function cloudAfterLogin() {
+  if (cloudUnconfirmed(CLOUD.user)) { try { await CLOUD.sb.auth.signOut(); } catch {} return; }
   if (!(await mfaGate())) { try { await CLOUD.sb.auth.signOut(); } catch {} return; }
   plusLoad(false).then(() => { try { refreshNav(); if (curView === "settings") renderView(); } catch {} }).catch(() => {});
   try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); }
   toast("Angemeldet – Daten werden synchronisiert"); $("#app").innerHTML = ""; route();
 }
 function cloudStatus() { const e = document.getElementById("cl-st"); if (e) e.textContent = CLOUD.user ? (CLOUD.dirty.size ? "Wird synchronisiert …" : "Synchronisiert") : ""; }
+/* E-Mail-Adresse noch nicht bestätigt? (nur für Konten mit E-Mail + Passwort; Google/Apple sind immer bestätigt) */
+const cloudUnconfirmed = u => !!(u && !u.email_confirmed_at && !u.confirmed_at && (u.app_metadata?.provider || "email") === "email");
+/* Schritt „Bestätige deine E-Mail“ in der Login-Seite (oder im Konto-Fenster): Hinweis, erneut senden, automatisch weiter sobald bestätigt */
+function cloudVerifyView(el, email, pw, done) {
+  const page = $(".authmid", el), host = page || el, x = page ? null : $(".x", el);
+  host.innerHTML = `<div class="authverify"><span class="av-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg></span>
+    <h1>Bestätige deine E-Mail</h1><p class="authsub">Wir haben dir einen Link an <b>${esc(email)}</b> geschickt. Klicke darauf, um dein Konto zu aktivieren – auch im Spam-Ordner nachsehen.</p>
+    <p class="note authmsg" id="av-m" aria-live="polite"></p>
+    <button class="btn authgo" id="av-ok" type="button">Ich habe bestätigt</button>
+    <div class="av-row"><button class="link" id="av-re" type="button">E-Mail erneut senden</button><button class="link" id="av-back" type="button">Andere E-Mail verwenden</button></div></div>`;
+  if (x) host.prepend(x);
+  const m = $("#av-m", host), say = (t, k = "") => { m.className = "note authmsg" + (k ? " " + k : ""); m.textContent = t; };
+  let stop = false, left = 0, timer = null;
+  const alive = () => !stop && document.body.contains(host);
+  const tick = () => { const b = $("#av-re", host); if (!b) return; if (left > 0) { b.disabled = true; b.textContent = `Erneut senden in ${left} s`; left--; timer = setTimeout(tick, 1000); } else { b.disabled = false; b.textContent = "E-Mail erneut senden"; } };
+  const check = async quiet => {
+    const { data, error } = await CLOUD.sb.auth.signInWithPassword({ email, password: pw });
+    if (!error && data?.user && !cloudUnconfirmed(data.user)) { stop = true; say("Bestätigt – du wirst angemeldet …", "ok"); done(); return true; }
+    if (!error) { try { await CLOUD.sb.auth.signOut(); } catch {} }
+    if (!quiet) say("Noch nicht bestätigt – bitte klicke zuerst auf den Link in der E-Mail.", "err"); return false;
+  };
+  $("#av-ok", host).onclick = () => { say("Wird geprüft …", "load"); check(false); };
+  $("#av-re", host).onclick = async () => { const { error } = await CLOUD.sb.auth.resend({ type: "signup", email, options: { emailRedirectTo: location.origin + "/" } }); if (error) return say(/rate|seconds|too many/i.test(error.message) ? "Bitte warte einen Moment, bevor du die E-Mail erneut sendest." : error.message, "err"); say("Die E-Mail ist unterwegs.", "ok"); left = 60; clearTimeout(timer); tick(); };
+  $("#av-back", host).onclick = () => { stop = true; clearTimeout(timer); if (page) authScreen("up"); else { $("#modal-root").innerHTML = ""; cloudLoginModal(); } };
+  left = 45; tick();
+  /* alle paar Sekunden still prüfen, ob der Link inzwischen geklickt wurde (z. B. auf dem Handy) */
+  let n = 0; const poll = async () => { if (!alive() || ++n > 120) return; if (await check(true)) return; setTimeout(poll, 5000); }; setTimeout(poll, 5000);
+}
 function cloudAuthHtml() {
   return `<label class="lbl">E-Mail</label><input class="field" id="cl-e" type="email" autocomplete="email"><label class="lbl">Passwort</label><input class="field" id="cl-p" type="password" autocomplete="current-password" minlength="6">
     <p class="note" id="cl-m" style="min-height:20px"></p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" id="cl-in">Anmelden</button><button class="btn" id="cl-up">Registrieren</button><button class="link" id="cl-fp" type="button">Passwort vergessen</button></div>`;
@@ -80,11 +109,13 @@ function cloudAuthHtml() {
 function cloudAuthBind(el, done) {
   const msg = t => { const m = $("#cl-m", el); if (!m) return; const k = !t ? "" : /…$/.test(t) ? "load" : /Fast geschafft|erfolgreich|geschickt/i.test(t) ? "ok" : "err"; m.className = "note authmsg" + (k ? " " + k : ""); m.innerHTML = t ? `<span class="am-i">${k === "load" ? `<i class="am-sp"></i>` : k === "ok" ? `<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>` : `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.1"/></svg>`}</span><span></span>` : ""; if (t) m.lastChild.textContent = t; $$("#cl-in,#cl-up", el).forEach(b => b.classList.toggle("busy", k === "load")); }, val = () => [$("#cl-e", el).value.trim(), $("#cl-p", el).value];
   const need = () => { const [e, p] = val(); if (!e || p.length < 6) { msg("E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben."); return null; } return [e, p]; };
-  const bi = $("#cl-in", el); if (bi) bi.onclick = async () => { const v = need(); if (!v) return; msg("Anmelden …"); const { error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) { if (/confirm/i.test(error.message)) { await CLOUD.sb.auth.resend({ type: "signup", email: v[0], options: { emailRedirectTo: location.origin + "/" } }); msg("Bitte bestätige zuerst deine E-Mail – wir haben dir den Link gerade nochmals geschickt (auch im Spam nachsehen)."); } else msg("Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); } else done(); };
-  const bu = $("#cl-up", el); if (bu) bu.onclick = async () => { const v = need(); if (!v) return; msg("Konto wird erstellt …"); const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: { app: "lumi" }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session) return done(); msg("Anmelden …"); const r = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (r.error) msg(/confirm/i.test(r.error.message) ? "Fast geschafft: Wir haben dir eine E-Mail geschickt. Klicke auf den Bestätigungslink darin (auch im Spam nachsehen) und melde dich danach hier an." : r.error.message); else done(); };
+  /* E-Mail muss bestätigt sein: erst nach dem Klick auf den Link in der Mail geht die Anmeldung */
+  const verify = (email, pw) => cloudVerifyView(el, email, pw, done);
+  const bi = $("#cl-in", el); if (bi) bi.onclick = async () => { const v = need(); if (!v) return; msg("Anmelden …"); const { data, error } = await CLOUD.sb.auth.signInWithPassword({ email: v[0], password: v[1] }); if (error) { if (/confirm/i.test(error.message)) { try { await CLOUD.sb.auth.resend({ type: "signup", email: v[0], options: { emailRedirectTo: location.origin + "/" } }); } catch {} verify(v[0], v[1]); } else msg("Anmeldung fehlgeschlagen – E-Mail oder Passwort falsch."); } else if (cloudUnconfirmed(data?.user)) { try { await CLOUD.sb.auth.signOut(); } catch {} verify(v[0], v[1]); } else done(); };
+  const bu = $("#cl-up", el); if (bu) bu.onclick = async () => { const v = need(); if (!v) return; msg("Konto wird erstellt …"); const { data, error } = await CLOUD.sb.auth.signUp({ email: v[0], password: v[1], options: { data: { app: "lumi" }, emailRedirectTo: location.origin + "/" } }); if (error) return msg(error.message); if (data.session && !cloudUnconfirmed(data.user)) return done(); if (data.session) { try { await CLOUD.sb.auth.signOut(); } catch {} } verify(v[0], v[1]); };
   const bf = $("#cl-fp", el); if (bf) bf.onclick = async () => { const [e] = val(); if (!e) return msg("Gib oben deine E-Mail ein."); const { error } = await CLOUD.sb.auth.resetPasswordForEmail(e, { redirectTo: location.origin + "/" }); msg(error ? error.message : "E-Mail zum Zurücksetzen ist unterwegs."); };
   $$("input", el).forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") ($("#cl-in", el) || $("#cl-up", el)).click(); }));
-  setTimeout(() => $("#cl-e", el).focus(), 50);
+  setTimeout(() => $("#cl-e", el)?.focus(), 50);
 }
 const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 /* Anmelde-/Registrierseite: Formular links, Foto mit schwebenden Karten rechts */
@@ -92,7 +123,7 @@ function authScreen(mode = "in") {
   const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = up ? "Studix – Konto erstellen" : "Studix – Anmelden";
   app.innerHTML = `<div class="authwrap"><div class="authshell">
     <form class="authform" onsubmit="return false" novalidate><a class="logo authlogo" href="#/"><i class="mark"></i>Studix</a>
-      <div class="authmid"><div class="authtabs" role="tablist"><button type="button" role="tab" class="${up ? "" : "on"}" id="cl-t-in">Anmelden</button><button type="button" role="tab" class="${up ? "on" : ""}" id="cl-t-up">Registrieren</button></div><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
+      <div class="authmid"><div class="authtabs" role="tablist"><button type="button" role="tab" class="${up ? "" : "on"}" id="cl-t-in">Anmelden</button><button type="button" role="tab" class="${up ? "on" : ""}" id="cl-t-up">Registrieren</button></div><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
         <label class="lbl" for="cl-e">E-Mail</label><div class="fld"><svg class="fi" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch"></div>
         <label class="lbl" for="cl-p">Passwort</label><div class="fld pwrap"><svg class="fi" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="3.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
         <p class="note authmsg" id="cl-m" aria-live="polite"></p>
