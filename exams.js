@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi Prüfungen – jede Prüfung (Planer/Kalender) bekommt automatisch eine Mappe: Lernziele, Karteikarten, Quiz und Dokumente an einem Ort. */
+/* Studix Prüfungen – jede Prüfung (Planer/Kalender) bekommt automatisch eine Mappe: Lernziele, Karteikarten, Quiz und Dokumente an einem Ort. */
 const exList = () => D.tasks.filter(t => t.type === "exam").sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999"));
 const exById = id => D.tasks.find(t => t.id === id && t.type === "exam");
 const bulletLines = s => String(s || "").split("\n").map(l => l.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, "").trim()).filter(l => l.length > 2 && !/^lernziele:?$/i.test(l));
@@ -44,7 +44,7 @@ V.exam = (m, id) => {
   m.innerHTML = `<div class="page exdet"><div class="hd"><div><button class="link back" data-go="exams">${ic("back")}Prüfungen</button><p class="eyebrow">${s ? esc(s.name) : "Prüfung"}${t.due ? " · " + fmtD(t.due) + " · " + exLeft(t) : ""}</p><h1>${esc(t.title)}</h1></div><div class="row"><button class="btn ghost" id="exe">${ic("edit")}Bearbeiten</button></div></div>
   <div class="cols2 exgrid2">
   <section class="panel"><h2>${ic("star")}Lernziele <em>${st.done}/${st.goals}</em></h2><div class="exc-bar big"><i style="width:${st.goals ? Math.round(st.done / st.goals * 100) : 0}%"></i></div>
-    <div id="exg">${goals.map(g => `<label class="li lz"><input type="checkbox" data-g="${g.id}" ${g.done ? "checked" : ""}><span>${esc(g.text)}</span><button class="icon-btn lz-x" data-gx="${g.id}" aria-label="Entfernen">${ic("x")}</button></label>`).join("") || `<p class="note">Noch keine Lernziele. Füge welche hinzu oder lass sie von Lumi AI aus deinem Material erstellen – sie werden automatisch hier gespeichert.</p>`}</div>
+    <div id="exg">${goals.map(g => `<label class="li lz"><input type="checkbox" data-g="${g.id}" ${g.done ? "checked" : ""}><span>${esc(g.text)}</span><button class="icon-btn lz-x" data-gx="${g.id}" aria-label="Entfernen">${ic("x")}</button></label>`).join("") || `<p class="note">Noch keine Lernziele. Füge welche hinzu oder lass sie von Studix AI aus deinem Material erstellen – sie werden automatisch hier gespeichert.</p>`}</div>
     <div class="row exadd"><input class="field" id="exgi" placeholder="Lernziel hinzufügen …"><button class="btn" id="exga">${ic("plus")}</button></div>
     <div class="row"><button class="btn ghost small" id="exgai">${ic("spark")}Aus Material ermitteln</button></div></section>
   <section class="panel"><h2>${ic("note")}Material</h2>${doc ? dRow(doc) : `<p class="note">Kein Lernmaterial verknüpft.</p>`}${related.map(dRow).join("")}<div class="row"><button class="btn ghost small" id="exdoc">${ic("link")}${doc ? "Anderes Dokument verknüpfen" : "Dokument verknüpfen"}</button></div></section>
@@ -61,17 +61,17 @@ V.exam = (m, id) => {
   $("#exe", m).onclick = () => taskModal(t);
   $("#exdoc", m).onclick = () => { const { el, close } = modal(`<h3>Lernmaterial verknüpfen</h3><div class="pick">${D.docs.filter(d => d.type !== "draw").map(d => `<button class="li hit ${d.id === t.docId ? "on" : ""}" data-id="${d.id}">${ic("note")}<div class="tm2"><b>${esc(d.title)}</b></div></button>`).join("") || `<p class="empty">Keine Dokumente.</p>`}</div>`); $$("[data-id]", el).forEach(b => b.onclick = () => { t.docId = b.dataset.id; save(); close(); V.exam(m, id); }); };
   const material = async () => { const parts = []; if (doc) parts.push(await docText(doc)); if (!parts.length) { const g = goals.map(x => x.text).join("\n"); if (g) parts.push(g); } return parts.join("\n\n"); };
-  $("#exgai", m).onclick = async () => { const src = doc ? await docText(doc) : (t.note || ""); if (!src || src.length < 30) return toast("Verknüpfe zuerst ein Dokument mit Lernmaterial."); const b = $("#exgai", m); b.disabled = true; toast("Lumi AI ermittelt Lernziele …"); const g = await extractGoals(src, t.title); const n = exAddGoals(t, bulletLines(g)); toast(n ? `${n} Lernziele gespeichert` : "Keine neuen Lernziele gefunden"); V.exam(m, id); };
+  $("#exgai", m).onclick = async () => { const src = doc ? await docText(doc) : (t.note || ""); if (!src || src.length < 30) return toast("Verknüpfe zuerst ein Dokument mit Lernmaterial."); const b = $("#exgai", m); b.disabled = true; toast("Studix AI ermittelt Lernziele …"); const g = await extractGoals(src, t.title); const n = exAddGoals(t, bulletLines(g)); toast(n ? `${n} Lernziele gespeichert` : "Keine neuen Lernziele gefunden"); V.exam(m, id); };
   $("#excd", m).onclick = async () => {
     const mat = (await material()) || t.title; if (mat.length < 20) return toast("Füge zuerst Lernziele hinzu oder verknüpfe ein Dokument.");
-    const n = await ask("Wie viele Karteikarten?", { value: "12", ok: "Erstellen" }); if (n === null) return; const cnt = Math.max(2, Math.min(30, parseInt(n) || 12)); toast("Lumi AI arbeitet…");
+    const n = await ask("Wie viele Karteikarten?", { value: "12", ok: "Erstellen" }); if (n === null) return; const cnt = Math.max(2, Math.min(30, parseInt(n) || 12)); toast("Studix AI arbeitet…");
     const goalsT = goals.map(x => x.text).join("; "), r = await ai(`Erstelle ${cnt} Karteikarten für die Prüfung „${t.title}“${goalsT ? ` zu diesen Lernzielen: ${goalsT}` : ""}. Antworte NUR mit JSON: [{"q":"Frage","a":"Antwort"}]. Kurze, prüfungsrelevante Fragen, präzise Antworten.\nMATERIAL:\n${clip(mat)}`, { max: 3000, quiet: true });
     let data = parseJSON(r); if (!Array.isArray(data) || !data.length) data = localCards(clip(mat)); if (!data.length) return toast("Daraus konnte nichts erstellt werden.");
     cardsModal(data.filter(c => c.q && c.a), t.title, t.subjectId, t.id);
   };
   $("#exqz", m).onclick = async () => {
-    const text = doc ? await docText(doc) : "", gt = goals.map(x => x.text).join("; "); if (!hasKey() && text.length < 80) return toast("Quiz braucht Lumi AI oder ein verknüpftes Dokument mit Text.");
-    const n = await ask("Wie viele Fragen?", { value: "8", ok: "Quiz erstellen" }); if (n === null) return; const cnt = Math.max(3, Math.min(25, parseInt(n) || 8)); toast("Lumi AI erstellt Fragen …");
+    const text = doc ? await docText(doc) : "", gt = goals.map(x => x.text).join("; "); if (!hasKey() && text.length < 80) return toast("Quiz braucht Studix AI oder ein verknüpftes Dokument mit Text.");
+    const n = await ask("Wie viele Fragen?", { value: "8", ok: "Quiz erstellen" }); if (n === null) return; const cnt = Math.max(3, Math.min(25, parseInt(n) || 8)); toast("Studix AI erstellt Fragen …");
     const fmt = `Antworte NUR mit JSON: [{"q":"","o":["","",""],"a":0,"e":"kurze Erklärung"}] (a = Index der richtigen Option).`;
     let qs = parseJSON(await ai(`Erstelle ${cnt} Multiple-Choice-Fragen (Niveau ${isUni() ? "Universität" : "Schule"}) für die Prüfung „${t.title}“${gt ? ` zu diesen Lernzielen: ${gt}` : ""}. ${fmt}${text ? "\nMATERIAL:\n" + clip(text) : ""}`, { max: 3500, quiet: true }));
     if (!Array.isArray(qs)) qs = localQuiz(text, cnt); qs = (qs || []).filter(q => q.q && Array.isArray(q.o) && q.o.length > 1); if (!qs.length) return toast("Quiz konnte nicht erstellt werden");

@@ -209,7 +209,7 @@ footer a{display:block;padding:4px 0}
   .lap-app{grid-template-columns:1fr}.lap-app aside{display:none}
 }
 
-/* ---------- Lumi identity (own palette) ---------- */
+/* ---------- Studix identity (own palette) ---------- */
 :root{--bg:#f6f4ef;--violet:#5b3df5;--lime:#cdf56b;--yellow:#cdf56b}
 .logo{font-family:var(--font);font-weight:700;font-size:24px;letter-spacing:-.04em;display:flex;align-items:center;gap:8px}
 .mark{width:22px;height:22px;border-radius:50%;background:conic-gradient(from 200deg,#5b3df5,#cdf56b,#ff6a3d,#5b3df5);display:inline-block}

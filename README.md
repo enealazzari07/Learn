@@ -1,4 +1,4 @@
-# Lumi – Lern-App für Schule und Studium
+# Studix – Lern-App für Schule und Studium
 
 Statische Web-App (kein Build-Schritt). Öffne `index.html` oder starte `npx http-server`.
 

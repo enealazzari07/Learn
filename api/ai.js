@@ -1,4 +1,4 @@
-/* Lumi AI proxy (Vercel serverless function) – Google Gemini und/oder Groq.
+/* Studix AI proxy (Vercel serverless function) – Google Gemini und/oder Groq.
    Vercel → Project Settings → Environment Variables:
      GEMINI_API_KEY  (kostenloser Key: https://aistudio.google.com/apikey)
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur

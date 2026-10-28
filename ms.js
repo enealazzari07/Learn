@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – Microsoft 365 integration (Microsoft Graph): Outlook calendar, OneNote, Teams assignments & chats.
+/* Studix – Microsoft 365 integration (Microsoft Graph): Outlook calendar, OneNote, Teams assignments & chats.
    Runs entirely in the browser with MSAL (auth code + PKCE). Needs an Azure app registration (SPA). */
 
 const MS_SVC = {
@@ -36,9 +36,9 @@ function msLoginModal() {
   return new Promise(resolve => {
     const c = msCfg(); let done = false;
     const SV = [["cal", "Outlook-Kalender", "Termine und Prüfungen", "cal"], ["note", "OneNote", "Seiten und Notizbücher", "note"], ["edu", "Teams-Aufgaben", "Abgaben und Aufgaben", "list"], ["chat", "Teams-Chats", "Nachrichten und Teams-Liste (optional)", "quote"]];
-    const { el, close } = modal(`<div class="msl"><div class="msl-top">${MS_LOGO}<h3>Mit Microsoft verbinden</h3><p>Hole Kalender, OneNote und Teams in Lumi. Lumi liest nur – es schreibt nichts zurück.</p></div>
+    const { el, close } = modal(`<div class="msl"><div class="msl-top">${MS_LOGO}<h3>Mit Microsoft verbinden</h3><p>Hole Kalender, OneNote und Teams in Studix. Studix liest nur – es schreibt nichts zurück.</p></div>
       <div class="msl-sv">${SV.map(([k, n, d, i]) => `<label class="msl-r"><span class="msl-i">${ic(i)}</span><span class="msl-t"><b>${n}</b><small>${d}</small></span><input type="checkbox" data-sv="${k}" ${c.services[k] ? "checked" : ""}><i class="msl-sw"></i></label>`).join("")}</div>
-      <div id="msl-act"></div><p class="msl-m" id="msl-m"></p><p class="msl-fine">Die Anmeldung öffnet ein Fenster direkt bei Microsoft. Dein Passwort sieht Lumi nie.</p></div>`);
+      <div id="msl-act"></div><p class="msl-m" id="msl-m"></p><p class="msl-fine">Die Anmeldung öffnet ein Fenster direkt bei Microsoft. Dein Passwort sieht Studix nie.</p></div>`);
     const act = $("#msl-act", el), msg = (t, bad) => { const m = $("#msl-m", el); m.textContent = t; m.classList.toggle("bad", !!bad); };
     const readSv = () => $$("[data-sv]", el).forEach(i => c.services[i.dataset.sv] = i.checked);
     const paint = () => {

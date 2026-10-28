@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi ink – a drawing layer on top of a note / PDF: write and draw in the same document.
+/* Studix ink – a drawing layer on top of a note / PDF: write and draw in the same document.
    Coordinates are CSS px: x relative to the paper centre (stays aligned with the text column), y from the paper top.
    Engine: committed strokes live on an offscreen canvas, only the stroke being drawn is re-rendered (requestAnimationFrame),
    coalesced + predicted pointer events, stabilizer, pressure/tilt, pen-only palm rejection with manual finger scrolling. */

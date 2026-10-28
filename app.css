@@ -1,4 +1,4 @@
-/* Lumi study app styles */
+/* Studix study app styles */
 :root{--violet:#5b3df5;--lime:#cdf56b;--line:#ececf1;--panel:#fff;--soft:#f1f0ee;--muted:#6b6b76;--appbg:#f3f3f7}
 .field{width:100%;border:1.5px solid var(--line);border-radius:16px;padding:11px 14px;background:#fff;outline:0;font-size:15px;transition:border-color .15s}
 .field:focus{border-color:var(--violet)}
@@ -1831,7 +1831,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .send .ic image,.btn.primary .ic image,.aip-new .ic image{filter:invert(1)}
 .nav-i .ic image{opacity:1}
 
-/* v62: nur schwarzes Lumi-AI-Icon, kein gelbes Bild; Nav-Icon outline → gefüllt beim Aktivieren */
+/* v62: nur schwarzes Studix-AI-Icon, kein gelbes Bild; Nav-Icon outline → gefüllt beim Aktivieren */
 .ai-ic,.aipane .ai-ic,.hai-h .ai-ic{background:none!important;color:#0f0f12!important;width:40px;height:40px;border-radius:0!important;box-shadow:none!important}
 .ai-ic svg{display:block!important;width:36px;height:36px}
 .aipane .ai-ic{width:40px;height:40px;border-radius:0!important}
@@ -1839,7 +1839,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .mark{background:url(logo-dark.png) center/contain no-repeat!important;border-radius:0!important}
 .nav-i .ic image.ld{transform-box:fill-box}
 
-/* v63: schönere Lumi-AI-Generierungs-Animation – Logo schwebt, kippt und wird von einem Lichtband durchlaufen */
+/* v63: schönere Studix-AI-Generierungs-Animation – Logo schwebt, kippt und wird von einem Lichtband durchlaufen */
 .m.think .ld,.aic-think .ld{animation:none!important;opacity:1}
 .m.think svg,.aic-think svg{width:28px;height:28px;overflow:visible;transform-origin:center;
   animation:lgFloat 2.4s ease-in-out infinite,lgSweep 1.5s linear infinite;
@@ -1851,7 +1851,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .m.think{gap:12px;padding:12px 18px 12px 14px}
 @media (prefers-reduced-motion:reduce){.m.think svg,.aic-think svg{animation:none;-webkit-mask-image:none;mask-image:none}}
 
-/* v64: Lumi-AI-Seitenleiste */
+/* v64: Studix-AI-Seitenleiste */
 #aiside{position:fixed;top:68px;right:12px;bottom:12px;width:min(410px,calc(100vw - 24px));z-index:80;background:#fff;border-radius:30px;box-shadow:0 2px 8px rgba(0,0,0,.05),0 24px 70px rgba(0,0,0,.16);display:flex;flex-direction:column;overflow:hidden;transform:translateX(calc(100% + 24px));opacity:0;pointer-events:none;transition:transform .5s cubic-bezier(.3,.9,.3,1),opacity .3s}
 #aiside.on{transform:none;opacity:1;pointer-events:auto}
 #aiside header{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 6px 20px}
@@ -1893,7 +1893,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .bento .w-cd .cd-h{display:flex;justify-content:space-between;align-items:center}.bento .w-cd .cd-h b{font-size:13px}
 .bento .w-cd .cd-i{display:flex;align-items:center;gap:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bento .w-cd .cd-i i{width:6px;height:6px;border-radius:50%;background:#0f0f12;flex:none}.bento .w-cd .cd-i.kexam i{background:#d93a3a}
 .bento .w-cd .none{color:#a0a0ae}
-/* Von Lumi AI Erstelltes: Symbol + Link, kein eigener Block */
+/* Von Studix AI Erstelltes: Symbol + Link, kein eigener Block */
 .acts{gap:4px}
 .acts .act,.aipane .act,.aipane .acts .act,.sana .s-aia .act{background:none!important;box-shadow:none!important;border-radius:0!important;padding:2px 0!important;font-size:14px;font-weight:600;gap:8px;color:#0f0f12}
 .acts .act svg{width:17px;height:17px;flex:none}
@@ -2031,7 +2031,7 @@ ins.sg-ins.sg-mini{background:none;border-radius:0;padding:0 1px;margin:0;box-sh
 /* Logo in der dunklen Markier-Leiste weiß */
 .bubble button svg:has(image){filter:invert(1)}
 
-/* ======== v71: Lumi AI wohnt im Rahmen – der weiße Rahmen rechts wird breiter ======== */
+/* ======== v71: Studix AI wohnt im Rahmen – der weiße Rahmen rechts wird breiter ======== */
 @media (min-width:901px){
   #aiside{top:0;right:0;bottom:0;width:410px;border-radius:0;box-shadow:none;background:#fff;transform:translateX(100%);opacity:1}
   #aiside.on{transform:none}

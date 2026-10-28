@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi agent – the chat can run app functions. The model appends a <lumi-actions>[…]</lumi-actions> block; the app parses and executes it. */
+/* Studix agent – the chat can run app functions. The model appends a <lumi-actions>[…]</lumi-actions> block; the app parses and executes it. */
 
 const AGENT_RULES = `Du bist auch ein Assistent, der die App bedienen kann. Wenn der Nutzer etwas erstellen, ändern oder eintragen will, führe es aus: schreibe zuerst EINEN kurzen Satz auf Deutsch, was du tust, und hänge ans Ende genau einen Block mit JSON an:
 <lumi-actions>[{"action":"...", ...}]</lumi-actions>
@@ -100,7 +100,7 @@ function openAiCommand(prefill = "") {
   document.getElementById("aicmd")?.remove();
   const el = document.createElement("div"); el.id = "aicmd";
   const SUG = ["Erstelle eine Notiz zur Zellatmung", "Erstelle einen Lernplan für die nächste Woche als Datenbank", "Trage morgen einen Vokabeltest ein", "Erstelle 10 Karteikarten zu diesem Dokument"];
-  el.innerHTML = `<div class="aic-bg"></div><div class="aic-box" role="dialog" aria-label="Lumi AI"><form class="aic-in">${ic("spark")}<input id="aic-i" autocomplete="off" placeholder="Was soll Lumi AI für dich tun? z. B. „Erstelle eine Notiz zu …“" value="${esc(prefill)}"><button class="send" aria-label="Senden">${ic("up")}</button></form><div class="aic-sug">${SUG.map(x => `<button type="button">${esc(x)}</button>`).join("")}</div><div class="aic-out" hidden></div></div>`;
+  el.innerHTML = `<div class="aic-bg"></div><div class="aic-box" role="dialog" aria-label="Studix AI"><form class="aic-in">${ic("spark")}<input id="aic-i" autocomplete="off" placeholder="Was soll Studix AI für dich tun? z. B. „Erstelle eine Notiz zu …“" value="${esc(prefill)}"><button class="send" aria-label="Senden">${ic("up")}</button></form><div class="aic-sug">${SUG.map(x => `<button type="button">${esc(x)}</button>`).join("")}</div><div class="aic-out" hidden></div></div>`;
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
   const close = () => { el.classList.remove("on"); setTimeout(() => el.remove(), 250); document.removeEventListener("keydown", kd); }, kd = e => { if (e.key === "Escape") close(); };
   document.addEventListener("keydown", kd); $(".aic-bg", el).onclick = close; const inp = $("#aic-i", el), out = $(".aic-out", el);
@@ -108,8 +108,8 @@ function openAiCommand(prefill = "") {
   $$(".aic-sug button", el).forEach(b => b.onclick = () => { inp.value = b.textContent; $(".aic-in", el).requestSubmit(); });
   $(".aic-in", el).onsubmit = async e => {
     e.preventDefault(); const q = inp.value.trim(); if (!q) return;
-    if (!hasKey()) { out.hidden = false; out.innerHTML = `<p class="note">Lumi AI ist noch nicht eingerichtet – siehe Einstellungen → Lumi AI.</p>`; return; }
-    $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>Lumi AI schreibt …</span></div>`;
+    if (!hasKey()) { out.hidden = false; out.innerHTML = `<p class="note">Studix AI ist noch nicht eingerichtet – siehe Einstellungen → Studix AI.</p>`; return; }
+    $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>Studix AI schreibt …</span></div>`;
     const r = await agentAsk(q);
     if (!r) { out.innerHTML = `<p class="note">Das hat leider nicht geklappt. Versuche es bitte noch einmal.</p>`; return; }
     out.innerHTML = `<p>${streamHtml(r.text)}</p>${r.acts.length ? `<div class="acts" style="--base:${Math.min(2600, r.text.split(/\s+/).length * 30 + 200)}ms">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : /^doc\//.test(a.go || "") ? "note" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
@@ -131,15 +131,15 @@ function wordReveal(root, maxMs = 4800) {
   return Math.round(total * step) + 650;
 }
 
-/* ---------- Lumi AI Seitenleiste (in Dokumenten ausklappbar) ---------- */
+/* ---------- Studix AI Seitenleiste (in Dokumenten ausklappbar) ---------- */
 let aiSideTools = null;
 function aiSideDoc() { const m = location.hash.match(/#\/app\/doc\/([^/?]+)/); return m ? D.docs.find(d => d.id === m[1]) : null; }
 function aiSide(open, trigger) {
   let el = document.getElementById("aiside");
   if (open === undefined) open = !(el && el.classList.contains("on"));
   if (!el) {
-    el = document.createElement("aside"); el.id = "aiside"; el.setAttribute("aria-label", "Lumi AI");
-    el.innerHTML = `<header><span class="as-l">${ic("spark")}<b>Lumi AI</b></span><span class="as-r"><button class="icon-btn" id="as-x" aria-label="Schließen">${ic("x")}</button></span></header><div class="chatbox flat" id="as-box"></div>`;
+    el = document.createElement("aside"); el.id = "aiside"; el.setAttribute("aria-label", "Studix AI");
+    el.innerHTML = `<header><span class="as-l">${ic("spark")}<b>Studix AI</b></span><span class="as-r"><button class="icon-btn" id="as-x" aria-label="Schließen">${ic("x")}</button></span></header><div class="chatbox flat" id="as-box"></div>`;
     document.body.appendChild(el);
     $("#as-x", el).onclick = () => aiSide(false);
     document.addEventListener("keydown", e => { if (e.key === "Escape" && el.classList.contains("on") && !document.querySelector(".mask,#aicmd")) aiSide(false); });

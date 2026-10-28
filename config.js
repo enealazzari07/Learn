@@ -1,4 +1,4 @@
-/* Lumi – Konfiguration
+/* Studix – Konfiguration
    Trage hier EINMAL die "Anwendungs-(Client-)ID" deiner Azure-App-Registrierung ein.
    Danach können alle Nutzer:innen mit einem Klick auf "Mit Microsoft anmelden" Outlook-Kalender,
    OneNote und Teams verbinden – ohne etwas einzurichten.

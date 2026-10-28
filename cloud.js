@@ -1,4 +1,4 @@
-/* Lumi – Konto & Cloud-Sync (Supabase). Aktiv, sobald supabaseUrl/supabaseKey in config.js stehen. */
+/* Studix – Konto & Cloud-Sync (Supabase). Aktiv, sobald supabaseUrl/supabaseKey in config.js stehen. */
 const CLOUD = { sb: null, user: null, dirty: new Set(), timer: null, busy: false };
 const cloudOn = () => !!(window.LUMI_CONFIG.supabaseUrl && window.LUMI_CONFIG.supabaseKey);
 const LS = { get: k => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
@@ -79,8 +79,8 @@ function cloudAuthBind(el, done) {
 }
 const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 function authScreen() {
-  const app = $("#app"); document.title = "Lumi – Anmelden";
-  app.innerHTML = `<div class="authwrap"><form class="authcard" onsubmit="return false"><a class="logo" href="#/"><i class="mark"></i>Lumi</a><h1>Willkommen zurück</h1><p class="note">Melde dich an, um dein Dashboard zu öffnen. Deine Daten sind auf allen Geräten gleich.</p>${cloudAuthHtml()}<a class="link" href="#/">Zurück zur Startseite</a></form></div>`;
+  const app = $("#app"); document.title = "Studix – Anmelden";
+  app.innerHTML = `<div class="authwrap"><form class="authcard" onsubmit="return false"><a class="logo" href="#/"><i class="mark"></i>Studix</a><h1>Willkommen zurück</h1><p class="note">Melde dich an, um dein Dashboard zu öffnen. Deine Daten sind auf allen Geräten gleich.</p>${cloudAuthHtml()}<a class="link" href="#/">Zurück zur Startseite</a></form></div>`;
   cloudAuthBind($(".authcard", app), () => {});
 }
 function cloudLoginModal() {

@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi PDF editor – a PDF opens like a note: write text and draw directly on the pages. */
+/* Studix PDF editor – a PDF opens like a note: write text and draw directly on the pages. */
 
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
 let pdfReady = null;
