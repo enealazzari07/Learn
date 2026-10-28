@@ -1,0 +1,9 @@
+{
+  "name": "studix",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Studix – Lern-App für Schule und Studium (statische Seite + Vercel-Funktionen unter /api, kein Build-Schritt).",
+  "dependencies": {
+    "resend": "^6.35.0"
+  }
+}
