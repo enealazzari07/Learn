@@ -3823,3 +3823,6 @@ html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore 
 .aip-t.pagehead .aip-ta{margin-left:auto}
 @media (max-width:900px){.aip-t.pagehead{margin:14px 14px 8px;flex-wrap:nowrap}.aip-t.pagehead .aip-ta{width:auto}}
 .pagehead #nw,.docsed .pagehead #nw{background:none!important;color:#8a8a92!important}.pagehead #nw svg{filter:none}.pagehead #nw:hover{color:#111!important}
+/* Aktions-Knöpfe im Seitenkopf: nie ein schwarzer Block, immer Icon – Trennlinie – Plus */
+.pagehead #nw,.pagehead #nt,.pagehead #nd,.pagehead #ng,.pagehead #exn,.pagehead #gen,.pagehead #goal,.pagehead #exe,.pagehead #ci,.pagehead #dsb{background:none!important;color:#8a8a92!important;box-shadow:none!important;border:0!important}
+.pagehead #nw:hover,.pagehead #nt:hover,.pagehead #nd:hover,.pagehead #ng:hover,.pagehead #exn:hover,.pagehead #gen:hover,.pagehead #goal:hover,.pagehead #exe:hover,.pagehead #ci:hover,.pagehead #dsb:hover{color:#111!important}
