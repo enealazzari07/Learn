@@ -75,7 +75,7 @@ async function cloudTokenHash() {
   if (type === "recovery") setTimeout(recoveryModal, 900); else if (type === "email_change") setTimeout(() => toast("Deine neue E-Mail-Adresse ist bestätigt."), 900);
 }
 async function cloudInit() {
-  if (!cloudOn()) return;
+  if (!cloudOn() || EMBED_MODE) return;   // die Vorschau auf der Startseite hat nie ein Konto
   try { await loadSupabaseLib(); } catch { return; }
   CLOUD.sb = window.supabase.createClient(window.LUMI_CONFIG.supabaseUrl, window.LUMI_CONFIG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true } });
   try { await cloudTokenHash(); } catch {}

@@ -213,33 +213,71 @@ function menu(anchor, items) {
 }
 
 /* ---------- storage ---------- */
+/* App-Vorschau auf der Startseite (?embed=1): eigene Demo-Daten nur im Arbeitsspeicher – nie das Konto, nie echte Daten, nie eine E-Mail-Adresse */
+const EMBED_MODE = /[?&]embed=1/.test(location.search);
 const KV = {
-  db: null, tried: false,
+  db: null, tried: false, mem: new Map(),
   async open() {
     if (this.db || this.tried) return this.db; this.tried = true;
     try { this.db = await new Promise((res, rej) => { const r = indexedDB.open("lumi", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } catch { this.db = null; }
     return this.db;
   },
   async get(k) {
+    if (EMBED_MODE) return this.mem.get(k);
     const db = await this.open();
     if (!db) { try { return JSON.parse(localStorage.getItem("lumi:" + k)); } catch { return undefined; } }
     return new Promise(res => { const r = db.transaction("kv").objectStore("kv").get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(undefined); });
   },
   async set(k, v) {
+    if (EMBED_MODE) { this.mem.set(k, v); return; }
     const db = await this.open();
     if (!db) { try { localStorage.setItem("lumi:" + k, JSON.stringify(v)); } catch { toast("Speicher voll oder gesperrt"); } return; }
     return new Promise(res => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = () => res(); t.onerror = () => { toast("Speichern fehlgeschlagen"); res(); }; });
   },
   async del(k) {
+    if (EMBED_MODE) { this.mem.delete(k); return; }
     const db = await this.open(); if (!db) { try { localStorage.removeItem("lumi:" + k); } catch {} return; }
     return new Promise(res => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").delete(k); t.oncomplete = () => res(); t.onerror = () => res(); });
   },
 };
 const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "ch", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], folders: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
 let D = DEFAULT();
+/* Demo-Daten für die Vorschau (Fächer, Dokumente, Aufgaben, Stundenplan, Karteikarten, Noten) */
+function demoData() {
+  const d = DEFAULT(), now = Date.now(), day = 864e5, at = n => iso(new Date(now + n * day)), wd = (new Date().getDay() + 6) % 7;
+  const S = [["s1", "Mathe", "#2563eb"], ["s2", "Biologie", "#0e9f6e"], ["s3", "Englisch", "#ff6a3d"]];
+  d.profile = Object.assign(d.profile, { name: "Alex", onboarded: true, level: "school", scale: "ch" });
+  d.subjects = S.map(([id, name, color]) => ({ id, name, color }));
+  d.folders = S.map(([id, name, color]) => ({ id: "f" + id, name, parent: "", color, subjectId: id })); d.foldersInit = true;
+  const note = (id, title, sid, text, ago, extra = {}) => ({ id, type: "note", title, subjectId: sid, folderId: "f" + sid, paper: "white", updated: now - ago * 36e5, created: now - ago * 36e5 - day, text, ...extra });
+  d.docs = [
+    note("d1", "Zellatmung einfach erklärt", "s2", "In den Mitochondrien wird Glukose mit Sauerstoff zu Kohlenstoffdioxid und Wasser abgebaut. Dabei entsteht ATP als Energieträger der Zelle.", 2, { pinned: true }),
+    note("d2", "Satz des Pythagoras", "s1", "a² + b² = c² – in jedem rechtwinkligen Dreieck gilt: Die Summe der Kathetenquadrate ist das Hypotenusenquadrat.", 5),
+    note("d3", "Ableitungen – Übersicht", "s1", "Potenzregel, Produktregel, Kettenregel und typische Beispiele zum Üben.", 26),
+    note("d4", "Referat Klimawandel", "s2", "Gliederung, Quellen und Stichpunkte für das Referat am Freitag.", 30),
+    note("d5", "Unit 4 – Vocabulary", "s3", "Wichtige Wörter und Wendungen zum Thema „Travelling“.", 50),
+  ];
+  d.tasks = [
+    { id: "t1", title: "Aufgaben S. 54 Nr. 3–7", type: "hw", due: at(1), subjectId: "s1", note: "", done: false },
+    { id: "t2", title: "Referat Zellatmung vorbereiten", type: "task", due: at(0), subjectId: "s2", note: "", done: false },
+    { id: "t3", title: "Vokabeln Unit 4 lernen", type: "task", due: at(0), subjectId: "s3", note: "", done: true },
+    { id: "t4", title: "Mathe-Klausur", type: "exam", due: at(6), subjectId: "s1", note: "Kapitel 3–5", done: false },
+  ];
+  const lesson = (day, start, end, sid, room) => ({ id: "l" + day + start, day, start, end, subjectId: sid, title: S.find(x => x[0] === sid)[1], room });
+  d.tt = [0, 1, 2, 3, 4].flatMap(k => [lesson(k, "08:00", "08:45", ["s1", "s2", "s3", "s1", "s2"][k], "A" + (10 + k)), lesson(k, "09:00", "09:45", ["s3", "s1", "s2", "s3", "s1"][k], "B" + (20 + k))]);
+  d.decks = [
+    { id: "k1", title: "Zellatmung", subjectId: "s2", cards: [["Wo findet die Zellatmung statt?", "In den Mitochondrien"], ["Was ist ATP?", "Der Energieträger der Zelle"], ["Edukte der Zellatmung?", "Glukose und Sauerstoff"], ["Produkte der Zellatmung?", "CO₂, Wasser und Energie"], ["Wie heisst die Gärung ohne Sauerstoff?", "Anaerobe Gärung"], ["Wo entsteht die meiste ATP?", "In der Atmungskette"]].map(([q, a], i) => ({ id: "c" + i, q, a, box: i % 3, due: i < 4 ? at(0) : at(2) })) },
+    { id: "k2", title: "Vocabulary Unit 4", subjectId: "s3", cards: [["die Reise", "journey"], ["das Gepäck", "luggage"], ["die Verspätung", "delay"], ["buchen", "to book"]].map(([q, a], i) => ({ id: "v" + i, q, a, box: 1, due: at(i < 2 ? 0 : 3) })) },
+  ];
+  d.grades = [["s1", "Klausur Funktionen", 5.5, 2, -12], ["s1", "Test Geometrie", 4.5, 1, -30], ["s2", "Test Zelle", 5, 1, -9], ["s3", "Vokabeltest 3", 5.5, 1, -5], ["s3", "Mündlich", 5, 1, -20]].map(([sid, title, value, weight, n], i) => ({ id: "g" + i, subjectId: sid, title, value, weight, date: at(n) }));
+  d.stats = { days: { [at(0)]: 28, [at(-1)]: 45, [at(-2)]: 50, [at(-3)]: 35, [at(-4)]: 40, [at(-5)]: 20, [at(-6)]: 45 }, reviews: {} };
+  return d;
+}
+
 let _st;
 function save() { clearTimeout(_st); _st = setTimeout(() => KV.set("data", D), 250); }
 async function loadData() {
+  if (EMBED_MODE) { D = demoData(); return; }
   const d = (await KV.get("data")) || {}; const base = DEFAULT();
   D = Object.assign(base, d); D.profile = Object.assign(base.profile, d.profile || {}); D.stats = Object.assign(base.stats, d.stats || {});
   /* Fächer behalten ihre Farbe; wer durch die kurze Neutral-Phase schwarz wurde, bekommt wieder eine Farbe */
