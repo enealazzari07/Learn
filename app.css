@@ -2329,3 +2329,37 @@ a.src{padding:5px 10px 5px 6px}a.src i{background:#0f0f12!important;color:#fff;b
 .msl-ok{display:flex;align-items:center;gap:9px;margin-bottom:8px}
 .msl-m{min-height:20px;margin:0;font-size:13px;text-align:center;color:#2a2a33}.msl-m.bad{color:#d92d20}
 .msl-fine{margin:0;font-size:11.5px;color:#8a8a98;text-align:center}
+
+/* ======== v88: Handy – schwebende, abgerundete Leiste unten · Chat-Eingabe ohne weisse Box · Dokumente kompakt · kein Datum ======== */
+@media (max-width:900px){
+  .z-date{display:none!important}
+  .side{left:12px!important;right:12px!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:30px!important;padding:6px!important;background:rgba(255,255,255,.86)!important;-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);box-shadow:0 10px 34px rgba(20,20,40,.16),0 0 0 1px rgba(20,20,40,.05)!important}
+  .side .nav-i{border-radius:22px!important;padding:8px 2px 7px!important;transition:background .2s,transform .2s}
+  .side .nav-i:active{transform:scale(.94)}
+  .side .nav-i.on{background:#0f0f12!important}
+  .side .nav-i.on,.side .nav-i.on svg,.side .nav-i.on span,.side .nav-i.on .nl{color:#fff!important}
+  .main,.main:not(.doc-full){padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+  .timer-pill{bottom:calc(96px + env(safe-area-inset-bottom))!important}
+  .tfab{bottom:calc(96px + env(safe-area-inset-bottom))!important}
+
+  .aipane:not(.open){background:transparent!important;box-shadow:none!important;border-radius:0!important;left:12px!important;right:12px!important;bottom:calc(92px + env(safe-area-inset-bottom))!important;width:auto!important;overflow:visible}
+  .aipane:not(.open) .hai-h{display:none!important}
+  .aipane:not(.open) .chatbox.flat{padding:0!important;background:transparent!important}
+  .aipane:not(.open) .t-in.cmp{box-shadow:0 8px 28px rgba(20,20,40,.14)!important;border-color:transparent;max-width:none}
+  .aipane.open{left:12px!important;right:12px!important;width:auto!important;bottom:calc(92px + env(safe-area-inset-bottom))!important;border-radius:28px!important}
+
+  .main.aipg,.main.aipg:not(.doc-full){height:100dvh}
+  .aip,.aip-r,.aip .chatbox.flat{background:transparent!important}
+  .aip .chatbox.flat{padding:0 12px calc(92px + env(safe-area-inset-bottom))!important}
+  .aip .chatbox .t-in.cmp{box-shadow:0 8px 28px rgba(20,20,40,.12)!important;border-color:transparent}
+
+  .docspaper .items{gap:10px}
+  .docspaper .items>.doc{width:calc(50% - 5px);border-radius:20px}
+  .doc .th,.doc .th.note-th{height:84px}.doc .th.note-th{padding:34px 12px 8px;font-size:11px}
+  .doc .th.file-th b{width:40px;height:40px;border-radius:13px}.doc .th.file-th b svg{width:20px;height:20px}
+  .doc .tbadge{left:8px;top:8px;padding:3px 8px 3px 6px;font-size:10px}
+  .dm{padding:9px 12px 11px}.dt{font-size:13.5px;-webkit-line-clamp:1}
+  .ds{font-size:11.5px;margin-top:3px}.ds .ago{display:none}
+  .ds .sdot+*{min-width:0}
+  .drow{padding:7px 6px;gap:10px}.dr-a{display:none}
+}

@@ -192,7 +192,7 @@ function docCard(d) {
   else if (d.type === "draw") thumb = `<div class="th" style="background:#fff center/contain no-repeat url(${d.thumb || ""})"></div>`;
   else if (d.thumb) thumb = `<div class="th" style="background:#f3f3f5 center/cover url(${d.thumb})"></div>`;
   else { const [l, c] = fileIcon(d); thumb = `<div class="th file-th"><b style="background:${c}">${esc(l)}</b></div>`; }
-  return `<div class="doc" data-d="${d.id}" draggable="true"><span class="tbadge">${ic(KIND_I[docKind(d)])}${KIND_L[docKind(d)]}</span>${d.share ? `<span class="shbadge on-card" title="Geteilt">${ic("adduser")}</span>` : ""}${thumb}<div class="dm"><div class="dt">${d.pinned ? `<span class="pin">${ic("star")}</span>` : ""}${esc(d.title)}</div><div class="ds">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)} · ` : ""}${fmtAgo(d.updated)}</div></div><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
+  return `<div class="doc" data-d="${d.id}" draggable="true"><span class="tbadge">${ic(KIND_I[docKind(d)])}${KIND_L[docKind(d)]}</span>${d.share ? `<span class="shbadge on-card" title="Geteilt">${ic("adduser")}</span>` : ""}${thumb}<div class="dm"><div class="dt">${d.pinned ? `<span class="pin">${ic("star")}</span>` : ""}${esc(d.title)}</div><div class="ds">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)}` : ""}<span class="ago">${s ? " · " : ""}${fmtAgo(d.updated)}</span></div></div><button class="dmore" data-m="${d.id}" aria-label="Mehr">${ic("more")}</button></div>`;
 }
 function docMenu(btn, d) {
   menu(btn, [
