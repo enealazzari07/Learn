@@ -3925,3 +3925,7 @@ html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore 
 .authverify .av-hint{margin:0;font-size:12.5px;line-height:1.5;color:#8a8a98}
 .authverify .av-row{width:100%}
 .authverify .av-link{align-self:center}
+/* Login: Wechsel Anmelden/Registrieren als Text-Link unten (keine Tab-Knöpfe oben) */
+.authswitch{margin:18px 0 16px;text-align:center;font-size:14.5px;color:#6b6b78}
+.authswitch .link{color:#0f0f12;font-weight:700;text-decoration:underline;text-underline-offset:3px;background:none;border:0;padding:0;cursor:pointer;font-size:inherit}
+.authswitch .link:hover{color:var(--violet)}

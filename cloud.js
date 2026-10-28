@@ -171,17 +171,18 @@ function authScreen(mode = "in") {
   const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = up ? "Studix – Konto erstellen" : "Studix – Anmelden";
   app.innerHTML = `<div class="authwrap"><div class="authshell">
     <form class="authform" onsubmit="return false" novalidate><a class="logo authlogo" href="#/"><i class="mark"></i>Studix</a>
-      <div class="authmid"><div class="authtabs" role="tablist"><button type="button" role="tab" class="${up ? "" : "on"}" id="cl-t-in">Anmelden</button><button type="button" role="tab" class="${up ? "on" : ""}" id="cl-t-up">Registrieren</button></div><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
+      <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
         <label class="lbl" for="cl-e">E-Mail</label><div class="fld"><svg class="fi" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch"></div>
         <label class="lbl" for="cl-p">Passwort</label><div class="fld pwrap"><svg class="fi" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="3.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
         <p class="note authmsg" id="cl-m" aria-live="polite"></p>
         <button class="btn authgo" id="${up ? "cl-up" : "cl-in"}">${up ? "Kostenlos registrieren" : "Anmelden"}</button>
         ${oauth.length ? `<div class="authoauth">${oauth.map(o => `<button class="btn ghost" type="button" data-o="${o}">${o === "google" ? "Google" : "Apple"}</button>`).join("")}</div>` : ""}
         ${up ? "" : `<button class="link" id="cl-fp" type="button">Passwort vergessen?</button>`}</div>
+      <p class="authswitch">${up ? "Schon ein Konto?" : "Noch kein Konto?"} <button class="link" id="cl-sw" type="button">${up ? "Jetzt anmelden" : "Jetzt registrieren"}</button></p>
       <div class="authfoot"><span>Mit dem Fortfahren stimmst du den <a href="legal.html#agb">AGB</a> und der <a href="legal.html#datenschutz">Datenschutzerklärung</a> zu.</span></div></form>
     <aside class="authhero" style="--hero:url(login-hero.webp)"></aside></div></div>`;
   const f = $(".authform", app); cloudAuthBind(f, () => {});
-  $("#cl-t-in", f).onclick = () => up && authScreen("in"); $("#cl-t-up", f).onclick = () => !up && authScreen("up");
+  $("#cl-sw", f).onclick = () => authScreen(up ? "in" : "up");
   $("#cl-eye", f).onclick = () => { const i = $("#cl-p", f); i.type = i.type === "password" ? "text" : "password"; };
   $$("[data-o]", f).forEach(b => b.onclick = async () => { const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/#/app" } }); if (error) $("#cl-m", f).textContent = error.message; });
 }
