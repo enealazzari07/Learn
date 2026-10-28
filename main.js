@@ -44,6 +44,17 @@ function mountEmbed(root) {
   tabs.forEach(t => t.onclick = () => { try { fr.contentWindow.location.hash = "#/app/" + t.dataset.v; } catch { fr.src = "index.html?embed=1#/app/" + t.dataset.v; } tabs.forEach(x => x.classList.toggle("on", x === t)); });
   fr.addEventListener("load", () => { mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
 }
+/* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
+function mountGrid(hero) {
+  const box = $(".agp", hero), emb = $("#emb", hero), N = 30, SZ = 40, NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg"); svg.setAttribute("width", "100%"); svg.setAttribute("height", "100%");
+  svg.innerHTML = `<defs><pattern id="agp-p" width="${SZ}" height="${SZ}" patternUnits="userSpaceOnUse" x="-1" y="-1"><path d="M.5 ${SZ}V.5H${SZ}" fill="none" stroke="currentColor" stroke-opacity=".3"/></pattern></defs><rect width="100%" height="100%" fill="url(#agp-p)"/><g class="agp-sq"></g>`;
+  box.appendChild(svg); const g = $(".agp-sq", svg); let cols = 1, rows = 1;
+  const place = r => { r.setAttribute("x", Math.floor(Math.random() * cols) * SZ - 1 + 1); r.setAttribute("y", Math.floor(Math.random() * rows) * SZ - 1 + 1); };
+  const sqs = Array.from({ length: N }, (_, i) => { const r = document.createElementNS(NS, "rect"); r.setAttribute("width", SZ - 1); r.setAttribute("height", SZ - 1); r.style.animationDelay = (i * .12).toFixed(2) + "s"; r.addEventListener("animationiteration", () => place(r)); g.appendChild(r); return r; });
+  const size = () => { const top = emb.offsetTop, h = Math.round(top + emb.offsetHeight / 2); box.style.height = h + "px"; cols = Math.max(1, Math.ceil(box.clientWidth / SZ)); rows = Math.max(1, Math.ceil(h / SZ)); sqs.forEach(place); };
+  new ResizeObserver(size).observe(hero); size();
+}
 function renderLanding() {
   landingEl.dataset.r = 1; const go = 'href="#/app"';
   const FEAT = [
@@ -56,7 +67,7 @@ function renderLanding() {
   <header class="pnav" id="nav"><a class="logo" href="#/"><i class="mark"></i>Studix</a>
     <nav class="pnav-links"><a href="#how">Funktionen</a><a href="#ai">Studix AI</a>${BILL.cfg?.enabled ? '<a href="#pricing">Preise</a>' : ""}<a href="#faq">Fragen</a></nav>
     <div class="pnav-r"><a class="btn accent" ${go}>App öffnen</a><button class="burger" aria-label="Menü" onclick="document.getElementById('nav').classList.toggle('open')">${ic("menu")}</button></div></header>
-  <section class="hero3">
+  <section class="hero3"><div class="agp" aria-hidden="true"></div>
     <span class="pill-l"><b>Neu</b> Für Schule & Studium</span>
     <h1>Dein ganzes Lernen.<br>Ein Ort.</h1>
     <p class="sub">Notizen, Zeichnungen, Karteikarten, Planer und ein KI-Tutor – in einer App, die mit dir mitdenkt. Auf iPad, Handy und PC, auch offline.</p>
@@ -77,6 +88,7 @@ function renderLanding() {
   <section class="cta-final"><h2>Lern klüger, nicht länger.</h2><p style="opacity:.75;margin-top:18px;font-size:19px">In 20 Sekunden eingerichtet. Kostenlos starten.</p><a class="btn" ${go}>App öffnen</a></section>
   <footer><div><a class="logo" href="#/"><i class="mark"></i>Studix</a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Rechtliches", ["Impressum", "legal.html#impressum"], ["Datenschutz", "legal.html#datenschutz"], ["AGB", "legal.html#agb"], ["Widerruf", "legal.html#widerruf"]]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => Array.isArray(x) ? `<a href="${x[1]}">${x[0]}</a>` : `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Studix</div>`;
   mountEmbed($("#emb", landingEl));
+  mountGrid($(".hero3", landingEl));
   $$(".pnav-links a", landingEl).forEach(a => a.addEventListener("click", () => $("#nav").classList.remove("open")));
 }
 
