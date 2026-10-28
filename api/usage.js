@@ -8,5 +8,5 @@ module.exports = async function handler(req, res) {
   if (!L.FREE_TOKENS) return res.status(200).json({ enabled: false });
   const [pro, w] = await Promise.all([L.isProLive(user.id), L.aiUsed(user.id)]);
   if (!w) return res.status(200).json({ enabled: false });
-  res.status(200).json({ enabled: true, pro, used: w.used, limit: L.limitFor(pro) || null, reset: w.reset, hours: L.WINDOW_H });
+  res.status(200).json({ enabled: true, pro, ...L.aiUsage(pro, w), hours: L.WINDOW_H, sHours: L.SESSION_H });
 };

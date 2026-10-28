@@ -293,7 +293,7 @@ const SUBJ = () => isUni() ? "Module" : "Fächer";
 /* ---------- AI ---------- */
 let serverAI = false, serverInfo = null;
 /* Studix-AI-Budget pro Woche (Server liefert die echten Werte über GET /api/ai) */
-const AIQ = { free: 25000, pro: 150000, hours: 168 };
+const AIQ = { free: 25000, pro: 150000, freeS: 5000, proS: 30000, hours: 168 };
 /* Weitere Gratis-Limits (gelten nur, solange man Pro kaufen kann): Dokumente, Whiteboards. Bild-Analyse und Sprache sind serverseitig nur für Pro. */
 const FREE_LIMITS = { docs: 100, boards: 10 };
 const freePlan = () => { try { return !!(BILL.cfg && BILL.cfg.enabled) && !isPlus(); } catch { return false; } };
@@ -304,7 +304,7 @@ function limitHit(kind) {
   if (hit && typeof proUpsell === "function") proUpsell(kind === "board" ? `Im Gratis-Konto kannst du bis zu ${FREE_LIMITS.boards} Whiteboards anlegen.` : `Im Gratis-Konto kannst du bis zu ${FREE_LIMITS.docs} Dokumente anlegen.`);
   return hit;
 }
-async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; if (j.freeTokens) AIQ.free = j.freeTokens; if (j.proTokens) AIQ.pro = j.proTokens; } catch {} }
+async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; if (j.freeTokens) AIQ.free = j.freeTokens; if (j.proTokens) AIQ.pro = j.proTokens; if (j.freeSession) AIQ.freeS = j.freeSession; if (j.proSession) AIQ.proS = j.proSession; } catch {} }
 const hasKey = () => serverAI || !!D.profile.apiKey;
 function sysBase(extra = "") {
   const p = D.profile;

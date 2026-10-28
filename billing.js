@@ -81,12 +81,12 @@ const SUB_STATUS = { trialing: "Testversion", active: "Aktiv", past_due: "Zahlun
 const INV_STATUS = { paid: "Bezahlt", open: "Offen", draft: "Entwurf", void: "Storniert", uncollectible: "Uneinbringlich" };
 const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American Express", discover: "Discover", jcb: "JCB", diners: "Diners Club", unionpay: "UnionPay" })[b] || (b ? b[0].toUpperCase() + b.slice(1) : "Karte");
 
-const proFeatures = () => [`Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche (Gratis: ${aiuNum(AIQ.free)})`, "Unbegrenzt Dokumente & Whiteboards", "Bild-Analyse & Sprachgespräch", "Längere Antworten", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
+const proFeatures = () => [`Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche und ${aiuNum(AIQ.proS)} pro 5 Stunden (Gratis: ${aiuNum(AIQ.free)} / ${aiuNum(AIQ.freeS)})`, "Unbegrenzt Dokumente & Whiteboards", "Bild-Analyse & Sprachgespräch", "Längere Antworten", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
 /* Was ist in Gratis und in Pro enthalten – Tabelle (Einstellungen → Pro und Startseite) */
 function planCompareHtml() {
   const ck = `<span class="pc-y">${ic("check")}</span>`, no = `<span class="pc-n">–</span>`;
   const rows = [["Dokumente <small>Notizen, Dateien &amp; PDFs</small>", `bis zu <b>${FREE_LIMITS.docs}</b>`, "Unbegrenzt"], ["Whiteboards &amp; Zeichnungen", `bis zu <b>${FREE_LIMITS.boards}</b>`, "Unbegrenzt"], ["Karteikarten &amp; Quiz", ck, ck], ["Planer, Noten, Prüfungen &amp; Fokus-Timer", ck, ck], ["Sync auf allen Geräten", ck, ck],
-    [`Studix AI pro Woche <small>Gemini &amp; Groq – der Verbrauch setzt sich eine Woche nach deiner ersten Anfrage zurück</small>`, `<b>${aiuNum(AIQ.free)}</b> Token`, `<b>${aiuNum(AIQ.pro)}</b> Token`], ["Bild-Analyse &amp; Sprachgespräch", no, ck], ["Längere Antworten", no, ck], ["Neue Pro-Funktionen zuerst", no, ck]];
+    [`Studix AI Limit <small>Gemini &amp; Groq – Wochenlimit und 5-Stunden-Limit, jeweils ab deiner ersten Anfrage</small>`, `<b>${aiuNum(AIQ.free)}</b> / Woche<br><b>${aiuNum(AIQ.freeS)}</b> / 5 Std.`, `<b>${aiuNum(AIQ.pro)}</b> / Woche<br><b>${aiuNum(AIQ.proS)}</b> / 5 Std.`], ["Bild-Analyse &amp; Sprachgespräch", no, ck], ["Längere Antworten", no, ck], ["Neue Pro-Funktionen zuerst", no, ck]];
   return `<div class="pcm"><h3>Was ist inbegriffen</h3><div class="pc-t" role="table"><div class="pc-h" role="row"><span></span><b>Gratis</b><b>Pro</b></div>${rows.map(([t, a, b]) => `<div class="pc-r" role="row"><span>${t}</span><span>${a}</span><span>${b}</span></div>`).join("")}</div><p class="note">Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Gemini Pro zählt 5×, Gemini Flash 1×, Groq 0,5×.</p></div>`;
 }
 /* Popup, wenn ein Gratis-Limit erreicht ist oder eine Pro-Funktion genutzt wird */
@@ -217,17 +217,25 @@ function proPillHtml() {
 
 
 /* ===== KI-Verbrauch (Token pro Woche, Gratis 25 000 / Pro 150 000) – Ring wie der Kontext-Ring bei Claude ===== */
-const AIU = { on: false, pro: false, unl: false, used: 0, limit: 0, reset: "", hours: 168 };
+const AIU = { on: false, pro: false, unl: false, used: 0, limit: 0, reset: "", hours: 168, s: null, sHours: 5 };
 const aiuNum = n => Math.round(n).toLocaleString("de-CH").replace(/’/g, "’");
 async function aiuLoad() {
   if (typeof CLOUD === "undefined" || !CLOUD.user) return;
-  try { const r = await fetch("/api/usage", { method: "POST", headers: await authHeader() }); if (!r.ok) return; const j = await r.json(); Object.assign(AIU, { on: !!j.enabled, pro: !!j.pro, unl: !!j.enabled && j.limit == null, used: j.used || 0, limit: j.limit || 0, reset: j.reset || "", hours: j.hours || 168 }); if (j.limit) AIQ[j.pro ? "pro" : "free"] = j.limit; aiuPaint(); } catch {}
+  try { const r = await fetch("/api/usage", { method: "POST", headers: await authHeader() }); if (!r.ok) return; const j = await r.json(); Object.assign(AIU, { on: !!j.enabled, pro: !!j.pro, unl: !!j.enabled && j.limit == null, used: j.used || 0, limit: j.limit || 0, reset: j.reset || "", hours: j.hours || 168, s: j.s || null, sHours: j.sHours || 5 }); if (j.s && j.s.limit) AIQ[j.pro ? "proS" : "freeS"] = j.s.limit; if (j.limit) AIQ[j.pro ? "pro" : "free"] = j.limit; aiuPaint(); } catch {}
 }
-function aiuSet(u) { if (!u) return; if (u.limit == null) AIU.unl = true; else { AIU.unl = false; AIU.used = u.used; AIU.limit = u.limit; if (u.reset !== undefined) AIU.reset = u.reset || ""; } AIU.on = true; aiuPaint(); }
-const aiuPct = () => AIU.unl || !AIU.limit ? 0 : Math.min(1, AIU.used / AIU.limit);
+function aiuSet(u) { if (!u) return; if (u.limit == null) AIU.unl = true; else { AIU.unl = false; AIU.used = u.used; AIU.limit = u.limit; if (u.reset !== undefined) AIU.reset = u.reset || ""; AIU.s = u.s || AIU.s; } AIU.on = true; aiuPaint(); }
+const aiuPctW = () => AIU.unl || !AIU.limit ? 0 : Math.min(1, AIU.used / AIU.limit);
+const aiuPctS = () => AIU.unl || !AIU.s || !AIU.s.limit ? 0 : Math.min(1, AIU.s.used / AIU.s.limit);
+const aiuPct = () => Math.max(aiuPctW(), aiuPctS());   // Ring zeigt das knappere Fenster
+/* Zeile für ein Fenster (5 Std. / Woche) mit Balken und Reset-Zeit */
+function aiuRow(name, used, limit, reset, hours) {
+  const pct = limit ? Math.round(Math.min(1, used / limit) * 100) : 0, rs = reset ? new Date(reset) : null, left = rs ? Math.max(0, rs - Date.now()) : 0;
+  return `<div class="aiu-row"><p class="aiu-big">${name} <span>${aiuNum(used)} / ${aiuNum(limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div><p class="aiu-s">${pct >= 100 ? "Limit erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich in ${aiuLeft(left)} zurück.` : `Startet mit deiner nächsten Anfrage (${hours >= 168 ? "eine Woche" : hours + " Std."}).`}</p></div>`;
+}
+const aiuRows = () => (AIU.s && AIU.s.limit ? aiuRow(`${AIU.sHours} Stunden`, AIU.s.used, AIU.s.limit, AIU.s.reset, AIU.sHours) : "") + aiuRow(AIU.hours >= 168 ? "Woche" : AIU.hours + " Std.", AIU.used, AIU.limit, AIU.reset, AIU.hours);
 function aiuRingHtml() {
   if (!AIU.on) return "";
-  return `<button type="button" class="aiu" aria-label="Studix-AI-Verbrauch diese Woche"><svg viewBox="0 0 24 24" width="24" height="24"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="${(aiuPct() * 100).toFixed(1)} 100"/></svg></button>`;
+  return `<button type="button" class="aiu" aria-label="Studix-AI-Verbrauch"><svg viewBox="0 0 24 24" width="24" height="24"><circle class="aiu-t" cx="12" cy="12" r="9"/><circle class="aiu-p" cx="12" cy="12" r="9" pathLength="100" stroke-dasharray="${(aiuPct() * 100).toFixed(1)} 100"/></svg></button>`;
 }
 function aiuPaint() {
   document.querySelectorAll(".aiu").forEach(b => { const p = b.querySelector(".aiu-p"); if (p) p.setAttribute("stroke-dasharray", (aiuPct() * 100).toFixed(1) + " 100"); b.classList.toggle("hot", aiuPct() >= .85); });
@@ -247,8 +255,7 @@ function aiuPop(btn) {
   const pop = document.createElement("div"); pop.className = "aiu-pop";
   pop.innerHTML = AIU.unl
     ? `<b>Studix AI</b><p class="aiu-big">Unbegrenzt</p><p class="aiu-s">Für dein Konto gibt es kein Limit.</p>`
-    : `<b>Studix AI · ${aiuWin()}${AIU.pro ? " · Pro" : ""}</b><p class="aiu-big">${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token</span></p><div class="aiu-bar"><i style="width:${pct}%"></i></div>
-       <p class="aiu-s">${pct >= 100 ? "Dein Limit ist erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich am ${aiuAt(rs)} zurück (in ${aiuLeft(left)}).` : `Der Zeitraum startet mit deiner nächsten Anfrage und dauert ${AIU.hours >= 168 ? "eine Woche" : AIU.hours + " Stunden"}.`}</p>
+    : `<b>Studix AI${AIU.pro ? " · Pro" : ""}</b>${aiuRows()}
        <p class="aiu-s">Alle Modelle sind nutzbar: Gemini Pro zählt 5×, Gemini Flash 1×, Groq 0,5×.</p>
        ${aiuUp() ? `<button class="btn small aiu-up" type="button">${aiuUp()}</button>` : ""}`;
   document.body.appendChild(pop);
@@ -281,8 +288,8 @@ function confetti() {
 function aiuBlockInner() {
   if (!AIU.on) return "";
   const pct = Math.round(aiuPct() * 100), rs = AIU.reset ? new Date(AIU.reset) : null, left = rs ? Math.max(0, rs - Date.now()) : 0;
-  const big = AIU.unl ? `<b>Unbegrenzt</b><small>Für dein Konto gibt es kein Limit.</small>` : `<b>${aiuNum(AIU.used)} <span>/ ${aiuNum(AIU.limit)} Token pro ${AIU.hours >= 168 ? "Woche" : "Zeitraum"}</span></b><small>${pct >= 100 ? "Limit erreicht." : `${100 - pct} % übrig.`} ${rs ? `Setzt sich in ${aiuLeft(left)} zurück.` : `Der Zeitraum startet mit deiner nächsten Anfrage.`}</small>`;
-  return `<span class="aiu-lg">${aiuRingHtml().replace('class="aiu"', 'class="aiu" tabindex="-1"')}</span><div class="aiuse-t"><span class="aiuse-h">Studix AI Nutzung${AIU.pro ? " · Pro" : ""}</span>${big}${AIU.unl ? "" : `<div class="aiu-bar"><i style="width:${pct}%"></i></div>`}</div>${!AIU.unl && aiuUp() ? `<button class="btn" id="aiuse-up" type="button">${aiuUp()}</button>` : ""}`;
+  const big = AIU.unl ? `<b>Unbegrenzt</b><small>Für dein Konto gibt es kein Limit.</small>` : `<div class="aiu-rows">${aiuRows()}</div>`;
+  return `<span class="aiu-lg">${aiuRingHtml().replace('class="aiu"', 'class="aiu" tabindex="-1"')}</span><div class="aiuse-t"><span class="aiuse-h">Studix AI Nutzung${AIU.pro ? " · Pro" : ""}</span>${big}</div>${!AIU.unl && aiuUp() ? `<button class="btn" id="aiuse-up" type="button">${aiuUp()}</button>` : ""}`;
 }
 function aiuBlockFill(m) {
   const w = $("#aiuse", m); if (!w) return; const h = aiuBlockInner(); w.innerHTML = h; w.hidden = !h;

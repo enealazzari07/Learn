@@ -164,19 +164,44 @@ const dropSubCache = uid => subCache.delete(uid);
 const num = (v, d) => v === undefined || v === "" ? d : (+v || 0);
 const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 25000), PRO_TOKENS = num(process.env.AI_PRO_WINDOW_TOKENS, 150000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 168)));
 const limitFor = pro => pro ? PRO_TOKENS : FREE_TOKENS;   // 0 = unbegrenzt
+/* Zusätzlich ein kurzes Fenster (Standard 5 Std.): Gratis 5 000, Pro 30 000 Token */
+const FREE_S = num(process.env.AI_FREE_SESSION_TOKENS, 5000), PRO_S = num(process.env.AI_PRO_SESSION_TOKENS, 30000), SESSION_H = Math.max(1, Math.round(num(process.env.AI_SESSION_HOURS, 5)));
+const limitS = pro => pro ? PRO_S : FREE_S;
 const nf = n => Math.round(n).toLocaleString("de-CH");
 const limitMsg = (pro, hours) => `Dein ${hours >= 168 ? "Wochenlimit" : "Limit"} für Studix AI ist erreicht. Es setzt sich ${hours >= 168 ? "eine Woche nach deiner ersten Anfrage" : "nach Ablauf des Zeitfensters"} zurück${pro ? "." : ` – oder nutze Studix Study Pro mit ${nf(PRO_TOKENS)} Token statt ${nf(FREE_TOKENS)}.`}`;
-const win = j => j && typeof j === "object" ? { used: +j.tokens || 0, reset: j.started ? new Date(new Date(j.started).getTime() + WINDOW_H * 36e5).toISOString() : null } : null;
-const aiUsed = async uid => { try { return win(await sb("POST", "rpc/lumi_ai_tokens", { p_user: uid, p_hours: WINDOW_H })); } catch { return null; } };
-const aiAdd = async (uid, t) => { try { return win(await sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: Math.max(0, Math.round(t)), p_hours: WINDOW_H })); } catch { return null; } };
+const limitMsgS = pro => `Dein ${SESSION_H}-Stunden-Limit für Studix AI ist erreicht. Es setzt sich ${SESSION_H} Stunden nach deiner ersten Anfrage zurück${pro ? "." : ` – oder nutze Studix Study Pro mit ${nf(PRO_S)} Token statt ${nf(FREE_S)}.`}`;
+const winOf = (j, h) => j && typeof j === "object" ? { used: +j.tokens || 0, reset: j.started ? new Date(new Date(j.started).getTime() + h * 36e5).toISOString() : null } : null;
+const both = (w, s) => w ? { ...w, s } : null;   // Wochenfenster + optional das 5-Stunden-Fenster (s)
+const aiUsed = async uid => {
+  try {
+    const [w, s] = await Promise.all([sb("POST", "rpc/lumi_ai_tokens", { p_user: uid, p_hours: WINDOW_H }), sb("POST", "rpc/lumi_ai_s_tokens", { p_user: uid, p_hours: SESSION_H }).catch(() => null)]);
+    return both(winOf(w, WINDOW_H), winOf(s, SESSION_H));
+  } catch { return null; }
+};
+const aiAdd = async (uid, t) => {
+  const p = Math.max(0, Math.round(t));
+  try {
+    const [w, s] = await Promise.all([sb("POST", "rpc/lumi_ai_add", { p_user: uid, p_tokens: p, p_hours: WINDOW_H }), sb("POST", "rpc/lumi_ai_s_add", { p_user: uid, p_tokens: p, p_hours: SESSION_H }).catch(() => null)]);
+    return both(winOf(w, WINDOW_H), winOf(s, SESSION_H));
+  } catch { return null; }
+};
+/* Prüft beide Fenster: gibt null (frei) oder [429, Body] zurück */
+const aiBlock = (pro, w) => {
+  const lim = limitFor(pro), ls = limitS(pro), s = w.s;
+  const usage = { used: w.used, limit: lim || null, reset: w.reset, s: s ? { used: s.used, limit: ls || null, reset: s.reset } : null };
+  if (ls && s && s.used >= ls) return [429, { error: limitMsgS(pro), limit: true, usage }];
+  if (lim && w.used >= lim) return [429, { error: limitMsg(pro, WINDOW_H), limit: true, usage }];
+  return null;
+};
+const aiUsage = (pro, w) => ({ used: w.used, limit: limitFor(pro) || null, reset: w.reset, s: w.s ? { used: w.s.used, limit: limitS(pro) || null, reset: w.s.reset } : null });
 
 /* Gemeinsame Prüfung für KI-Aufrufe (Anmeldung, Gratis-Budget). Gibt { acct } oder { deny: [status, body] } zurück. */
 async function aiGate(req) {
   const user = await userFromReq(req); if (!user) return { deny: [401, { error: "Bitte melde dich an, um Studix AI zu nutzen." }] };
   if (!FREE_TOKENS) return { acct: { id: user.id, pro: false, free: false } };
-  const pro = await isProLive(user.id), w = await aiUsed(user.id), lim = limitFor(pro);
+  const pro = await isProLive(user.id), w = await aiUsed(user.id);
   if (!w) return { acct: { id: user.id, pro, free: false } };
-  if (lim && w.used >= lim) return { deny: [429, { error: limitMsg(pro, WINDOW_H), limit: true, usage: { used: w.used, limit: lim, reset: w.reset } }] };
+  const bl = aiBlock(pro, w); if (bl) return { deny: bl };
   return { acct: { id: user.id, pro, free: true } };   // free = Verbrauch wird mitgezählt (auch bei Pro, dort mit höherem Limit)
 }
 /* Funktionen nur für Studix Study Pro (Bild-Analyse, Sprache): für Gratis-Konten gesperrt – aber nur, wenn man Pro überhaupt kaufen kann (Stripe eingerichtet) */
@@ -185,4 +210,4 @@ async function proFeatureDeny(acct, feature) {
   try { if (!(await billingReady())) return null; } catch { return null; }
   return [402, { error: `${feature} ist mit Studix Study Pro verfügbar.`, pro: true }];
 }
-module.exports = { proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitMsg, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+module.exports = { proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitS, limitMsg, WINDOW_H, SESSION_H, FREE_S, PRO_S, aiBlock, aiUsage, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };

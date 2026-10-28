@@ -40,3 +40,19 @@ create or replace function public.lumi_ai_add(p_user uuid, p_tokens bigint, p_ho
 $$;
 revoke all on function public.lumi_ai_tokens(uuid, integer) from public, anon, authenticated;
 revoke all on function public.lumi_ai_add(uuid, bigint, integer) from public, anon, authenticated;
+
+-- Zweites, kurzes Fenster (5 Stunden) zusätzlich zum Wochenfenster
+create table if not exists public.lumi_ai_session (user_id uuid primary key references auth.users(id) on delete cascade, started timestamptz not null default now(), tokens bigint not null default 0);
+alter table public.lumi_ai_session enable row level security;
+create or replace function public.lumi_ai_s_tokens(p_user uuid, p_hours integer) returns jsonb language sql security definer set search_path = public as $$
+  select coalesce((select case when now() - started >= make_interval(hours => p_hours) then jsonb_build_object('tokens', 0, 'started', null) else jsonb_build_object('tokens', tokens, 'started', started) end from lumi_ai_session where user_id = p_user), jsonb_build_object('tokens', 0, 'started', null))
+$$;
+create or replace function public.lumi_ai_s_add(p_user uuid, p_tokens bigint, p_hours integer) returns jsonb language sql security definer set search_path = public as $$
+  insert into lumi_ai_session(user_id, started, tokens) values (p_user, now(), p_tokens)
+  on conflict (user_id) do update set
+    started = case when now() - lumi_ai_session.started >= make_interval(hours => p_hours) then now() else lumi_ai_session.started end,
+    tokens = case when now() - lumi_ai_session.started >= make_interval(hours => p_hours) then p_tokens else lumi_ai_session.tokens + p_tokens end
+  returning jsonb_build_object('tokens', tokens, 'started', started)
+$$;
+revoke all on function public.lumi_ai_s_tokens(uuid, integer) from public, anon, authenticated;
+revoke all on function public.lumi_ai_s_add(uuid, bigint, integer) from public, anon, authenticated;

@@ -67,7 +67,7 @@ async function callGroq(model, key, { system, messages, max, temperature = 0.4, 
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   const h = have();
-  if (req.method === "GET") return res.status(200).json({ ok: true, freeTokens: L.FREE_TOKENS, proTokens: L.PRO_TOKENS, provider: h.gemini ? "gemini" : "groq", model: h.gemini ? MODEL() : "groq", configured: h.gemini || h.groq, gemini: h.gemini, groq: h.groq, models: available().map(x => x.id) });
+  if (req.method === "GET") return res.status(200).json({ ok: true, freeTokens: L.FREE_TOKENS, proTokens: L.PRO_TOKENS, freeSession: L.FREE_S, proSession: L.PRO_S, sessionHours: L.SESSION_H, provider: h.gemini ? "gemini" : "groq", model: h.gemini ? MODEL() : "groq", configured: h.gemini || h.groq, gemini: h.gemini, groq: h.groq, models: available().map(x => x.id) });
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   if (!h.gemini && !h.groq) return res.status(503).json({ error: "Weder GEMINI_API_KEY noch GROQ_API_KEY ist in Vercel gesetzt." });
   if (!sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
@@ -79,9 +79,9 @@ module.exports = async function handler(req, res) {
   if (L.FREE_TOKENS && !bg) {
     try {
       const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte melde dich an, um Studix AI zu nutzen." });
-      const pro = await L.isProLive(user.id), w = await L.aiUsed(user.id), lim = L.limitFor(pro);
+      const pro = await L.isProLive(user.id), w = await L.aiUsed(user.id);
       if (!w) acct = null;
-      else { acct = { id: user.id, pro, used: w.used, lim }; if (lim && w.used >= lim) return res.status(429).json({ error: L.limitMsg(pro, L.WINDOW_H), limit: true, usage: { used: w.used, limit: lim, reset: w.reset } }); }
+      else { acct = { id: user.id, pro, used: w.used }; const bl = L.aiBlock(pro, w); if (bl) return res.status(bl[0]).json(bl[1]); }
     } catch (e) { acct = null; }
   }
   if (image && acct) { const pd = await L.proFeatureDeny(acct, "Die Bild-Analyse"); if (pd) return res.status(pd[0]).json(pd[1]); }
@@ -105,7 +105,7 @@ module.exports = async function handler(req, res) {
       last = { ...out, c };
       if (out.ok && out.text) {
         let usage = null;
-        if (acct) { const t = WEIGHT(c.id) / 10 * (out.tokens || Math.ceil((JSON.stringify(messages).length + out.text.length) / 4)); const w = await L.aiAdd(acct.id, t); usage = { used: w ? w.used : acct.used + t, limit: acct.lim || null, reset: w ? w.reset : null }; }
+        if (acct) { const t = WEIGHT(c.id) / 10 * (out.tokens || Math.ceil((JSON.stringify(messages).length + out.text.length) / 4)); const w = await L.aiAdd(acct.id, t); usage = w ? L.aiUsage(acct.pro, w) : null; }
         return res.status(200).json({ text: out.text, model: c.id, sources: out.sources || [], usage });
       }
       if (out.ok && !out.text) continue;                                // leere Antwort → nächstes Modell
