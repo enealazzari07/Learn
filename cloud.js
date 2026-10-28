@@ -64,10 +64,21 @@ async function cloudLocalKeys() {
   const db = await KV.open(); if (!db) return ["data"];
   return new Promise(res => { const r = db.transaction("kv").objectStore("kv").getAllKeys(); r.onsuccess = () => res(r.result.filter(syncable)); r.onerror = () => res(["data"]); });
 }
+/* Links aus den Mails zeigen auf studix.space (statt auf supabase.co): …/?token_hash=…&type=signup|recovery|magiclink|email_change
+   Das ist besser für den Spam-Filter (Absender- und Link-Domain passen zusammen) und Mail-Scanner verbrauchen den Link nicht. */
+async function cloudTokenHash() {
+  const q = new URLSearchParams(location.search), th = q.get("token_hash"), type = q.get("type");
+  if (!th || !type || !CLOUD.sb) return;
+  history.replaceState(null, "", location.pathname + "#/app");
+  const { error } = await CLOUD.sb.auth.verifyOtp({ token_hash: th, type });
+  if (error) return setTimeout(() => toast("Der Link ist abgelaufen oder wurde schon benutzt – bitte fordere eine neue E-Mail an."), 800);
+  if (type === "recovery") setTimeout(recoveryModal, 900); else if (type === "email_change") setTimeout(() => toast("Deine neue E-Mail-Adresse ist bestätigt."), 900);
+}
 async function cloudInit() {
   if (!cloudOn()) return;
   try { await loadSupabaseLib(); } catch { return; }
   CLOUD.sb = window.supabase.createClient(window.LUMI_CONFIG.supabaseUrl, window.LUMI_CONFIG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true } });
+  try { await cloudTokenHash(); } catch {}
   const { data } = await CLOUD.sb.auth.getSession(); CLOUD.user = data.session?.user || null;
   if (CLOUD.user) { try { const { error } = await CLOUD.sb.auth.getUser(); if (error && ([401, 403, 404].includes(error.status) || /sub claim|does not exist|not found/i.test(error.message || ""))) { await CLOUD.sb.auth.signOut({ scope: "local" }); CLOUD.user = null; } } catch {} }   // gelöschtes Konto: alte Anmeldung verwerfen
   if (CLOUD.user && (cloudUnconfirmed(CLOUD.user) || !(await mfaGate()))) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }

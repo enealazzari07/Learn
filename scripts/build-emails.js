@@ -5,11 +5,13 @@
 const fs = require("fs"), path = require("path"), M = require("../api/_mail.js");
 const root = path.join(__dirname, ".."), T = M.templates;
 
+/* Links zeigen auf die eigene Domain (token_hash), nicht auf supabase.co – das mögen Spam-Filter lieber */
+const SITE = process.env.SITE_URL || "https://studix.space", th = type => `${SITE}/?token_hash={{ .TokenHash }}&type=${type}`;
 const supa = {
-  "confirm-signup": ["Bestätige deine E-Mail-Adresse", T.verify({ url: "{{ .ConfirmationURL }}", codeHtml: M.supabaseCode, code: "{{ .Token }}" })],
-  "reset-password": ["Passwort zurücksetzen", T.reset({ url: "{{ .ConfirmationURL }}" })],
-  "magic-link": ["Dein Anmelde-Link für Studix", T.magic({ url: "{{ .ConfirmationURL }}", codeHtml: M.supabaseCode, code: "{{ .Token }}" })],
-  "change-email": ["Bestätige deine neue E-Mail-Adresse", T.change({ url: "{{ .ConfirmationURL }}", email: "{{ .NewEmail }}" })],
+  "confirm-signup": ["Bestätige deine E-Mail-Adresse", T.verify({ url: th("signup"), codeHtml: M.supabaseCode, code: "{{ .Token }}" })],
+  "reset-password": ["Passwort zurücksetzen", T.reset({ url: th("recovery") })],
+  "magic-link": ["Dein Anmelde-Link für Studix", T.magic({ url: th("magiclink"), codeHtml: M.supabaseCode, code: "{{ .Token }}" })],
+  "change-email": ["Bestätige deine neue E-Mail-Adresse", T.change({ url: th("email_change"), email: "{{ .NewEmail }}" })],
 };
 fs.mkdirSync(path.join(root, "supabase/email-templates"), { recursive: true });
 for (const [f, [, t]] of Object.entries(supa)) fs.writeFileSync(path.join(root, "supabase/email-templates", f + ".html"), t.html);
