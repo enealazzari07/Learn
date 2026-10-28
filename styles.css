@@ -474,3 +474,9 @@ body{background:#fff}
 @keyframes curRip{from{opacity:.9;transform:scale(.3)}to{opacity:0;transform:scale(2)}}
 .cur.u1,.cur.u2{opacity:0;transition:opacity .5s}
 .emb-live.collab .cur.u1,.emb-live.collab .cur.u2{opacity:1}
+
+/* Wortmarke „Studix": Oxanium (eckig, kompakt) mit S und x aus Chakra Petch (schräg gekappte Ecken) – selbst gehostet */
+@font-face{font-family:"Oxanium";font-weight:800;font-style:normal;font-display:swap;src:url(fonts/Oxanium-800.woff2) format("woff2")}
+@font-face{font-family:"Chakra Petch";font-weight:700;font-style:normal;font-display:swap;src:url(fonts/ChakraPetch-700.woff2) format("woff2")}
+.wm{font-family:"Oxanium",var(--font,system-ui),sans-serif;font-weight:800;letter-spacing:-.005em}
+.wm b{font-family:"Chakra Petch","Oxanium",var(--font,system-ui),sans-serif;font-weight:700;letter-spacing:0}

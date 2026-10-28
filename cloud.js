@@ -179,7 +179,7 @@ const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 function authScreen(mode = "in") {
   const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = up ? "Studix – Konto erstellen" : "Studix – Anmelden";
   app.innerHTML = `<div class="authwrap"><div class="authshell">
-    <form class="authform" onsubmit="return false" novalidate><a class="logo authlogo" href="#/"><i class="mark"></i>Studix</a>
+    <form class="authform" onsubmit="return false" novalidate><a class="logo authlogo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a>
       <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
         <label class="lbl" for="cl-e">E-Mail</label><div class="fld"><svg class="fi" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg><input class="field pill" id="cl-e" type="email" autocomplete="email" placeholder="du@beispiel.ch"></div>
         <label class="lbl" for="cl-p">Passwort</label><div class="fld pwrap"><svg class="fi" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="3.5"/><path d="M8 10.5V8a4 4 0 018 0v2.5"/></svg><input class="field pill" id="cl-p" type="password" autocomplete="${up ? "new-password" : "current-password"}" minlength="6" placeholder="Mindestens 6 Zeichen"><button class="pweye" id="cl-eye" type="button" aria-label="Passwort anzeigen">${ic("eye")}</button></div>
@@ -189,7 +189,7 @@ function authScreen(mode = "in") {
         ${up ? "" : `<button class="link" id="cl-fp" type="button">Passwort vergessen?</button>`}</div>
       <p class="authswitch">${up ? "Schon ein Konto?" : "Noch kein Konto?"} <button class="link" id="cl-sw" type="button">${up ? "Jetzt anmelden" : "Jetzt registrieren"}</button></p>
       <div class="authfoot"><span>Mit dem Fortfahren stimmst du den <a href="legal.html#agb">AGB</a> und der <a href="legal.html#datenschutz">Datenschutzerklärung</a> zu.</span></div></form>
-    <aside class="authhero"><a class="ah-logo" href="#/"><img src="logo-white.svg" width="40" height="40" alt=""><b>Studix</b></a>
+    <aside class="authhero"><a class="ah-logo" href="#/"><img src="logo-white.svg" width="40" height="40" alt=""><b><span class="wm"><b>S</b>tudi<b>x</b></span></b></a>
       <div class="ah-copy"><h2>Dein Lern- und Workspace an einem Ort.</h2><p>Notizen, Karteikarten, Planer und Studix AI – auf iPad, Handy und PC, auch offline.</p><div class="ah-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div></div>
       <div class="auth-app" aria-hidden="true"><div class="aa-bar"><i></i><i></i><i></i><span>studix.space</span></div><div class="aa-view"><iframe tabindex="-1" title="Studix App-Vorschau"></iframe></div></div></aside></div></div>`;
   authHeroMount($(".authhero", app));
