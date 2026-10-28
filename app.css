@@ -3839,3 +3839,9 @@ html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore 
   .setcrumb .dk-search:focus-within,.setcrumb .dk-search.has{width:100%;flex:1}
 }
 @media (max-width:900px){.aip-t.pagehead{margin:8px 16px 18px}}
+
+/* Zeichnen (Whiteboard und Zeichenmodus in Dokumenten/PDF): keine Text-Auswahl, kein Kopier-Menü – damit der Apple Pencil auf dem iPad nur zeichnet */
+.main.drawing,.main.noselect,.main.drawing *:not(input):not(textarea):not(select),.main.noselect *:not(input):not(textarea):not(select){-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;-webkit-tap-highlight-color:transparent}
+.cvwrap canvas,.inkcv,#cv{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* Kalender-Icon: Körper weiss (nicht angewählt) bzw. schwarz (angewählt), kein Grau */
+.sdock .cb{fill:#fff;stroke:none}.sdock button.on .cb{fill:currentColor}.sdock button.on .cd{stroke:#fff}

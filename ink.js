@@ -204,6 +204,7 @@ function createInk(paper, d, opts = {}) {
   };
   cv.addEventListener("pointerleave", () => ring.classList.remove("on"));
   cv.addEventListener("contextmenu", e => e.preventDefault());
+  const unguard = penGuard(cv, () => st.on);
 
   cv.addEventListener("pointerdown", e => {
     if (!st.on || st.tool === "hand") return;
@@ -408,6 +409,6 @@ function createInk(paper, d, opts = {}) {
     mode(on) { st.on = !!on; paper.classList.toggle("inking", !!on); setTool(st.tool); pal.classList.toggle("show", !!on); if (!on) { closePop(); abort(); ring.classList.remove("on"); } },
     /* white image of the sketch (+ text) for the AI */
     snapshot() { frame(); const t = document.createElement("canvas"), s = Math.min(1, 1400 / W); t.width = W * s; t.height = H * s; const c = t.getContext("2d"); c.fillStyle = "#fff"; c.fillRect(0, 0, t.width, t.height); c.drawImage(cv, 0, 0, t.width, t.height); return t.toDataURL("image/jpeg", .85).split(",")[1]; },
-    destroy() { document.removeEventListener("keydown", key); document.removeEventListener("pointerdown", outside, true); cancelAnimationFrame(raf); cancelAnimationFrame(momentum); ro.disconnect(); closePop(); pal.remove(); ring.remove(); },
+    destroy() { document.removeEventListener("keydown", key); document.removeEventListener("pointerdown", outside, true); unguard(); cancelAnimationFrame(raf); cancelAnimationFrame(momentum); ro.disconnect(); closePop(); pal.remove(); ring.remove(); },
   };
 }

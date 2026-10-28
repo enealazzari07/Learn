@@ -139,6 +139,7 @@ V.draw = async (m, id) => {
   $("#zp", m).onclick = () => { if (Math.abs(cam.z - 1) > .01) { zoomAt(VW / 2, VH / 2, 1); touch(); } else showAll(); };
   const ro = new ResizeObserver(fit); ro.observe(cvw);
   const sk = e => { if (e.code === "Space" && !["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) { space = e.type === "keydown"; if (space) e.preventDefault(); cv.style.cursor = space ? "grab" : cv.style.cursor; } };
+  LEAVE.push(penGuard(cv)); m.classList.add("noselect");
   document.addEventListener("keydown", sk); document.addEventListener("keyup", sk); LEAVE.push(() => { ro.disconnect(); document.removeEventListener("keydown", sk); document.removeEventListener("keyup", sk); });
   $("#un", m).onclick = undo; $("#re", m).onclick = redo;
   $("#cl", m).onclick = async () => { if (st.strokes.length && await confirmBox("Zeichenfläche komplett leeren?", "Leeren")) { snap(); st.strokes = []; render(); touch(); } };
