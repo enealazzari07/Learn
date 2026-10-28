@@ -8,6 +8,7 @@ module.exports = async function handler(req, res) {
   const key = process.env.GEMINI_API_KEY; if (!key) return res.status(503).json({ error: "Spracherkennung ist nicht eingerichtet (GEMINI_API_KEY fehlt)." });
   try {
     const g = await L.aiGate(req); if (g.deny) return res.status(g.deny[0]).json(g.deny[1]);
+    const pd = await L.proFeatureDeny(g.acct, "Das Sprachgespräch"); if (pd) return res.status(pd[0]).json(pd[1]);
     const body = await L.readJson(req), audio = String(body.audio || ""), mime = /^audio\/(webm|ogg|mp4|wav|mpeg|aac)/.test(body.mime || "") ? body.mime.split(";")[0] : "audio/webm";
     if (!audio || audio.length > 2_800_000) return res.status(413).json({ error: "Aufnahme zu lang oder leer." });
     const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 20000);

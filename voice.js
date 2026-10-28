@@ -110,7 +110,7 @@ V.voice = m => {
     const iv = setInterval(() => { if (tk !== S.token || !S.alive) { clearInterval(iv); try { mr.state !== "inactive" && mr.stop(); } catch {} return; } const l = rms(S.micAn); if (l > .035) { loud++; quiet = 0; if (!started) { started = true; } $u.textContent = "…"; } else if (started) quiet += 60; if ((started && quiet > 1100) || performance.now() - t0 > 25000 || (!started && performance.now() - t0 > 12000)) { clearInterval(iv); try { mr.state !== "inactive" && mr.stop(); } catch {} } }, 60);
     mr.start(250);
   }
-  async function vcPost(path, body) { const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body) }); const j = await r.json().catch(() => ({})); if (!r.ok) throw Object.assign(new Error(j.error || "Fehler " + r.status), { status: r.status, fallback: j.fallback, limit: j.limit }); return j; }
+  async function vcPost(path, body) { const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body) }); const j = await r.json().catch(() => ({})); if (r.status === 402 && j.pro && typeof proUpsell === "function") proUpsell(j.error); if (!r.ok) throw Object.assign(new Error(j.error || "Fehler " + r.status), { status: r.status, fallback: j.fallback, limit: j.limit }); return j; }
 
   /* ---- Antworten ---- */
   const clean = t => String(t || "").replace(/<lumi-actions>[\s\S]*?(<\/lumi-actions>|$)/g, "").replace(/\[(\d+)\]/g, "").replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[*_`#>~|]/g, "").replace(/^\s*[-•]\s+/gm, "").replace(/\s+/g, " ").trim();

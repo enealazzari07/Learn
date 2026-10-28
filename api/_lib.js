@@ -179,4 +179,10 @@ async function aiGate(req) {
   if (lim && w.used >= lim) return { deny: [429, { error: limitMsg(pro, WINDOW_H), limit: true, usage: { used: w.used, limit: lim, reset: w.reset } }] };
   return { acct: { id: user.id, pro, free: true } };   // free = Verbrauch wird mitgezählt (auch bei Pro, dort mit höherem Limit)
 }
-module.exports = { aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitMsg, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+/* Funktionen nur für Studix Study Pro (Bild-Analyse, Sprache): für Gratis-Konten gesperrt – aber nur, wenn man Pro überhaupt kaufen kann (Stripe eingerichtet) */
+async function proFeatureDeny(acct, feature) {
+  if (!acct || acct.pro) return null;
+  try { if (!(await billingReady())) return null; } catch { return null; }
+  return [402, { error: `${feature} ist mit Studix Study Pro verfügbar.`, pro: true }];
+}
+module.exports = { proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitMsg, WINDOW_H, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };

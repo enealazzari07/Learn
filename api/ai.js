@@ -84,6 +84,7 @@ module.exports = async function handler(req, res) {
       else { acct = { id: user.id, pro, used: w.used, lim }; if (lim && w.used >= lim) return res.status(429).json({ error: L.limitMsg(pro, L.WINDOW_H), limit: true, usage: { used: w.used, limit: lim, reset: w.reset } }); }
     } catch (e) { acct = null; }
   }
+  if (image && acct) { const pd = await L.proFeatureDeny(acct, "Die Bild-Analyse"); if (pd) return res.status(pd[0]).json(pd[1]); }
   if (JSON.stringify(body).length > 4_500_000) return res.status(413).json({ error: "Anfrage zu groß" });
 
   /* Reihenfolge: gewünschtes Modell → Rest des Anbieters → anderer Anbieter */

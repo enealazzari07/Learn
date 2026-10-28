@@ -11,6 +11,7 @@ const DB_TPL = {
 };
 
 async function newDatabase(folderId = docFolder, kind) {
+  if (limitHit("doc")) return;
   if (!kind) return menu($("#newbtn") || document.body, [{ label: "Lernplan (Board)", icon: "todo", fn: () => newDatabase(folderId, "plan") }, { label: "Prüfungen & Noten", icon: "award", fn: () => newDatabase(folderId, "exams") }, { label: "Leseliste", icon: "book", fn: () => newDatabase(folderId, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(folderId, "blank") }]);
   const names = { plan: "Lernplan", exams: "Prüfungen", read: "Leseliste", blank: "Neue Datenbank" }, id = uid();
   D.docs.unshift({ id, type: "db", title: names[kind], subjectId: subjectOfFolder(folderId), folderId, updated: Date.now(), created: Date.now(), text: "" });

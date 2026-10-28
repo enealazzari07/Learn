@@ -9,7 +9,7 @@ V.board = m => {
 };
 
 V.draw = async (m, id) => {
-  if (id === "new") { const nid = uid(); D.docs.unshift({ id: nid, type: "draw", title: "Neue Zeichnung", subjectId: subjectOfFolder(docFolder), folderId: docFolder, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + nid, { strokes: [], bg: "grid", H: 1000 }); save(); return go("draw/" + nid); }
+  if (id === "new") { if (limitHit("board")) return go("board"); const nid = uid(); D.docs.unshift({ id: nid, type: "draw", title: "Neue Zeichnung", subjectId: subjectOfFolder(docFolder), folderId: docFolder, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + nid, { strokes: [], bg: "grid", H: 1000 }); save(); return go("draw/" + nid); }
   const d = D.docs.find(x => x.id === id); if (!d || d.type !== "draw") return go("board");
   const saved = (await KV.get("draw:" + id)) || { strokes: [], bg: "grid", H: 1000 };
   const W = saved.W || 1600, FMT = "endless"; const st = { cam: saved.cam || { x: -40, y: -40, z: 1 }, strokes: saved.strokes || [], hist: [], redo: [], tool: "pen", color: saved.bg === "dark" ? "#ffffff" : "#111111", size: 4, bg: saved.bg || "grid", H: saved.H || 1000, cur: null, penSeen: false, pending: null };
@@ -189,6 +189,7 @@ function boardDialog(pre = null) {
   pick("bd-bg", "bb", k => bg = k); 
   $("[data-c]", el).onclick = close;
   const go2 = async () => {
+    if (limitHit("board")) return;
     const f = BFORMATS[0], title = nameIn.value.trim() || (tpl !== "blank" ? BTPLS.find(x => x[0] === tpl)[1] : "Neues Whiteboard"); close();
     const id = uid(); D.docs.unshift({ id, type: "draw", title, subjectId: subjectOfFolder(folder), folderId: folder, updated: Date.now(), created: Date.now(), thumb: "" });
     await KV.set("draw:" + id, { strokes: boardStrokes(tpl, f[3], f[4], bg === "dark"), bg, H: f[4], W: f[3], fmt: "endless", cam: { x: -40, y: -40, z: 1 } }); save(); go("draw/" + id);

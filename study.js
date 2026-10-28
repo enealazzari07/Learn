@@ -171,6 +171,7 @@ const TEMPLATES = [
 ];
 const PAPERS = [["white", "Leer"], ["lines", "Liniert"], ["grid", "Kariert"], ["dots", "Punkte"]];
 function docDialog(kind = "note", pre = null) {
+  if (limitHit(kind === "draw" ? "board" : "doc")) return;
   if (kind === "draw") return boardDialog(pre);
   const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank", pages = D.profile.pageMode !== false;
   const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument</button><button type="button" role="tab" id="nd-swb">Whiteboard</button><button type="button" role="tab" id="nd-swd">Design</button></div><p class="eyebrow">Neues Dokument</p>
@@ -238,6 +239,7 @@ async function thumbOf(file) {
 async function uploadFiles(files) {
   let n = 0;
   for (const f of files) {
+    if (limitHit("doc")) break;
     if (f.size > 60 * 1024 * 1024) { toast(f.name + " ist größer als 60 MB"); continue; }
     const id = uid(); await KV.set("blob:" + id, f);
     D.docs.unshift({ id, type: "file", title: f.name, mime: f.type, size: f.size, subjectId: subjectOfFolder(docFolder), folderId: docFolder, updated: Date.now(), created: Date.now(), thumb: /^image\//.test(f.type) ? await thumbOf(f) : "" }); n++;
@@ -572,7 +574,7 @@ async function aiTool(kind, text, ctx = {}) {
   if (r == null) { r = kind === "summary" ? localSummary(T) : kind === "goals" ? localGoals(T) : null; if (!r) { $("#ar", el).value = hasKey() ? "Studix AI hat nicht geantwortet. Versuche es erneut." : "Diese Funktion braucht die eingerichtete Studix AI.\n\nRichte sie unter Einstellungen → Studix AI ein (Gemini-Key in Vercel). Zusammenfassungen, Karteikarten und Quiz funktionieren auch ohne Key mit einfacher lokaler Auswertung."; return; } }
   $("#ar", el).value = r.trim(); $("#ab", el).hidden = false; if (kind === "goals") examAutoGoals(ctx.subjectId, r);
   $("#a-cp", el).onclick = () => { navigator.clipboard?.writeText($("#ar", el).value); toast("Kopiert"); };
-  $("#a-note", el).onclick = () => { newNote(ctx.subjectId || "", textToHtml($("#ar", el).value), (ctx.title || "Notiz") + " – Studix AI"); el.closest(".mask").remove(); };
+  $("#a-note", el).onclick = () => { if (limitHit("doc")) return; newNote(ctx.subjectId || "", textToHtml($("#ar", el).value), (ctx.title || "Notiz") + " – Studix AI"); el.closest(".mask").remove(); };
   $("#a-ins", el) && ($("#a-ins", el).onclick = () => { ctx.insert(textToHtml($("#ar", el).value)); el.closest(".mask").remove(); toast("Eingefügt"); });
   $("#a-rep", el) && ($("#a-rep", el).onclick = () => { ctx.replace($("#ar", el).value); el.closest(".mask").remove(); toast("Ersetzt"); });
 }

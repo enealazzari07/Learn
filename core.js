@@ -294,6 +294,16 @@ const SUBJ = () => isUni() ? "Module" : "Fächer";
 let serverAI = false, serverInfo = null;
 /* Studix-AI-Budget pro Woche (Server liefert die echten Werte über GET /api/ai) */
 const AIQ = { free: 25000, pro: 150000, hours: 168 };
+/* Weitere Gratis-Limits (gelten nur, solange man Pro kaufen kann): Dokumente, Whiteboards. Bild-Analyse und Sprache sind serverseitig nur für Pro. */
+const FREE_LIMITS = { docs: 100, boards: 10 };
+const freePlan = () => { try { return !!(BILL.cfg && BILL.cfg.enabled) && !isPlus(); } catch { return false; } };
+function limitHit(kind) {
+  if (!freePlan()) return false;
+  const boards = D.docs.filter(d => d.type === "draw").length, docs = D.docs.length - boards;
+  const hit = kind === "board" ? boards >= FREE_LIMITS.boards : docs >= FREE_LIMITS.docs;
+  if (hit && typeof proUpsell === "function") proUpsell(kind === "board" ? `Im Gratis-Konto kannst du bis zu ${FREE_LIMITS.boards} Whiteboards anlegen.` : `Im Gratis-Konto kannst du bis zu ${FREE_LIMITS.docs} Dokumente anlegen.`);
+  return hit;
+}
 async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; if (j.freeTokens) AIQ.free = j.freeTokens; if (j.proTokens) AIQ.pro = j.proTokens; } catch {} }
 const hasKey = () => serverAI || !!D.profile.apiKey;
 function sysBase(extra = "") {
@@ -323,6 +333,7 @@ async function aiCore(prompt, { system = "", history = [], max = 1500, image = n
       const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ ...(bg ? { bg: true } : {}), system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
       if (j.usage && typeof aiuSet === "function") aiuSet(j.usage);
+      if (r.status === 402 && j.pro && typeof proUpsell === "function") { if (!quiet) proUpsell(j.error); return null; }
       if (!r.ok) throw new Error(r.status === 429 && !j.limit ? "Das kostenlose Studix-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";

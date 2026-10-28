@@ -10,6 +10,7 @@ module.exports = async function handler(req, res) {
   const key = process.env.GEMINI_API_KEY; if (!key) return res.status(503).json({ error: "Sprachausgabe ist nicht eingerichtet (GEMINI_API_KEY fehlt)." });
   try {
     const g = await L.aiGate(req); if (g.deny) return res.status(g.deny[0]).json(g.deny[1]);
+    const pd = await L.proFeatureDeny(g.acct, "Die Sprachausgabe"); if (pd) return res.status(pd[0]).json(pd[1]);
     const body = await L.readJson(req), text = String(body.text || "").replace(/\s+/g, " ").trim().slice(0, 700), voice = VOICES.includes(body.voice) ? body.voice : "Kore";
     if (!text) return res.status(400).json({ error: "Kein Text." });
     const model = process.env.GEMINI_TTS_MODEL || "gemini-2.5-flash-preview-tts", ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 25000);

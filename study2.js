@@ -368,7 +368,7 @@ function mountChat(box, compact) {
     msgs.scrollTop = msgs.scrollHeight;
     $$("[data-ag]", msgs).forEach(b => b.onclick = () => go(b.dataset.ag));
     $$("[data-cp]", msgs).forEach(b => b.onclick = () => { navigator.clipboard?.writeText(chatMsgs()[+b.dataset.cp].text); toast("Kopiert"); });
-    $$("[data-sv]", msgs).forEach(b => b.onclick = () => newNote("", textToHtml(chatMsgs()[+b.dataset.sv].text), "Studix-AI-Notiz"));
+    $$("[data-sv]", msgs).forEach(b => b.onclick = () => limitHit("doc") || newNote("", textToHtml(chatMsgs()[+b.dataset.sv].text), "Studix-AI-Notiz"));
     const cx = $(".ctxbar", box); if (cx) { cx.innerHTML = [...chatCtx].map(id => { const d = D.docs.find(x => x.id === id); return d ? `<span class="cx" title="${esc(d.title)}">${ic("file")}<b>${esc(d.title)}</b><button type="button" data-rm="${id}" aria-label="Entfernen">${ic("x")}</button></span>` : ""; }).join(""); cx.hidden = !chatCtx.size; $$("[data-rm]", cx).forEach(b => b.onclick = () => { chatCtx.delete(b.dataset.rm); draw(); }); $("#att", box)?.classList.toggle("on", chatCtx.size > 0); }
     const pv = $(".imgprev", box); if (pv) { pv.hidden = !chatImg; pv.innerHTML = chatImg ? `<img src="${chatImg.url}" alt=""><button aria-label="Entfernen">${ic("x")}</button>` : ""; $("button", pv)?.addEventListener("click", () => { chatImg = null; draw(); }); }
   };
