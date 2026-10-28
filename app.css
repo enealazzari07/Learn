@@ -3992,3 +3992,18 @@ html[data-theme="dark"] .authhero iframe{filter:none!important}
 .toast,.toast.on{left:auto!important;bottom:auto!important;right:20px;top:20px;border-radius:8px!important;padding:12px 18px 12px 16px;background:#111;border-left:4px solid #fff;box-shadow:0 12px 32px -8px rgba(0,0,0,.35);text-align:left;font-weight:550;max-width:min(380px,calc(100vw - 32px));transform:translateY(-12px)}
 .toast.on{transform:none}
 @media (max-width:760px){.toast,.toast.on{right:16px;top:calc(env(safe-area-inset-top,0px) + 12px)}}
+
+/* Fokus-Timer: schlanker Ring, kleiner Zieh-Punkt, rundere Buttons */
+.bento .w-goal .fd-bg,.bento .w-goal .fd-fg{stroke-width:7}
+.bento .w-goal .fd-knob{r:6.5px;stroke-width:2.5;filter:drop-shadow(0 1px 3px rgba(0,0,0,.25))}
+.bento .w-goal .fd-c b{font-weight:600}
+.tring{width:min(300px,72vw)!important;background:conic-gradient(#0f0f12 calc(var(--p)*1%),#efeff3 0)!important;box-shadow:0 18px 40px -22px rgba(15,15,18,.35)}
+.tring .inner{width:calc(100% - 14px)!important;box-shadow:inset 0 2px 10px rgba(15,15,18,.05)}
+.tring small{letter-spacing:.14em!important;font-size:11px!important}
+.tring b{font-weight:600!important;letter-spacing:-.045em!important}
+.timerbox .btn.big{border-radius:999px;padding:15px 34px;font-size:16px;font-weight:600;transition:transform .15s,box-shadow .2s,background .2s}
+.timerbox .btn.big.accent{background:#0f0f12!important;color:#fff!important;box-shadow:0 12px 26px -12px rgba(15,15,18,.6)}
+.timerbox .btn.big.accent:hover{transform:translateY(-1px);box-shadow:0 16px 30px -12px rgba(15,15,18,.65)}
+.timerbox .btn.big:active{transform:scale(.97)}
+.timerbox .btn.big.ghost{background:#f1f1f4!important;border-color:transparent!important;color:#0f0f12!important}
+.timerbox .chip{border-radius:999px;padding:9px 16px}
