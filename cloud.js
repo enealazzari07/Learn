@@ -165,6 +165,13 @@ function cloudAuthBind(el, done) {
   $$("input", el).forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); ($("#cl-in", el) || $("#cl-up", el)).click(); } }));
   setTimeout(() => $("#cl-e", el)?.focus(), 50);
 }
+/* Login-Seite: App-Vorschau im Panel links (Demo-Daten, kein Konto) – schräg gestellt, skaliert auf die Panel-Breite */
+function authHeroMount(hero) {
+  const view = $(".aa-view", hero), fr = $("iframe", hero); if (!view || !fr || innerWidth < 861) return;
+  const W = 1280, H = 800, fit = () => { const k = view.clientWidth / W; fr.style.transform = `scale(${k})`; view.style.height = Math.round(H * k) + "px"; };
+  new ResizeObserver(fit).observe(view); fit();
+  setTimeout(() => { if (document.body.contains(fr)) fr.src = "index.html?embed=1#/app/today"; }, 350);
+}
 const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 /* Anmelde-/Registrierseite: Formular links, Foto mit schwebenden Karten rechts */
 function authScreen(mode = "in") {
@@ -180,7 +187,10 @@ function authScreen(mode = "in") {
         ${up ? "" : `<button class="link" id="cl-fp" type="button">Passwort vergessen?</button>`}</div>
       <p class="authswitch">${up ? "Schon ein Konto?" : "Noch kein Konto?"} <button class="link" id="cl-sw" type="button">${up ? "Jetzt anmelden" : "Jetzt registrieren"}</button></p>
       <div class="authfoot"><span>Mit dem Fortfahren stimmst du den <a href="legal.html#agb">AGB</a> und der <a href="legal.html#datenschutz">Datenschutzerklärung</a> zu.</span></div></form>
-    <aside class="authhero" style="--hero:url(login-hero.webp)"></aside></div></div>`;
+    <aside class="authhero"><a class="ah-logo" href="#/"><img src="logo-white.png" width="40" height="40" alt=""><b>Studix</b></a>
+      <div class="ah-copy"><h2>Dein Lern- und Workspace an einem Ort.</h2><p>Notizen, Karteikarten, Planer und Studix AI – auf iPad, Handy und PC, auch offline.</p><div class="ah-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div></div>
+      <div class="auth-app" aria-hidden="true"><div class="aa-bar"><i></i><i></i><i></i><span>studix.space</span></div><div class="aa-view"><iframe tabindex="-1" title="Studix App-Vorschau"></iframe></div></div></aside></div></div>`;
+  authHeroMount($(".authhero", app));
   const f = $(".authform", app); cloudAuthBind(f, () => {});
   $("#cl-sw", f).onclick = () => authScreen(up ? "in" : "up");
   $("#cl-eye", f).onclick = () => { const i = $("#cl-p", f); i.type = i.type === "password" ? "text" : "password"; };

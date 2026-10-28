@@ -7,6 +7,7 @@
   root.innerHTML = '<div class="sp-stage"></div>'; document.body.appendChild(root);
   /* Ohne Anmeldung folgt die Login-Seite: Animation nur links, rechts steht schon das Bild */
   var guest = false; try { guest = innerWidth > 860 && /^#\/app/.test(location.hash) && !Object.keys(localStorage).some(function (k) { return /^sb-.*-auth-token$/.test(k) && localStorage.getItem(k); }); } catch (e) {}
+  guest = false;   // Login-Seite: Panel mit App-Vorschau links, kein Foto rechts mehr
   if (guest) { root.classList.add("lg"); var hero = document.createElement("div"); hero.className = "sp-hero"; root.appendChild(hero); }
   var st = root.firstChild, done = false, loaded = document.readyState === "complete";
   addEventListener("load", function () { loaded = true; });

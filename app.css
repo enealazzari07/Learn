@@ -3929,3 +3929,31 @@ html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore 
 .authswitch{margin:18px 0 16px;text-align:center;font-size:14.5px;color:#6b6b78}
 .authswitch .link{color:#0f0f12;font-weight:700;text-decoration:underline;text-underline-offset:3px;background:none;border:0;padding:0;cursor:pointer;font-size:inherit}
 .authswitch .link:hover{color:var(--violet)}
+
+/* ======== Login-Seite: links Panel mit Überschrift und schräg gestellter App-Vorschau, rechts das Formular ======== */
+@media (min-width:861px){
+  .authshell{grid-template-columns:minmax(0,6fr) minmax(400px,5fr)}
+  .authhero{order:-1;padding:14px 0 14px 14px;background:#fff}
+  .authform .authlogo{display:none}
+  .authform{padding-top:44px}
+}
+.authhero::before{inset:14px 0 14px 14px;border-radius:34px;background:radial-gradient(760px 520px at 88% -8%,rgba(176,150,255,.55),transparent 62%),radial-gradient(640px 480px at -5% 105%,rgba(74,44,230,.6),transparent 60%),linear-gradient(140deg,#3a20c8 0%,#5b3df5 52%,#7c5cff 100%)}
+.authhero{overflow:hidden;color:#fff;isolation:isolate}
+.authhero>*{position:relative;z-index:1}
+.ah-logo{position:absolute!important;left:56px;top:46px;display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;font-size:24px;letter-spacing:-.035em}
+.ah-logo b{font-weight:700}
+.ah-copy{position:absolute!important;left:56px;right:56px;top:136px;max-width:560px}
+.ah-copy h2{margin:0;font-size:clamp(30px,3.1vw,46px);line-height:1.06;letter-spacing:-.045em;font-weight:700}
+.ah-copy p{margin:14px 0 0;font-size:clamp(15px,1.2vw,18px);line-height:1.55;color:rgba(255,255,255,.72);max-width:460px}
+.ah-dots{display:flex;gap:6px;margin-top:22px}.ah-dots i{width:8px;height:8px;border-radius:99px;background:rgba(255,255,255,.35)}.ah-dots i.on{width:26px;background:#fff}
+.auth-app{position:absolute!important;left:9%;bottom:-9%;width:96%;border-radius:22px 22px 0 0;background:#fff;box-shadow:0 40px 90px rgba(10,5,60,.5),0 0 0 1px rgba(255,255,255,.4);overflow:hidden;transform:perspective(2000px) rotateX(7deg) rotateY(-11deg) rotateZ(-3deg);transform-origin:left top;animation:ahFloat 7s ease-in-out infinite}
+@keyframes ahFloat{0%,100%{transform:perspective(2000px) rotateX(7deg) rotateY(-11deg) rotateZ(-3deg) translateY(0)}50%{transform:perspective(2000px) rotateX(7deg) rotateY(-11deg) rotateZ(-3deg) translateY(-10px)}}
+.aa-bar{display:flex;align-items:center;gap:6px;padding:11px 14px;background:#f4f4f7;border-bottom:1px solid #e6e6ec}
+.aa-bar i{width:10px;height:10px;border-radius:50%;background:#d6d6de}.aa-bar i:nth-child(1){background:#ff6058}.aa-bar i:nth-child(2){background:#ffbd2e}.aa-bar i:nth-child(3){background:#28c940}
+.aa-bar span{margin:0 auto;padding:4px 40px;border-radius:99px;background:#fff;font-size:11px;color:#8a8a98}
+.aa-view{position:relative;overflow:hidden;background:#f3f3f7}
+.aa-view iframe{position:absolute;left:0;top:0;width:1280px;height:800px;border:0;transform-origin:0 0;pointer-events:none}
+html[data-theme="dark"] .authhero{filter:invert(1) hue-rotate(180deg)!important;background:#fff}
+html[data-theme="dark"] .authhero iframe{filter:none!important}
+@media (max-width:860px){.authhero{display:none}.authform .authlogo{display:flex}}
+@media (prefers-reduced-motion:reduce){.auth-app{animation:none}}
