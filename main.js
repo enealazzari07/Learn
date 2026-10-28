@@ -44,7 +44,10 @@ function mountEmbed(root) {
   const live = on => box.classList.toggle("live", on); box.addEventListener("click", () => live(true)); box.addEventListener("mouseleave", () => live(false)); document.addEventListener("pointerdown", e => { if (!root.contains(e.target)) live(false); }, true);
   const mark = () => { let v = ""; try { v = (fr.contentWindow.location.hash.replace(/^#\/?/, "").split("/")[1] || "today"); } catch {} tabs.forEach(t => t.classList.toggle("on", t.dataset.v === v || (v === "doc" && t.dataset.v === "docs") || (v === "deck" && t.dataset.v === "cards"))); };
   tabs.forEach(t => t.onclick = () => { try { fr.contentWindow.location.hash = "#/app/" + t.dataset.v; } catch { fr.src = "index.html?embed=1#/app/" + t.dataset.v; } tabs.forEach(x => x.classList.toggle("on", x === t)); });
-  fr.addEventListener("load", () => { mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
+  /* Hell/Dunkel der Vorschau folgt immer dem Thema der Seite (auch wenn es nach dem Laden gewechselt wird) */
+  const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
+  new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  fr.addEventListener("load", () => { theme(); mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
 }
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
 function mountGrid(hero) {
