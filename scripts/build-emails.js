@@ -6,15 +6,15 @@ const fs = require("fs"), path = require("path"), M = require("../api/_mail.js")
 const root = path.join(__dirname, ".."), T = M.templates;
 
 const supa = {
-  "confirm-signup": ["Bestätige deine E-Mail-Adresse", T.verify({ url: "{{ .ConfirmationURL }}" })],
+  "confirm-signup": ["Bestätige deine E-Mail-Adresse", T.verify({ url: "{{ .ConfirmationURL }}", code: "{{ .Token }}" })],
   "reset-password": ["Passwort zurücksetzen", T.reset({ url: "{{ .ConfirmationURL }}" })],
-  "magic-link": ["Dein Anmelde-Link für Studix", T.magic({ url: "{{ .ConfirmationURL }}" })],
+  "magic-link": ["Dein Anmelde-Link für Studix", T.magic({ url: "{{ .ConfirmationURL }}", code: "{{ .Token }}" })],
   "change-email": ["Bestätige deine neue E-Mail-Adresse", T.change({ url: "{{ .ConfirmationURL }}", email: "{{ .NewEmail }}" })],
 };
 fs.mkdirSync(path.join(root, "supabase/email-templates"), { recursive: true });
 for (const [f, [, t]] of Object.entries(supa)) fs.writeFileSync(path.join(root, "supabase/email-templates", f + ".html"), t.html);
 
-const demo = { name: "Alex", url: "https://studix.space/#/app", email: "alex@beispiel.ch", price: "6 CHF", interval: "Monat", trialEnd: "11. November 2026", next: "11. November 2026", until: "11. November 2026", days: 3, date: "11. November 2026" };
+const demo = { code: "482917", name: "Alex", url: "https://studix.space/#/app", email: "alex@beispiel.ch", price: "6 CHF", interval: "Monat", trialEnd: "11. November 2026", next: "11. November 2026", until: "11. November 2026", days: 3, date: "11. November 2026" };
 const list = [["verify", "E-Mail bestätigen"], ["reset", "Passwort zurücksetzen"], ["magic", "Anmelde-Link"], ["change", "Neue E-Mail-Adresse"], ["welcome", "Willkommen"], ["subscription", "Abo abgeschlossen / Testphase"], ["trial_ending", "Testphase endet bald"], ["payment_failed", "Zahlung fehlgeschlagen"], ["cancelled", "Abo gekündigt"], ["test", "Testmail"]];
 const attr = s => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 const cards = list.map(([k, label]) => { const t = T[k](demo); return `<section><h2>${label}<small>${t.subject}</small></h2><iframe loading="lazy" srcdoc="${attr(t.html)}" title="${label}"></iframe></section>`; }).join("\n");

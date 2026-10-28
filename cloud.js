@@ -38,7 +38,7 @@ async function cloudPush() {
     if (up.length) { const { error } = await CLOUD.sb.from("lumi_kv").upsert(up, { onConflict: "user_id,k" }); if (error) throw error; }
     if (rm.length) { const { error } = await CLOUD.sb.from("lumi_kv").delete().eq("user_id", CLOUD.user.id).in("k", rm); if (error) throw error; }
     LS.set("lumi-sync", String(Date.now())); cloudStatus("ok");
-  } catch (e) { if (cloudAccountMissing(e)) { CLOUD.busy = false; return cloudAccountGone(); } items.forEach(i => CLOUD.dirty.add(JSON.stringify(i))); cloudStatus("err"); console.error("Cloud-Sync:", e); if (Date.now() - (cloudPush.lastErr || 0) > 60000) { cloudPush.lastErr = Date.now(); toast("Speichern in der Datenbank fehlgeschlagen: " + (e?.message || e?.code || "unbekannt")); } setTimeout(cloudPush, 15000); }
+  } catch (e) { if (cloudAccountMissing(e)) { CLOUD.busy = false; return cloudAccountGone(); } items.forEach(i => CLOUD.dirty.add(JSON.stringify(i))); cloudStatus("err"); console.error("Cloud-Sync:", e); setTimeout(cloudPush, 15000); }
   CLOUD.busy = false;
 }
 /* Die Datenbank gilt immer: Cloud-Daten ersetzen lokale Daten, kein Rückfrage-Popup.
@@ -80,7 +80,7 @@ async function cloudAfterLogin() {
   if (!(await mfaGate())) { try { await CLOUD.sb.auth.signOut(); } catch {} return; }
   plusLoad(false).then(() => { try { refreshNav(); if (curView === "settings") renderView(); } catch {} }).catch(() => {});
   try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); }
-  toast("Angemeldet – Daten werden synchronisiert"); $("#app").innerHTML = ""; route();
+  $("#app").innerHTML = ""; route();
 }
 function cloudStatus() { const e = document.getElementById("cl-st"); if (e) e.textContent = CLOUD.user ? (CLOUD.dirty.size ? "Wird synchronisiert …" : "Synchronisiert") : ""; }
 /* E-Mail-Adresse noch nicht bestätigt? (nur für Konten mit E-Mail + Passwort; Google/Apple sind immer bestätigt) */
@@ -89,10 +89,13 @@ const cloudUnconfirmed = u => !!(u && !u.email_confirmed_at && !u.confirmed_at &
 function cloudVerifyView(el, email, pw, done) {
   const page = $(".authmid", el), host = page || el, x = page ? null : $(".x", el);
   host.innerHTML = `<div class="authverify"><span class="av-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg></span>
-    <h1>Bestätige deine E-Mail</h1><p class="authsub">Wir haben dir einen Link an <b>${esc(email)}</b> geschickt. Klicke darauf, um dein Konto zu aktivieren – auch im Spam-Ordner nachsehen.</p>
+    <h1>Bestätige deine E-Mail</h1><p class="authsub">Wir haben dir eine E-Mail an <b>${esc(email)}</b> geschickt. Gib den Code daraus ein oder klicke auf den Link – auch im Spam-Ordner nachsehen.</p>
     <p class="note authmsg" id="av-m" aria-live="polite"></p>
-    <button class="btn authgo" id="av-ok" type="button">Ich habe bestätigt</button>
-    <div class="av-row"><button class="link" id="av-re" type="button">E-Mail erneut senden</button><button class="link" id="av-back" type="button">Andere E-Mail verwenden</button></div></div>`;
+    <label class="lbl" for="av-c">Code aus der E-Mail</label>
+    <input class="field pill av-code" id="av-c" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="······" aria-label="Bestätigungscode aus der E-Mail">
+    <button class="btn authgo" id="av-ok" type="button">Bestätigen</button>
+    <div class="av-row"><button class="link" id="av-re" type="button">E-Mail erneut senden</button><button class="link" id="av-back" type="button">Andere E-Mail verwenden</button></div>
+    <button class="link av-link" id="av-lk" type="button">Ich habe stattdessen auf den Link geklickt</button></div>`;
   if (x) host.prepend(x);
   const m = $("#av-m", host), say = (t, k = "") => { m.className = "note authmsg" + (k ? " " + k : ""); m.textContent = t; };
   let stop = false, left = 0, timer = null;
@@ -104,7 +107,20 @@ function cloudVerifyView(el, email, pw, done) {
     if (!error) { try { await CLOUD.sb.auth.signOut(); } catch {} }
     if (!quiet) say("Noch nicht bestätigt – bitte klicke zuerst auf den Link in der E-Mail.", "err"); return false;
   };
-  $("#av-ok", host).onclick = () => { say("Wird geprüft …", "load"); check(false); };
+  const code = $("#av-c", host);
+  const verifyCode = async () => {
+    const t = code.value.replace(/\D/g, ""); if (t.length < 6) return say("Gib den Code aus der E-Mail ein (mindestens 6 Ziffern).", "err");
+    say("Code wird geprüft …", "load"); $("#av-ok", host).classList.add("busy");
+    const { error } = await CLOUD.sb.auth.verifyOtp({ email, token: t, type: "signup" });
+    $("#av-ok", host).classList.remove("busy");
+    if (error) return say(/expired|invalid|otp/i.test(error.message) ? "Der Code ist falsch oder abgelaufen. Prüfe die Ziffern oder fordere unten eine neue E-Mail an." : error.message, "err");
+    stop = true; say("Bestätigt – du wirst angemeldet …", "ok"); done();
+  };
+  code.oninput = () => { code.value = code.value.replace(/\D/g, "").slice(0, 8); if (code.value.length === 6) verifyCode(); };
+  code.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); verifyCode(); } };
+  $("#av-ok", host).onclick = verifyCode;
+  $("#av-lk", host).onclick = () => { say("Wird geprüft …", "load"); check(false); };
+  setTimeout(() => code.focus(), 60);
   $("#av-re", host).onclick = async () => { const { error } = await CLOUD.sb.auth.resend({ type: "signup", email, options: { emailRedirectTo: location.origin + "/" } }); if (error) return say(/rate|seconds|too many/i.test(error.message) ? "Bitte warte einen Moment, bevor du die E-Mail erneut sendest." : error.message, "err"); say("Die E-Mail ist unterwegs.", "ok"); left = 60; clearTimeout(timer); tick(); };
   $("#av-back", host).onclick = () => { stop = true; clearTimeout(timer); if (page) authScreen("up"); else { $("#modal-root").innerHTML = ""; cloudLoginModal(); } };
   left = 45; tick();
