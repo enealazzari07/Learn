@@ -418,3 +418,5 @@ body{background:#fff}
   .bm{transform:translateX(-50%) scale(.78)}.bn-card:hover .bm{transform:translateX(-50%) scale(.82)}
 }
 @media (prefers-reduced-motion:reduce){.bn-mt,.bm-a,.bn-li{animation:none}}
+.emb-view iframe{pointer-events:none}.emb-view.live iframe{pointer-events:auto}
+.emb-view:not(.live){cursor:pointer}

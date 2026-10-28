@@ -812,7 +812,7 @@ button.act{cursor:pointer}button.act:hover{background:#f4f1ff}
 
 /* ======== v18: the page never scrolls – the white frame stays; content scrolls inside the rounded box ======== */
 @media (min-width:901px){
-  html,body{overflow:hidden;height:100%}
+  html:has(#app:not([hidden])),body:has(#app:not([hidden])){overflow:hidden;height:100%}
   #app,.shell{height:100dvh;min-height:0!important;overflow:hidden}
   .side{height:100dvh}
   .main:not(.doc-full){height:calc(100dvh - 24px);min-height:0!important;overflow-y:auto!important;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#cfcfda transparent}

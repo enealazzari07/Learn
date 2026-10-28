@@ -40,6 +40,8 @@ function mountEmbed(root) {
   const fr = $("iframe", root), box = $(".emb-view", root), tabs = $$(".emb-tab", root), W = 1280, H = 800;
   const fit = () => { const w = box.clientWidth, k = w / W; box.style.height = Math.round(H * k) + "px"; fr.style.transform = `scale(${k})`; };
   new ResizeObserver(fit).observe(box); fit();
+  /* Die App im Fenster wird erst per Klick interaktiv – sonst fängt der iframe das Scrollen der Seite ab */
+  const live = on => box.classList.toggle("live", on); box.addEventListener("click", () => live(true)); box.addEventListener("mouseleave", () => live(false)); document.addEventListener("pointerdown", e => { if (!root.contains(e.target)) live(false); }, true);
   const mark = () => { let v = ""; try { v = (fr.contentWindow.location.hash.replace(/^#\/?/, "").split("/")[1] || "today"); } catch {} tabs.forEach(t => t.classList.toggle("on", t.dataset.v === v || (v === "doc" && t.dataset.v === "docs") || (v === "deck" && t.dataset.v === "cards"))); };
   tabs.forEach(t => t.onclick = () => { try { fr.contentWindow.location.hash = "#/app/" + t.dataset.v; } catch { fr.src = "index.html?embed=1#/app/" + t.dataset.v; } tabs.forEach(x => x.classList.toggle("on", x === t)); });
   fr.addEventListener("load", () => { mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
@@ -96,7 +98,7 @@ function renderLanding() {
       <div class="emb-tabs" role="tablist">${EMBED_TABS.map((t, i) => `<button class="emb-tab ${i ? "" : "on"}" data-v="${t[1]}" role="tab">${ic(t[2])}<span>${t[0]}</span></button>`).join("")}</div>
       <span class="emb-av"><i style="--c:#18a957">L</i><i style="--c:#3b82f6">M</i><i style="--c:#f59e0b">S</i><em>3 online</em></span><span class="emb-url">studix.app</span></div>
       <div class="emb-view"><iframe src="index.html?embed=1#/app/today" title="Studix App" loading="eager"></iframe><div class="emb-live" aria-hidden="true">${[["u1", "#18a957", "Lena"], ["u2", "#3b82f6", "Marc"], ["u3", "#f59e0b", "Sofia"]].map(u => `<div class="cur ${u[0]}" style="--c:${u[1]}"><svg viewBox="0 0 16 20"><path d="M1 1l13 7-6 2-2 7z" fill="currentColor" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg><span>${u[2]}</span></div>`).join("")}</div></div></div>
-    <p class="emb-hint">Das ist die echte App – klick dich durch.</p>
+    <p class="emb-hint">Das ist die echte App – klick ins Fenster, um sie auszuprobieren.</p>
   </section>
   ${bentoHtml()}
   <section class="sec" id="ai"><div class="dark-card"><div><span class="pill-l dk"><b>Studix AI</b> eingebaut</span><h2>Frag, was du willst. Studix hilft.</h2><p class="lead">Zusammenfassungen, Quiz, Erklärungen und Hausaufgaben-Hinweise – direkt in deinen Unterlagen.</p><a class="btn accent" ${go} style="margin-top:26px">Mit dem Tutor sprechen</a></div>
