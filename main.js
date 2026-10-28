@@ -37,8 +37,11 @@ function pricingHtml(go) {
 }
 const EMBED_TABS = [["Heute", "today", "home"], ["Dokumente", "docs", "folder"], ["Karteikarten", "cards", "cards"], ["Planer", "planner", "cal"], ["Studix AI", "ai", "spark"]];
 function mountEmbed(root) {
-  const fr = $("iframe", root), box = $(".emb-view", root), tabs = $$(".emb-tab", root), W = 1280, H = 800;
-  const fit = () => { const w = box.clientWidth, k = w / W; box.style.height = Math.round(H * k) + "px"; fr.style.transform = `scale(${k})`; };
+  const fr = $("iframe", root), box = $(".emb-view", root), tabs = $$(".emb-tab", root), W = 1280, BASE = 780, MAXH = 1300; let H = BASE;
+  const fit = () => { const w = box.clientWidth, k = w / W; fr.style.height = H + "px"; box.style.height = Math.round(H * k) + "px"; fr.style.transform = `scale(${k})`; };
+  /* Jede Seite ist nur so hoch wie ihr Inhalt (mindestens BASE), damit man in der Vorschau nie scrollen muss */
+  const measure = () => { try { const d = fr.contentDocument, m = d.querySelector("#main"); if (!m) return; H = BASE; fit(); let ex = 0; [m, ...m.querySelectorAll("*")].forEach(e => { if (e.scrollHeight > e.clientHeight + 4 && /auto|scroll/.test(fr.contentWindow.getComputedStyle(e).overflowY)) ex = Math.max(ex, e.scrollHeight - e.clientHeight); }); H = Math.min(MAXH, BASE + ex); fit(); } catch {} };
+  const remeasure = () => [150, 700, 1600].forEach(t => setTimeout(measure, t));
   new ResizeObserver(fit).observe(box); fit();
   /* Die App im Fenster wird erst per Klick interaktiv – sonst fängt der iframe das Scrollen der Seite ab */
   const live = on => box.classList.toggle("live", on); box.addEventListener("click", () => live(true)); box.addEventListener("mouseleave", () => live(false)); document.addEventListener("pointerdown", e => { if (!root.contains(e.target)) live(false); }, true);
@@ -47,7 +50,7 @@ function mountEmbed(root) {
   /* Hell/Dunkel der Vorschau folgt immer dem Thema der Seite (auch wenn es nach dem Laden gewechselt wird) */
   const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  fr.addEventListener("load", () => { theme(); mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
+  fr.addEventListener("load", () => { theme(); mark(); remeasure(); try { fr.contentWindow.addEventListener("hashchange", remeasure); fr.contentDocument.addEventListener("click", remeasure, true); } catch {} try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
 }
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
 function mountGrid(hero) {
@@ -94,7 +97,7 @@ function renderLanding() {
     <nav class="pnav-links"><a href="#how">Funktionen</a><a href="#ai">Studix AI</a>${BILL.cfg?.enabled ? '<a href="#pricing">Preise</a>' : ""}<a href="#faq">Fragen</a></nav>
     <div class="pnav-r"><a class="btn accent" ${go}>App öffnen</a><button class="burger" aria-label="Menü" onclick="document.getElementById('nav').classList.toggle('open')">${ic("menu")}</button></div></header>
   <section class="hero3"><div class="agp" aria-hidden="true"></div>
-    <h1>Dein ganzes Lernen.<br>Ein Ort.</h1>
+    <h1>Dein Lern- und Workspace<br>an einem Ort.</h1>
     <p class="sub">Notizen, Zeichnungen, Karteikarten, Planer und ein <mark class="hl ul" style="--c:#ff9800">KI-Tutor</mark> – in einer App, die mit dir mitdenkt. Auf iPad, Handy und PC, <span style="white-space:nowrap"><mark class="hl mk" style="--c:#87cefa">auch offline</mark>.</span></p>
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
     <div class="emb" id="emb"><div class="emb-bar"><span class="dots"><i></i><i></i><i></i></span>

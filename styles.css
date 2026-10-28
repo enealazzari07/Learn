@@ -278,7 +278,7 @@ body{background:#fff}
 .pnav .btn{padding:11px 20px}
 .pnav .burger{display:none;width:42px;height:42px;border-radius:50%;background:#f1f1f4}
 .hero3{text-align:center;padding:140px 16px 40px;background:radial-gradient(900px 420px at 50% 0,#f1ecff 0,transparent 70%)}
-.hero3 h1{font-size:clamp(46px,8vw,104px);line-height:.96;letter-spacing:-.055em;font-weight:700;margin:24px auto 0;max-width:980px}
+.hero3 h1{font-size:clamp(38px,6.2vw,88px);line-height:1;letter-spacing:-.055em;font-weight:700;margin:24px auto 0;max-width:1180px}
 .hero3 .sub{font-size:clamp(17px,1.6vw,21px);color:#4a4a55;max-width:620px;margin:24px auto 0}
 .hero3 .hero-cta{margin-top:32px}
 .emb{max-width:1180px;margin:56px auto 0;background:#fff;border-radius:28px;box-shadow:0 50px 120px rgba(40,20,120,.2),0 0 0 1px rgba(20,20,40,.08);overflow:hidden;text-align:left}
@@ -420,3 +420,4 @@ body{background:#fff}
 @media (prefers-reduced-motion:reduce){.bn-mt,.bm-a,.bn-li{animation:none}}
 .emb-view iframe{pointer-events:none}.emb-view.live iframe{pointer-events:auto}
 .emb-view:not(.live){cursor:pointer}
+.emb-view{transition:height .35s cubic-bezier(.3,.8,.3,1)}
