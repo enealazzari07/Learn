@@ -423,7 +423,7 @@ body{background:#fff}
 .emb-view{transition:height .35s cubic-bezier(.3,.8,.3,1)}
 
 /* ======== Landing: mehr Farbe, Bewegung und Inhalt ======== */
-.hero3::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;background:radial-gradient(420px 300px at 12% 28%,rgba(255,106,61,.22),transparent 70%),radial-gradient(460px 320px at 88% 22%,rgba(37,99,235,.22),transparent 70%),radial-gradient(380px 280px at 60% 70%,rgba(14,159,110,.16),transparent 70%);animation:blobs 14s ease-in-out infinite alternate}
+.hero3::before{content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;background:radial-gradient(380px 280px at 60% 70%,rgba(14,159,110,.16),transparent 70%);animation:blobs 14s ease-in-out infinite alternate}
 @keyframes blobs{to{transform:translate3d(0,18px,0) scale(1.06);filter:hue-rotate(25deg)}}
 .rv{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.8,.2,1) var(--d,0s),transform .7s cubic-bezier(.2,.8,.2,1) var(--d,0s)}
 .rv.in{opacity:1;transform:none}

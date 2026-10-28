@@ -111,14 +111,12 @@ function extraHtml(go) {
     ["#f0e6ff", "#8b5cf6", "spark", "Ein Tutor, der Zeit hat", "Frag Studix AI zu deinen Unterlagen: erklären, zusammenfassen, abfragen – rund um die Uhr.", `<div class="xv xv-ai"><p>Erkläre mir die Zellatmung</p><p class="a">Stell dir die Zelle als Kraftwerk vor …</p></div>`]];
   const steps = [["#ff6a3d", "1", "Sammeln", "Schreib mit, zeichne, importiere PDFs und Bilder – alles landet geordnet in deinen Fächern."], ["#2563eb", "2", "Verstehen", "Lass dir Stoff erklären, zusammenfassen und in Karteikarten und Quiz verwandeln."], ["#0e9f6e", "3", "Behalten", "Der Lernplan erinnert dich genau dann, wenn Wiederholen am meisten bringt."]];
   const uses = [["#e11d48", "Schule", "Hausaufgaben, Vokabeln und Klassenarbeiten im Griff."], ["#2563eb", "Uni", "Skripte, Zusammenfassungen und Altklausuren an einem Ort."], ["#0e9f6e", "Ausbildung", "Berichtsheft, Lernfelder und Prüfungsvorbereitung."], ["#d97706", "Selbststudium", "Eigene Ziele, Lernpläne und Fokus-Timer."]];
-  const stats = [["0 €", "zum Start – kostenlos"], ["3", "Geräte: iPad, Handy, PC"], ["100 %", "offline nutzbar"], ["✎", "Apple Pencil unterstützt"]];
   return `
   <section class="sec xs" id="subjects"><p class="xs-k rv">Für jedes Fach</p><div class="mq rv"><div class="mq-t">${chips}</div></div></section>
   <section class="sec xs" id="tiles"><h2 class="rv">Vier Werkzeuge. Ein Workflow.</h2><p class="lead rv">Vier Werkzeuge, die zusammenarbeiten – statt vier Apps, die du jonglieren musst.</p>
     <div class="xt">${tiles.map(([bg, c, i, t, d, v], k) => `<article class="xt-c rv" style="--bg:${bg};--c:${c};--d:${k * 90}ms"><span class="xt-i">${ic(i)}</span><h3>${t}</h3><p>${d}</p>${v}</article>`).join("")}</div></section>
   <section class="sec xs" id="steps"><h2 class="rv">So lernst du mit Studix.</h2>
-    <div class="xst">${steps.map(([c, n, t, d], k) => `<div class="xst-c rv" style="--c:${c};--d:${k * 120}ms"><b>${n}</b><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></section>
-  <section class="sec xs" id="stats"><div class="xsb rv">${stats.map(([a, b]) => `<div><b data-n>${a}</b><span>${b}</span></div>`).join("")}</div></section>`;
+    <div class="xst">${steps.map(([c, n, t, d], k) => `<div class="xst-c rv" style="--c:${c};--d:${k * 120}ms"><b>${n}</b><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></section>`;
 }
 function bentoHtml() {
   const now = new Date(), y = now.getFullYear(), m = now.getMonth(), first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
