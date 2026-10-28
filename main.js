@@ -44,10 +44,30 @@ function mountEmbed(root) {
   const measure = () => { try { const d = fr.contentDocument, m = d.querySelector("#main"); if (!m) return; H = BASE; fit(); let ex = 0; [m, ...m.querySelectorAll("*")].forEach(e => { if (e.scrollHeight > e.clientHeight + 4 && /auto|scroll/.test(fr.contentWindow.getComputedStyle(e).overflowY)) ex = Math.max(ex, e.scrollHeight - e.clientHeight); }); H = Math.min(MAXH, BASE + ex); fit(); } catch {} };
   const remeasure = () => [150, 700, 1600].forEach(t => setTimeout(measure, t));
   new ResizeObserver(fit).observe(box); fit();
-  /* Die App im Fenster wird erst per Klick interaktiv – sonst fängt der iframe das Scrollen der Seite ab */
-  const live = on => box.classList.toggle("live", on); box.addEventListener("click", () => live(true)); box.addEventListener("mouseleave", () => live(false)); document.addEventListener("pointerdown", e => { if (!root.contains(e.target)) live(false); }, true);
   const mark = () => { let v = ""; try { v = (fr.contentWindow.location.hash.replace(/^#\/?/, "").split("/")[1] || "today"); } catch {} tabs.forEach(t => t.classList.toggle("on", t.dataset.v === v || (v === "doc" && t.dataset.v === "docs") || (v === "deck" && t.dataset.v === "cards"))); };
-  tabs.forEach(t => t.onclick = () => { try { fr.contentWindow.location.hash = "#/app/" + t.dataset.v; } catch { fr.src = "index.html?embed=1#/app/" + t.dataset.v; } tabs.forEach(x => x.classList.toggle("on", x === t)); });
+  /* Die Vorschau bedient niemand selbst: Sofia klickt sich automatisch durch die App, Lena und Marc sind nur im geteilten Dokument zu sehen */
+  const live = $(".emb-live", root), sofia = $(".cur.u3", root); let tour = 0, alive = true, tid = 0;
+  const wait = ms => new Promise(r => { tid = setTimeout(r, ms); });
+  const hashGo = v => { try { fr.contentWindow.location.hash = "#/app/" + v; } catch { fr.src = "index.html?embed=1#/app/" + v; } };
+  const moveTo = (sel, fx = .5, fy = .5) => { try { const e = fr.contentDocument.querySelector(sel), k = box.clientWidth / W; if (e) { const r = e.getBoundingClientRect(); sofia.style.left = (r.left + r.width * fx) * k + "px"; sofia.style.top = (r.top + r.height * fy) * k + "px"; return true; } } catch {} sofia.style.left = "52%"; sofia.style.top = "46%"; return false; };
+  const click = () => { sofia.classList.remove("clk"); void sofia.offsetWidth; sofia.classList.add("clk"); };
+  const visit = async (v, sel) => { moveTo(sel || `.nav-i[data-go="${v}"]`, .4, .5); await wait(1300); click(); await wait(250); hashGo(v); await wait(700); };
+  const run = async () => {
+    const mine = ++tour; await wait(2500);
+    while (alive && mine === tour) {
+      live.classList.remove("collab"); await visit("docs"); await wait(1400);
+      moveTo('[data-id="d1"],[data-doc="d1"],.dcard,.doc-card,.doc,main a', .5, .5); await wait(1300); click(); await wait(250); hashGo("doc/d1"); await wait(900);
+      live.classList.add("collab"); moveTo(".ed, .editor, [contenteditable], #main", .35, .4); await wait(6500);
+      live.classList.remove("collab"); await visit("today"); await wait(3000);
+      await visit("exams"); await wait(2600);
+      await visit("planner"); await wait(2600);
+      await visit("grades"); await wait(2400);
+      hashGo("cards"); moveTo("#main", .5, .4); await wait(2600);
+      await visit("ai"); await wait(3200);
+      await visit("today"); await wait(2200);
+    }
+  };
+  const vis = new IntersectionObserver(es => es.forEach(e => { alive = e.isIntersecting; if (alive) run(); else { clearTimeout(tid); tour++; } }), { threshold: .2 }); vis.observe(root);
   /* Hell/Dunkel der Vorschau folgt immer dem Thema der Seite (auch wenn es nach dem Laden gewechselt wird) */
   const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -125,7 +145,7 @@ function renderLanding() {
       <div class="emb-tabs" role="tablist">${EMBED_TABS.map((t, i) => `<button class="emb-tab ${i ? "" : "on"}" data-v="${t[1]}" role="tab">${ic(t[2])}<span>${t[0]}</span></button>`).join("")}</div>
       <span class="emb-av"><i style="--c:#18a957">L</i><i style="--c:#3b82f6">M</i><i style="--c:#f59e0b">S</i><em>3 online</em></span><span class="emb-url">studix.app</span></div>
       <div class="emb-view"><iframe src="index.html?embed=1#/app/today" title="Studix App" loading="eager"></iframe><div class="emb-live" aria-hidden="true">${[["u1", "#18a957", "Lena"], ["u2", "#3b82f6", "Marc"], ["u3", "#f59e0b", "Sofia"]].map(u => `<div class="cur ${u[0]}" style="--c:${u[1]}"><svg viewBox="0 0 16 20"><path d="M1 1l13 7-6 2-2 7z" fill="currentColor" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg><span>${u[2]}</span></div>`).join("")}</div></div></div>
-    <p class="emb-hint">Das ist die echte App – klick ins Fenster, um sie auszuprobieren.</p>
+    <p class="emb-hint">Live-Vorschau: Sofia arbeitet in der App, Lena und Marc schreiben im geteilten Dokument mit.</p>
   </section>
   ${bentoHtml()}
   ${extraHtml(go)}
