@@ -313,3 +313,4 @@ body{background:#fff}
   .hero3{padding-top:120px}.emb{border-radius:20px;margin-top:40px}.emb-url,.emb-bar .dots{display:none}.emb-tab span{display:none}.emb-tab{padding:9px 12px}.emb-tab.on span{display:inline}
   .fgrid{grid-template-columns:1fr}.fcard{min-height:0;padding:26px;border-radius:28px}
 }
+.sec.feat,#ai.sec,#faq.sec{max-width:1240px;margin-inline:auto;padding-inline:16px}
