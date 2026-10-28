@@ -213,7 +213,7 @@ footer a{display:block;padding:4px 0}
 :root{--bg:#f6f4ef;--violet:#5b3df5;--lime:#cdf56b;--yellow:#cdf56b}
 .logo{font-family:var(--font);font-weight:700;font-size:24px;letter-spacing:-.04em;display:flex;align-items:center;gap:8px}
 .mark{width:22px;height:22px;border-radius:50%;background:conic-gradient(from 200deg,#5b3df5,#cdf56b,#ff6a3d,#5b3df5);display:inline-block}
-.btn.accent{background:var(--violet);color:#fff}
+.btn.accent{background:#0f0f12;color:#fff}.btn.accent:hover{background:#2a2a30}
 .btn.big{padding:15px 26px;font-size:16px}
 .hero2{position:relative;text-align:center;padding:130px 20px 60px;overflow:hidden}
 .hero2 .orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;z-index:0}
