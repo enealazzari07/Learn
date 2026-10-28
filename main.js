@@ -33,7 +33,7 @@ function pricingHtml(go) {
   return `<section class="sec" id="pricing"><h2 style="text-align:center;margin-inline:auto">Einfache Preise.</h2><p class="lead" style="text-align:center;margin:10px auto 0">Starte kostenlos – upgrade, wenn du mehr Studix AI willst.</p>
   <div class="plans"><div class="plan"><h3>Gratis</h3><p class="pr"><b>${eur(0)}</b></p><ul>${li(["Notizen, Zeichnen, Dateien", "Karteikarten &amp; Quiz", "Planer, Noten, Fokus-Timer", `Studix AI: ${aiuNum(AIQ.free)} Token pro Woche`, "Sync auf allen Geräten"])}</ul><a class="btn" ${go}>Kostenlos starten</a></div>
   <div class="plan feat"><span class="pill-l"><b>Pro</b> beliebt</span><h3>Studix Study Pro</h3>${c.monthly ? `<p class="pr"><b>${eur(c.monthly)}</b> / Monat</p>${c.yearly ? `<p class="note">oder ${eur(c.yearly)} / Jahr</p>` : ""}` : `<p class="pr"><b>${eur(c.yearly)}</b> / Jahr</p>`}<ul>${li(["Alles aus Gratis", `${c.trial || 14} Tage kostenlos testen`, `Studix AI: ${aiuNum(AIQ.pro)} Token pro Woche`, "Längere Antworten", "Neue Pro-Funktionen zuerst", "Jederzeit kündbar"])}</ul><a class="btn accent" ${go}>${c.trial || 14} Tage gratis testen</a></div></div>
-  ${planCompareHtml("pc-land")}
+  <p style="text-align:center;margin-top:18px">${planCompareLink()}</p>
   <p class="note" style="text-align:center;margin-top:14px">Preise inkl. gesetzlicher Mehrwertsteuer deines Landes – sie wird beim Bezahlen automatisch berechnet.</p></section>`;
 }
 const EMBED_TABS = [["Heute", "today", "home"], ["Dokumente", "docs", "folder"], ["Karteikarten", "cards", "cards"], ["Planer", "planner", "cal"], ["Studix AI", "ai", "spark"]];

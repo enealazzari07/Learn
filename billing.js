@@ -83,14 +83,17 @@ const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American
 
 const proFeatures = () => [`Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche (Gratis: ${aiuNum(AIQ.free)})`, "Längere Antworten", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
 /* Was ist in Gratis und in Pro enthalten – Tabelle (Einstellungen → Pro und Startseite) */
-function planCompareHtml(cls = "") {
+function planCompareHtml() {
   const ck = `<span class="pc-y">${ic("check")}</span>`, no = `<span class="pc-n">–</span>`;
   const rows = [["Notizen, Zeichnen, Dateien &amp; PDFs", ck, ck], ["Karteikarten &amp; Quiz", ck, ck], ["Planer, Noten, Prüfungen &amp; Fokus-Timer", ck, ck], ["Sync auf allen Geräten", ck, ck],
     [`Studix AI pro Woche <small>Gemini &amp; Groq – der Verbrauch setzt sich eine Woche nach deiner ersten Anfrage zurück</small>`, `<b>${aiuNum(AIQ.free)}</b> Token`, `<b>${aiuNum(AIQ.pro)}</b> Token`], ["Längere Antworten", no, ck], ["Neue Pro-Funktionen zuerst", no, ck]];
-  return `<section class="panel prowhat ${cls}"><h2>Was ist inbegriffen</h2><div class="pc-t" role="table"><div class="pc-h" role="row"><span></span><b>Gratis</b><b>Pro</b></div>${rows.map(([t, a, b]) => `<div class="pc-r" role="row"><span>${t}</span><span>${a}</span><span>${b}</span></div>`).join("")}</div><p class="note">Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Gemini Pro zählt 5×, Gemini Flash 1×, Groq 0,5×.</p></section>`;
+  return `<div class="pcm"><h3>Was ist inbegriffen</h3><div class="pc-t" role="table"><div class="pc-h" role="row"><span></span><b>Gratis</b><b>Pro</b></div>${rows.map(([t, a, b]) => `<div class="pc-r" role="row"><span>${t}</span><span>${a}</span><span>${b}</span></div>`).join("")}</div><p class="note">Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Gemini Pro zählt 5×, Gemini Flash 1×, Groq 0,5×.</p></div>`;
 }
+/* Link „Was ist inbegriffen?“ unter der Beschreibung – öffnet die Tabelle als Popup */
+const planCompareLink = () => `<button type="button" class="pc-link" data-pc>Was ist inbegriffen?</button>`;
+document.addEventListener("click", e => { if (e.target.closest && e.target.closest("[data-pc]")) { e.preventDefault(); modal(planCompareHtml(), "pcmodal"); } });
 
-function plusPanelHtml() { return plusPanelCore() + planCompareHtml(); }
+function plusPanelHtml() { return plusPanelCore().replace(/<\/div>\s*$/, planCompareLink() + "</div>"); }
 function plusPanelCore() {
   const c = BILL.cfg, r = BILL.row, list = `<ul class="prolist">${proFeatures().map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>`;
   const eligible = !r, trialD = (c && c.trial) || 14;
