@@ -33,7 +33,7 @@ const PRESETS = {
   school: ["Mathe", "Deutsch", "Englisch", "Biologie", "Chemie", "Physik", "Geschichte", "Geografie", "Informatik", "Kunst", "Musik", "Sport", "Politik", "Französisch", "Latein", "Spanisch", "Religion/Ethik"],
   uni: ["Analysis", "Lineare Algebra", "Programmierung", "Statistik", "BWL", "VWL", "Recht", "Psychologie", "Medizin", "Chemie", "Physik", "Informatik", "Literatur", "Geschichte", "Seminar"],
 };
-const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["exams", "Prüfungen", "bookmark"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Studix AI", "sparkO"]];
+const NAVS = [["today", "Heute", "home"], ["docs", "Dokumente", "folder"], ["workspace", "Workspace", "team"], ["exams", "Prüfungen", "bookmark"], ["planner", "Planer", "cal"], ["grades", "Noten", "award"], ["focus", "Fokus", "timer"], ["ai", "Studix AI", "sparkO"]];
 
 /* ---------- stats ---------- */
 const addMin = m => { const k = iso(); D.stats.days[k] = (D.stats.days[k] || 0) + m; save(); };

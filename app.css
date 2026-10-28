@@ -4016,3 +4016,18 @@ html[data-theme="dark"] .authhero iframe{filter:none!important}
 .sji-b{aspect-ratio:1;border-radius:12px;border:1.5px solid #e6e6ec;background:#fff;color:#444;display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s,border-color .15s,transform .1s}
 .sji-b svg{width:22px;height:22px}.sji-b:hover{background:#f4f4f7}.sji-b:active{transform:scale(.94)}
 .sji-b.on{background:#0f0f12;border-color:#0f0f12;color:#fff}
+
+/* Workspace */
+.ws-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-top:12px}
+.ws-card{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;background:#fff;border:1px solid #ececf0;border-radius:24px;padding:20px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.ws-card:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(30,20,90,.1)}
+.ws-card b{font-size:17px;letter-spacing:-.02em}.ws-card small{color:#8a8a98;font-size:13px}
+.ws-ic{width:42px;height:42px;border-radius:14px;background:#f1f1f4;display:grid;place-items:center;margin-bottom:6px}.ws-ic svg{width:22px;height:22px}
+.ws-av{display:flex;align-items:center;padding:4px 8px;border-radius:999px;cursor:pointer;background:none;border:0}
+.ws-av i{width:26px;height:26px;border-radius:50%;color:#fff;font:700 11px/26px var(--font);text-align:center;border:2px solid #fff;margin-left:-7px;font-style:normal}.ws-av i:first-child{margin-left:0}.ws-av i.more{background:#d6d6de;color:#444}
+.ws-ppl{display:grid;gap:8px;max-height:50vh;overflow:auto}
+.ws-p{display:flex;align-items:center;gap:12px;padding:8px 4px}.ws-p>span{flex:1;min-width:0}.ws-p b{font-size:14.5px}
+.ws-p i{width:34px;height:34px;border-radius:50%;color:#fff;font:700 14px/34px var(--font);text-align:center;font-style:normal;flex:none}
+.ws-p select.field{width:auto;padding:6px 10px}
+.ws-pick{display:grid;gap:6px;max-height:50vh;overflow:auto}
+.ws-pick button{text-align:left;padding:11px 14px;border-radius:12px;background:#f6f6f8;cursor:pointer;font-weight:550}.ws-pick button:hover{background:#ececf0}
