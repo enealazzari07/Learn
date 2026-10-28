@@ -455,7 +455,7 @@ body{background:#fff}
 .xst-c b{position:absolute;right:20px;top:-10px;font-size:150px;line-height:1;opacity:.18;font-weight:800;letter-spacing:-.06em}
 .xst-c h3{font-size:30px;letter-spacing:-.03em;margin-top:90px;font-weight:650}.xst-c p{margin-top:10px;opacity:.92;line-height:1.5}
 .xsb{display:grid;grid-template-columns:repeat(4,1fr);background:#0f0f12;color:#fff;border-radius:32px;padding:44px 20px;text-align:center}
-.xsb div+div{border-left:1px solid rgba(255,255,255,.12)}.xsb b{display:block;font-size:clamp(34px,5vw,60px);letter-spacing:-.04em;background:linear-gradient(90deg,#fff,#fff);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:shine 6s linear infinite}
+.xsb div+div{border-left:1px solid rgba(255,255,255,.12)}.xsb b{display:block;font-size:clamp(34px,5vw,60px);letter-spacing:-.04em;background:linear-gradient(90deg,#ff9a6b,#7aa7ff,#5fe0b0);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:shine 6s linear infinite}
 .xsb span{color:#b5b5c0;font-size:15px}
 @keyframes shine{to{background-position:-200% 0}}
 .xus{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px}
