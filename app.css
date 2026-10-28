@@ -3756,3 +3756,28 @@ html[data-theme="dark"] .authhero::before{filter:invert(1) hue-rotate(180deg)}
 .pp-card:not(.on) .pp-gift{color:#8a8a92}
 #pl-m .ic{width:18px;height:18px;margin-right:2px}
 .sdock .sdk-i svg g[fill]{stroke:none}
+
+/* ======== Handy: schwebende, abgerundete Leiste unten · Chat-Eingabe ohne weisse Box · Dokumente kompakt · kein Datum/Uhrzeit ======== */
+@media (max-width:900px){
+  .z-date,.bento .w-clock,.bento .w-rec{display:none!important}
+  .side{left:12px!important;right:12px!important;bottom:calc(10px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:30px!important;padding:6px!important;background:rgba(255,255,255,.86)!important;-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);box-shadow:0 10px 34px rgba(20,20,40,.16),0 0 0 1px rgba(20,20,40,.05)!important}
+  .side .nav-i{border-radius:22px!important;transition:background .2s,transform .2s}
+  .side .nav-i:active{transform:scale(.94)}
+  .side .nav-i.on{background:#ececf0!important}
+  .main,.main:not(.doc-full){padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+  .timer-pill,.tfab{bottom:calc(96px + env(safe-area-inset-bottom))!important}
+
+  .hdock{--db:calc(96px + env(safe-area-inset-bottom))!important}
+  .hdock:not(.open){top:calc(100dvh - 96px - env(safe-area-inset-bottom) - 126px)!important}
+  .hdock:not(.open) .hd-bg,.hdock:not(.open) .hd-bg::before{display:none!important;background:transparent!important}
+  .hdock:not(.open) .t-in{box-shadow:0 8px 28px rgba(20,20,40,.14)!important}
+
+  .docspaper .items{gap:10px}
+  .doc .th,.doc .th.note-th{height:84px}.doc .th.note-th{padding:34px 12px 8px;font-size:11px}
+  .doc .tbadge{left:8px;top:8px;padding:3px 8px 3px 6px;font-size:10px}
+  .dm{padding:9px 12px 11px}.dt{font-size:13.5px;-webkit-line-clamp:1}
+  .ds{font-size:11.5px;margin-top:3px}.ds .ago{display:none}
+  .drow{padding:7px 6px;gap:10px}.dr-a{display:none}
+  .dtr{grid-template-columns:minmax(0,1fr) 34px!important;grid-template-areas:"n m"!important;height:46px!important;padding:0 8px!important;row-gap:0}
+  .dtr>span.dt2,.dtr>span.dsj,.dtr>span.dd{display:none!important}
+}

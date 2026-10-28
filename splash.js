@@ -1,5 +1,6 @@
 /* Studix Start-Animation. Läuft einmal pro Browser-Tab; Klick, Taste oder Esc überspringt sie. */
 (function () {
+  if (/[?&]embed=1/.test(location.search)) return;
   var S; try { if (sessionStorage.getItem("lumi-splash") === "1") return; sessionStorage.setItem("lumi-splash", "1"); } catch (e) {}
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, root = document.createElement("div");
   root.id = "splash"; root.setAttribute("aria-hidden", "true");
