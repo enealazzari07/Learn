@@ -4031,3 +4031,10 @@ html[data-theme="dark"] .authhero iframe{filter:none!important}
 .ws-p select.field{width:auto;padding:6px 10px}
 .ws-pick{display:grid;gap:6px;max-height:50vh;overflow:auto}
 .ws-pick button{text-align:left;padding:11px 14px;border-radius:12px;background:#f6f6f8;cursor:pointer;font-weight:550}.ws-pick button:hover{background:#ececf0}
+
+/* Wortmarke: naeher am Logo, Groesse passend zum Icon */
+.logo{gap:6px!important}.logo .mark{width:30px!important;height:30px!important;margin-right:0!important;vertical-align:middle}
+.pnav .logo,.logo.authlogo{font-size:28px}
+.brand{font-size:24px}.brand .mark{width:26px!important;height:26px!important;margin:0 5px 0 0!important}
+.ah-logo{gap:7px!important;font-size:28px!important}.ah-logo img{width:34px!important;height:34px!important}
+.wm{line-height:1}
