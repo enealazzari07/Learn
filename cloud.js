@@ -77,9 +77,11 @@ async function cloudTokenHash() {
 async function cloudInit() {
   if (!cloudOn() || EMBED_MODE) return;   // die Vorschau auf der Startseite hat nie ein Konto
   try { await loadSupabaseLib(); } catch { return; }
+  const oauthBack = /access_token=|[?&#]code=/.test(location.hash + location.search) && !/token_hash=/.test(location.search);   // Rueckkehr von Google/Apple
   CLOUD.sb = window.supabase.createClient(window.LUMI_CONFIG.supabaseUrl, window.LUMI_CONFIG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true } });
   try { await cloudTokenHash(); } catch {}
   const { data } = await CLOUD.sb.auth.getSession(); CLOUD.user = data.session?.user || null;
+  if (oauthBack && CLOUD.user) history.replaceState(null, "", location.pathname + "#/app");
   if (CLOUD.user) { try { const { error } = await CLOUD.sb.auth.getUser(); if (error && ([401, 403, 404].includes(error.status) || /sub claim|does not exist|not found/i.test(error.message || ""))) { await CLOUD.sb.auth.signOut({ scope: "local" }); CLOUD.user = null; } } catch {} }   // gelöschtes Konto: alte Anmeldung verwerfen
   if (CLOUD.user && (cloudUnconfirmed(CLOUD.user) || !(await mfaGate()))) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }
   if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
@@ -194,7 +196,7 @@ function authScreen(mode = "in") {
   const f = $(".authform", app); cloudAuthBind(f, () => {});
   $("#cl-sw", f).onclick = () => authScreen(up ? "in" : "up");
   $("#cl-eye", f).onclick = () => { const i = $("#cl-p", f); i.type = i.type === "password" ? "text" : "password"; };
-  $$("[data-o]", f).forEach(b => b.onclick = async () => { const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/#/app" } }); if (error) $("#cl-m", f).textContent = error.message; });
+  $$("[data-o]", f).forEach(b => b.onclick = async () => { const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/" } }); if (error) $("#cl-m", f).textContent = error.message; });
 }
 function cloudLoginModal() {
   if (!cloudOn()) return toast("Cloud ist noch nicht eingerichtet.");
