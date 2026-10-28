@@ -3826,3 +3826,16 @@ html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore 
 /* Aktions-Knöpfe im Seitenkopf: nie ein schwarzer Block, immer Icon – Trennlinie – Plus */
 .pagehead #nw,.pagehead #nt,.pagehead #nd,.pagehead #ng,.pagehead #exn,.pagehead #gen,.pagehead #goal,.pagehead #exe,.pagehead #ci,.pagehead #dsb{background:none!important;color:#8a8a92!important;box-shadow:none!important;border:0!important}
 .pagehead #nw:hover,.pagehead #nt:hover,.pagehead #nd:hover,.pagehead #ng:hover,.pagehead #exn:hover,.pagehead #gen:hover,.pagehead #goal:hover,.pagehead #exe:hover,.pagehead #ci:hover,.pagehead #dsb:hover{color:#111!important}
+
+/* ======== Seitenkopf: überall exakt gleich gross (Einstellungen = Standard) ======== */
+.setcrumb{box-sizing:border-box;min-height:69px;margin-top:-12px;margin-bottom:18px}
+.setcrumb>.sdock{height:52px!important;box-sizing:border-box}
+.setcrumb .dk-search,.setcrumb .dk-search .sdk-i{height:40px}.setcrumb .dk-search{width:40px;border-radius:20px}.setcrumb .dk-search .sdk-i{width:40px}
+.setcrumb .dk-search:focus-within,.setcrumb .dk-search.has{width:min(260px,40vw)}
+.docsed>.pagehead,.aip-t.pagehead{margin:18px 29px 18px}
+@media (max-width:900px){
+  .setcrumb{min-height:101px}
+  .docsed>.pagehead,.aip-t.pagehead{margin:16px 24px 18px}
+  .setcrumb .dk-search:focus-within,.setcrumb .dk-search.has{width:100%;flex:1}
+}
+@media (max-width:900px){.aip-t.pagehead{margin:8px 16px 18px}}
