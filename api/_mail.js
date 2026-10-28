@@ -27,7 +27,7 @@ const layout = ({ badge = "", title, lead = "", body = "", code = "", codeHtml =
   body{margin:0;padding:0}a{color:${INK}}
   .logo-d{display:none!important}
   @media (max-width:540px){.px{padding-left:22px!important;padding-right:22px!important}.h1{font-size:28px!important}.btn a{display:block!important}.cell{width:40px!important;height:52px!important;font-size:22px!important;line-height:52px!important}}
-  @media (prefers-color-scheme:dark){.bg{background:#0b0b0e!important}.hero{background-color:#0b0b0e!important;background-image:none!important}.dk{color:#f4f4f8!important}.tx{color:#b9b9c6!important}.mut{color:#8d8d9b!important}.pill{background:#1d1d25!important;color:#b9b9c6!important}.cell{background:#1a1a22!important;border-color:#2b2b36!important;color:#f4f4f8!important}.ln{border-color:#26262f!important}.logo-l{display:none!important}.logo-d{display:block!important}a.lk{color:#d6d6e4!important}.cta{border-color:#3a3a46!important}}
+  @media (prefers-color-scheme:dark){.bg{background:#0b0b0e!important}.hero{background-color:#0b0b0e!important;background-image:none!important}.dk{color:#f4f4f8!important}.tx{color:#b9b9c6!important}.mut{color:#8d8d9b!important}.pill{background:#1d1d25!important;color:#b9b9c6!important}.cell{background:#1a1a22!important;border-color:#2b2b36!important;color:#f4f4f8!important}.ln{border-color:#26262f!important}.logo-l{display:none!important}.logo-d{display:block!important}.cta{border-color:#3a3a46!important}}
 </style></head>
 <body class="bg" style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased">
 ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px">${esc(preheader)}${"&nbsp;&zwnj;".repeat(40)}</div>` : ""}
@@ -49,7 +49,6 @@ ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;c
     ${details.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;text-align:left">${details.map(([k, v], n) => `<tr><td class="mut ln" style="padding:14px 0;border-top:1px solid #ececf1;${n === details.length - 1 ? "border-bottom:1px solid #ececf1;" : ""}font-size:14.5px;color:#8a8a98">${esc(k)}</td><td align="right" class="dk ln" style="padding:14px 0;border-top:1px solid #ececf1;${n === details.length - 1 ? "border-bottom:1px solid #ececf1;" : ""}font-size:15px;font-weight:600;color:${INK}">${esc(v)}</td></tr>`).join("")}</table>` : ""}
     ${cta ? `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" class="btn" style="margin:30px auto 4px"><tr><td align="center" class="cta" bgcolor="${INK}" style="border-radius:999px;background:${INK};border:1px solid ${INK}"><a href="${esc(cta[1])}" style="display:inline-block;padding:17px 38px;font-size:16px;font-weight:600;letter-spacing:-.01em;color:#ffffff;text-decoration:none;border-radius:999px">${esc(cta[0])}</a></td></tr></table>` : ""}
     ${note ? `<p class="mut" style="margin:18px 0 0;font-size:14px;line-height:1.6;color:#8a8a98">${nl2(note)}</p>` : ""}
-    ${link ? `<p class="mut" style="margin:20px 0 0;font-size:12.5px;line-height:1.55;color:#a0a0ad">Funktioniert der Button nicht? Kopiere diesen Link in deinen Browser:<br><a class="lk" href="${esc(link)}" style="color:#6b6b78;word-break:break-all">${esc(link)}</a></p>` : ""}
   </td></tr>
   <!-- Fuss -->
   <tr><td class="px" align="center" style="padding:40px 40px 0"><div class="ln" style="border-top:1px solid #ececf1;padding-top:22px"></div>
@@ -65,28 +64,28 @@ const templates = {
   verify: ({ name, url, code, codeHtml }) => ({
     subject: "Bestätige deine E-Mail-Adresse",
     html: layout({ badge: "Konto", title: `Nur noch ein Klick${name ? ", " + name : ""}.`, lead: "Gib den Code in Studix ein oder klicke auf den Button – dann ist dein Konto startklar.", preheader: code ? `Dein Code: ${code}` : "Bestätige deine E-Mail-Adresse für Studix.",
-      code, codeHtml, cta: ["E-Mail bestätigen", url], link: url, note: "Du hast dich nicht bei Studix registriert? Dann kannst du diese Nachricht einfach ignorieren." }),
+      code, codeHtml, cta: ["E-Mail bestätigen", url], note: "Du hast dich nicht bei Studix registriert? Dann kannst du diese Nachricht einfach ignorieren." }),
     text: `Bestätige deine E-Mail-Adresse für Studix.${code ? " Dein Code: " + code + "." : ""} Link: ${url}`,
   }),
   /* Passwort zurücksetzen (bei Supabase: {{ .ConfirmationURL }}) */
   reset: ({ url }) => ({
     subject: "Passwort zurücksetzen",
     html: layout({ badge: "Sicherheit", title: "Neues Passwort festlegen.", lead: "Wir haben eine Anfrage erhalten, das Passwort deines Studix-Kontos zurückzusetzen.", preheader: "Setze dein Studix-Passwort zurück.",
-      body: P("Klicke auf den Button und wähle ein neues Passwort. Der Link ist aus Sicherheitsgründen nur kurze Zeit gültig."), cta: ["Passwort zurücksetzen", url], link: url, note: "Du hast das nicht angefordert? Dann ist alles in Ordnung – dein Passwort bleibt unverändert und du musst nichts tun." }),
+      body: P("Klicke auf den Button und wähle ein neues Passwort. Der Link ist aus Sicherheitsgründen nur kurze Zeit gültig."), cta: ["Passwort zurücksetzen", url], note: "Du hast das nicht angefordert? Dann ist alles in Ordnung – dein Passwort bleibt unverändert und du musst nichts tun." }),
     text: `Passwort für Studix zurücksetzen: ${url}`,
   }),
   /* Anmelden per Link (bei Supabase: {{ .ConfirmationURL }}) */
   magic: ({ url, code, codeHtml }) => ({
     subject: "Dein Anmelde-Link für Studix",
     html: layout({ badge: "Anmeldung", title: "Dein Link zum Anmelden.", lead: "Ein Klick, und du bist in Studix – ganz ohne Passwort.", preheader: "Dein Anmelde-Link für Studix.",
-      body: P("Dieser Link funktioniert nur einmal und nur kurze Zeit."), code, codeHtml, cta: ["Jetzt anmelden", url], link: url, note: "Du hast dich nicht angemeldet? Dann ignoriere diese Nachricht." }),
+      body: P("Dieser Link funktioniert nur einmal und nur kurze Zeit."), code, codeHtml, cta: ["Jetzt anmelden", url], note: "Du hast dich nicht angemeldet? Dann ignoriere diese Nachricht." }),
     text: `Anmelden bei Studix: ${url}`,
   }),
   /* neue E-Mail-Adresse bestätigen (bei Supabase: {{ .ConfirmationURL }}) */
   change: ({ url, email }) => ({
     subject: "Bestätige deine neue E-Mail-Adresse",
     html: layout({ badge: "Konto", title: "Neue E-Mail-Adresse bestätigen.", lead: "Du möchtest die E-Mail-Adresse deines Studix-Kontos ändern.", preheader: "Bestätige deine neue E-Mail-Adresse.",
-      body: P("Bestätige die Änderung mit einem Klick."), details: email ? [["Neue Adresse", email]] : [], cta: ["Änderung bestätigen", url], link: url, note: "Du hast das nicht selbst gemacht? Ändere bitte sofort dein Passwort." }),
+      body: P("Bestätige die Änderung mit einem Klick."), details: email ? [["Neue Adresse", email]] : [], cta: ["Änderung bestätigen", url], note: "Du hast das nicht selbst gemacht? Ändere bitte sofort dein Passwort." }),
     text: `Neue E-Mail-Adresse bestätigen: ${url}`,
   }),
   /* Willkommen */
