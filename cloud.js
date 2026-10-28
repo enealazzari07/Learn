@@ -72,7 +72,7 @@ async function cloudInit() {
   if (CLOUD.user) { try { const { error } = await CLOUD.sb.auth.getUser(); if (error && ([401, 403, 404].includes(error.status) || /sub claim|does not exist|not found/i.test(error.message || ""))) { await CLOUD.sb.auth.signOut({ scope: "local" }); CLOUD.user = null; } } catch {} }   // gelöschtes Konto: alte Anmeldung verwerfen
   if (CLOUD.user && (cloudUnconfirmed(CLOUD.user) || !(await mfaGate()))) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }
   if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
-  CLOUD.sb.auth.onAuthStateChange((ev, s) => { const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { BILL.row = null; LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
+  CLOUD.sb.auth.onAuthStateChange((ev, s) => { if (ev === "PASSWORD_RECOVERY") setTimeout(recoveryModal, 600); const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { BILL.row = null; LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
   addEventListener("online", cloudPush);
 }
 async function cloudAfterLogin() {
@@ -86,8 +86,9 @@ function cloudStatus() { const e = document.getElementById("cl-st"); if (e) e.te
 /* E-Mail-Adresse noch nicht bestätigt? (nur für Konten mit E-Mail + Passwort; Google/Apple sind immer bestätigt) */
 const cloudUnconfirmed = u => !!(u && !u.email_confirmed_at && !u.confirmed_at && (u.app_metadata?.provider || "email") === "email");
 /* Schritt „Bestätige deine E-Mail“ in der Login-Seite (oder im Konto-Fenster): Hinweis, erneut senden, automatisch weiter sobald bestätigt */
-function cloudVerifyView(el, email, pw, done) {
+async function cloudVerifyView(el, email, pw, done) {
   const page = $(".authmid", el), host = page || el, x = page ? null : $(".x", el);
+  if (page) { host.classList.add("av-leave"); await new Promise(r => setTimeout(r, 230)); host.classList.remove("av-leave"); }   // Formular blendet aus, nur links – das Foto rechts bleibt stehen
   host.innerHTML = `<div class="authverify"><span class="av-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg></span>
     <h1>Bestätige deine E-Mail</h1><p class="authsub">Wir haben dir eine E-Mail an <b>${esc(email)}</b> geschickt. Gib den Code daraus ein oder klicke auf den Link – auch im Spam-Ordner nachsehen.</p>
     <p class="note authmsg" id="av-m" aria-live="polite"></p>
@@ -110,9 +111,9 @@ function cloudVerifyView(el, email, pw, done) {
   const code = $("#av-c", host);
   const verifyCode = async () => {
     const t = code.value.replace(/\D/g, ""); if (t.length < 6) return say("Gib den Code aus der E-Mail ein (mindestens 6 Ziffern).", "err");
-    say("Code wird geprüft …", "load"); $("#av-ok", host).classList.add("busy");
+    say("Code wird geprüft …", "load"); $("#av-ok", host).classList.add("is-loading");
     const { error } = await CLOUD.sb.auth.verifyOtp({ email, token: t, type: "signup" });
-    $("#av-ok", host).classList.remove("busy");
+    $("#av-ok", host).classList.remove("is-loading");
     if (error) return say(/expired|invalid|otp/i.test(error.message) ? "Der Code ist falsch oder abgelaufen. Prüfe die Ziffern oder fordere unten eine neue E-Mail an." : error.message, "err");
     stop = true; say("Bestätigt – du wirst angemeldet …", "ok"); done();
   };
@@ -132,7 +133,7 @@ function cloudAuthHtml() {
     <p class="note" id="cl-m" style="min-height:20px"></p><div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn primary" id="cl-in">Anmelden</button><button class="btn" id="cl-up">Registrieren</button><button class="link" id="cl-fp" type="button">Passwort vergessen</button></div>`;
 }
 function cloudAuthBind(el, done) {
-  const msg = t => { const m = $("#cl-m", el); if (!m) return; const k = !t ? "" : /…$/.test(t) ? "load" : /Fast geschafft|erfolgreich|geschickt/i.test(t) ? "ok" : "err"; m.className = "note authmsg" + (k ? " " + k : ""); m.innerHTML = t ? `<span class="am-i">${k === "load" ? `<i class="am-sp"></i>` : k === "ok" ? `<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>` : `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.1"/></svg>`}</span><span></span>` : ""; if (t) m.lastChild.textContent = t; $$("#cl-in,#cl-up", el).forEach(b => b.classList.toggle("busy", k === "load")); }, val = () => [$("#cl-e", el).value.trim(), $("#cl-p", el).value];
+  const msg = t => { const m = $("#cl-m", el); if (!m) return; const k = !t ? "" : /…$/.test(t) ? "load" : /Fast geschafft|erfolgreich|geschickt/i.test(t) ? "ok" : "err"; m.className = "note authmsg" + (k ? " " + k : ""); m.innerHTML = t ? `<span class="am-i">${k === "load" ? `<i class="am-sp"></i>` : k === "ok" ? `<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>` : `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.4v.1"/></svg>`}</span><span></span>` : ""; if (t) m.lastChild.textContent = t; $$("#cl-in,#cl-up", el).forEach(b => b.classList.toggle("is-loading", k === "load")); }, val = () => [$("#cl-e", el).value.trim(), $("#cl-p", el).value];
   const need = () => { const [e, p] = val(); if (!e || p.length < 6) { msg("E-Mail und ein Passwort mit mindestens 6 Zeichen eingeben."); return null; } return [e, p]; };
   let authBusy = false;   // verhindert doppeltes Absenden (Enter + Klick)
   /* E-Mail muss bestätigt sein: erst nach dem Klick auf den Link in der Mail geht die Anmeldung */
@@ -167,6 +168,45 @@ function cloudLoginModal() {
   if (!cloudOn()) return toast("Cloud ist noch nicht eingerichtet.");
   const { el, close } = modal(`<h3>Konto</h3><p class="note">Melde dich an, damit deine Notizen, Aufgaben und Karteikarten auf allen Geräten da sind.</p>${cloudAuthHtml()}`);
   cloudAuthBind(el, close);
+}
+/* Profil-Menü (Seitenleiste unten): Einstellungen, Passwort zurücksetzen, E-Mail ändern, Konto löschen, Abmelden */
+async function cloudSendReset() {
+  if (!CLOUD.user) return; const { error } = await CLOUD.sb.auth.resetPasswordForEmail(CLOUD.user.email, { redirectTo: location.origin + "/" });
+  toast(error ? "E-Mail konnte nicht gesendet werden: " + error.message : "Wir haben dir eine E-Mail zum Zurücksetzen des Passworts geschickt.");
+}
+function emailChangeModal() {
+  const { el, close } = modal(`<h3>E-Mail-Adresse ändern</h3><p class="note">Aktuell: <b>${esc(CLOUD.user?.email || "")}</b>. Wir schicken dir einen Bestätigungslink – erst danach gilt die neue Adresse.</p>
+    <label class="lbl" for="ce-e">Neue E-Mail-Adresse</label><input class="field" id="ce-e" type="email" autocomplete="email" placeholder="neu@beispiel.ch"><p class="note" id="ce-m" aria-live="polite"></p>
+    <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn primary" id="ce-go">Bestätigung senden</button></div>`);
+  const inp = $("#ce-e", el), m = $("#ce-m", el), go = $("#ce-go", el); $("[data-c]", el).onclick = close; setTimeout(() => inp.focus(), 40);
+  const send = async () => {
+    const v = inp.value.trim(); if (!/^\S+@\S+\.\S+$/.test(v)) return (m.textContent = "Bitte gib eine gültige E-Mail-Adresse ein.");
+    if (v.toLowerCase() === (CLOUD.user?.email || "").toLowerCase()) return (m.textContent = "Das ist schon deine aktuelle Adresse.");
+    go.disabled = true; m.textContent = "Wird gesendet …";
+    const { error } = await CLOUD.sb.auth.updateUser({ email: v }, { emailRedirectTo: location.origin + "/" });
+    if (error) { m.textContent = error.message; go.disabled = false; } else { m.textContent = "Fertig – bestätige die Änderung über den Link in der E-Mail an " + v + "."; go.textContent = "Gesendet"; }
+  };
+  go.onclick = send; inp.onkeydown = e => { if (e.key === "Enter") send(); };
+}
+function profileMenu(btn) {
+  const items = [{ label: "Profil & Einstellungen", icon: "gear", fn: () => { window.__setTab = "gen"; go("settings"); } }];
+  if (CLOUD.user) items.push("-", { label: "Passwort zurücksetzen", icon: "shield", fn: cloudSendReset }, { label: "E-Mail ändern", icon: "adduser", fn: emailChangeModal }, "-", { label: "Konto löschen", icon: "trash", danger: true, fn: accountDeleteModal }, { label: "Abmelden", icon: "logout", fn: cloudLogout });
+  else if (cloudOn()) items.push("-", { label: "Anmelden / Registrieren", icon: "login", fn: cloudLoginModal });
+  menu(btn, items);
+}
+/* Link aus der Passwort-Zurücksetzen-Mail: neues Passwort festlegen */
+function recoveryModal() {
+  const { el, close } = modal(`<h3>Neues Passwort festlegen</h3><p class="note">Wähle ein neues Passwort für dein Studix-Konto.</p>
+    <label class="lbl" for="rp-p">Neues Passwort</label><input class="field" id="rp-p" type="password" autocomplete="new-password" minlength="6" placeholder="Mindestens 6 Zeichen"><p class="note" id="rp-m" aria-live="polite"></p>
+    <div class="row end"><button class="btn primary" id="rp-go">Passwort speichern</button></div>`);
+  const inp = $("#rp-p", el), m = $("#rp-m", el), go = $("#rp-go", el); setTimeout(() => inp.focus(), 40);
+  const save = async () => {
+    if (inp.value.length < 6) return (m.textContent = "Mindestens 6 Zeichen.");
+    go.disabled = true; m.textContent = "Wird gespeichert …";
+    const { error } = await CLOUD.sb.auth.updateUser({ password: inp.value });
+    if (error) { m.textContent = error.message; go.disabled = false; } else { close(); toast("Passwort geändert."); }
+  };
+  go.onclick = save; inp.onkeydown = e => { if (e.key === "Enter") save(); };
 }
 async function cloudLogout() {
   try { await cloudPush(); } catch {}
