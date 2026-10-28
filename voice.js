@@ -2,7 +2,9 @@
 /* Studix Voice – Sprachgespräch mit Studix AI: Mikrofon → Antwort derselben KI-Modelle → natürliche Stimme (Google Gemini TTS, sonst Systemstimme).
    Die animierte Kugel ist eigens gezeichnet (Canvas) und reagiert auf Zuhören, Denken und Sprechen. */
 
-const VC_VOICES = [["de_DE-thorsten-medium", "Thorsten · klar"], ["de_DE-thorsten_emotional-medium", "Thorsten · lebhaft"]];
+/* Stimmen: „or:“ = OpenRouter (HeyGen Voice Turbo, serverseitig über /api/tts); Thorsten läuft direkt im Browser (Notlösung ohne Server) */
+const VC_VOICES = [["or:nadine", "Nadine"], ["or:tabitha", "Tabitha"], ["or:noelle", "Noelle"], ["or:meredith", "Meredith"], ["or:sabrina", "Sabrina"], ["or:bram", "Bram"], ["or:gareth", "Gareth"], ["or:lucian", "Lucian"], ["or:weston", "Weston"], ["or:vincent", "Vincent"], ["de_DE-thorsten-medium", "Thorsten · klar (Browser)"], ["de_DE-thorsten_emotional-medium", "Thorsten · lebhaft (Browser)"]];
+const vcCloud = id => String(id).startsWith("or:");
 /* Sprachausgabe: Piper (MIT, Stimme „Thorsten“ CC0) läuft direkt im Browser – kein Server, kein Limit. Modell (~60 MB) wird einmal geladen und im Browser gespeichert. */
 const VC_PIPER = "https://cdn.jsdelivr.net/npm/@mintplex-labs/piper-tts-web@1.0.5/+esm", VC_ORT = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.27.0/dist/";
 let vcMod = null, vcSes = {};
@@ -134,7 +136,10 @@ V.voice = m => {
   const sentences = t => { const out = []; let cur = ""; const m1 = t.match(/^(.{20,140}?[.!?…])\s+(?=\S)/); if (m1 && t.length > m1[0].length + 20) { out.push(m1[1]); t = t.slice(m1[0].length); } for (const s of t.split(/(?<=[.!?…])\s+/)) { if ((cur + " " + s).trim().length > 230 && cur) { out.push(cur.trim()); cur = s; } else cur = (cur + " " + s).trim(); } if (cur) out.push(cur); return out.length ? out : [t]; };
   async function speak(text, tk) {
     setSt("speaking", "Spreche …"); const parts = sentences(text);
-    const fetchPart = p => S.pip ? (S.pipQ = S.pipQ.catch(() => {}).then(() => S.pip.predict(p)).then(bl => bl.arrayBuffer()).then(ab => ctx().decodeAudioData(ab))).catch(() => null) : Promise.resolve(null);
+    const cloud = p => vcPost("/api/tts", { text: p, voice: S.voice.slice(3) }).then(j => { const bin = atob(j.audio), u8 = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u8[k] = bin.charCodeAt(k); return ctx().decodeAudioData(u8.buffer); })
+      .catch(e => { if (!S.cloudMsg) { S.cloudMsg = true; toast(e.status === 503 ? "Die Stimme ist noch nicht eingerichtet – es wird die Browser-Stimme genutzt." : "Die Stimme ist gerade nicht erreichbar – es wird die Browser-Stimme genutzt."); } if (e.status === 503 || e.status === 402) S.cloudOff = true; else { S.cloudRetry = Date.now() + 60000; } if (!S.pip && !S.pipLoading) { S.pipLoading = true; vcPiper("de_DE-thorsten-medium").then(ses => { S.pip = ses; }).catch(() => {}); } return null; });
+    const useCloud = () => vcCloud(S.voice) && !S.cloudOff && !(S.cloudRetry && Date.now() < S.cloudRetry);
+    const fetchPart = p => useCloud() ? cloud(p) : S.pip ? (S.pipQ = S.pipQ.catch(() => {}).then(() => S.pip.predict(p)).then(bl => bl.arrayBuffer()).then(ab => ctx().decodeAudioData(ab))).catch(() => null) : Promise.resolve(null);
     let next = fetchPart(parts[0]);
     for (let i = 0; i < parts.length; i++) {
       if (tk !== S.token || !S.alive) return; const buf = await next; next = i + 1 < parts.length ? fetchPart(parts[i + 1]) : null;
@@ -152,9 +157,9 @@ V.voice = m => {
   /* ---- Bedienung ---- */
   $mic.onclick = () => { ctx().resume?.(); try { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); } catch {} if (S.state === "listening") { S.paused = true; interrupt(); setSt("idle", "Pausiert – tippe auf das Mikrofon"); } else { S.paused = false; interrupt(); listen(); } };
   $("#vc-orb", m).onclick = () => { if (S.state === "speaking") { interrupt(); S.paused = false; listen(); } };
-  const loadVoice = (say) => { S.pip = null; vcPiper(S.voice).then(ses => { if (!S.alive) return; S.pip = ses; say && speak("Hallo, so klingt diese Stimme.", ++S.token).then(() => !S.paused && listen()); }).catch(() => toast("Natürliche Stimme konnte nicht geladen werden – es wird die Systemstimme genutzt.")); };
-  $("#vc-sel", m).onchange = e => { S.voice = e.target.value; LS.set("lumi-voice", S.voice); interrupt(); toast("Stimme wird geladen …"); loadVoice(true); };
-  if (!vcSes[S.voice]) toast("Natürliche Stimme wird einmalig geladen (ca. 60 MB) …");
+  const loadVoice = (say) => { S.pip = null; if (vcCloud(S.voice)) { S.cloudOff = false; S.cloudRetry = 0; S.cloudMsg = false; say && speak("Hallo, so klingt diese Stimme.", ++S.token).then(() => !S.paused && listen()); return; } vcPiper(S.voice).then(ses => { if (!S.alive) return; S.pip = ses; say && speak("Hallo, so klingt diese Stimme.", ++S.token).then(() => !S.paused && listen()); }).catch(() => toast("Natürliche Stimme konnte nicht geladen werden – es wird die Systemstimme genutzt.")); };
+  $("#vc-sel", m).onchange = e => { S.voice = e.target.value; LS.set("lumi-voice", S.voice); interrupt(); toast(vcCloud(S.voice) ? "Stimme wird gewechselt …" : "Stimme wird geladen …"); loadVoice(true); };
+  if (!vcCloud(S.voice) && !vcSes[S.voice]) toast("Natürliche Stimme wird einmalig geladen (ca. 60 MB) …");
   loadVoice(false);
   const leave = () => { S.alive = false; interrupt(); stopOrb(); try { S.mic && S.mic.getTracks().forEach(t => t.stop()); S.ac && S.ac.close(); } catch {} };
   LEAVE.push(leave);
