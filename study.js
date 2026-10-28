@@ -104,7 +104,7 @@ function onboarding() {
       <div class="obx-chips wrap" id="ob-s">${PRESETS[O.level].map(x => `<button data-s="${esc(x)}" class="${O.picked.has(x) ? "on" : ""}">${esc(x)}</button>`).join("")}</div>`,
     pro: () => `<span class="obx-eyebrow">Studix Study Pro</span><h1>${can ? `${trial} Tage gratis testen` : "Mehr Studix AI mit Pro"}</h1>
       <p class="obx-sub">${can ? `Teste alles ${trial} Tage kostenlos. Danach ${priceStr()} pro Monat – jederzeit kündbar, vor Ablauf erinnern wir dich.` : `Studix Study Pro bringt Studix AI auf ${aiuNum(AIQ.pro)} Token pro Woche. Es ist bald verfügbar.`}</p>
-      <div class="obx-pro"><div class="obx-pro-h"><img src="logo.png" alt="" width="34" height="34"><b>Studix Study Pro</b><em>${can ? `${trial} Tage gratis` : "Bald verfügbar"}</em></div>
+      <div class="obx-pro"><div class="obx-pro-h"><img src="logo.svg" alt="" width="34" height="34"><b>Studix Study Pro</b><em>${can ? `${trial} Tage gratis` : "Bald verfügbar"}</em></div>
         <ul>${[`Studix AI: ${aiuNum(AIQ.pro)} Token pro Woche (+ 5-Stunden-Limit)`, "Alle kommenden Pro-Funktionen", "Jederzeit kündbar"].map(x => `<li>${ic("check")}${x}</li>`).join("")}</ul>
         ${can ? `<p class="obx-fine">${trial} Tage kostenlos, danach ${priceStr()} / Monat inkl. MwSt.</p>` : ""}</div>`,
   };

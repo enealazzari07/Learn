@@ -12,7 +12,7 @@
 #splash .sp-doc{left:-44px;top:-44px;width:88px;height:88px;border-radius:24px;border:4px solid #111;background:#fff;display:block;opacity:0}
 #splash .sp-doc i{position:absolute;left:18px;height:4px;border-radius:2px;background:#111}
 #splash .sp-lock{position:absolute;left:0;top:0;display:flex;align-items:center;transform:translate(-50%,-50%);white-space:nowrap}
-#splash .sp-logo{width:84px;height:84px;flex:none;opacity:0;background:url(logo.png) center/contain no-repeat}
+#splash .sp-logo{width:84px;height:84px;flex:none;opacity:0;background:url(logo.svg) center/contain no-repeat}
 #splash .sp-word{display:inline-block;overflow:hidden;max-width:0;font:700 66px/1 Inter,"SF Pro Display",system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:-.045em;padding:6px 0}
 #splash .sp-word span{display:inline-block;opacity:0}
 #splash.out{pointer-events:none}

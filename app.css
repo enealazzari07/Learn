@@ -1675,7 +1675,7 @@ body:has(.shell.collapsed) .timer-pill .tb-act{width:100%}
 g>.ld{transform-box:fill-box;transform-origin:center}
 
 /* ======== v60: Logo 1:1 nach Vorlage (goldene Kachel + weiße, halbtransparente Schleife) ======== */
-.ai-ic,.aipane .ai-ic,.hai-h .ai-ic,.mark{background:url(logo-white.png) center/84% no-repeat,linear-gradient(135deg,#f7d765 0%,#e8aa3a 100%)!important;color:transparent!important;box-shadow:none!important}
+.ai-ic,.aipane .ai-ic,.hai-h .ai-ic,.mark{background:url(logo-white.svg) center/84% no-repeat,linear-gradient(135deg,#f7d765 0%,#e8aa3a 100%)!important;color:transparent!important;box-shadow:none!important}
 .ai-ic svg{display:none}
 .aipane .ai-ic{width:58px;height:58px;border-radius:19px}
 .mark{width:34px;height:34px;border-radius:11px!important;vertical-align:-9px;margin-right:8px}
@@ -1693,7 +1693,7 @@ g>.ld{transform-box:fill-box;transform-origin:center}
 .ai-ic svg{display:block!important;width:36px;height:36px}
 .aipane .ai-ic{width:40px;height:40px;border-radius:0!important}
 .aip-logo{width:40px;height:40px;flex:none;display:block;background:none!important}.aip-logo svg{width:100%;height:100%}
-.mark{background:url(logo.png) center/contain no-repeat!important;border-radius:0!important}
+.mark{background:url(logo.svg) center/contain no-repeat!important;border-radius:0!important}
 .nav-i .ic image.ld{transform-box:fill-box}
 
 /* v63: schönere Studix-AI-Generierungs-Animation – Logo schwebt, kippt und wird von einem Lichtband durchlaufen */

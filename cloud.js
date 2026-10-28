@@ -189,7 +189,7 @@ function authScreen(mode = "in") {
         ${up ? "" : `<button class="link" id="cl-fp" type="button">Passwort vergessen?</button>`}</div>
       <p class="authswitch">${up ? "Schon ein Konto?" : "Noch kein Konto?"} <button class="link" id="cl-sw" type="button">${up ? "Jetzt anmelden" : "Jetzt registrieren"}</button></p>
       <div class="authfoot"><span>Mit dem Fortfahren stimmst du den <a href="legal.html#agb">AGB</a> und der <a href="legal.html#datenschutz">Datenschutzerklärung</a> zu.</span></div></form>
-    <aside class="authhero"><a class="ah-logo" href="#/"><img src="logo-white.png" width="40" height="40" alt=""><b>Studix</b></a>
+    <aside class="authhero"><a class="ah-logo" href="#/"><img src="logo-white.svg" width="40" height="40" alt=""><b>Studix</b></a>
       <div class="ah-copy"><h2>Dein Lern- und Workspace an einem Ort.</h2><p>Notizen, Karteikarten, Planer und Studix AI – auf iPad, Handy und PC, auch offline.</p><div class="ah-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div></div>
       <div class="auth-app" aria-hidden="true"><div class="aa-bar"><i></i><i></i><i></i><span>studix.space</span></div><div class="aa-view"><iframe tabindex="-1" title="Studix App-Vorschau"></iframe></div></div></aside></div></div>`;
   authHeroMount($(".authhero", app));
