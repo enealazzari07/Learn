@@ -354,3 +354,11 @@ body{background:#fff}
 .agp-sq rect{fill:#6b7280;stroke:none;opacity:0;animation:agpSq 7s ease-in-out infinite}
 @keyframes agpSq{0%{opacity:0}43%{opacity:.14}86%{opacity:0}100%{opacity:0}}
 @media (prefers-reduced-motion:reduce){.agp-sq rect{animation:none}}
+
+/* Textmarker im Hero (wie Magic UI „Highlighter“): handgezeichnet unterstrichen bzw. markiert, wird beim Einblenden gezeichnet */
+.hl{display:inline-block;line-height:1.25;background:none;color:inherit;font-weight:600;color:#0f0f12;padding:0 .12em;margin:0 -.12em;-webkit-box-decoration-break:clone;box-decoration-break:clone;background-repeat:no-repeat;transition:background-size .9s cubic-bezier(.3,.7,.2,1)}
+.hl.ul{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'%3E%3Cpath d='M1 5.2C14 2.2 22 6.8 36 4.4S60 2.6 72 4.6 92 5.6 99 3.4' fill='none' stroke='%23ff9800' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E");background-position:0 100%;background-size:0 .34em}
+.hl.ul.on{background-size:100% .34em}
+.hl.mk{background-image:linear-gradient(var(--c),var(--c));background-position:0 62%;background-size:0 .86em;border-radius:.25em;opacity:1}
+.hl.mk.on{background-size:100% .86em}
+@media (prefers-reduced-motion:reduce){.hl{transition:none}}
