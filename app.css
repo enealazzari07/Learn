@@ -3781,3 +3781,18 @@ html[data-theme="dark"] .authhero::before{filter:invert(1) hue-rotate(180deg)}
   .dtr{grid-template-columns:minmax(0,1fr) 34px!important;grid-template-areas:"n m"!important;height:46px!important;padding:0 8px!important;row-gap:0}
   .dtr>span.dt2,.dtr>span.dsj,.dtr>span.dd{display:none!important}
 }
+
+/* ======== Untermenüs im Stil der Einstellungs-Leiste: runde Icon-Knöpfe, Anzahl als kleines Badge ======== */
+.sdock button em{position:absolute;top:-2px;right:-4px;min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:#ececf0;color:#55555d;font:700 10px/17px inherit;font-family:inherit;font-style:normal;text-align:center;pointer-events:none}
+.sdock button.on em{background:#111;color:#fff}
+.dchips.sdock{margin:0 0 0 0;flex-wrap:wrap;height:auto;min-height:60px;width:max-content;max-width:100%}
+.plw-sw.sdock{height:48px;padding:4px 10px;border-radius:18px;margin-left:auto}.plw-sw.sdock button{--s:36px}
+#pt.sdock{margin:0 0 0 auto}
+.page:has(#pt) .hd{flex-wrap:wrap;gap:12px;align-items:center}
+.page:has(#pt) .hd #pt{margin:0 12px 0 auto}
+@media (max-width:900px){.page:has(#pt) .hd #pt{order:5;width:100%;margin:0}.dchips.sdock{width:100%}}
+
+/* Dark Mode (Seite wird invertiert): Ordner ohne weissen Leucht-Effekt – der schwarze Schatten im Ordner-SVG wird weiss gezeichnet und damit nach dem Invertieren dunkel */
+html[data-theme="dark"] .docspaper .fold .f3d,html[data-theme="dark"] .docspaper .fold:hover .f3d,html[data-theme="dark"] .f3d,html[data-theme="dark"] .fsvg{filter:none!important}
+html[data-theme="dark"] .f3d svg g[filter] rect{fill:#fff}
+html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore svg{text-shadow:none!important;filter:none!important}
