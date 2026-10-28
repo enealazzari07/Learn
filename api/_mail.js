@@ -10,45 +10,49 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const SITE = () => process.env.SITE_URL || "https://studix.space";
 
 /* ---------- Design ----------
-   Schlicht und weiss: Logo + Name oben links, grosse Überschrift, ruhiger Text, schwarzer Button, feine Linien.
-   Nur Tabellen + Inline-CSS (funktioniert in Gmail, Outlook, Apple Mail); Dunkelmodus über prefers-color-scheme. */
-const VIOLET = "#5b3df5", INK = "#0f0f12";
+   Ganz weiss, zentriert: oben ein feines Quadrat-Raster (wie auf der Einstellungs-Seite, läuft nach unten in Weiss aus), Logo, grosse Überschrift,
+   Code in einzelnen abgerundeten Kästchen, schwarzer Button. Nur Tabellen + Inline-CSS; Dunkelmodus über prefers-color-scheme. */
+const INK = "#0f0f12";
 const nl2 = s => esc(s).replace(/\n/g, "<br>");
 
-/* Parameter: badge (kleines Etikett über der Überschrift), title, lead (Untertitel), body (HTML), code (Bestätigungscode), details ([[Name, Wert], …]), cta ([Text, Link]), link (Klartext-Link), note (kleiner Hinweis), preheader (Vorschautext im Posteingang) */
-const layout = ({ badge = "", title, lead = "", body = "", code = "", details = [], cta = null, link = "", note = "", preheader = "" }) => `<!doctype html>
+/* Code: jede Ziffer in einem eigenen abgerundeten Kästchen. cells = Array aus einzelnen Zeichen (oder Template-Ausdrücken) */
+const codeTable = cells => `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto"><tr>${cells.map(c => `<td style="padding:0 4px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td class="cell" align="center" width="46" height="58" style="width:46px;height:58px;background:#f5f5f8;border:1px solid #e6e6ee;border-radius:14px;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:26px;font-weight:700;color:${INK};line-height:58px">${esc(c)}</td></tr></table></td>`).join("")}</tr></table>`;
+/* Für Supabase: {{ .Token }} kann erst beim Versand zerlegt werden (Go-Template slice); ist der Code kürzer als 6 Zeichen, steht er in einem einzigen Kästchen */
+const supabaseCode = `{{ if ge (len .Token) 6 }}${codeTable([0, 1, 2, 3, 4, 5].map(i => `{{ slice .Token ${i} ${i + 1} }}`)).replace(/&#39;/g, "'")}{{ else }}${codeTable(["{{ .Token }}"]).replace("width=\"46\"", "").replace("width:46px;", "")}{{ end }}`;
+
+/* Parameter: badge (kleines Etikett), title, lead (Untertitel), body (HTML), code (Zeichenkette) oder codeHtml (fertiges HTML), details ([[Name, Wert], …]), cta ([Text, Link]), link (Klartext-Link), note (kleiner Hinweis), preheader (Vorschautext im Posteingang) */
+const layout = ({ badge = "", title, lead = "", body = "", code = "", codeHtml = "", details = [], cta = null, link = "", note = "", preheader = "" }) => `<!doctype html>
 <html lang="de" xmlns="http://www.w3.org/1999/xhtml"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark"><title>${esc(title)}</title>
 <style>
   body{margin:0;padding:0}a{color:${INK}}
   .logo-d{display:none!important}
-  @media (max-width:520px){.px{padding-left:24px!important;padding-right:24px!important}.h1{font-size:27px!important}.btn a{display:block!important;text-align:center}}
-  @media (prefers-color-scheme:dark){.bg{background:#0b0b0e!important}.dk{color:#f4f4f8!important}.tx{color:#b9b9c6!important}.mut{color:#8d8d9b!important}.box{background:#17171d!important}.ln{border-color:#26262f!important}.logo-l{display:none!important}.logo-d{display:block!important}a.lk{color:#d6d6e4!important}.cta{background:#ffffff!important}.cta a{color:#0f0f12!important}}
+  @media (max-width:540px){.px{padding-left:22px!important;padding-right:22px!important}.h1{font-size:28px!important}.btn a{display:block!important}.cell{width:40px!important;height:52px!important;font-size:22px!important;line-height:52px!important}}
+  @media (prefers-color-scheme:dark){.bg{background:#0b0b0e!important}.hero{background-image:none!important}.dk{color:#f4f4f8!important}.tx{color:#b9b9c6!important}.mut{color:#8d8d9b!important}.pill{background:#1d1d25!important;color:#b9b9c6!important}.cell{background:#1a1a22!important;border-color:#2b2b36!important;color:#f4f4f8!important}.ln{border-color:#26262f!important}.logo-l{display:none!important}.logo-d{display:block!important}a.lk{color:#d6d6e4!important}.cta{background:#ffffff!important}.cta a{color:#0f0f12!important}}
 </style></head>
 <body class="bg" style="margin:0;padding:0;background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased">
 ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;font-size:1px;line-height:1px">${esc(preheader)}${"&nbsp;&zwnj;".repeat(40)}</div>` : ""}
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#ffffff"><tr><td align="center" style="padding:44px 16px 48px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px">
-  <!-- Logo -->
-  <tr><td class="px" align="left" style="padding:0 8px 34px"><a href="${esc(SITE())}" style="text-decoration:none"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-    <td valign="middle" style="padding-right:10px"><img class="logo-l" src="${esc(SITE())}/logo.png" width="32" height="32" alt="" style="display:block;border:0"><img class="logo-d" src="${esc(SITE())}/logo-white.png" width="32" height="32" alt="" style="display:none;border:0"></td>
-    <td valign="middle" class="dk" style="font-size:22px;font-weight:700;letter-spacing:-.035em;color:${INK}">Studix</td></tr></table></a></td></tr>
-  <!-- Überschrift -->
-  <tr><td class="px" style="padding:0 8px">
-    ${badge ? `<div class="mut" style="font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#8a8a98;margin-bottom:12px">${esc(badge)}</div>` : ""}
-    <h1 class="h1 dk" style="margin:0;font-size:32px;line-height:1.12;font-weight:700;letter-spacing:-.04em;color:${INK}">${esc(title)}</h1>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#ffffff"><tr><td align="center" style="padding:0 0 48px">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px">
+  <!-- Kopf mit Raster, Logo, Überschrift -->
+  <tr><td class="hero px" align="center" bgcolor="#ffffff" background="${esc(SITE())}/mail-grid.png" style="background-color:#ffffff;background-image:url('${esc(SITE())}/mail-grid.png');background-repeat:no-repeat;background-position:center top;background-size:560px auto;padding:48px 40px 8px">
+    <a href="${esc(SITE())}" style="text-decoration:none"><table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td valign="middle" style="padding-right:10px"><img class="logo-l" src="${esc(SITE())}/logo.png" width="40" height="40" alt="" style="display:block;border:0"><img class="logo-d" src="${esc(SITE())}/logo-white.png" width="40" height="40" alt="" style="display:none;border:0"></td>
+      <td valign="middle" class="dk" style="font-size:26px;font-weight:700;letter-spacing:-.04em;color:${INK}">Studix</td></tr></table></a>
+    ${badge ? `<div style="margin-top:34px"><span class="pill mut" style="display:inline-block;background:#f2f2f6;color:#6b6b78;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px">${esc(badge)}</span></div>` : `<div style="height:34px;line-height:34px">&nbsp;</div>`}
+    <h1 class="h1 dk" style="margin:16px 0 0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-.045em;color:${INK}">${esc(title)}</h1>
     ${lead ? `<p class="tx" style="margin:14px 0 0;font-size:17px;line-height:1.55;color:#5b5b68">${esc(lead)}</p>` : ""}
   </td></tr>
   <!-- Inhalt -->
-  <tr><td class="px" style="padding:26px 8px 0">
-    ${body ? `<div class="tx" style="font-size:16px;line-height:1.65;color:#55555f">${body}</div>` : ""}
-    ${code ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="box" style="margin-top:22px;background:#f5f5f8;border-radius:16px"><tr><td align="center" style="padding:24px 12px"><div class="dk" style="font-family:'SF Mono',Menlo,Consolas,monospace;font-size:36px;font-weight:700;letter-spacing:.3em;color:${INK};padding-left:.3em">${esc(code)}</div><div class="mut" style="font-size:13px;color:#8a8a98;margin-top:8px">Dein Code · nur kurze Zeit gültig</div></td></tr></table>` : ""}
-    ${details.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:22px">${details.map(([k, v], n) => `<tr><td class="mut ln" style="padding:14px 0;border-top:1px solid #ececf1;${n === details.length - 1 ? "border-bottom:1px solid #ececf1;" : ""}font-size:14.5px;color:#8a8a98">${esc(k)}</td><td align="right" class="dk ln" style="padding:14px 0;border-top:1px solid #ececf1;${n === details.length - 1 ? "border-bottom:1px solid #ececf1;" : ""}font-size:15px;font-weight:600;color:${INK}">${esc(v)}</td></tr>`).join("")}</table>` : ""}
-    ${cta ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" class="btn" style="margin:30px 0 4px"><tr><td align="center" class="cta" bgcolor="${INK}" style="border-radius:999px;background:${INK}"><a href="${esc(cta[1])}" style="display:inline-block;padding:16px 32px;font-size:16px;font-weight:600;letter-spacing:-.01em;color:#ffffff;text-decoration:none;border-radius:999px">${esc(cta[0])}</a></td></tr></table>` : ""}
-    ${note ? `<p class="mut" style="margin:16px 0 0;font-size:14px;line-height:1.6;color:#8a8a98">${nl2(note)}</p>` : ""}
+  <tr><td class="px" align="center" style="padding:26px 40px 0">
+    ${body ? `<div class="tx" style="font-size:16px;line-height:1.65;color:#55555f;text-align:center">${body}</div>` : ""}
+    ${codeHtml || (code ? codeTable([...String(code)]) : "") ? `<div style="margin-top:${body ? 24 : 4}px">${codeHtml || codeTable([...String(code)])}</div><div class="mut" style="margin-top:12px;font-size:13px;color:#8a8a98">Dein Code · nur kurze Zeit gültig</div>` : ""}
+    ${details.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;text-align:left">${details.map(([k, v], n) => `<tr><td class="mut ln" style="padding:14px 0;border-top:1px solid #ececf1;${n === details.length - 1 ? "border-bottom:1px solid #ececf1;" : ""}font-size:14.5px;color:#8a8a98">${esc(k)}</td><td align="right" class="dk ln" style="padding:14px 0;border-top:1px solid #ececf1;${n === details.length - 1 ? "border-bottom:1px solid #ececf1;" : ""}font-size:15px;font-weight:600;color:${INK}">${esc(v)}</td></tr>`).join("")}</table>` : ""}
+    ${cta ? `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" class="btn" style="margin:30px auto 4px"><tr><td align="center" class="cta" bgcolor="${INK}" style="border-radius:999px;background:${INK}"><a href="${esc(cta[1])}" style="display:inline-block;padding:17px 38px;font-size:16px;font-weight:600;letter-spacing:-.01em;color:#ffffff;text-decoration:none;border-radius:999px">${esc(cta[0])}</a></td></tr></table>` : ""}
+    ${note ? `<p class="mut" style="margin:18px 0 0;font-size:14px;line-height:1.6;color:#8a8a98">${nl2(note)}</p>` : ""}
     ${link ? `<p class="mut" style="margin:20px 0 0;font-size:12.5px;line-height:1.55;color:#a0a0ad">Funktioniert der Button nicht? Kopiere diesen Link in deinen Browser:<br><a class="lk" href="${esc(link)}" style="color:#6b6b78;word-break:break-all">${esc(link)}</a></p>` : ""}
   </td></tr>
   <!-- Fuss -->
-  <tr><td class="px" style="padding:40px 8px 0"><div class="ln" style="border-top:1px solid #ececf1;padding-top:22px"></div>
+  <tr><td class="px" align="center" style="padding:40px 40px 0"><div class="ln" style="border-top:1px solid #ececf1;padding-top:22px"></div>
     <p class="mut" style="margin:0 0 8px;font-size:13px;line-height:1.6;color:#8a8a98"><a href="${esc(SITE())}/#/app" class="dk" style="color:${INK};font-weight:600;text-decoration:none">Studix öffnen</a> &nbsp;·&nbsp; <a href="${esc(SITE())}/legal.html#datenschutz" style="color:#8a8a98;text-decoration:none">Datenschutz</a> &nbsp;·&nbsp; <a href="${esc(SITE())}/legal.html#agb" style="color:#8a8a98;text-decoration:none">AGB</a> &nbsp;·&nbsp; <a href="${esc(SITE())}/legal.html" style="color:#8a8a98;text-decoration:none">Kontakt</a></p>
     <p class="mut" style="margin:0;font-size:12px;line-height:1.6;color:#a0a0ad">Studix – die Lern-App für Schule und Studium.<br>Diese E-Mail wurde automatisch verschickt, bitte antworte nicht direkt darauf.</p>
   </td></tr>
@@ -58,10 +62,10 @@ ${preheader ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;c
 const P = t => `<p style="margin:0 0 14px">${t}</p>`;
 const templates = {
   /* E-Mail-Adresse bestätigen (bei Supabase: {{ .ConfirmationURL }}) */
-  verify: ({ name, url, code }) => ({
+  verify: ({ name, url, code, codeHtml }) => ({
     subject: "Bestätige deine E-Mail-Adresse",
     html: layout({ badge: "Konto", title: `Nur noch ein Klick${name ? ", " + name : ""}.`, lead: "Gib den Code in Studix ein oder klicke auf den Button – dann ist dein Konto startklar.", preheader: code ? `Dein Code: ${code}` : "Bestätige deine E-Mail-Adresse für Studix.",
-      code, cta: ["E-Mail bestätigen", url], link: url, note: "Du hast dich nicht bei Studix registriert? Dann kannst du diese Nachricht einfach ignorieren." }),
+      code, codeHtml, cta: ["E-Mail bestätigen", url], link: url, note: "Du hast dich nicht bei Studix registriert? Dann kannst du diese Nachricht einfach ignorieren." }),
     text: `Bestätige deine E-Mail-Adresse für Studix.${code ? " Dein Code: " + code + "." : ""} Link: ${url}`,
   }),
   /* Passwort zurücksetzen (bei Supabase: {{ .ConfirmationURL }}) */
@@ -72,10 +76,10 @@ const templates = {
     text: `Passwort für Studix zurücksetzen: ${url}`,
   }),
   /* Anmelden per Link (bei Supabase: {{ .ConfirmationURL }}) */
-  magic: ({ url, code }) => ({
+  magic: ({ url, code, codeHtml }) => ({
     subject: "Dein Anmelde-Link für Studix",
     html: layout({ badge: "Anmeldung", title: "Dein Link zum Anmelden.", lead: "Ein Klick, und du bist in Studix – ganz ohne Passwort.", preheader: "Dein Anmelde-Link für Studix.",
-      body: P("Dieser Link funktioniert nur einmal und nur kurze Zeit."), code, cta: ["Jetzt anmelden", url], link: url, note: "Du hast dich nicht angemeldet? Dann ignoriere diese Nachricht." }),
+      body: P("Dieser Link funktioniert nur einmal und nur kurze Zeit."), code, codeHtml, cta: ["Jetzt anmelden", url], link: url, note: "Du hast dich nicht angemeldet? Dann ignoriere diese Nachricht." }),
     text: `Anmelden bei Studix: ${url}`,
   }),
   /* neue E-Mail-Adresse bestätigen (bei Supabase: {{ .ConfirmationURL }}) */
@@ -140,4 +144,4 @@ async function sendMail({ to, subject, html, text, replyTo }) {
   } catch (e) { return { error: e.message || "E-Mail konnte nicht gesendet werden." }; }
 }
 
-module.exports = { sendMail, templates, layout, esc };
+module.exports = { sendMail, templates, layout, esc, supabaseCode };

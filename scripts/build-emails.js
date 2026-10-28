@@ -6,9 +6,9 @@ const fs = require("fs"), path = require("path"), M = require("../api/_mail.js")
 const root = path.join(__dirname, ".."), T = M.templates;
 
 const supa = {
-  "confirm-signup": ["Bestätige deine E-Mail-Adresse", T.verify({ url: "{{ .ConfirmationURL }}", code: "{{ .Token }}" })],
+  "confirm-signup": ["Bestätige deine E-Mail-Adresse", T.verify({ url: "{{ .ConfirmationURL }}", codeHtml: M.supabaseCode, code: "{{ .Token }}" })],
   "reset-password": ["Passwort zurücksetzen", T.reset({ url: "{{ .ConfirmationURL }}" })],
-  "magic-link": ["Dein Anmelde-Link für Studix", T.magic({ url: "{{ .ConfirmationURL }}", code: "{{ .Token }}" })],
+  "magic-link": ["Dein Anmelde-Link für Studix", T.magic({ url: "{{ .ConfirmationURL }}", codeHtml: M.supabaseCode, code: "{{ .Token }}" })],
   "change-email": ["Bestätige deine neue E-Mail-Adresse", T.change({ url: "{{ .ConfirmationURL }}", email: "{{ .NewEmail }}" })],
 };
 fs.mkdirSync(path.join(root, "supabase/email-templates"), { recursive: true });
