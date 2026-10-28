@@ -3908,3 +3908,20 @@ html[data-theme="dark"] .ftxt>b,html[data-theme="dark"] .docspaper .fold .dmore 
 .authverify .av-ic{animation:avIcon .7s cubic-bezier(.2,1.3,.3,1) both .05s}
 @keyframes avIcon{from{opacity:0;transform:scale(.5) rotate(-10deg)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.authverify,.authverify>*,.authverify .av-ic,.authmid.av-leave{animation:none}}
+
+/* E-Mail bestätigen: sechs einzelne Ziffern-Blöcke */
+.authverify{gap:10px;text-align:center;align-items:center}
+.authverify h1{margin:0}.authverify .authsub{margin:0}
+.authverify .av-mail{display:inline-block;margin-top:2px;padding:7px 14px;border-radius:999px;background:#f3f3f6;color:#0f0f12;font-weight:600;font-size:14px;word-break:break-all}
+.otp-row{display:flex;gap:10px;justify-content:center;margin:18px 0 4px;width:100%}
+.otp{width:clamp(40px,12.5vw,54px);height:clamp(52px,15vw,66px);padding:0;border-radius:16px;border:1.5px solid #e2e2ea;background:#f7f7fa;text-align:center;font:700 28px/1 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#0f0f12;outline:0;caret-color:#0f0f12;transition:border-color .15s,box-shadow .15s,background .15s,transform .15s}
+.otp:focus{border-color:#0f0f12;background:#fff;box-shadow:0 0 0 4px rgba(15,15,18,.08);transform:translateY(-1px)}
+.otp.on{background:#fff;border-color:#0f0f12;animation:otpPop .22s cubic-bezier(.2,1.4,.4,1)}
+@keyframes otpPop{from{transform:scale(.88)}to{transform:none}}
+.otp-row.shake{animation:otpShake .42s ease}
+@keyframes otpShake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.authverify .authmsg{width:100%;text-align:left}
+.authverify .authgo{width:100%}
+.authverify .av-hint{margin:0;font-size:12.5px;line-height:1.5;color:#8a8a98}
+.authverify .av-row{width:100%}
+.authverify .av-link{align-self:center}

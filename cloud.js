@@ -89,12 +89,12 @@ const cloudUnconfirmed = u => !!(u && !u.email_confirmed_at && !u.confirmed_at &
 async function cloudVerifyView(el, email, pw, done) {
   const page = $(".authmid", el), host = page || el, x = page ? null : $(".x", el);
   if (page) { host.classList.add("av-leave"); await new Promise(r => setTimeout(r, 230)); host.classList.remove("av-leave"); }   // Formular blendet aus, nur links – das Foto rechts bleibt stehen
-  host.innerHTML = `<div class="authverify"><span class="av-ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3.5"/><path d="M4 7.5l8 5.5 8-5.5"/></svg></span>
-    <h1>Bestätige deine E-Mail</h1><p class="authsub">Wir haben dir eine E-Mail an <b>${esc(email)}</b> geschickt. Gib den Code daraus ein oder klicke auf den Link – auch im Spam-Ordner nachsehen.</p>
+  host.innerHTML = `<div class="authverify">
+    <h1>Bestätige deine E-Mail</h1><p class="authsub">Wir haben dir einen 6-stelligen Code geschickt an</p><span class="av-mail">${esc(email)}</span>
+    <div class="otp-row" id="av-c" role="group" aria-label="Bestätigungscode">${[0, 1, 2, 3, 4, 5].map(i => `<input class="otp" inputmode="numeric" pattern="[0-9]*" maxlength="1" ${i ? "" : 'autocomplete="one-time-code"'} aria-label="Ziffer ${i + 1}">`).join("")}</div>
     <p class="note authmsg" id="av-m" aria-live="polite"></p>
-    <label class="lbl" for="av-c">Code aus der E-Mail</label>
-    <input class="field pill av-code" id="av-c" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="······" aria-label="Bestätigungscode aus der E-Mail">
     <button class="btn authgo" id="av-ok" type="button">Bestätigen</button>
+    <p class="av-hint">Du kannst auch auf den Link in der E-Mail klicken – auch im Spam-Ordner nachsehen.</p>
     <div class="av-row"><button class="link" id="av-re" type="button">E-Mail erneut senden</button><button class="link" id="av-back" type="button">Andere E-Mail verwenden</button></div>
     <button class="link av-link" id="av-lk" type="button">Ich habe stattdessen auf den Link geklickt</button></div>`;
   if (x) host.prepend(x);
@@ -108,20 +108,30 @@ async function cloudVerifyView(el, email, pw, done) {
     if (!error) { try { await CLOUD.sb.auth.signOut(); } catch {} }
     if (!quiet) say("Noch nicht bestätigt – bitte klicke zuerst auf den Link in der E-Mail.", "err"); return false;
   };
-  const code = $("#av-c", host);
+  const boxes = $$(".otp", host), getCode = () => boxes.map(i => i.value).join("");
   const verifyCode = async () => {
-    const t = code.value.replace(/\D/g, ""); if (t.length < 6) return say("Gib den Code aus der E-Mail ein (mindestens 6 Ziffern).", "err");
-    say("Code wird geprüft …", "load"); $("#av-ok", host).classList.add("is-loading");
+    const t = getCode(); if (t.length < 6) return say("Gib alle 6 Ziffern des Codes aus der E-Mail ein.", "err");
+    say("Code wird geprüft …", "load"); $("#av-ok", host).classList.add("is-loading"); boxes.forEach(i => i.disabled = true);
     const { error } = await CLOUD.sb.auth.verifyOtp({ email, token: t, type: "signup" });
-    $("#av-ok", host).classList.remove("is-loading");
-    if (error) return say(/expired|invalid|otp/i.test(error.message) ? "Der Code ist falsch oder abgelaufen. Prüfe die Ziffern oder fordere unten eine neue E-Mail an." : error.message, "err");
+    $("#av-ok", host).classList.remove("is-loading"); boxes.forEach(i => i.disabled = false);
+    if (error) { say(/expired|invalid|otp/i.test(error.message) ? "Der Code ist falsch oder abgelaufen. Prüfe die Ziffern oder fordere unten eine neue E-Mail an." : error.message, "err"); $("#av-c", host).classList.add("shake"); setTimeout(() => $("#av-c", host).classList.remove("shake"), 450); boxes.forEach(i => i.value = ""); boxes[0].focus(); return; }
     stop = true; say("Bestätigt – du wirst angemeldet …", "ok"); done();
   };
-  code.oninput = () => { code.value = code.value.replace(/\D/g, "").slice(0, 8); if (code.value.length === 6) verifyCode(); };
-  code.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); verifyCode(); } };
+  const fill = (from, digits) => { digits.split("").slice(0, 6 - from).forEach((d, k) => { boxes[from + k].value = d; }); const nx = Math.min(5, from + digits.length); boxes[nx].focus(); boxes.forEach(i => i.classList.toggle("on", !!i.value)); if (getCode().length === 6) verifyCode(); };
+  boxes.forEach((b, i) => {
+    b.addEventListener("input", () => { const d = b.value.replace(/\D/g, ""); b.value = ""; if (d) fill(i, d); });
+    b.addEventListener("keydown", e => {
+      if (e.key === "Backspace" && !b.value && i) { boxes[i - 1].value = ""; boxes[i - 1].classList.remove("on"); boxes[i - 1].focus(); e.preventDefault(); }
+      else if (e.key === "Backspace") b.classList.remove("on");
+      else if (e.key === "ArrowLeft" && i) boxes[i - 1].focus(); else if (e.key === "ArrowRight" && i < 5) boxes[i + 1].focus();
+      else if (e.key === "Enter") { e.preventDefault(); verifyCode(); }
+    });
+    b.addEventListener("paste", e => { e.preventDefault(); const d = (e.clipboardData?.getData("text") || "").replace(/\D/g, ""); if (d) fill(0, d); });
+    b.addEventListener("focus", () => b.select());
+  });
   $("#av-ok", host).onclick = verifyCode;
   $("#av-lk", host).onclick = () => { say("Wird geprüft …", "load"); check(false); };
-  setTimeout(() => code.focus(), 60);
+  setTimeout(() => boxes[0].focus(), 60);
   $("#av-re", host).onclick = async () => { const { error } = await CLOUD.sb.auth.resend({ type: "signup", email, options: { emailRedirectTo: location.origin + "/" } }); if (error) return say(/rate|seconds|too many/i.test(error.message) ? "Bitte warte einen Moment, bevor du die E-Mail erneut sendest." : error.message, "err"); say("Die E-Mail ist unterwegs.", "ok"); left = 60; clearTimeout(timer); tick(); };
   $("#av-back", host).onclick = () => { stop = true; clearTimeout(timer); if (page) authScreen("up"); else { $("#modal-root").innerHTML = ""; cloudLoginModal(); } };
   left = 45; tick();
