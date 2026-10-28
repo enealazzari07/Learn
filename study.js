@@ -362,7 +362,7 @@ V.today = m => {
       <form class="z-add" id="todo-f"><span class="tc add">${ic("plus")}</span><input id="todo-i" placeholder="Aufgabe hinzufügen …" autocomplete="off" maxlength="140"><button class="link" type="button" id="addt">Mit Datum</button></form></section>`,
     cal: () => `<section class="wg w-cal rise" style="--i:3"><h2 id="cal-m" title="Zu heute"></h2><div class="cal-g" id="cal-g"></div><div class="w-cd" id="cal-d"></div></section>`,
     goal: () => `<section class="wg w-goal rise" style="--i:4"><h2>Fokus</h2>
-      <div class="fd" id="fd" role="button" aria-label="Fokus-Timer: tippen zum Starten, ziehen zum Einstellen"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><svg class="fd-p" id="fd-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></div></div>
+      <div class="fd" id="fd" role="button" aria-label="Fokus-Timer: tippen zum Starten, ziehen zum Einstellen"><svg viewBox="0 0 200 200" aria-hidden="true"><circle class="fd-bg" cx="100" cy="100" r="84"/><circle class="fd-fg" id="fd-fg" cx="100" cy="100" r="84" transform="rotate(-90 100 100)"/><g id="fd-k"><circle class="fd-knob" cx="100" cy="16" r="12"/></g></svg><div class="fd-c"><b id="fd-t">25:00</b><svg class="fd-p" id="fd-s" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 5.8v12.4c0 1.1 1.2 1.7 2.1 1.2l9.2-6.2a1.4 1.4 0 0 0 0-2.4L10.3 4.6C9.4 4 8.2 4.7 8.2 5.8z"/></svg></div></div>
       <button class="fd-rs" id="fd-rs" hidden aria-label="Zurücksetzen" title="Zurücksetzen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button></section>`,
     cards: () => `<button class="wg w-cards rise" style="--i:5" data-go="cards"><h2>Karteikarten</h2><b class="w-big">${due}</b><p>${due === 1 ? "Karte ist" : "Karten sind"} fällig</p><span class="w-go">Lernen ${ic("back")}</span></button>`,
     rec: () => `<section class="wg w-rec rise" style="--i:6"><h2>Zuletzt</h2><div class="w-scroll">${recent.length ? recent.slice(0, 6).map(d => `<button class="z-doc" data-d="${d.id}"><span class="z-di">${icn(d)}</span><span><b>${esc(d.title)}</b><small>${esc(docPath(d) || "Home")} · ${fmtAgo(d.updated)}</small></span></button>`).join("") : `<p class="empty sm">Noch nichts – leg mit „Neu“ los.</p>`}</div></section>`,
@@ -406,7 +406,7 @@ V.today = m => {
       $("#fd-fg", m).style.strokeDasharray = `${Math.max(0.001, frac) * C} ${C}`; $("#fd-k", m).setAttribute("transform", `rotate(${ang} 100 100)`);
       $("#fd-k", m).style.display = b ? "none" : ""; fd.classList.toggle("run", T.running);
       $("#fd-t", m).textContent = b ? fmtT(T.left) : String(T.focusLen).padStart(2, "0") + ":00";
-      $("#fd-s", m).innerHTML = T.running ? '<path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/>' : '<path d="M8 5.5v13l11-6.5z"/>'; $("#fd-rs", m).hidden = !b;
+      $("#fd-s", m).innerHTML = T.running ? '<rect x="6.5" y="5" width="3.7" height="14" rx="1.85"/><rect x="13.8" y="5" width="3.7" height="14" rx="1.85"/>' : '<path d="M8.2 5.8v12.4c0 1.1 1.2 1.7 2.1 1.2l9.2-6.2a1.4 1.4 0 0 0 0-2.4L10.3 4.6C9.4 4 8.2 4.7 8.2 5.8z"/>'; $("#fd-rs", m).hidden = !b;
     };
     const setLen = v => { v = Math.max(STEP, Math.min(MAXM, v)); if (v !== T.focusLen) { timerSet(v, T.breakLen); paint(); timerPaint(); } };
     let drag = false;

@@ -109,7 +109,7 @@ Object.assign(P, {
   up: '<path d="M12 19V5.5M6.2 11.3L12 5.5l5.8 5.8"/>',
   check: '<path d="M5.5 12.6l4.2 4.2 8.8-9.5"/>',
   play: FG('<path d="M8.2 5.8v12.4c0 1.1 1.2 1.7 2.1 1.2l9.2-6.2a1.4 1.4 0 0 0 0-2.4L10.3 4.6C9.4 4 8.2 4.7 8.2 5.8z"/>'),
-  pause: '<rect x="6.5" y="5" width="3.7" height="14" rx="1.85"/><rect x="13.8" y="5" width="3.7" height="14" rx="1.85"/>',
+  pause: '<rect x="6.5" y="5" width="3.7" height="14" rx="1.85" fill="currentColor" stroke="none"/><rect x="13.8" y="5" width="3.7" height="14" rx="1.85" fill="currentColor" stroke="none"/>',
   trash: '<path d="M5.5 7h13M9.5 7V5.7c0-.9.7-1.7 1.7-1.7h1.6c1 0 1.7.8 1.7 1.7V7M7 7l.7 10.8A2.5 2.5 0 0 0 10.2 20h3.6a2.5 2.5 0 0 0 2.5-2.2L17 7M10.3 11v5M13.7 11v5"/>',
   download: '<path d="M12 4.5v11M7.3 11.3l4.7 4.7 4.7-4.7M5.5 19.5h13"/>',
   bold: '<path d="M7.5 5.5h5a3.3 3.3 0 0 1 0 6.6h-5zM7.5 12.1h6a3.2 3.2 0 0 1 0 6.4h-6z"/>',
