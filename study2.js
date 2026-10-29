@@ -517,23 +517,45 @@ async function importAll(file) {
     D = Object.assign(DEFAULT(), j.data); for (const [k, v] of Object.entries(j.html || {})) await KV.set("html:" + k, v); for (const [k, v] of Object.entries(j.draw || {})) await KV.set("draw:" + k, v); for (const [k, v] of Object.entries(j.ink || {})) await KV.set("ink:" + k, v); for (const [k, v] of Object.entries(j.ann || {})) await KV.set("ann:" + k, v); for (const [k, v] of Object.entries(j.db || {})) await KV.set("db:" + k, v); for (const [k, v] of Object.entries(j.blobs || {})) await KV.set("blob:" + k, await (await fetch(v)).blob()); await KV.set("data", D); toast("Backup geladen"); location.reload();
   } catch { toast("Ungültige Backup-Datei"); }
 }
+const KVI = Object.fromEntries(Object.entries({
+  user: '<circle cx="12" cy="8.2" r="3.6"/><path d="M5 20c.6-3.6 3.5-5.5 7-5.5s6.4 1.9 7 5.5"/>',
+  mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="3.5"/><path d="M4.5 8l7.5 5.5L19.5 8"/>',
+  phone: '<path d="M6.5 3.5h3l1.5 4-2 1.3a10 10 0 0 0 4.2 4.2l1.3-2 4 1.5v3a2 2 0 0 1-2.2 2A15 15 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2z"/>',
+  cal: '<rect x="3.5" y="5" width="17" height="15" rx="4"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.4 5.2 3.4 8.5s-1 6.1-3.4 8.5c-2.4-2.4-3.4-5.2-3.4-8.5s1-6.1 3.4-8.5z"/>',
+  pin: '<path d="M12 21s6.5-5.6 6.5-11a6.5 6.5 0 0 0-13 0c0 5.4 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  book: '<path d="M5 4.5h10a3 3 0 0 1 3 3V19.5H8a3 3 0 0 1-3-3z"/><path d="M5 16.5a3 3 0 0 1 3-3h10"/>',
+  cap: '<path d="M2.8 9.5L12 5l9.2 4.5L12 14z"/><path d="M6.5 11.8V16c1.4 1.3 3.2 2 5.5 2s4.1-.7 5.5-2v-4.2"/>',
+  link: '<path d="M10.3 13.7l3.4-3.4"/><path d="M8.6 15.4l-1.2 1.2a3.1 3.1 0 01-4.4-4.4l3.2-3.2a3.1 3.1 0 014.4 0"/><path d="M15.4 8.6l1.2-1.2a3.1 3.1 0 014.4 4.4l-3.2 3.2a3.1 3.1 0 01-4.4 0"/>',
+  star: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/>',
+}).map(([k, v]) => [k, `<svg class="kvi" viewBox="0 0 24 24" aria-hidden="true">${v}</svg>`]));
 V.settings = m => {
   const p = D.profile;
   m.innerHTML = `<div class="page setpage"><div class="setcrumb"><span>Einstellungen</span><i>/</i><b id="setcrumb">Profil</b><nav class="settabs sdock" role="tablist" aria-label="Einstellungen">${[["gen", "Profil", '<circle cx="12" cy="8.2" r="3.6"/><path d="M5 20c.6-3.6 3.5-5.5 7-5.5s6.4 1.9 7 5.5"/>'], ["ai", "Studix AI", '<path d="M11 3.5l1.9 5.1 5.1 1.9-5.1 1.9L11 17.5l-1.9-5.1L4 10.5l5.1-1.9z"/><path d="M18.5 15.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z"/>'], ["acc", "Konto", '<path d="M7.2 18.5a4.6 4.6 0 01-.7-9.1 6 6 0 0111.6 1.2 3.95 3.95 0 01-.6 7.9z"/>'], ["pro", "Pro", '<path d="M4 8.5l4.2 3.6L12 5.5l3.8 6.6L20 8.5l-1.6 9.5H5.6z"/><path d="M6 20.5h12"/>'], ["con", "Verbindungen", '<path d="M10.3 13.7l3.4-3.4"/><path d="M8.6 15.4l-1.2 1.2a3.1 3.1 0 01-4.4-4.4l3.2-3.2a3.1 3.1 0 014.4 0"/><path d="M15.4 8.6l1.2-1.2a3.1 3.1 0 014.4 4.4l-3.2 3.2a3.1 3.1 0 01-4.4 0"/>'], ["dat", "Daten", '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>']].map(([k, n, p]) => `<button type="button" role="tab" data-s="${k}" aria-label="${n}" title="${n}"><span class="sdk-i"><svg viewBox="0 0 24 24">${p}</svg></span><span class="stl">${n}</span></button>`).join("")}<i class="sdk-sep" aria-hidden="true"></i><button class="theme-tg" id="theme-tg" type="button" aria-label="Hell oder dunkel umschalten" title="Hell / Dunkel"><svg class="tg-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="tg-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></nav></div><div class="setbody">
   <div class="setsec" data-s="gen">
   <div class="prof-head"><div class="pgrid" aria-hidden="true">${(() => { let x = 7; return Array.from({ length: 140 }, () => { x = (x * 1103515245 + 12345) & 0x7fffffff; return `<i class="${x % 100 < 24 ? "f" : ""}"></i>`; }).join(""); })()}</div><span class="av-xl" style="background:${meCol()}">${esc((p.name || CLOUD.user?.email || "L").trim()[0].toUpperCase())}</span><div><h1>${esc(p.name || "Dein Name")}${proBadgeHtml()}</h1><p>${esc(CLOUD.user?.email || "Nicht angemeldet")}</p>${proPillHtml()}</div>${CLOUD.user ? `<button class="btn ghost small pf-auth" id="pf-auth" type="button">${ic("x")}Abmelden</button>` : cloudOn() ? `<button class="btn accent small pf-auth" id="pf-auth" type="button">${ic("adduser")}Anmelden</button>` : ""}</div>
   ${proBannerHtml()}
-  <div class="panel kvcard"><h2>${ic("adduser")}Persönliche Angaben<button class="kv-edit" type="button" aria-label="Bearbeiten" title="Bearbeiten">${ic("pen")}</button></h2>
-    <div class="kv"><span>Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
-    <div class="kv"><span>E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
-    <div class="kv"><span>Profilfarbe</span><div class="avsw" id="avsw">${CO_COL.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${meCol() === c ? "on" : ""}" aria-label="Farbe"></button>`).join("")}</div></div>
-    <div class="kv"><span>Land / Region</span><div class="kvc"><select class="field flat" id="sc">${countryOptions(proCountry())}</select><small id="sch">${priceHint(proCountry()) ? "Studix Study Pro: " + priceHint(proCountry()) : ""}</small></div></div>
-    <div class="kv"><span>Ich bin</span><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div></div>
+  <div class="panel kvcard kv-wide"><h2>${ic("adduser")}Persönliche Angaben<button class="kv-edit" type="button" aria-label="Bearbeiten" title="Bearbeiten">${ic("pen")}</button></h2>
+    <div class="kvg">
+    <div class="kv"><span>${KVI.user}Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
+    <div class="kv"><span>${KVI.mail}E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
+    <div class="kv"><span>${KVI.phone}Telefon</span><input class="field flat" id="sph" type="tel" value="${esc(p.phone || "")}" placeholder="+41 79 123 45 67" autocomplete="tel"></div>
+    <div class="kv"><span>${KVI.cal}Geburtstag</span><input class="field flat" id="sbd" type="date" required value="${esc(p.birthday || "")}"></div>
+    <div class="kv"><span>${KVI.globe}Land / Region</span><div class="kvc"><select class="field flat" id="sc">${countryOptions(proCountry())}</select><small id="sch">${priceHint(proCountry()) ? "Studix Study Pro: " + priceHint(proCountry()) : ""}</small></div></div>
+    <div class="kv"><span>${KVI.pin}Ort</span><input class="field flat" id="sci" value="${esc(p.city || "")}" placeholder="z. B. Zürich"></div>
+    <div class="kv"><span>${KVI.book}${p.level === "uni" ? "Hochschule" : "Schule"}</span><input class="field flat" id="ssc" value="${esc(p.school || "")}" placeholder="${p.level === "uni" ? "z. B. ETH Zürich" : "z. B. Kantonsschule"}"></div>
+    <div class="kv"><span>${KVI.cap}${p.level === "uni" ? "Studiengang" : "Klasse"}</span><input class="field flat" id="scl" value="${esc(p.course || "")}" placeholder="${p.level === "uni" ? "z. B. Biologie, 3. Semester" : "z. B. 3b"}"></div>
+    <div class="kv"><span>${KVI.link}Website</span><input class="field flat" id="swb" type="url" value="${esc(p.website || "")}" placeholder="https://"></div>
+    <div class="kv"><span>${KVI.user}Ich bin</span><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div></div>
+    <div class="kv"><span>${KVI.star}Profilfarbe</span><div class="avsw" id="avsw">${CO_COL.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${meCol() === c ? "on" : ""}" aria-label="Farbe"></button>`).join("")}</div></div>
+    </div>
   </div>
-  <div class="panel kvcard"><h2>${ic("book")}Lernen<button class="kv-edit" type="button" aria-label="Bearbeiten" title="Bearbeiten">${ic("pen")}</button></h2>
-    <div class="kv"><span>Tagesziel</span><div class="kvu"><input class="field flat" id="sg" type="number" min="5" max="600" value="${p.goalMin || 45}"><small>Minuten Lernzeit</small></div></div>
-    <div class="kv"><span>Notensystem</span><select class="field flat" id="ss">${Object.entries(SCALES).map(([k, v]) => `<option value="${k}" ${p.scale === k ? "selected" : ""}>${v.n}</option>`).join("")}</select></div>
-    <div class="kv"><span>${SUBJ()}</span><div class="kvu"><b>${D.subjects.length}</b><button class="btn ghost sm" id="to-subj" type="button">Verwalten unter Noten</button></div></div>
+  <div class="panel kvcard kv-mid"><h2>${ic("book")}Lernen<button class="kv-edit" type="button" aria-label="Bearbeiten" title="Bearbeiten">${ic("pen")}</button></h2>
+    <div class="kvg">
+    <div class="kv"><span>${KVI.cal}Tagesziel</span><div class="kvu"><input class="field flat" id="sg" type="number" min="5" max="600" value="${p.goalMin || 45}"><small>Minuten Lernzeit</small></div></div>
+    <div class="kv"><span>${KVI.cap}Notensystem</span><select class="field flat" id="ss">${Object.entries(SCALES).map(([k, v]) => `<option value="${k}" ${p.scale === k ? "selected" : ""}>${v.n}</option>`).join("")}</select></div>
+    <div class="kv"><span>${KVI.book}${SUBJ()}</span><div class="kvu"><b>${D.subjects.length}</b><button class="btn ghost sm" id="to-subj" type="button">Verwalten unter Noten</button></div></div>
+    </div>
     <p class="note kvnote">🇨🇭 Schweiz: Noten 1–6 (6 = beste, ab 4 genügend), Studix AI schreibt Schweizer Hochdeutsch ohne „ß“.</p></div>
   <div class="panel aiuse" id="aiuse" hidden></div>
   <div class="sthome setfull"><span class="sth-i">${ic("table")}</span><div><b>Startseite</b><small>Blöcke ersetzen, verschieben und in der Größe ändern – mit Vorlagen.</small></div><button class="btn ghost small" id="hed-open" type="button">${ic("pen")}Bearbeiten</button></div>
@@ -579,9 +601,9 @@ V.settings = m => {
   $("#ac-s", m) && ($("#ac-s", m).onchange = e => { p.autoModel = e.target.value; save(); });
   /* Automatisch speichern: beim Tippen (verzögert) und beim Ändern – mit kleiner Rückmeldung statt Speichern-Button */
   let svT = null; const stat = t => { const e = $("#savestat", m); if (!e) return; e.textContent = t; e.classList.toggle("on", !!t); };
-  const commit = () => { p.goalMin = Math.max(5, parseInt($("#sg", m).value) || 45); p.name = $("#sn", m).value.trim(); p.level = $("#sl .on", m)?.dataset.l || p.level; p.scale = $("#ss", m).value; p.apiKey = $("#sk", m).value.trim(); p.model = $("#sm", m).value.trim() || "claude-sonnet-5-5"; save(); refreshNav(); stat("Gespeichert ✓"); clearTimeout(svT); svT = setTimeout(() => stat(""), 1800); };
+  const commit = () => { p.goalMin = Math.max(5, parseInt($("#sg", m).value) || 45); p.name = $("#sn", m).value.trim(); [["sph", "phone"], ["sbd", "birthday"], ["sci", "city"], ["ssc", "school"], ["scl", "course"], ["swb", "website"]].forEach(([id, k]) => { const e = $("#" + id, m); if (e) p[k] = e.value.trim(); }); p.level = $("#sl .on", m)?.dataset.l || p.level; p.scale = $("#ss", m).value; p.apiKey = $("#sk", m).value.trim(); p.model = $("#sm", m).value.trim() || "claude-sonnet-5-5"; save(); refreshNav(); stat("Gespeichert ✓"); clearTimeout(svT); svT = setTimeout(() => stat(""), 1800); };
   const later = () => { stat("Speichert …"); clearTimeout(svT); svT = setTimeout(commit, 600); };
-  ["#sg", "#sn", "#sk", "#sm"].forEach(id => $(id, m)?.addEventListener("input", later)); ["#sg", "#sn", "#ss", "#sk", "#sm"].forEach(id => $(id, m)?.addEventListener("change", () => { clearTimeout(svT); commit(); }));
+  ["#sg", "#sn", "#sk", "#sm", "#sph", "#sci", "#ssc", "#scl", "#swb"].forEach(id => $(id, m)?.addEventListener("input", later)); ["#sg", "#sn", "#ss", "#sk", "#sm", "#sph", "#sbd", "#sci", "#ssc", "#scl", "#swb"].forEach(id => $(id, m)?.addEventListener("change", () => { clearTimeout(svT); commit(); }));
   $$("#sl button", m).forEach(b => b.addEventListener("click", () => setTimeout(commit, 0)));
   LEAVE.push(() => { clearTimeout(svT); });
 };

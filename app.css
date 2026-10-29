@@ -4115,3 +4115,16 @@ footer .logo{color:#0f0f12}
   .settabs.sdock button[data-s].on{background:#111!important;color:#fff!important}.settabs.sdock button[data-s].on svg{stroke:#fff}
 }
 .kv-edit.on svg,.kv-edit:hover svg{stroke:#fff}
+
+/* Einstellungen breit: Angaben in Spalten mit Symbol vor der Beschriftung */
+@media (min-width:760px){.setsec[data-s=gen].on>.kv-wide{grid-column:1/-1}.setsec[data-s=gen].on>.kv-mid{grid-column:1/3}}
+.kvg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+@media (max-width:1100px){.kvg{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.kvg{grid-template-columns:1fr}}
+.setsec[data-s=gen].on .kvg .kv{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:16px 22px;border-bottom:1px solid #f0f0f3}
+.kvg .kv>span{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#8a8a93;font-weight:600}
+.kvi{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.kvg .kv>b{font-size:15px;font-weight:500;overflow-wrap:anywhere}
+.kvcard:not(.editing) .field.flat:placeholder-shown{color:#b0b0ba}
+.kvcard:not(.editing) input[type=date]::-webkit-calendar-picker-indicator{display:none}
+.kvcard:not(.editing) input[type=date]:invalid{color:transparent}.kvcard:not(.editing) input[type=date]:invalid::-webkit-datetime-edit{opacity:0}
