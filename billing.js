@@ -81,7 +81,7 @@ const SUB_STATUS = { trialing: "Testversion", active: "Aktiv", past_due: "Zahlun
 const INV_STATUS = { paid: "Bezahlt", open: "Offen", draft: "Entwurf", void: "Storniert", uncollectible: "Uneinbringlich" };
 const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American Express", discover: "Discover", jcb: "JCB", diners: "Diners Club", unionpay: "UnionPay" })[b] || (b ? b[0].toUpperCase() + b.slice(1) : "Karte");
 
-const proFeatures = () => [`Studix AI mit ${aiuNum(AIQ.pro)} Token pro Woche und ${aiuNum(AIQ.proS)} pro 5 Stunden (Gratis: ${aiuNum(AIQ.free)} / ${aiuNum(AIQ.freeS)})`, "Unbegrenzt Dokumente & Whiteboards", "Bild-Analyse & Sprachgespräch", "Längere Antworten", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
+const proFeatures = () => [`Studix AI mit bis zu ${aiuNum(AIQ.pro)} Token pro Woche und ${aiuNum(AIQ.proS)} pro 5 Stunden (Gratis: bis zu ${aiuNum(AIQ.free)} / ${aiuNum(AIQ.freeS)}) – ohne Garantie, kann eingeschränkt werden`, "Unbegrenzt Dokumente & Whiteboards", "Bild-Analyse & Sprachgespräch", "Längere Antworten", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
 /* Was ist in Gratis und in Pro enthalten – Tabelle (Einstellungen → Pro und Startseite) */
 function planCompareHtml() {
   const ck = `<span class="pc-y">${ic("check")}</span>`, no = `<span class="pc-n">–</span>`;
