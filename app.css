@@ -4171,3 +4171,12 @@ html[data-theme=dark] .dchips.sdock{background:#fff}
 .bento .w-cal .cd.ex:not(.today) span{color:#d93a3a!important;background:#fdeaea!important;font-weight:700}
 .bento .w-cal .cd.has:not(.today):not(.sel) span{background:#f1f1f4!important}
 .bento .w-cal .cd.ex.today span{background:#d93a3a!important;color:#fff!important}
+
+/* Startseite: vier Stärken über der Vorschau */
+.hfeat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 28px;max-width:960px;margin:44px auto 40px;padding:0 20px;text-align:center}
+.hfeat>div{display:flex;flex-direction:column;align-items:center;gap:4px}
+.hf-i{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#fff;border:1px solid #e6e6ea;margin-bottom:8px;color:#111}
+.hf-i svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.hfeat b{font-size:15px;font-weight:700;color:#0f0f12}.hfeat small{font-size:13.5px;line-height:1.4;color:#6b6b73;max-width:200px}
+@media (max-width:760px){.hfeat{grid-template-columns:repeat(2,minmax(0,1fr));margin:32px auto 28px}}
+html[data-theme=dark] .hf-i{background:#fff;border-color:#c9c9d2}

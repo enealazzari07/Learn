@@ -150,6 +150,7 @@ function renderLanding() {
     <h1>Dein Lern- und Workspace<br>an einem Ort.</h1>
     <p class="sub">Notizen, Zeichnungen, Karteikarten, Planer und ein KI-Tutor – in einer App, die mit dir mitdenkt. Auf iPad, Handy und PC, auch offline.</p>
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
+    <div class="hfeat">${[["edit", "Schreiben", "Notizen, Skizzen und Formeln"], ["cards", "Lernen", "Karteikarten und Quiz, die hängenbleiben"], ["cal", "Planen", "Prüfungen und Stundenplan im Blick"], ["spark", "Studix AI", "Ein Tutor, der wirklich hilft"]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><b>${h}</b><small>${p}</small></div>`).join("")}</div>
     <div class="emb" id="emb"><div class="emb-bar"><span class="dots"><i></i><i></i><i></i></span>
       <div class="emb-tabs" role="tablist">${EMBED_TABS.map((t, i) => `<button class="emb-tab ${i ? "" : "on"}" data-v="${t[1]}" role="tab">${ic(t[2])}<span>${t[0]}</span></button>`).join("")}</div>
       <span class="emb-av"><i style="--c:#18a957">L</i><i style="--c:#3b82f6">M</i><i style="--c:#f59e0b">S</i><em>3 online</em></span><span class="emb-url">studix.app</span></div>
