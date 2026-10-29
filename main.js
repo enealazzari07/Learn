@@ -175,10 +175,10 @@ function mountMac(root) {
 }
 /* Linienraster über Bento und Preise: alle Linien und Marken aus der echten Geometrie – Marken sitzen immer genau auf Kreuzungen (+) bzw. Anschlüssen (T) */
 function mountFrame(root) {
-  const how = $("#how", root), pr = $("#pricing", root), grid = $(".bento3", root); if (!how || !pr || !grid) return;
+  const how = $("#how", root), pr = $("#pricing", root), grid = $(".bento3", root); if (!how || !grid) return;
   const ov = document.createElement("div"); ov.className = "gfr"; ov.setAttribute("aria-hidden", "true"); root.appendChild(ov);
   const upd = () => {
-    const rt = root.getBoundingClientRect(), R = e => e.getBoundingClientRect(), ca = R($(".b-a", grid)), cb = R($(".b-b", grid)), cd = R($(".b-d", grid)), g = R(grid), a = R(how), p = R(pr);
+    const rt = root.getBoundingClientRect(), R = e => e.getBoundingClientRect(), ca = R($(".b-a", grid)), cb = R($(".b-b", grid)), cd = R($(".b-d", grid)), g = R(grid), a = R(how), p = R(pr || how);
     const X = v => Math.round(v - rt.left), Y = v => Math.round(v - rt.top);
     const xl = X(a.left) + 2, xr = X(a.right) - 2, x1 = X(cb.left), x2 = X(cd.left);
     const y0 = Y(a.top), yb0 = Y(g.top), ybm = Y(ca.bottom), yb1 = Y(g.bottom), ye = Y(p.bottom), ytop = y0 - 160;

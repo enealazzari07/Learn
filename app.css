@@ -4311,3 +4311,7 @@ html[data-theme=dark] .pr-panel{background:#f1f0ee}
 #how .bn-card,#how .bn-card:hover{border-radius:0!important;background:#f8f8f9!important}
 .gfr .v.tall{-webkit-mask-image:linear-gradient(transparent,#000 160px);mask-image:linear-gradient(transparent,#000 160px)}
 @media (max-width:900px){.gfr .v.tall{-webkit-mask-image:none;mask-image:none}}
+/* Raster-Linien liegen über den Kästchen, jedes der vier Kästchen bleibt eine eigene Fläche mit Hover */
+.gfr{z-index:3}
+#how .bn-card{transition:background .3s!important}
+#how .bn-card:hover{background:#f1f1f4!important}
