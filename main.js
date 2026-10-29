@@ -89,7 +89,8 @@ const DESK_MASK = "M1288.27 560.176C1288.4 550.297 1295.73 541.997 1305.52 540.6
 function mountDesk(root) {
   if (!root) return;
   const ov = $(".desk-ov", root), scr = $(".desk-scr", root), fr = $("iframe", root), W = 1280, H = 1100;
-  const quad = [[1288, 541], [2529.5, 372], [2521.5, 1513.5], [1275, 1537]];   /* Display im Bild (3200 × 2400): oben links, oben rechts, unten rechts, unten links */
+  /* Display im Bild (3200 × 2400), Kanten aus dem SVG gemessen: links x = 1290,7 − 0,0138·(y − 600), rechts x = 2527 − 0,0075·(y − 600), oben y = 517 − 0,1378·(x − 1500). Unten läuft die App etwas über die Auflage hinaus, die Maske schneidet exakt an der Gerätekante ab. */
+  const quad = [[1291.4, 546], [2528.7, 375.5], [2519.8, 1555], [1277.2, 1575]];
   const src = [[0, 0], [W, 0], [W, H], [0, H]], A = [], B = [];
   src.forEach(([x, y], i) => { const [u, v] = quad[i]; A.push([x, y, 1, 0, 0, 0, -u * x, -u * y], [0, 0, 0, x, y, 1, -v * x, -v * y]); B.push(u, v); });
   for (let c = 0; c < 8; c++) { let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r; [A[c], A[p]] = [A[p], A[c]]; [B[c], B[p]] = [B[p], B[c]]; for (let r = 0; r < 8; r++) if (r !== c) { const f = A[r][c] / A[c][c]; for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k]; B[r] -= f * B[c]; } }
@@ -97,7 +98,7 @@ function mountDesk(root) {
   scr.style.transform = `matrix3d(${a},${d},0,${g},${b},${e},0,${h},0,0,1,0,${c},${f},0,1)`;
   const mask = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3200 2400'><path d='${DESK_MASK}' fill='red'/></svg>`)}")`;
   ov.style.webkitMaskImage = ov.style.maskImage = mask;
-  const fit = () => { ov.style.transform = `scale(${root.clientWidth / 3200})`; };
+  const fit = () => { ov.style.transform = `scale(${root.clientWidth / 2350}) translate(-300px,-300px)`; };   /* Ausschnitt 2350 × 1420 ab (300, 300) des 3200 × 2400-Bildes */
   new ResizeObserver(fit).observe(root); fit();
   const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -174,7 +175,7 @@ function renderLanding() {
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
     <div class="hfeat">${[["edit", "Schreiben", "Notizen, Skizzen und Formeln"], ["cards", "Lernen", "Karteikarten und Quiz, die hängenbleiben"], ["cal", "Planen", "Prüfungen und Stundenplan im Blick"], ["spark", "Studix AI", "Ein Tutor, der wirklich hilft"]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><b>${h}</b><small>${p}</small></div>`).join("")}</div>
   </section>
-  <section class="desk-sec"><div class="desk" id="desk"><img src="landing-desk.webp" alt="Studix auf dem Laptop" width="2400" height="1800" loading="eager"><div class="desk-ov" aria-hidden="true"><div class="desk-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe></div></div></div></section>
+  <section class="desk-sec"><div class="desk" id="desk"><img src="landing-desk.webp" alt="Studix auf dem Laptop" width="1880" height="1136" loading="eager"><div class="desk-ov" aria-hidden="true"><div class="desk-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe></div><img class="desk-shade" src="landing-desk-shade.webp" alt=""></div></div></section>
   </section>
   ${bentoHtml()}
   ${extraHtml(go)}

@@ -4192,5 +4192,11 @@ html[data-theme=dark] .hf-i{background:#fff;border-color:#c9c9d2}
 .hf-i{background:none!important;border:0!important;width:auto;height:auto;margin-bottom:6px}
 .hf-i svg{width:26px;height:26px}
 html[data-theme=dark] .hf-i{background:none;border:0}
-@media (max-width:700px){.desk{width:175%;max-width:none;margin-left:-45%}}
-.desk{margin-top:-8%;margin-bottom:-9%}@media (max-width:700px){.desk{margin-top:-10%;margin-bottom:-14%}}
+
+/* Laptop freigestellt (ohne Podest und Hintergrund), schwebt direkt auf der Seite */
+.desk-sec{background:none!important;margin:0!important;border-radius:0!important;overflow:visible;padding:0 16px}
+.desk{margin:8px auto 0!important;max-width:1180px;aspect-ratio:2350/1420;-webkit-mask-image:none!important;mask-image:none!important;filter:drop-shadow(0 50px 50px rgba(15,15,25,.22)) drop-shadow(0 12px 14px rgba(15,15,25,.18))}
+.desk>img{object-fit:contain}
+.desk-shade{position:absolute;left:1200px;top:300px;width:1400px;height:1400px;mix-blend-mode:multiply;pointer-events:none}
+html[data-theme=dark] .desk{filter:invert(.93) hue-rotate(180deg) drop-shadow(0 40px 50px rgba(0,0,0,.5))}
+@media (max-width:700px){.desk-sec{padding:0 4px}}
