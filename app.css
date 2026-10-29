@@ -4241,3 +4241,4 @@ html[data-theme=dark] .plat-v img{filter:invert(.93) hue-rotate(180deg)}
 .hfeat{margin:40px auto 18px!important}
 .mac-sec{padding-top:0!important}
 @media (max-width:760px){.hfeat{margin:30px auto 14px!important}}
+.flow{padding-bottom:0!important}.plat{padding-top:0!important}
