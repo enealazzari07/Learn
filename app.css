@@ -4235,3 +4235,9 @@ html[data-theme=dark] .flow-v img{filter:invert(.93) hue-rotate(180deg) drop-sha
 @media (max-width:860px){.plat-in{grid-template-columns:1fr;align-items:start}.plat-t{order:-1;padding-bottom:0}.plat-v img{max-width:420px}}
 html[data-theme=dark] .plat-v img{filter:invert(.93) hue-rotate(180deg)}
 .plat-v img{-webkit-mask-image:linear-gradient(#000 84%,transparent);mask-image:linear-gradient(#000 84%,transparent)}
+/* Startseite: keine Farbflecken im Hintergrund, Funktionsleiste direkt über dem Laptop */
+.hero3{background:none!important;padding-bottom:0!important}
+.hero3::before,.hero3::after{display:none!important}
+.hfeat{margin:40px auto 18px!important}
+.mac-sec{padding-top:0!important}
+@media (max-width:760px){.hfeat{margin:30px auto 14px!important}}
