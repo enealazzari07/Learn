@@ -4315,3 +4315,5 @@ html[data-theme=dark] .pr-panel{background:#f1f0ee}
 .gfr{z-index:3}
 #how .bn-card{transition:background .3s!important}
 #how .bn-card:hover{background:#f1f1f4!important}
+/* Kästchen reichen bis zu den senkrechten Rasterlinien (kein weisser Streifen davor) */
+@media (min-width:1273px){#how .bento3{margin-inline:-14px}}
