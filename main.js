@@ -8,7 +8,7 @@ function renderView() {
   LEAVE.splice(0).forEach(f => { try { f(); } catch {} });
   const [, v = "today", x, y] = location.hash.replace(/^#\/?/, "").split("/");
   curView = V[v] ? v : "today";
-  buildShell(); const dock = curView === "today"; $("#app").classList.toggle("has-dock", dock); if (!dock) window.__dockFresh = false; refreshNav(); timerPaint();
+  buildShell(); const dock = curView === "today"; $("#app").classList.toggle("has-dock", dock); if (!dock) window.__dockFresh = false; refreshNav(); timerPaint(); try { mobileChrome(); } catch {}
   const m = $("#main"); m.className = "main"; m.removeAttribute("style"); window.scrollTo(0, 0); m.scrollTop = 0; setScroller(m);
   $("#cpanel") && curView === "ai" && ($("#cpanel").hidden = true);
   try { const r = V[curView](m, x, y); if (r?.catch) r.catch(e => console.error(e)); } catch (e) { console.error(e); m.innerHTML = `<div class="page"><div class="emptybox"><h3>Ups, da ist etwas schiefgelaufen</h3><p>${esc(e.message)}</p><button class="btn" data-go="today">Zur Startseite</button></div></div>`; bindCommon(m); }

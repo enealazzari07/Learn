@@ -171,7 +171,7 @@ function dayItems(i) {
   return { blocks: blocks.filter(b => b.s != null && b.e > b.s).sort((x, y) => x.s - y.s), allday };
 }
 function weekView(pb, m) {
-  if (!plMode) { try { plMode = localStorage.getItem("lumi-plmode") || "week"; } catch { plMode = "week"; } } if (!plDay) plDay = iso();
+  if (!plMode) { try { plMode = localStorage.getItem("lumi-plmode") || (window.PHONE?.matches ? "day" : "week"); } catch { plMode = "week"; } } if (!plDay) plDay = iso();
   const cur = parseISO(plDay), todayIso = iso(), mon = wkMon(cur), A0 = 7 * 60, A1 = 21 * 60, px = 56, now = new Date(), nm = now.getHours() * 60 + now.getMinutes();
   const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(d.getDate() + i); return d; });
   const fmt = (d, o) => d.toLocaleDateString("de-CH", o);
