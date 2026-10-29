@@ -4165,3 +4165,9 @@ html body .sdock.sdock .cb,html body .sdock.sdock button.on .cb{fill:none!import
 html[data-theme=dark] .st-modal,html[data-theme=dark] .popmenu,html[data-theme=dark] .aibar,html[data-theme=dark] .aic-box,html[data-theme=dark] .chat-panel{border:1px solid #9c9ca8!important;box-shadow:0 18px 50px rgba(0,0,0,.35)!important}
 html[data-theme=dark] .cookie,html[data-theme=dark] #ckb{border-color:#bcbcc6!important}
 html[data-theme=dark] .dchips.sdock{background:#fff}
+
+/* Kalender-Widget: kein Punkt, Tage mit Prüfung nur eingefärbt, andere Einträge dezent hinterlegt */
+.bento .w-cal .cd em,.bento .w-cal .cd u{display:none!important}
+.bento .w-cal .cd.ex:not(.today) span{color:#d93a3a!important;background:#fdeaea!important;font-weight:700}
+.bento .w-cal .cd.has:not(.today):not(.sel) span{background:#f1f1f4!important}
+.bento .w-cal .cd.ex.today span{background:#d93a3a!important;color:#fff!important}

@@ -496,7 +496,7 @@ V.today = m => {
       let h = WD.map(w => `<span class="wd">${w}</span>`).join("");
       for (let w = 0; w < 4; w++) for (let n = 0; n < 5; n++) {
         const dt = addD(m0, w * 7 + n), ds = iso(dt), it = itemsOn(ds);
-        h += `<button class="cd ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><span>${dt.getDate()}</span><em>${it.length ? "<u></u>" : ""}</em></button>`;
+        h += `<button class="cd ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : it.length ? "has" : ""}" data-cd="${ds}"><span>${dt.getDate()}</span></button>`;
       }
       g.innerHTML = h;
       $$("[data-cd]", g).forEach(b => b.onclick = () => { lastAct = Date.now(); if (swiped) return; if (sel === b.dataset.cd) return taskModal(null, sel); sel = b.dataset.cd; drawCal(); });
