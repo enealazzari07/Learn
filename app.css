@@ -4242,3 +4242,8 @@ html[data-theme=dark] .plat-v img{filter:invert(.93) hue-rotate(180deg)}
 .mac-sec{padding-top:0!important}
 @media (max-width:760px){.hfeat{margin:30px auto 14px!important}}
 .flow{padding-bottom:0!important}.plat{padding-top:0!important}
+/* „Alles, was du zum Lernen brauchst.“: Inhalte direkt auf Weiss, ohne Rand und Schatten – nur weiche Ausblendung */
+#how .bn-card,#how .bn-card:hover{background:transparent!important;box-shadow:none!important;border:0!important;outline:0!important}
+#how .bn-card .bn-bg *{box-shadow:none!important}
+#how .bn-card .bn-bg [class*=bl-],#how .bn-card .bn-bg li,#how .bn-card .bn-bg figure{border:0!important}
+#how .bn-card .bn-bg{-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
