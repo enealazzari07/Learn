@@ -4298,7 +4298,7 @@ html[data-theme=dark] .pr-panel{background:#f1f0ee}
 .gfr .v{width:1px;background:#e4e4e8;transform:translateX(-50%)}
 .gfr .v.fade{-webkit-mask-image:linear-gradient(transparent,#000 100px);mask-image:linear-gradient(transparent,#000 100px)}
 .gfr .k{width:18px;height:18px;transform:translate(-50%,-50%)}
-.gfr .k::before,.gfr .k::after{content:"";position:absolute;background:#55555f}
+.gfr .k::before,.gfr .k::after{content:"";position:absolute;background:#8d8d98}
 .gfr .k::before{left:0;top:calc(50% - .75px);width:18px;height:1.5px}
 .gfr .k::after{left:calc(50% - .75px);width:1.5px}
 .gfr .k.p::after{top:0;height:18px}
