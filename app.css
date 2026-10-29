@@ -4294,8 +4294,8 @@ html[data-theme=dark] .pr-panel{background:#f1f0ee}
 /* Linienraster: Haarlinien + gleich lange, kräftige Marken (+ an Kreuzungen, T an Anschlüssen) */
 .gfr{position:absolute;left:0;top:0;width:100%;height:0;pointer-events:none;z-index:0}
 .gfr>i{position:absolute;display:block}
-.gfr .h{left:0;right:0;height:1px;background:#e4e4e8;transform:translateY(-50%)}
-.gfr .v{width:1px;background:#e4e4e8;transform:translateX(-50%)}
+.gfr .h{left:0;right:0;height:1px;background:#dedee3;transform:translateY(-50%)}
+.gfr .v{width:1px;background:#dedee3;transform:translateX(-50%)}
 .gfr .v.fade{-webkit-mask-image:linear-gradient(transparent,#000 100px);mask-image:linear-gradient(transparent,#000 100px)}
 .gfr .k{width:18px;height:18px;transform:translate(-50%,-50%)}
 .gfr .k::before,.gfr .k::after{content:"";position:absolute;background:#8d8d98}
