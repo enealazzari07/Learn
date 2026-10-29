@@ -128,8 +128,9 @@ function extraHtml(go) {
   <section class="sec xs" id="subjects"><p class="xs-k rv">Für jedes Fach</p><div class="mq rv"><div class="mq-t">${chips}</div></div></section>
   <section class="sec xs" id="tiles"><h2 class="rv">Vier Werkzeuge. Ein Workflow.</h2><p class="lead rv">Vier Werkzeuge, die zusammenarbeiten – statt vier Apps, die du jonglieren musst.</p>
     <div class="xt">${tiles.map(([bg, c, i, t, d, v], k) => `<article class="xt-c rv" style="--bg:${bg};--c:${c};--d:${k * 90}ms"><span class="xt-i">${ic(i)}</span><h3>${t}</h3><p>${d}</p>${v}</article>`).join("")}</div></section>
-  <section class="sec xs" id="steps"><h2 class="rv">So lernst du mit Studix.</h2>
-    <div class="xst">${steps.map(([c, n, t, d], k) => `<div class="xst-c rv" style="--c:${c};--d:${k * 120}ms"><b>${n}</b><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></section>`;
+  <section class="plat" id="steps"><div class="plat-in"><div class="plat-v"><img src="hand-phone.webp" alt="Studix auf dem Handy" width="1400" height="1635" loading="lazy"></div>
+    <div class="plat-t"><p class="flow-k">Überall dabei</p><h2>Auf allen Plattformen. Immer dein Stand.</h2><p class="flow-p">Studix läuft auf Handy, iPad und PC – im Browser, installierbar wie eine App und auch offline. Mit Konto ist alles auf jedem Gerät gleich da, ohne dass du etwas übertragen musst.</p>
+    <ul class="flow-l plat-l">${[["Handy", "Aufgaben, Karteikarten und Notizen für unterwegs"], ["iPad", "Schreiben und Zeichnen mit Apple Pencil"], ["PC & Mac", "Der volle Arbeitsplatz mit Dokumenten und Planer"]].map(([h, p]) => `<li><b>${h}</b><small>${p}</small></li>`).join("")}</ul></div></div></section>`;
 }
 function bentoHtml() {
   const now = new Date(), y = now.getFullYear(), m = now.getMonth(), first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
@@ -163,6 +164,7 @@ function renderLanding() {
     <h1>Dein Lern- und Workspace<br>an einem Ort.</h1>
     <p class="sub">Notizen, Zeichnungen, Karteikarten, Planer und ein KI-Tutor – in einer App, die mit dir mitdenkt. Auf iPad, Handy und PC, auch offline.</p>
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
+    <div class="hfeat">${[["edit", "Schreiben", "Notizen, Skizzen und Formeln"], ["cards", "Lernen", "Karteikarten und Quiz, die hängenbleiben"], ["cal", "Planen", "Prüfungen und Stundenplan im Blick"], ["spark", "Studix AI", "Ein Tutor, der wirklich hilft"]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><b>${h}</b><small>${p}</small></div>`).join("")}</div>
   </section>
   <section class="mac-sec"><div class="mbp-w" id="mac"><div class="mbp"><img class="mbp-back" src="mbp-back.svg" alt="" width="2348" height="1432"><div class="mbp-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe></div><img class="mbp-front" src="mbp-front.svg" alt="MacBook mit Studix" width="2348" height="1432"></div></div></section>
   </section>
