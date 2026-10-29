@@ -528,11 +528,14 @@ function folderSvg(c) {
     <path d="${FRONT}" fill="none" stroke="url(#${k}s3)" stroke-width="5.33" mask="url(#${k}m2)"/></svg>`;
 }
 const FOLDER_SVG_UNUSED = 1;
-/* Geteilt: Avatare mit Initialen (du + zuletzt Mitarbeitende), zufällige Farben je Person */
+/* Geteilt: Wer das Dokument geteilt hat, steht bei allen vorne, die anderen versetzt dahinter. Bist du allein drin, zeigt nur ein kleines Link-Symbol „geteilt“ an. */
 function shareAvs(d) {
   let ppl = []; try { ppl = JSON.parse(d.peers || "[]"); } catch {}
-  const all = [{ n: coName(), c: meCol() }, ...ppl.filter(p => p.n !== coName())], show = all.slice(0, 3);
-  return `<em class="dshare" title="Geteilt mit ${esc(all.map(p => p.n).join(", "))}">${show.map(p => `<i style="background:${p.c}">${esc(coIni(p.n))}</i>`).join("")}${all.length > 3 ? `<i class="more">+${all.length - 3}</i>` : ""}</em>`;
+  const meN = coName(), me = { n: meN, c: meCol(), o: !!d.shareOwner };
+  const all = [me, ...ppl.filter(p => p.n !== meN)].sort((a, b) => (b.o ? 1 : 0) - (a.o ? 1 : 0));
+  if (all.length < 2) return `<em class="dshare solo" title="Geteilt">${ic("link")}</em>`;
+  const show = all.slice(0, 3);
+  return `<em class="dshare" title="Geteilt mit ${esc(all.map(p => p.n).join(", "))}">${show.map((p, i) => `<i style="background:${p.c};z-index:${9 - i}">${esc(coIni(p.n))}</i>`).join("")}${all.length > 3 ? `<i class="more">+${all.length - 3}</i>` : ""}</em>`;
 }
 const sideRow = d => `<div class="sd-row" data-d="${d.id}" tabindex="0"><span class="sd-i">${ic(KIND_I[docKind(d)])}${d.share ? `<i class="shbadge" title="Geteilt">${ic("link")}</i>` : ""}</span><span class="sd-t"><b>${esc(d.title)}</b><small>${d.share ? (d.shareOwner ? "Von dir geteilt" : "Mit dir geteilt") + " · " : ""}${fmtAgo(d.updated)}</small></span></div>`;
 function docSide() {

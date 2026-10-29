@@ -1,11 +1,11 @@
 "use strict";
 /* Studix Zusammenarbeit: Notiz per Link teilen, gemeinsam schreiben (Supabase Realtime) – Teilnehmer erscheinen neben den drei Punkten.
    Modell: Wer den Link hat und angemeldet ist, kann mitschreiben. Zeichen: letzter Stand gewinnt (Cursor bleibt erhalten). */
-const CO_COL = ["#e5484d", "#f59e0b", "#16a34a", "#2563eb", "#7c3aed", "#ec4899"];
+const CO_COL = ["#d9777c", "#d9a35f", "#6fb08a", "#6f93d1", "#9b8bd0", "#d48fb0"]; /* gedeckte Farben */
 const coColor = s => CO_COL[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % CO_COL.length];
 const coName = () => (D.profile.name || (CLOUD.user?.email || "Gast").split("@")[0]).trim();
 const coLink = id => location.origin + location.pathname + "#/app/join/" + id;
-const meCol = () => coColor(CLOUD.user?.id || coName());
+const meCol = () => D.profile.avColor || coColor(CLOUD.user?.id || coName());
 const coIni = n => (String(n).trim()[0] || "?").toUpperCase();
 
 V.join = async (m, id) => {
@@ -27,7 +27,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   const state = () => ({ html: lumiHtml(body), tb: TBX.get(), ink: ink.st.strokes });
   const paint = () => {
     const list = Object.values(peers).map(a => a[0]).filter(Boolean);
-    av.innerHTML = list.length ? `<i style="background:${list[0].color}">${esc(coIni(list[0].name))}</i>` + (list.length > 1 ? `<i class="more">+${list.length - 1}</i>` : "") : ""; av.title = list.map(p => p.name).join(", "); { const sv = JSON.stringify(list.slice(0, 5).map(p => ({ n: p.name, c: p.color }))); if (d.share && list.length && d.peers !== sv) { d.peers = sv; save(); } }
+    av.innerHTML = list.length ? `<i style="background:${list[0].color}">${esc(coIni(list[0].name))}</i>` + (list.length > 1 ? `<i class="more">+${list.length - 1}</i>` : "") : ""; av.title = list.map(p => p.name).join(", "); { const sv = JSON.stringify(list.slice(0, 5).map(p => ({ n: p.name, c: p.color, o: !!p.owner }))); if (d.share && list.length && d.peers !== sv) { d.peers = sv; save(); } }
     btn.classList.toggle("on", !!d.share); btn.title = d.share ? "Zusammenarbeit" : "Zusammenarbeiten – andere einladen";
   };
   const caretOff = () => { const s = getSelection(); if (document.activeElement !== body || !s.rangeCount || !body.contains(s.anchorNode)) return -1; const r = document.createRange(); r.selectNodeContents(body); r.setEnd(s.anchorNode, s.anchorOffset); return r.toString().length; };
@@ -82,7 +82,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
     ch.on("presence", { event: "sync" }, () => { peers = ch.presenceState(); delete peers[me.key]; paint(); curEls.forEach((e, k) => { if (!peers[k]) { e.remove(); curEls.delete(k); } }); })
       .on("broadcast", { event: "doc" }, ({ payload }) => { if (payload?.pull) pull(); else apply(payload); })
       .on("broadcast", { event: "cur" }, ({ payload }) => { if (payload && payload.k !== me.key) showCur(payload); })
-      .subscribe(async st => { conn = st; if (st === "SUBSCRIBED") { await ch.track({ name: me.name, color: me.color }); base = blocksNow(); pull(); } else if ((st === "CHANNEL_ERROR" || st === "TIMED_OUT" || st === "CLOSED") && !dead && d.share) { stop(); setTimeout(() => { if (!dead && d.share && !ch) start(); }, 3000); } });
+      .subscribe(async st => { conn = st; if (st === "SUBSCRIBED") { await ch.track({ name: me.name, color: me.color, owner: !!d.shareOwner }); base = blocksNow(); pull(); } else if ((st === "CHANNEL_ERROR" || st === "TIMED_OUT" || st === "CLOSED") && !dead && d.share) { stop(); setTimeout(() => { if (!dead && d.share && !ch) start(); }, 3000); } });
     paint();
   }
   const stop = () => { if (ch) { try { ch.untrack(); CLOUD.sb.removeChannel(ch); } catch {} ch = null; } conn = ""; peers = {}; paint(); };

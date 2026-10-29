@@ -4087,3 +4087,10 @@ footer .logo{color:#0f0f12}
 .dtr .pin{color:#f59e0b!important}.dtr .pin svg{fill:currentColor}
 .dtr .dshare{display:inline-flex;align-items:center;margin-left:6px}.dtr .dshare i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 10px/1 Inter,system-ui,sans-serif;font-style:normal;border:2px solid #fff;margin-left:-6px;box-sizing:content-box}
 .dtr .dshare i:first-child{margin-left:0}.dtr .dshare i.more,.co-av i.more{background:#e9e9ee!important;color:#444}
+
+.dtr .dshare i{margin-left:-9px;border-color:#fff}.dtr .dshare i:first-child{margin-left:0}
+.dtr .dshare.solo{color:#9a9aa8;margin-left:6px}.dtr .dshare.solo svg{width:13px;height:13px}
+.avsw{display:flex;gap:8px;flex-wrap:wrap}.avsw button{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #e1e1e6;cursor:pointer;padding:0}.avsw button.on{box-shadow:0 0 0 2px #111}
+.accbot{display:flex;gap:10px;justify-content:flex-end;margin:28px 0 8px;padding-top:18px;border-top:1px solid #ececf0}
+.accbot .btn{display:inline-flex;align-items:center;gap:8px}.accbot svg{width:16px;height:16px}
+.btn.danger-o{background:none;border:1px solid #f0c4c4;color:#c0392b}.btn.danger-o:hover{background:#fdf0f0}

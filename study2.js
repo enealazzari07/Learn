@@ -526,6 +526,7 @@ V.settings = m => {
   <div class="panel kvcard"><h2>${ic("adduser")}Persönliche Angaben</h2>
     <div class="kv"><span>Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
     <div class="kv"><span>E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
+    <div class="kv"><span>Profilfarbe</span><div class="avsw" id="avsw">${CO_COL.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${meCol() === c ? "on" : ""}" aria-label="Farbe"></button>`).join("")}</div></div>
     <div class="kv"><span>Land / Region</span><div class="kvc"><select class="field flat" id="sc">${countryOptions(proCountry())}</select><small id="sch">${priceHint(proCountry()) ? "Studix Study Pro: " + priceHint(proCountry()) : ""}</small></div></div>
     <div class="kv"><span>Ich bin</span><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div></div>
   </div>
@@ -536,6 +537,7 @@ V.settings = m => {
     <p class="note kvnote">🇨🇭 Schweiz: Noten 1–6 (6 = beste, ab 4 genügend), Studix AI schreibt Schweizer Hochdeutsch ohne „ß“.</p></div>
   <div class="panel aiuse" id="aiuse" hidden></div>
   <div class="sthome setfull"><span class="sth-i">${ic("table")}</span><div><b>Startseite</b><small>Blöcke ersetzen, verschieben und in der Größe ändern – mit Vorlagen.</small></div><button class="btn ghost small" id="hed-open" type="button">${ic("pen")}Bearbeiten</button></div>
+  ${CLOUD.user ? `<div class="accbot"><button class="btn ghost" id="set-out" type="button">${ic("logout")}Abmelden</button><button class="btn danger-o" id="set-del" type="button">${ic("trash")}Konto löschen</button></div>` : ""}
   </div><div class="setsec" data-s="ai">
   <div class="panel"><h2>${ic("spark")}Studix AI</h2>
   ${serverAI ? `<div class="msstate ok"><b><i class="ldot on"></i>Studix AI aktiv – ${[serverInfo?.gemini ? "Google Gemini" : "", serverInfo?.groq ? "Groq" : ""].filter(Boolean).join(" + ") || "Server-KI"}</b><span>Läuft serverseitig über Vercel, du musst nichts eintragen.${serverInfo?.groq ? "" : " Für schnelle Auto-Korrektur zusätzlich <code>GROQ_API_KEY</code> in Vercel setzen."}</span></div>` : `<div class="msstate"><b><i class="ldot"></i>Server-KI noch nicht aktiv</b><span>Hinterlege in Vercel die Variable GEMINI_API_KEY und/oder GROQ_API_KEY und deploye neu – oder nutze unten einen eigenen Key.</span></div>`}
@@ -557,6 +559,8 @@ V.settings = m => {
   <div class="panel"><h2>Daten</h2><p class="note">Alles liegt lokal auf diesem Gerät (IndexedDB) und funktioniert offline. Erstelle regelmäßig ein Backup – z. B. um auf Handy, iPad und PC dieselben Daten zu nutzen.</p><div class="row"><button class="btn ghost" id="ex">${ic("download")}Backup exportieren</button><button class="btn ghost" id="im">${ic("upload")}Backup importieren</button><input type="file" id="imf" accept="application/json" hidden><button class="btn ghost danger" id="rs">${ic("trash")}Alles löschen</button></div></div>
   </div>
   <div class="savestat" id="savestat" aria-live="polite"></div></div></div>`;
+  $$("#avsw button", m).forEach(b => b.onclick = () => { D.profile.avColor = b.dataset.c; save(); $$("#avsw button", m).forEach(x => x.classList.toggle("on", x === b)); $$(".av-xl,.prof .av", document).forEach(e => e.style.background = b.dataset.c); });
+  $("#set-out", m) && ($("#set-out", m).onclick = () => cloudLogout()); $("#set-del", m) && ($("#set-del", m).onclick = () => accountDeleteModal());
   $$("#sl button", m).forEach(b => b.onclick = () => { $$("#sl button", m).forEach(x => x.classList.toggle("on", x === b)); });
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
   $("#rs", m).onclick = async () => { if (await confirmBox("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.", "Alles löschen")) { indexedDB.deleteDatabase("lumi"); localStorage.clear(); setTimeout(() => location.hash = "#/", 100); setTimeout(() => location.reload(), 300); } };

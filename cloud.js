@@ -224,7 +224,7 @@ function emailChangeModal() {
 }
 function profileMenu(btn) {
   const items = [{ label: "Profil & Einstellungen", icon: "gear", fn: () => { window.__setTab = "gen"; go("settings"); } }];
-  if (CLOUD.user) items.push("-", { label: "Passwort zurücksetzen", icon: "shield", fn: cloudSendReset }, { label: "E-Mail ändern", icon: "adduser", fn: emailChangeModal }, "-", { label: "Konto löschen", icon: "trash", danger: true, fn: accountDeleteModal }, { label: "Abmelden", icon: "logout", fn: cloudLogout });
+  if (CLOUD.user) items.push("-", { label: "Passwort zurücksetzen", icon: "shield", fn: cloudSendReset }, { label: "E-Mail ändern", icon: "adduser", fn: emailChangeModal }, "-", { label: "Abmelden", icon: "logout", fn: cloudLogout });
   else if (cloudOn()) items.push("-", { label: "Anmelden / Registrieren", icon: "login", fn: cloudLoginModal });
   menu(btn, items);
 }
