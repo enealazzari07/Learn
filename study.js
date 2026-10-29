@@ -247,8 +247,18 @@ function migrateFolders() {
   D.docs.forEach(d => { if (d.subjectId && !d.folderId) d.folderId = D.folders.find(f => f.subjectId === d.subjectId)?.id || ""; }); save();
 }
 async function newFolder(parent = docFolder) {
-  const n = await ask("Neuer Ordner", { placeholder: "z. B. Mathe oder Deutsch", ok: "Erstellen" }); if (!n?.trim()) return;
-  const name = n.trim(), sub = !parent && D.subjects.find(s => s.name.toLowerCase() === name.toLowerCase());
+  const root = !parent;
+  const r = await new Promise(res => {
+    const { el, close } = modal(`<h3>Neuer Ordner</h3><input class="field" id="nf-n" placeholder="z. B. Mathe oder Deutsch">${root ? `<label class="chk nf-sub"><input type="checkbox" id="nf-s"><span>Ist ein ${isUni() ? "Modul" : "Fach"} <small>– erscheint auch unter Noten</small></span></label>` : ""}<div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn" data-o>Erstellen</button></div>`);
+    const f = $("#nf-n", el); setTimeout(() => f.focus(), 30);
+    let done = false; const fin = v => { if (done) return; done = true; close(); res(v); };
+    const ok = () => fin({ name: f.value, subject: !!$("#nf-s", el)?.checked });
+    $("[data-c]", el).onclick = () => fin(null); $("[data-o]", el).onclick = ok; $(".x", el).onclick = () => fin(null); f.onkeydown = e => { if (e.key === "Enter") ok(); };
+  });
+  if (!r || !r.name.trim()) return;
+  const name = r.name.trim();
+  let sub = root && D.subjects.find(s => s.name.toLowerCase() === name.toLowerCase());
+  if (!sub && root && r.subject) { sub = { id: uid(), name, color: COLORS[D.subjects.length % COLORS.length] }; D.subjects.push(sub); }
   D.folders.push({ id: uid(), name, parent: parent || "", color: sub?.color || COLORS[D.folders.length % COLORS.length], subjectId: sub?.id || "" }); save(); refreshNav(); if (curView === "docs") renderView();
 }
 function pickFolder(title, exclude = "") {
