@@ -84,6 +84,28 @@ function mountEmbed(root) {
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   fr.addEventListener("load", () => { theme(); mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
 }
+/* Laptop auf der Startseite: die echte App läuft schräg im Bildschirm (Perspektiv-Transformation auf das Display im Foto) und klickt sich selbst durch */
+const DESK_MASK = "M1288.27 560.176C1288.4 550.297 1295.73 541.997 1305.52 540.639L1814.5 470L1813.76 497.061C1813.62 502.002 1817.96 505.883 1822.85 505.204L1952.01 487.315C1957.45 486.561 1961.5 481.911 1961.5 476.419V450L2512.34 374.357C2521.39 373.114 2529.44 380.185 2529.38 389.322L2521.5 1513.5L2063.5 1549C1965.67 1541.43 1803.47 1523.41 1727 1517.5C1665 1511.5 1662.5 1510.5 1599 1512L1274.97 1537L1288.27 560.176Z";
+function mountDesk(root) {
+  if (!root) return;
+  const ov = $(".desk-ov", root), scr = $(".desk-scr", root), fr = $("iframe", root), W = 1280, H = 1100;
+  const quad = [[1288, 541], [2529.5, 372], [2521.5, 1513.5], [1275, 1537]];   /* Display im Bild (3200 × 2400): oben links, oben rechts, unten rechts, unten links */
+  const src = [[0, 0], [W, 0], [W, H], [0, H]], A = [], B = [];
+  src.forEach(([x, y], i) => { const [u, v] = quad[i]; A.push([x, y, 1, 0, 0, 0, -u * x, -u * y], [0, 0, 0, x, y, 1, -v * x, -v * y]); B.push(u, v); });
+  for (let c = 0; c < 8; c++) { let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r; [A[c], A[p]] = [A[p], A[c]]; [B[c], B[p]] = [B[p], B[c]]; for (let r = 0; r < 8; r++) if (r !== c) { const f = A[r][c] / A[c][c]; for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k]; B[r] -= f * B[c]; } }
+  const [a, b, c, d, e, f, g, h] = B.map((v, i) => v / A[i][i]);
+  scr.style.transform = `matrix3d(${a},${d},0,${g},${b},${e},0,${h},0,0,1,0,${c},${f},0,1)`;
+  const mask = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3200 2400'><path d='${DESK_MASK}' fill='red'/></svg>`)}")`;
+  ov.style.webkitMaskImage = ov.style.maskImage = mask;
+  const fit = () => { ov.style.transform = `scale(${root.clientWidth / 3200})`; };
+  new ResizeObserver(fit).observe(root); fit();
+  const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
+  new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  fr.addEventListener("load", theme);
+  const TOUR = ["today", "docs", "planner", "today", "ai"]; let i = 0, alive = true;
+  const vis = new IntersectionObserver(es => es.forEach(x => { alive = x.isIntersecting; }), { threshold: .2 }); vis.observe(root);
+  const iv = setInterval(() => { if (!root.isConnected) return clearInterval(iv); if (!alive || document.hidden) return; i = (i + 1) % TOUR.length; try { fr.contentWindow.location.hash = "#/app/" + TOUR[i]; } catch {} }, 4500);
+}
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
 function mountGrid(hero) {
   const box = $(".agp", hero), emb = $("#emb", hero), N = 30, SZ = 40, NS = "http://www.w3.org/2000/svg";
@@ -151,18 +173,15 @@ function renderLanding() {
     <p class="sub">Notizen, Zeichnungen, Karteikarten, Planer und ein KI-Tutor – in einer App, die mit dir mitdenkt. Auf iPad, Handy und PC, auch offline.</p>
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
     <div class="hfeat">${[["edit", "Schreiben", "Notizen, Skizzen und Formeln"], ["cards", "Lernen", "Karteikarten und Quiz, die hängenbleiben"], ["cal", "Planen", "Prüfungen und Stundenplan im Blick"], ["spark", "Studix AI", "Ein Tutor, der wirklich hilft"]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><b>${h}</b><small>${p}</small></div>`).join("")}</div>
-    <div class="emb" id="emb"><div class="emb-bar"><span class="dots"><i></i><i></i><i></i></span>
-      <div class="emb-tabs" role="tablist">${EMBED_TABS.map((t, i) => `<button class="emb-tab ${i ? "" : "on"}" data-v="${t[1]}" role="tab">${ic(t[2])}<span>${t[0]}</span></button>`).join("")}</div>
-      <span class="emb-av"><i style="--c:#18a957">L</i><i style="--c:#3b82f6">M</i><i style="--c:#f59e0b">S</i><em>3 online</em></span><span class="emb-url">studix.app</span></div>
-      <div class="emb-view"><iframe src="index.html?embed=1#/app/today" title="Studix App" loading="eager"></iframe><div class="emb-live" aria-hidden="true">${[["u1", "#18a957", "Lena"], ["u2", "#3b82f6", "Marc"], ["u3", "#f59e0b", "Sofia"]].map(u => `<div class="cur ${u[0]}" style="--c:${u[1]}"><svg viewBox="0 0 16 20"><path d="M1 1l13 7-6 2-2 7z" fill="currentColor" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg><span>${u[2]}</span></div>`).join("")}</div></div></div>
-    <p class="emb-hint">Live-Vorschau: Sofia arbeitet in der App, Lena und Marc schreiben im geteilten Dokument mit.</p>
+  </section>
+  <section class="desk-sec"><div class="desk" id="desk"><img src="landing-desk.webp" alt="Studix auf dem Laptop" width="2400" height="1800" loading="eager"><div class="desk-ov" aria-hidden="true"><div class="desk-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe></div></div></div></section>
   </section>
   ${bentoHtml()}
   ${extraHtml(go)}
   ${pricingHtml(go)}
   <section class="sec" id="faq"><h2>Häufige Fragen</h2><div class="faq">${[["Ist Studix kostenlos?", BILL.cfg?.enabled ? `Ja, die Grundfunktionen – Notizen, Karteikarten, Quiz, Planer, Noten – sind kostenlos. Studix AI hat ein Wochenlimit: ${aiuNum(AIQ.free)} Token im Gratis-Konto, ${aiuNum(AIQ.pro)} mit Studix Study Pro.` : "Ja. Alle Funktionen sind kostenlos."], ["Wo liegen meine Daten?", "Lokal auf deinem Gerät (auch offline nutzbar). Mit einem Konto werden Notizen, Aufgaben und Karteikarten verschlüsselt übertragen und sind auf allen Geräten gleich. Mit dem Backup-Export nimmst du sie jederzeit mit."], ["Funktioniert es für Schule und Studium?", "Ja – beim Start wählst du Schule oder Studium. Notensysteme (1–6, Punkte, Prozent) und Fächer bzw. Module passen sich an."], ["Kann ich es wie eine App installieren?", "Ja. Im Browser „Zum Home-Bildschirm“ (iPad/iPhone) bzw. „Installieren“ (Chrome/Edge) wählen."], ...(BILL.cfg?.enabled ? [["Wie bezahle ich und wie kündige ich?", "Über Stripe per Karte, Apple Pay, Google Pay oder Link. Die Mehrwertsteuer deines Landes ist im Preis enthalten und wird beim Bezahlen angezeigt. Kündigen kannst du jederzeit in den Einstellungen unter „Studix Study Pro“."]] : [])].map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div></section>
   <footer><div><a class="logo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Rechtliches", ["Impressum", "legal.html#impressum"], ["Datenschutz", "legal.html#datenschutz"], ["AGB", "legal.html#agb"], ["Widerruf", "legal.html#widerruf"]]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => Array.isArray(x) ? `<a href="${x[1]}">${x[0]}</a>` : `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Studix</div>`;
-  mountEmbed($("#emb", landingEl));
+  mountDesk($("#desk", landingEl));
   mountBento(landingEl);
   { const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } }), { threshold: .15 }); $$(".rv", landingEl).forEach(x => io2.observe(x)); }
   { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); setTimeout(() => e.target.classList.add("on"), e.target.classList.contains("mk") ? 1300 : 700); } }), { threshold: .6 }); $$(".hl", landingEl).forEach(h => io.observe(h)); }
