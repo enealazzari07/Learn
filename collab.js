@@ -26,7 +26,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   const state = () => ({ html: lumiHtml(body), tb: TBX.get(), ink: ink.st.strokes });
   const paint = () => {
     const list = Object.values(peers).map(a => a[0]).filter(Boolean);
-    av.innerHTML = list.length ? list.slice(0, 4).map(p => `<i style="background:${p.color}" title="${esc(p.name)}">${esc(coIni(p.name))}</i>`).join("") + (list.length > 4 ? `<i class="more">+${list.length - 4}</i>` : "") : "";
+    av.innerHTML = list.length ? `<i style="background:${list[0].color}">${esc(coIni(list[0].name))}</i>` + (list.length > 1 ? `<i class="more">+${list.length - 1}</i>` : "") : ""; av.title = list.map(p => p.name).join(", ");
     btn.classList.toggle("on", !!d.share); btn.title = d.share ? "Zusammenarbeit" : "Zusammenarbeiten – andere einladen";
   };
   const caretOff = () => { const s = getSelection(); if (document.activeElement !== body || !s.rangeCount || !body.contains(s.anchorNode)) return -1; const r = document.createRange(); r.selectNodeContents(body); r.setEnd(s.anchorNode, s.anchorOffset); return r.toString().length; };

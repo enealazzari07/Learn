@@ -4076,3 +4076,10 @@ footer .logo{color:#0f0f12}
 .clog-i{display:grid;gap:2px;padding-bottom:14px;border-bottom:1px solid #f0f0f3}.clog-i:last-child{border:0;padding-bottom:0}
 .clog-i small{color:#9a9aa8;font-size:12px}.clog-i b{font-size:15px}.clog-i p{margin:2px 0 0;font-size:13.5px;color:#6e6e7c;line-height:1.45}
 .wm b{display:inline!important;margin:0!important;padding:0!important;font-size:inherit!important;color:inherit!important}
+
+/* Dokumenten-Tabelle: Geteilt-Symbol hinter dem Namen, Drei-Punkte-Knopf immer sichtbar ganz hinten, ohne Box */
+.dtr .dshare{display:inline-grid;place-items:center;flex:none;color:#8a8a98;font-style:normal}.dtr .dshare svg{width:13px;height:13px}
+.dtr .dmore,.dtr .dmore:hover{opacity:1!important;background:none!important;box-shadow:none!important;border:0!important;border-radius:8px;width:30px;height:30px;color:#8a8a98}.dtr .dmore:hover{color:#0f0f12}
+.dtr .da{display:flex;justify-content:flex-end}
+/* Zusammenarbeit: ein Avatar, die anderen als +N im Kreis dahinter */
+.co-av i.more{margin-left:-10px;font-size:11px}

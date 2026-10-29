@@ -183,7 +183,7 @@ function proBannerHtml() {
 /* Chip in der Seitenleiste: Testphase bzw. Kündigung immer sichtbar */
 function proChipHtml() {   // nur Text, kein Knopf; wird bei eingeklappter Seitenleiste ausgeblendet
   if (!isPlus()) return ""; const r = BILL.row, n = daysLeft(r.current_period_end);
-  const txt = r.cancel_at_period_end ? `Gekündigt – Zugang bis ${new Date(r.current_period_end).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}` : r.status === "trialing" ? `Testversion endet in ${dIn(n)}` : "";
+  const txt = r.cancel_at_period_end ? `Gekündigt – Zugang bis ${new Date(r.current_period_end).toLocaleDateString("de-DE", { day: "numeric", month: "short" })}` : "";
   return txt ? `<div class="prostatus nl hide-mob" id="prochip">${txt}</div>` : "";
 }
 

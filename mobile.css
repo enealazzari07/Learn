@@ -84,7 +84,7 @@
   .docspaper .dtl{width:100%!important;max-width:none!important}
   .docspaper .dsec{margin:14px 0 8px!important;font-size:12.5px!important;color:var(--mmute)!important;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
   .docspaper .dsec small{margin-left:6px;color:var(--mmute)}
-  .docspaper .drc,.docspaper .fold.add,.docspaper .dmore,.docspaper .dth,.docspaper .dt2,.docspaper .dsj,.docspaper .da,.docspaper .dtr .dd:not(:last-of-type){display:none!important}
+  .docspaper .drc,.docspaper .fold.add,.docspaper .dth,.docspaper .dt2,.docspaper .dsj,.docspaper .fold .dmore,.docspaper .dtr .dd:not(:last-of-type){display:none!important}
   html body .docspaper .items.fgrid,html body .docspaper .items{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;padding:0!important;margin:0!important}
   html body .docspaper .items>.fold{position:relative;width:auto!important;max-width:none!important;height:auto!important;min-height:64px;margin:0!important;padding:0!important;border-radius:16px!important;background:var(--c)!important;box-shadow:none!important;overflow:hidden}
   html body .docspaper .fold .f3d{display:flex!important;align-items:center;gap:10px;position:static!important;height:auto!important;max-width:none!important;width:100%!important;padding:12px!important;transform:none!important;filter:none!important}
