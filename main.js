@@ -84,18 +84,84 @@ function mountEmbed(root) {
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   fr.addEventListener("load", () => { theme(); mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
 }
-/* MacBook Pro 16 von vorn (reines CSS, Maße aus dem Entwurf 2347 × 1432): die echte App läuft im Display und klickt sich selbst durch die Bereiche */
+/* MacBook auf der Startseite: ein weicher orangefarbener Zeiger bedient die echte App – er fährt auch aus dem Gerät heraus und wieder hinein, klickt Knöpfe und tippt in Textfelder */
 function mountMac(root) {
   if (!root) return;
-  const scr = $(".mbp-scr", root), fr = $("iframe", root), W = 1440, H = 932;
+  const sec = root.closest(".mac-sec"), scr = $(".mbp-scr", root), fr = $("iframe", root), W = 1440, H = 932;
   const fit = () => { fr.style.transform = `scale(${scr.clientWidth / W})`; };
   new ResizeObserver(fit).observe(scr); fit();
   const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   fr.addEventListener("load", theme);
-  const TOUR = ["today", "docs", "planner", "today", "ai"]; let i = 0, alive = true;
-  new IntersectionObserver(es => es.forEach(x => { alive = x.isIntersecting; }), { threshold: .2 }).observe(root);
-  const iv = setInterval(() => { if (!root.isConnected) return clearInterval(iv); if (!alive || document.hidden) return; i = (i + 1) % TOUR.length; try { fr.contentWindow.location.hash = "#/app/" + TOUR[i]; } catch {} }, 4500);
+  /* Zeiger */
+  const cur = document.createElement("div"); cur.className = "mcur";
+  cur.innerHTML = `<svg viewBox="0 0 28 32" aria-hidden="true"><path d="M5 3.2l17.4 11.1a1.2 1.2 0 0 1-.4 2.2l-7.1 1.6-3.7 6.2a1.2 1.2 0 0 1-2.2-.3z" fill="#ff6a1a" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg><i class="mcur-r"></i>`;
+  sec.appendChild(cur);
+  let cx = 0, cy = 0, alive = false, run = 0;
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const secBox = () => sec.getBoundingClientRect();
+  const place = (x, y) => { cx = x; cy = y; const b = secBox(); cur.style.transform = `translate(${x - b.left}px,${y - b.top}px)`; };
+  const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  const move = (x, y, dur) => new Promise(res => {
+    const x0 = cx, y0 = cy, dx = x - x0, dy = y - y0, d = Math.hypot(dx, dy) || 1, bend = Math.min(90, d * .16) * (Math.random() < .5 ? -1 : 1);
+    const mx = x0 + dx / 2 - dy / d * bend, my = y0 + dy / 2 + dx / d * bend, T = dur || Math.min(1500, 380 + d * .95), t0 = performance.now();
+    const step = now => { const p = Math.min(1, (now - t0) / T), e = ease(p), u = 1 - e; place(u * u * x0 + 2 * u * e * mx + e * e * x, u * u * y0 + 2 * u * e * my + e * e * y); p < 1 ? requestAnimationFrame(step) : res(); };
+    requestAnimationFrame(step);
+  });
+  /* Element in der App → Seitenkoordinaten */
+  const doc = () => { try { return fr.contentDocument; } catch { return null; } };
+  const q = sel => { const d = doc(); if (!d) return null; if (typeof sel === "string" && sel.startsWith("text:")) { const t = sel.slice(5); return [...d.querySelectorAll("button,a,.popmenu *")].find(e => e.children.length < 3 && e.textContent.trim().startsWith(t)) || null; } return d.querySelector(sel); };
+  const pt = (el, fx = .5, fy = .5) => { const r = el.getBoundingClientRect(), s = scr.getBoundingClientRect(), k = s.width / W; return [s.left + (r.left + r.width * fx) * k, s.top + (r.top + r.height * fy) * k]; };
+  const out = async (side = 0) => { const b = secBox(), s = scr.getBoundingClientRect(), vw = innerWidth; const pts = [[Math.min(vw - 40, s.right + 90), s.top + s.height * .35], [Math.min(vw - 40, s.right + 70), s.bottom + 30], [Math.max(40, s.left - 70), s.top + s.height * .6]]; const [x, y] = pts[side % pts.length]; await move(x, y); };
+  const click = async sel => { const el = typeof sel === "string" ? q(sel) : sel; if (!el) return false; const [x, y] = pt(el, .35 + Math.random() * .3, .5); await move(x + (Math.random() * 4 - 2), y); await wait(260 + Math.random() * 220); cur.classList.add("dn"); await wait(110); try { el.click(); } catch {} cur.classList.remove("dn"); cur.classList.remove("rp"); void cur.offsetWidth; cur.classList.add("rp"); await wait(520); return true; };
+  const type = async (sel, text, o = {}) => {
+    const el = typeof sel === "string" ? q(sel) : sel; if (!el) return false; const d = doc();
+    if (!o.noClick) await click(el); try { el.focus({ preventScroll: true }); } catch {}
+    for (const ch of text) { if (!alive) return false; try { d.execCommand("insertText", false, ch); } catch {} await wait(55 + Math.random() * 70 + (",. –".includes(ch) ? 90 : 0)); }
+    await wait(350); return true;
+  };
+  const key = (el, k) => { try { el.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true })); } catch {} };
+  const go = async v => { try { fr.contentWindow.location.hash = "#/app/" + v; } catch {} await wait(1100); };
+  const tour = async mine => {
+    const ok = () => alive && mine === run;
+    await wait(1200);
+    while (ok()) {
+      try { fr.contentWindow.location.hash = "#/app/today"; } catch {} await wait(1400);
+      const s0 = scr.getBoundingClientRect(); place(Math.min(innerWidth - 40, s0.right + 120), s0.top + s0.height * .3); cur.classList.add("on");
+      /* 1. Neues Dokument anlegen und schreiben */
+      await click('.nav-i[data-go="docs"]'); if (!ok()) break; await wait(700);
+      await click("#nw"); if (!ok()) break; await wait(500);
+      await click("text:Dokument (A4)"); if (!ok()) break; await wait(700);
+      await type("#nd-n", "Zellatmung – Zusammenfassung"); if (!ok()) break;
+      await click("#nd-go"); if (!ok()) break; await wait(1500);
+      const body = q("#body");
+      if (body) { await click(body); const d = doc(); const r = d.createRange(); r.selectNodeContents(body); r.collapse(false); const sl = d.getSelection(); sl.removeAllRanges(); sl.addRange(r); await type(body, "In den Mitochondrien entsteht ATP – die Energie der Zelle.", { noClick: true }); }
+      if (!ok()) break;
+      /* kurz aus dem Gerät hinaus, dann wieder hinein */
+      await out(0); await wait(900); if (!ok()) break;
+      /* 2. Aufgabe auf der Startseite eintragen */
+      await click('.nav-i[data-go="today"]'); if (!ok()) break; await wait(900);
+      const ti = q("#todo-i"); if (ti) { await type(ti, "Referat vorbereiten"); key(ti, "Enter"); try { ti.form.requestSubmit(); } catch {} await wait(1100); }
+      if (!ok()) break;
+      /* 3. Planer und Karteikarten ansehen */
+      await click('.nav-i[data-go="planner"]'); if (!ok()) break; await wait(1800);
+      await out(1); await wait(700); if (!ok()) break;
+      await click('.nav-i[data-go="exams"]'); if (!ok()) break; await wait(1800);
+      /* 4. Frage an Studix AI */
+      await click('.nav-i[data-go="ai"]'); if (!ok()) break; await wait(1200);
+      const ai = q("input.tin"); if (ai) { await type(ai, "Erkläre mir die Zellatmung"); await wait(900); try { ai.value = ""; ai.dispatchEvent(new Event("input", { bubbles: true })); } catch {} }
+      if (!ok()) break;
+      await out(2); await wait(1400);
+      /* zurücksetzen: angelegtes Demo-Dokument wieder entfernen */
+      try { fr.contentWindow.eval('D.docs = D.docs.filter(x => x.title !== "Zellatmung – Zusammenfassung"); D.tasks = D.tasks.filter(x => x.title !== "Referat vorbereiten");'); } catch {}
+      await go("today"); await wait(800);
+    }
+  };
+  const start = () => { if (alive) return; alive = true; tour(++run); };
+  const stop = () => { alive = false; run++; cur.classList.remove("on"); };
+  const begin = () => new IntersectionObserver(es => es.forEach(x => (x.isIntersecting && !document.hidden) ? start() : stop()), { threshold: .45 }).observe(root);
+  fr.contentDocument && fr.contentDocument.readyState === "complete" ? begin() : fr.addEventListener("load", begin, { once: true });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
 }
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
 function mountGrid(hero) {
