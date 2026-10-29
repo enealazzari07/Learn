@@ -173,18 +173,24 @@ function mountMac(root) {
   fr.contentDocument && fr.contentDocument.readyState === "complete" ? begin() : fr.addEventListener("load", begin, { once: true });
   document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
 }
-/* Linienraster über Bento und Preise: durchgehende Haarlinien bis aus dem Bild, kräftigere Marken an den Schnittpunkten */
+/* Linienraster über Bento und Preise: alle Linien und Marken aus der echten Geometrie – Marken sitzen immer genau auf Kreuzungen (+) bzw. Anschlüssen (T) */
 function mountFrame(root) {
-  const how = $("#how", root), pr = $("#pricing", root); if (!how || !pr) return;
-  const ov = document.createElement("div"); ov.className = "gfr"; ov.setAttribute("aria-hidden", "true");
-  ov.innerHTML = '<i class="v l"></i><i class="v r"></i><i class="h t"></i><i class="h m"></i><i class="h b"></i>' + ["tl", "tr", "ml", "mr", "bl", "br"].map(c => `<i class="k ${c}"></i>`).join("");
-  root.appendChild(ov);
+  const how = $("#how", root), pr = $("#pricing", root), grid = $(".bento3", root); if (!how || !pr || !grid) return;
+  const ov = document.createElement("div"); ov.className = "gfr"; ov.setAttribute("aria-hidden", "true"); root.appendChild(ov);
   const upd = () => {
-    const rt = root.getBoundingClientRect(), a = how.getBoundingClientRect(), b = pr.getBoundingClientRect(), y0 = a.top - rt.top, y1 = b.top - rt.top, y2 = b.bottom - rt.top, xl = a.left - rt.left + 2, xr = a.right - rt.left - 2;
-    const S = (sel, o) => { const e = $(sel, ov); Object.assign(e.style, o); };
-    S(".v.l", { left: xl + "px", top: (y0 - 160) + "px", height: (y2 - y0 + 160) + "px" }); S(".v.r", { left: xr + "px", top: (y0 - 160) + "px", height: (y2 - y0 + 160) + "px" });
-    S(".h.t", { top: y0 + "px" }); S(".h.m", { top: y1 + "px" }); S(".h.b", { top: y2 + "px" });
-    [["tl", xl, y0], ["tr", xr, y0], ["ml", xl, y1], ["mr", xr, y1], ["bl", xl, y2], ["br", xr, y2]].forEach(([c, x, y]) => S(".k." + c, { left: x + "px", top: y + "px" }));
+    const rt = root.getBoundingClientRect(), R = e => e.getBoundingClientRect(), ca = R($(".b-a", grid)), cb = R($(".b-b", grid)), cd = R($(".b-d", grid)), g = R(grid), a = R(how), p = R(pr);
+    const X = v => Math.round(v - rt.left), Y = v => Math.round(v - rt.top);
+    const xl = X(a.left) + 2, xr = X(a.right) - 2, x1 = X(cb.left), x2 = X(cd.left);
+    const y0 = Y(a.top), yb0 = Y(g.top), ybm = Y(ca.bottom), yb1 = Y(g.bottom), ye = Y(p.bottom), ytop = y0 - 160;
+    let h = "";
+    const V = (x, ya, yb, c = "") => h += `<i class="v ${c}" style="left:${x}px;top:${ya}px;height:${yb - ya}px"></i>`;
+    const H = y => h += `<i class="h" style="top:${y}px"></i>`;
+    const K = (x, y, c) => h += `<i class="k ${c}" style="left:${x}px;top:${y}px"></i>`;
+    V(xl, ytop, ye, "fade"); V(xr, ytop, ye, "fade"); V(x1, yb0, ybm); V(x2, ybm, yb1);
+    [y0, yb0, ybm, yb1, ye].forEach(H);
+    [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, "p"); K(xr, y, "p"); });
+    K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
+    ov.innerHTML = h;
   };
   new ResizeObserver(upd).observe(document.body); addEventListener("load", upd); upd(); setTimeout(upd, 1200); setTimeout(upd, 3500);
 }
@@ -225,7 +231,7 @@ function bentoHtml() {
   const nd = (x, y, inner, cls = "") => `<div class="bm-n ${cls}" style="left:${x / 4.4}%;top:${y / 3}%">${inner}</div>`;
   const beams = [[60, 60, 188, 150, 0], [60, 150, 188, 150, 1], [60, 240, 188, 150, 2], [252, 150, 376, 95, 3], [252, 150, 376, 205, 4]].map(([x1, y1, x2, y2, i]) => `<path d="M${x1} ${y1}C${(x1 + x2) / 2} ${y1},${(x1 + x2) / 2} ${y2},${x2} ${y2}" fill="none" class="bm-b"/><path d="M${x1} ${y1}C${(x1 + x2) / 2} ${y1},${(x1 + x2) / 2} ${y2},${x2} ${y2}" fill="none" pathLength="100" class="bm-a" style="animation-delay:${i * .45}s"/>`).join("");
   const card = (cls, icon, name, desc, href, bg) => `<a class="bn-card ${cls}" href="${href}"><div class="bn-bg">${bg}</div><div class="bn-c"><span class="bn-i">${ic(icon)}</span><h3>${name}</h3><p>${desc}</p></div><div class="bn-cta"><span>Ausprobieren</span>${ic("arrow")}</div></a>`;
-  return `<section class="sec feat" id="how"><h2>Alles, was du zum Lernen brauchst.</h2><div class="bento3"><i class="bl h"></i><i class="bl v1"></i><i class="bl v2"></i><i class="bp" style="left:0;top:22rem"></i><i class="bp" style="left:100%;top:22rem"></i><i class="bp" style="left:33.333%;top:22rem"></i><i class="bp" style="left:66.666%;top:22rem"></i><i class="bp" style="left:33.333%;top:0"></i><i class="bp" style="left:66.666%;top:44rem"></i>
+  return `<section class="sec feat" id="how"><h2>Alles, was du zum Lernen brauchst.</h2><div class="bento3">
     ${card("b-a", "file", "Alles an einem Ort", "Notizen, Skizzen, PDFs und Karteikarten – automatisch gespeichert, während du schreibst.", "#/app/docs", `<div class="bn-marq">${[0, 1].map(() => `<div class="bn-mt">${BENTO_FILES.map(file).join("")}</div>`).join("")}</div>`)}
     ${card("b-b", "cal", "Erinnerungen", "Prüfungen, fällige Karten und Hausaufgaben – du verpasst nichts mehr.", "#/app/planner", `<div class="bn-list" id="bn-list"></div>`)}
     ${card("b-c", "spark", "Studix AI mit starken Modellen", "Studix AI läuft zurzeit mit Gemini und Groq – schnell, und für jede Frage das passende Modell.", "#/app/ai", `<div class="bm"><svg viewBox="0 0 440 300" aria-hidden="true">${beams}</svg>${nd(60, 60, ic("note"))}${nd(60, 150, ic("file"))}${nd(60, 240, ic("cards"))}${nd(220, 150, '<i class="mark"></i>', "ctr")}${nd(376, 95, GEMINI_SVG, "prv")}${nd(376, 205, GROQ_SVG, "prv")}<span class="bm-l" style="left:${376 / 4.4}%;top:${(95 - 44) / 3}%">Gemini</span><span class="bm-l" style="left:${376 / 4.4}%;top:${(205 + 44) / 3}%">Groq</span></div>`)}

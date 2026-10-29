@@ -4247,19 +4247,6 @@ html[data-theme=dark] .plat-v img{filter:invert(.93) hue-rotate(180deg)}
 #how .bn-card .bn-bg *{box-shadow:none!important}
 #how .bn-card .bn-bg [class*=bl-],#how .bn-card .bn-bg li,#how .bn-card .bn-bg figure{border:0!important}
 #how .bn-card .bn-bg{-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
-/* Bento: schlankes Linienraster – nur innere Linien, Kreuze an den Enden und Schnittpunkten, kein Rahmen aussen */
-#how .bento3{gap:0!important;position:relative}
-#how .bn-card,#how .bn-card:hover{border-radius:0!important;border:0!important}
-#how .bl{position:absolute;background:#e3e3e9;pointer-events:none;z-index:1}
-#how .bl.h{left:0;right:0;top:22rem;height:1px}
-#how .bl.v1{left:33.333%;top:0;height:22rem;width:1px}
-#how .bl.v2{left:66.666%;top:22rem;height:22rem;width:1px}
-#how .bp{position:absolute;width:15px;height:15px;transform:translate(-50%,-50%);pointer-events:none;z-index:2}
-#how .bp::before,#how .bp::after{content:"";position:absolute;background:#9a9aa8;left:50%;top:50%}
-#how .bp::before{width:11px;height:1px;transform:translate(-50%,-50%)}
-#how .bp::after{width:1px;height:11px;transform:translate(-50%,-50%)}
-@media (max-width:900px){#how .bl,#how .bp{display:none}#how .bn-card{border-bottom:1px solid #e3e3e9!important}}
-html[data-theme=dark] #how .bl{background:#c4c4cd}
 
 /* Orangefarbener Zeiger auf dem Laptop: nur Orange, ohne Rand und ohne Unschärfe, alle Ecken rund */
 .mac-sec{position:relative;overflow:visible!important}
@@ -4274,23 +4261,6 @@ html[data-theme=dark] #how .bl{background:#c4c4cd}
 
 /* ===== Linienraster + Preise ===== */
 #landing{position:relative}
-.gfr{position:absolute;left:0;top:0;width:100%;height:0;pointer-events:none;z-index:0}
-.gfr>i{position:absolute;display:block;background:#e4e4e8}
-.gfr .v{width:1px;-webkit-mask-image:linear-gradient(transparent,#000 90px);mask-image:linear-gradient(transparent,#000 90px)}
-.gfr .h{left:0;right:0;height:1px}
-.gfr .k{width:15px;height:15px;background:none;transform:translate(-50%,-50%)}
-.gfr .k::before,.gfr .k::after{content:"";position:absolute;background:#6b6b76;left:50%;top:50%}
-.gfr .k::before{width:15px;height:1.5px;transform:translate(-50%,-50%)}
-.gfr .k::after{width:1.5px;height:15px;transform:translate(-50%,-50%)}
-#how,#pricing{position:relative;z-index:1}
-/* Bento-Linien laufen durch: waagrecht bis zum Seitenrand, senkrecht über die Zellen hinaus; Marken kräftiger */
-#how .bl{background:#e4e4e8}
-#how .bl.h{left:calc(50% - 50vw);right:auto;width:100vw}
-#how .bl.v1{top:-70px;height:calc(22rem + 70px)}
-#how .bl.v2{height:calc(22rem + 70px)}
-#how .bp{width:15px;height:15px}
-#how .bp::before{width:15px;height:1.5px;background:#6b6b76}
-#how .bp::after{width:1.5px;height:15px;background:#6b6b76}
 /* Preise */
 #pricing.sec{padding-top:90px}
 .pr-k{font:600 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;text-transform:uppercase;color:#8a8a93;margin:0 0 18px}
@@ -4320,3 +4290,18 @@ html[data-theme=dark] #how .bl{background:#c4c4cd}
 .pr-f .pc-link{margin:0}
 @media (max-width:860px){.pr-steps{grid-template-columns:1fr}.pr-panel{grid-template-columns:1fr;padding:24px 20px}.pr-panel>.pr-ul{padding-left:0}.pr-pro+.pr-ul{padding-top:20px}}
 html[data-theme=dark] .pr-panel{background:#f1f0ee}
+
+/* Linienraster: Haarlinien + gleich lange, kräftige Marken (+ an Kreuzungen, T an Anschlüssen) */
+.gfr{position:absolute;left:0;top:0;width:100%;height:0;pointer-events:none;z-index:0}
+.gfr>i{position:absolute;display:block}
+.gfr .h{left:0;right:0;height:1px;background:#e4e4e8;transform:translateY(-50%)}
+.gfr .v{width:1px;background:#e4e4e8;transform:translateX(-50%)}
+.gfr .v.fade{-webkit-mask-image:linear-gradient(transparent,#000 100px);mask-image:linear-gradient(transparent,#000 100px)}
+.gfr .k{width:18px;height:18px;transform:translate(-50%,-50%)}
+.gfr .k::before,.gfr .k::after{content:"";position:absolute;background:#55555f}
+.gfr .k::before{left:0;top:calc(50% - .75px);width:18px;height:1.5px}
+.gfr .k::after{left:calc(50% - .75px);width:1.5px}
+.gfr .k.p::after{top:0;height:18px}
+.gfr .k.td::after{top:calc(50% - .75px);height:calc(50% + .75px)}
+.gfr .k.tu::after{top:0;height:calc(50% + .75px)}
+#how,#pricing{position:relative;z-index:1}
