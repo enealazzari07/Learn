@@ -95,12 +95,15 @@ function mountMac(root) {
   fr.addEventListener("load", theme);
   /* Zeiger */
   const cur = document.createElement("div"); cur.className = "mcur";
-  cur.innerHTML = `<svg viewBox="0 0 28 32" aria-hidden="true"><path d="M5 3.2l17.4 11.1a1.2 1.2 0 0 1-.4 2.2l-7.1 1.6-3.7 6.2a1.2 1.2 0 0 1-2.2-.3z" fill="#ff6a1a" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg><i class="mcur-r"></i>`;
+  cur.innerHTML = `<svg viewBox="0 0 28 32" aria-hidden="true"><path d="M5.6 4.4l15.8 10.1a.9.9 0 0 1-.3 1.6l-6.6 1.5-3.5 5.8a.9.9 0 0 1-1.6-.2z" fill="#ff6a1a" stroke="#ff6a1a" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round"/></svg><i class="mcur-r"></i>`;
   sec.appendChild(cur);
   let cx = 0, cy = 0, alive = false, run = 0;
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const secBox = () => sec.getBoundingClientRect();
-  const place = (x, y) => { cx = x; cy = y; const b = secBox(); cur.style.transform = `translate(${x - b.left}px,${y - b.top}px)`; };
+  let tilt = 0, tgt = 0; const svgEl = $("svg", cur);
+  const place = (x, y) => { const vx = x - cx; cx = x; cy = y; const b = secBox(); cur.style.transform = `translate(${x - b.left}px,${y - b.top}px)`; tgt = Math.max(-16, Math.min(16, vx * 1.1)); tilt += (tgt - tilt) * .12; svgEl.style.rotate = tilt.toFixed(2) + "deg"; };
+  /* Zeiger dreht sich weich zurück, wenn er stillsteht */
+  const relax = () => { if (Math.abs(tilt) > .05 || Math.abs(tgt) > .05) { tgt *= .9; tilt += (tgt - tilt) * .12; svgEl.style.rotate = tilt.toFixed(2) + "deg"; } requestAnimationFrame(relax); }; requestAnimationFrame(relax);
   const ease = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
   const move = (x, y, dur) => new Promise(res => {
     const x0 = cx, y0 = cy, dx = x - x0, dy = y - y0, d = Math.hypot(dx, dy) || 1, bend = Math.min(90, d * .16) * (Math.random() < .5 ? -1 : 1);
