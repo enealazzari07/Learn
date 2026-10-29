@@ -173,10 +173,13 @@ function renderLanding() {
     <h1>Dein Lern- und Workspace<br>an einem Ort.</h1>
     <p class="sub">Notizen, Zeichnungen, Karteikarten, Planer und ein KI-Tutor – in einer App, die mit dir mitdenkt. Auf iPad, Handy und PC, auch offline.</p>
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
-    <div class="hfeat">${[["edit", "Schreiben", "Notizen, Skizzen und Formeln"], ["cards", "Lernen", "Karteikarten und Quiz, die hängenbleiben"], ["cal", "Planen", "Prüfungen und Stundenplan im Blick"], ["spark", "Studix AI", "Ein Tutor, der wirklich hilft"]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><b>${h}</b><small>${p}</small></div>`).join("")}</div>
   </section>
   <section class="desk-sec"><div class="desk" id="desk"><img src="landing-desk.webp" alt="Studix auf dem Laptop" width="1880" height="1136" loading="eager"><div class="desk-ov" aria-hidden="true"><div class="desk-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe></div><img class="desk-shade" src="landing-desk-shade.webp" alt=""></div></div></section>
   </section>
+  <section class="flow" id="flow"><div class="flow-in"><div class="flow-t"><p class="flow-k">Workflow</p><h2>Vom ersten Satz bis zur Prüfung.</h2><p class="flow-p">Du schreibst eine Notiz, Studix macht daraus Karteikarten und Quiz, der Planer verteilt das Lernen auf deine Woche, und Studix AI erklärt, was hängen bleibt. Alles greift ineinander – nichts musst du übertragen.</p>
+    <ol class="flow-l">${[["Schreiben", "Notizen, Skizzen und Formeln"], ["Lernen", "Karteikarten und Quiz aus deinen Notizen"], ["Planen", "Prüfungen und Stundenplan im Blick"], ["Vertiefen", "Studix AI erklärt und fragt dich ab"]].map(([h, p], n) => `<li><span>${n + 1}</span><b>${h}</b><small>${p}</small></li>`).join("")}</ol>
+    <a class="btn accent big" ${go}>Kostenlos starten</a></div>
+    <div class="flow-v" aria-hidden="true">${[["f113", "dokumente"], ["f62", "notiz"], ["f411", "heute"], ["f63", "karten"], ["f112", "ai"], ["f114", "planer"]].map(([c, n]) => `<img class="${c}" src="flow-${n}.webp" alt="" loading="lazy">`).join("")}</div></div></section>
   ${bentoHtml()}
   ${extraHtml(go)}
   ${pricingHtml(go)}
