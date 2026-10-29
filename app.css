@@ -4317,3 +4317,16 @@ html[data-theme=dark] .pr-panel{background:#f1f0ee}
 #how .bn-card:hover{background:#f1f1f4!important}
 /* Kästchen reichen bis zu den senkrechten Rasterlinien (kein weisser Streifen davor) */
 @media (min-width:1273px){#how .bento3{margin-inline:-14px}}
+/* Häufige Fragen: eckig, im Raster, Auf-/Zuklappen mit Plus/Minus */
+#faq .faq{margin-top:34px}
+@media (min-width:1273px){#faq .faq{margin-inline:-14px}}
+#faq .faq details{background:#f8f8f9;border-radius:0;box-shadow:none;margin:0;padding:0;border-bottom:1px solid #dedee3;transition:background .25s}
+#faq .faq details:last-child{border-bottom:0}
+#faq .faq details:hover{background:#f1f1f4}
+#faq .faq details[open]{background:#fff}
+#faq .faq summary{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 26px;font-size:18px;font-weight:600;list-style:none;cursor:pointer;color:#0f0f12}
+#faq .faq summary::-webkit-details-marker{display:none}
+#faq .faq summary::after{content:"";flex:none;width:30px;height:30px;border:1px solid #cfcfd6;background:linear-gradient(#0f0f12,#0f0f12) center/12px 1.5px no-repeat,linear-gradient(#0f0f12,#0f0f12) center/1.5px 12px no-repeat;transition:background-size .2s}
+#faq .faq details[open] summary::after{background:linear-gradient(#0f0f12,#0f0f12) center/12px 1.5px no-repeat,linear-gradient(#0f0f12,#0f0f12) center/1.5px 0 no-repeat}
+#faq .faq details p{margin:0;padding:0 26px 26px;max-width:780px;color:#5a5a64;line-height:1.6}
+html[data-theme=dark] #faq .faq details,html[data-theme=dark] #faq .faq details[open]{background:#f8f8f9}

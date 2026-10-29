@@ -181,18 +181,19 @@ function mountFrame(root) {
     const rt = root.getBoundingClientRect(), R = e => e.getBoundingClientRect(), ca = R($(".b-a", grid)), cb = R($(".b-b", grid)), cd = R($(".b-d", grid)), g = R(grid), a = R(how), p = R(pr || how);
     const X = v => Math.round(v - rt.left), Y = v => Math.round(v - rt.top);
     const xl = X(a.left) + 2, xr = X(a.right) - 2, x1 = X(cb.left), x2 = X(cd.left);
-    const y0 = Y(a.top), yb0 = Y(g.top), ybm = Y(ca.bottom), yb1 = Y(g.bottom), ye = Y(p.bottom), ytop = y0 - 160;
+    const faq = $("#faq .faq", root), fr = faq ? R(faq) : null, y0 = Y(a.top), yb0 = Y(g.top), ybm = Y(ca.bottom), yb1 = Y(g.bottom), ype = Y(p.bottom), yf0 = fr ? Y(fr.top) : 0, ye = fr ? Y(fr.bottom) : ype, ytop = y0 - 160;
     let h = "";
     const V = (x, ya, yb, c = "") => h += `<i class="v ${c}" style="left:${x}px;top:${ya}px;height:${yb - ya}px"></i>`;
     const H = y => h += `<i class="h" style="top:${y}px"></i>`;
     const K = (x, y, c) => h += `<i class="k ${c}" style="left:${x}px;top:${y}px"></i>`;
     const fv = $(".flow-v", root), yfb = fv ? Y(R(fv).bottom) : ytop;   /* Unterkante des Workflow-Blocks: waagrechte Linie, die rechte senkrechte Linie startet dort mit einem T */
     V(xl, ytop, ye, "fade"); V(xr, yfb, ye); V(x1, yb0, ybm); V(x2, ybm, yb1);
-    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xr, yfb, "td");
+    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xr, yfb, "td"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
     [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, "p"); K(xr, y, "p"); });
     K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
     ov.innerHTML = h;
   };
+  $$("#faq details", root).forEach(d => d.addEventListener("toggle", () => setTimeout(upd, 30)));
   new ResizeObserver(upd).observe(document.body); addEventListener("load", upd); upd(); setTimeout(upd, 1200); setTimeout(upd, 3500);
 }
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
