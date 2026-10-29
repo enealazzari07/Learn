@@ -4193,14 +4193,17 @@ html[data-theme=dark] .hf-i{background:#fff;border-color:#c9c9d2}
 .hf-i svg{width:26px;height:26px}
 html[data-theme=dark] .hf-i{background:none;border:0}
 
-/* Laptop freigestellt (ohne Podest und Hintergrund), schwebt direkt auf der Seite */
-.desk-sec{background:none!important;margin:0!important;border-radius:0!important;overflow:visible;padding:0 16px}
-.desk{margin:8px auto 0!important;max-width:1180px;aspect-ratio:2350/1420;-webkit-mask-image:none!important;mask-image:none!important;filter:drop-shadow(0 50px 50px rgba(15,15,25,.22)) drop-shadow(0 12px 14px rgba(15,15,25,.18))}
-.desk>img{object-fit:contain}
-.desk-shade{position:absolute;left:1200px;top:300px;width:1400px;height:1400px;mix-blend-mode:multiply;pointer-events:none}
-html[data-theme=dark] .desk{filter:invert(.93) hue-rotate(180deg) drop-shadow(0 40px 50px rgba(0,0,0,.5))}
-@media (max-width:700px){.desk-sec{padding:0 4px}}
-
+/* MacBook Air von vorn, gebaut mit CSS – App im Display */
+.mac-sec{padding:8px 16px 0;overflow:hidden}
+.mac{width:min(100%,1020px);margin:0 auto;filter:drop-shadow(0 40px 40px rgba(15,15,25,.2)) drop-shadow(0 10px 12px rgba(15,15,25,.14))}
+.mac-lid{background:linear-gradient(180deg,#d9dade,#c6c7cc);border-radius:22px 22px 4px 4px;padding:2px 2px 0}
+.mac-scr{position:relative;background:#fff;border:12px solid #0a0a0c;border-bottom-width:20px;border-radius:19px 19px 3px 3px;overflow:hidden;box-sizing:content-box}
+.mac-scr iframe{display:block;width:1280px;height:800px;border:0;transform-origin:0 0;pointer-events:none}
+.mac-notch{position:absolute;left:50%;top:0;width:8.5%;height:3%;min-height:8px;transform:translateX(-50%);background:#0a0a0c;border-radius:0 0 10px 10px}
+.mac-base{position:relative;width:114%;margin:0 -7%;height:clamp(10px,1.7vw,18px);background:linear-gradient(180deg,#e8e9ec 0,#cfd0d5 70%,#b7b8be);border-radius:2px 2px 22px 22px/2px 2px 16px 16px;box-shadow:inset 0 1px 0 #fff}
+.mac-base i{position:absolute;left:50%;top:0;width:15%;height:55%;transform:translateX(-50%);background:linear-gradient(180deg,#b9bac0,#d3d4d8);border-radius:0 0 12px 12px}
+html[data-theme=dark] .mac{filter:invert(.93) hue-rotate(180deg) drop-shadow(0 40px 40px rgba(0,0,0,.5))}
+@media (max-width:700px){.mac-sec{padding:4px 10px 0}.mac-scr{border-width:7px;border-bottom-width:12px;border-radius:12px 12px 2px 2px}.mac-lid{border-radius:14px 14px 3px 3px}}
 /* Workflow: links Text, rechts bündig bis zum Rand die Oberflächen als isometrische Ebenen */
 .flow{overflow:hidden;padding:clamp(48px,8vw,110px) 0 clamp(40px,6vw,90px)}
 .flow-in{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:center;gap:clamp(24px,4vw,64px);max-width:1900px;margin:0 auto;padding-left:max(24px,calc((100vw - 1200px) / 2))}

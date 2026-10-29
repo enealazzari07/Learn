@@ -84,27 +84,17 @@ function mountEmbed(root) {
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   fr.addEventListener("load", () => { theme(); mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
 }
-/* Laptop auf der Startseite: die echte App läuft schräg im Bildschirm (Perspektiv-Transformation auf das Display im Foto) und klickt sich selbst durch */
-const DESK_MASK = "M1288.27 560.176C1288.4 550.297 1295.73 541.997 1305.52 540.639L1814.5 470L1813.76 497.061C1813.62 502.002 1817.96 505.883 1822.85 505.204L1952.01 487.315C1957.45 486.561 1961.5 481.911 1961.5 476.419V450L2512.34 374.357C2521.39 373.114 2529.44 380.185 2529.38 389.322L2521.5 1513.5L2063.5 1549C1965.67 1541.43 1803.47 1523.41 1727 1517.5C1665 1511.5 1662.5 1510.5 1599 1512L1274.97 1537L1288.27 560.176Z";
-function mountDesk(root) {
+/* MacBook Air von vorn (reines CSS): die echte App läuft im Display und klickt sich selbst durch die Bereiche */
+function mountMac(root) {
   if (!root) return;
-  const ov = $(".desk-ov", root), scr = $(".desk-scr", root), fr = $("iframe", root), W = 1280, H = 1100;
-  /* Display im Bild (3200 × 2400), Kanten aus dem SVG gemessen: links x = 1290,7 − 0,0138·(y − 600), rechts x = 2527 − 0,0075·(y − 600), oben y = 517 − 0,1378·(x − 1500). Unten läuft die App etwas über die Auflage hinaus, die Maske schneidet exakt an der Gerätekante ab. */
-  const quad = [[1291.4, 546], [2528.7, 375.5], [2519.8, 1555], [1277.2, 1575]];
-  const src = [[0, 0], [W, 0], [W, H], [0, H]], A = [], B = [];
-  src.forEach(([x, y], i) => { const [u, v] = quad[i]; A.push([x, y, 1, 0, 0, 0, -u * x, -u * y], [0, 0, 0, x, y, 1, -v * x, -v * y]); B.push(u, v); });
-  for (let c = 0; c < 8; c++) { let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r; [A[c], A[p]] = [A[p], A[c]]; [B[c], B[p]] = [B[p], B[c]]; for (let r = 0; r < 8; r++) if (r !== c) { const f = A[r][c] / A[c][c]; for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k]; B[r] -= f * B[c]; } }
-  const [a, b, c, d, e, f, g, h] = B.map((v, i) => v / A[i][i]);
-  scr.style.transform = `matrix3d(${a},${d},0,${g},${b},${e},0,${h},0,0,1,0,${c},${f},0,1)`;
-  const mask = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3200 2400'><path d='${DESK_MASK}' fill='red'/></svg>`)}")`;
-  ov.style.webkitMaskImage = ov.style.maskImage = mask;
-  const fit = () => { ov.style.transform = `scale(${root.clientWidth / 2350}) translate(-300px,-300px)`; };   /* Ausschnitt 2350 × 1420 ab (300, 300) des 3200 × 2400-Bildes */
-  new ResizeObserver(fit).observe(root); fit();
+  const scr = $(".mac-scr", root), fr = $("iframe", root), W = 1280, H = 800;
+  const fit = () => { const k = scr.clientWidth / W; fr.style.transform = `scale(${k})`; scr.style.height = Math.round(H * k) + "px"; };
+  new ResizeObserver(fit).observe(scr); fit();
   const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   fr.addEventListener("load", theme);
   const TOUR = ["today", "docs", "planner", "today", "ai"]; let i = 0, alive = true;
-  const vis = new IntersectionObserver(es => es.forEach(x => { alive = x.isIntersecting; }), { threshold: .2 }); vis.observe(root);
+  new IntersectionObserver(es => es.forEach(x => { alive = x.isIntersecting; }), { threshold: .2 }).observe(root);
   const iv = setInterval(() => { if (!root.isConnected) return clearInterval(iv); if (!alive || document.hidden) return; i = (i + 1) % TOUR.length; try { fr.contentWindow.location.hash = "#/app/" + TOUR[i]; } catch {} }, 4500);
 }
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
@@ -174,7 +164,7 @@ function renderLanding() {
     <p class="sub">Notizen, Zeichnungen, Karteikarten, Planer und ein KI-Tutor – in einer App, die mit dir mitdenkt. Auf iPad, Handy und PC, auch offline.</p>
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
   </section>
-  <section class="desk-sec"><div class="desk" id="desk"><img src="landing-desk.webp" alt="Studix auf dem Laptop" width="1880" height="1136" loading="eager"><div class="desk-ov" aria-hidden="true"><div class="desk-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe></div><img class="desk-shade" src="landing-desk-shade.webp" alt=""></div></div></section>
+  <section class="mac-sec"><div class="mac" id="mac"><div class="mac-lid"><div class="mac-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe><i class="mac-notch"></i></div></div><div class="mac-base"><i></i></div></div></section>
   </section>
   <section class="flow" id="flow"><div class="flow-in"><div class="flow-t"><p class="flow-k">Workflow</p><h2>Vom ersten Satz bis zur Prüfung.</h2><p class="flow-p">Du schreibst eine Notiz, Studix macht daraus Karteikarten und Quiz, der Planer verteilt das Lernen auf deine Woche, und Studix AI erklärt, was hängen bleibt. Alles greift ineinander – nichts musst du übertragen.</p>
     <ol class="flow-l">${[["Schreiben", "Notizen, Skizzen und Formeln"], ["Lernen", "Karteikarten und Quiz aus deinen Notizen"], ["Planen", "Prüfungen und Stundenplan im Blick"], ["Vertiefen", "Studix AI erklärt und fragt dich ab"]].map(([h, p], n) => `<li><span>${n + 1}</span><b>${h}</b><small>${p}</small></li>`).join("")}</ol>
@@ -185,7 +175,7 @@ function renderLanding() {
   ${pricingHtml(go)}
   <section class="sec" id="faq"><h2>Häufige Fragen</h2><div class="faq">${[["Ist Studix kostenlos?", BILL.cfg?.enabled ? `Ja, die Grundfunktionen – Notizen, Karteikarten, Quiz, Planer, Noten – sind kostenlos. Studix AI hat ein Wochenlimit: ${aiuNum(AIQ.free)} Token im Gratis-Konto, ${aiuNum(AIQ.pro)} mit Studix Study Pro.` : "Ja. Alle Funktionen sind kostenlos."], ["Wo liegen meine Daten?", "Lokal auf deinem Gerät (auch offline nutzbar). Mit einem Konto werden Notizen, Aufgaben und Karteikarten verschlüsselt übertragen und sind auf allen Geräten gleich. Mit dem Backup-Export nimmst du sie jederzeit mit."], ["Funktioniert es für Schule und Studium?", "Ja – beim Start wählst du Schule oder Studium. Notensysteme (1–6, Punkte, Prozent) und Fächer bzw. Module passen sich an."], ["Kann ich es wie eine App installieren?", "Ja. Im Browser „Zum Home-Bildschirm“ (iPad/iPhone) bzw. „Installieren“ (Chrome/Edge) wählen."], ...(BILL.cfg?.enabled ? [["Wie bezahle ich und wie kündige ich?", "Über Stripe per Karte, Apple Pay, Google Pay oder Link. Die Mehrwertsteuer deines Landes ist im Preis enthalten und wird beim Bezahlen angezeigt. Kündigen kannst du jederzeit in den Einstellungen unter „Studix Study Pro“."]] : [])].map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div></section>
   <footer><div><a class="logo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Rechtliches", ["Impressum", "legal.html#impressum"], ["Datenschutz", "legal.html#datenschutz"], ["AGB", "legal.html#agb"], ["Widerruf", "legal.html#widerruf"]]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => Array.isArray(x) ? `<a href="${x[1]}">${x[0]}</a>` : `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Studix</div>`;
-  mountDesk($("#desk", landingEl));
+  mountMac($("#mac", landingEl));
   mountBento(landingEl);
   { const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } }), { threshold: .15 }); $$(".rv", landingEl).forEach(x => io2.observe(x)); }
   { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); setTimeout(() => e.target.classList.add("on"), e.target.classList.contains("mk") ? 1300 : 700); } }), { threshold: .6 }); $$(".hl", landingEl).forEach(h => io.observe(h)); }
