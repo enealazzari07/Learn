@@ -4247,3 +4247,7 @@ html[data-theme=dark] .plat-v img{filter:invert(.93) hue-rotate(180deg)}
 #how .bn-card .bn-bg *{box-shadow:none!important}
 #how .bn-card .bn-bg [class*=bl-],#how .bn-card .bn-bg li,#how .bn-card .bn-bg figure{border:0!important}
 #how .bn-card .bn-bg{-webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+/* Bento: schlankes Linienraster (Haarlinien), Kreuze an den Schnittpunkten */
+#how .bento3{gap:0!important;border-top:1px solid #e7e7ec;border-left:1px solid #e7e7ec;position:relative}
+#how .bn-card,#how .bn-card:hover{border-radius:0!important;border-right:1px solid #e7e7ec!important;border-bottom:1px solid #e7e7ec!important;position:relative}
+html[data-theme=dark] #how .bento3,html[data-theme=dark] #how .bn-card{border-color:#c9c9d2!important}
