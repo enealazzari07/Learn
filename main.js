@@ -30,11 +30,18 @@ addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLower
 function pricingHtml(go) {
   const c = BILL.cfg; if (!c || !c.enabled) return "";
   const eur = v => `${new Intl.NumberFormat("de-CH", { minimumFractionDigits: v % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(v / 100)} ${({ chf: "CHF", eur: "€", usd: "USD" })[(c.currency || "eur").toLowerCase()] || ""}`, li = a => a.map(x => `<li>${ic("check")}${x}</li>`).join("");
-  return `<section class="sec" id="pricing"><h2 style="text-align:center;margin-inline:auto">Einfache Preise.</h2><p class="lead" style="text-align:center;margin:10px auto 0">Starte kostenlos – upgrade, wenn du mehr Studix AI willst.</p>
-  <div class="plans"><div class="plan"><h3>Gratis</h3><p class="pr"><b>${eur(0)}</b></p><ul>${li([`Bis zu ${FREE_LIMITS.docs} Dokumente, ${FREE_LIMITS.boards} Whiteboards`, "Karteikarten &amp; Quiz", "Planer, Noten, Fokus-Timer", `Studix AI: ${aiuNum(AIQ.free)} Token pro Woche`, "Sync auf allen Geräten"])}</ul><a class="btn" ${go}>Kostenlos starten</a></div>
-  <div class="plan feat"><span class="pill-l"><b>Pro</b> beliebt</span><h3>Studix Study Pro</h3>${c.monthly ? `<p class="pr"><b>${eur(c.monthly)}</b> / Monat</p>${c.yearly ? `<p class="note">oder ${eur(c.yearly)} / Jahr</p>` : ""}` : `<p class="pr"><b>${eur(c.yearly)}</b> / Jahr</p>`}<ul>${li(["Alles aus Gratis", `${c.trial || 14} Tage kostenlos testen`, `Studix AI: ${aiuNum(AIQ.pro)} Token pro Woche`, "Unbegrenzt Dokumente &amp; Whiteboards", "Bild-Analyse &amp; Sprachgespräch", "Längere Antworten", "Neue Pro-Funktionen zuerst", "Jederzeit kündbar"])}</ul><a class="btn accent" ${go}>${c.trial || 14} Tage gratis testen</a></div></div>
-  <p style="text-align:center;margin-top:18px">${planCompareLink()}</p>
-  <p class="note" style="text-align:center;margin-top:14px">Preise inkl. gesetzlicher Mehrwertsteuer deines Landes – sie wird beim Bezahlen automatisch berechnet.</p></section>`;
+  const tick = `<i class="cb a"></i><i class="cb b"></i><i class="cb c"></i><i class="cb d"></i>`;
+  const price = (v, per) => `<p class="pr"><b>${eur(v)}</b>${per ? `<small> ${per}</small>` : ""}</p>`;
+  const free = [`Bis zu ${FREE_LIMITS.docs} Dokumente, ${FREE_LIMITS.boards} Whiteboards`, "Karteikarten &amp; Quiz", "Planer, Noten, Fokus-Timer", `Studix AI: ${aiuNum(AIQ.free)} Token pro Woche`, "Sync auf allen Geräten"];
+  const pro = ["Alles aus Gratis", `${c.trial || 14} Tage kostenlos testen`, `Studix AI: ${aiuNum(AIQ.pro)} Token pro Woche`, "Unbegrenzt Dokumente &amp; Whiteboards", "Bild-Analyse &amp; Sprachgespräch", "Längere Antworten", "Neue Pro-Funktionen zuerst", "Jederzeit kündbar"];
+  return `<section class="sec" id="pricing"><p class="pr-k">Preise</p><h2>Einfache Preise.</h2><p class="lead">Starte kostenlos – upgrade, wenn du mehr Studix AI willst.</p>
+  <div class="pr-steps">${[["adduser", "Kostenlos starten", "Konto anlegen und sofort loslegen."], ["spark", "Pro testen", `${c.trial || 14} Tage gratis, ohne Risiko.`], ["check", "Jederzeit kündbar", "Keine Bindung, keine Kosten danach."]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><div><b>${h}</b><small>${p}</small></div></div>`).join("")}</div>
+  <div class="pr-panel">${tick}
+    <div class="pr-col"><span class="pr-l">Gratis</span>${price(0)}<p class="note">Für immer kostenlos.</p><a class="btn" ${go}>Kostenlos starten</a></div>
+    <ul class="pr-ul">${li(free)}</ul>
+    <div class="pr-col pr-pro"><span class="pr-l">Studix Study Pro</span>${c.monthly ? price(c.monthly, "/ Monat") + (c.yearly ? `<p class="note">oder ${eur(c.yearly)} / Jahr</p>` : "") : price(c.yearly, "/ Jahr")}<a class="btn accent" ${go}>${c.trial || 14} Tage gratis testen</a></div>
+    <ul class="pr-ul">${li(pro)}</ul></div>
+  <p class="pr-f">${planCompareLink()}<span>Preise inkl. gesetzlicher Mehrwertsteuer deines Landes – sie wird beim Bezahlen automatisch berechnet.</span></p></section>`;
 }
 const EMBED_TABS = [["Heute", "today", "home"], ["Dokumente", "docs", "folder"], ["Karteikarten", "cards", "cards"], ["Planer", "planner", "cal"], ["Studix AI", "ai", "spark"]];
 function mountEmbed(root) {
@@ -166,6 +173,21 @@ function mountMac(root) {
   fr.contentDocument && fr.contentDocument.readyState === "complete" ? begin() : fr.addEventListener("load", begin, { once: true });
   document.addEventListener("visibilitychange", () => { if (document.hidden) stop(); });
 }
+/* Linienraster über Bento und Preise: durchgehende Haarlinien bis aus dem Bild, kräftigere Marken an den Schnittpunkten */
+function mountFrame(root) {
+  const how = $("#how", root), pr = $("#pricing", root); if (!how || !pr) return;
+  const ov = document.createElement("div"); ov.className = "gfr"; ov.setAttribute("aria-hidden", "true");
+  ov.innerHTML = '<i class="v l"></i><i class="v r"></i><i class="h t"></i><i class="h m"></i><i class="h b"></i>' + ["tl", "tr", "ml", "mr", "bl", "br"].map(c => `<i class="k ${c}"></i>`).join("");
+  root.appendChild(ov);
+  const upd = () => {
+    const rt = root.getBoundingClientRect(), a = how.getBoundingClientRect(), b = pr.getBoundingClientRect(), y0 = a.top - rt.top, y1 = b.top - rt.top, y2 = b.bottom - rt.top, xl = a.left - rt.left + 2, xr = a.right - rt.left - 2;
+    const S = (sel, o) => { const e = $(sel, ov); Object.assign(e.style, o); };
+    S(".v.l", { left: xl + "px", top: (y0 - 160) + "px", height: (y2 - y0 + 160) + "px" }); S(".v.r", { left: xr + "px", top: (y0 - 160) + "px", height: (y2 - y0 + 160) + "px" });
+    S(".h.t", { top: y0 + "px" }); S(".h.m", { top: y1 + "px" }); S(".h.b", { top: y2 + "px" });
+    [["tl", xl, y0], ["tr", xr, y0], ["ml", xl, y1], ["mr", xr, y1], ["bl", xl, y2], ["br", xr, y2]].forEach(([c, x, y]) => S(".k." + c, { left: x + "px", top: y + "px" }));
+  };
+  new ResizeObserver(upd).observe(document.body); addEventListener("load", upd); upd(); setTimeout(upd, 1200); setTimeout(upd, 3500);
+}
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
 function mountGrid(hero) {
   const box = $(".agp", hero), emb = $("#emb", hero), N = 30, SZ = 40, NS = "http://www.w3.org/2000/svg";
@@ -194,9 +216,7 @@ function extraHtml(go) {
   const steps = [["#ff6a3d", "1", "Sammeln", "Schreib mit, zeichne, importiere PDFs und Bilder – alles landet geordnet in deinen Fächern."], ["#2563eb", "2", "Verstehen", "Lass dir Stoff erklären, zusammenfassen und in Karteikarten und Quiz verwandeln."], ["#0e9f6e", "3", "Behalten", "Der Lernplan erinnert dich genau dann, wenn Wiederholen am meisten bringt."]];
   const uses = [["#e11d48", "Schule", "Hausaufgaben, Vokabeln und Klassenarbeiten im Griff."], ["#2563eb", "Uni", "Skripte, Zusammenfassungen und Altklausuren an einem Ort."], ["#0e9f6e", "Ausbildung", "Berichtsheft, Lernfelder und Prüfungsvorbereitung."], ["#d97706", "Selbststudium", "Eigene Ziele, Lernpläne und Fokus-Timer."]];
   return `
-  <section class="sec xs" id="subjects"><p class="xs-k rv">Für jedes Fach</p><div class="mq rv"><div class="mq-t">${chips}</div></div></section>
-  <section class="sec xs" id="tiles"><h2 class="rv">Vier Werkzeuge. Ein Workflow.</h2><p class="lead rv">Vier Werkzeuge, die zusammenarbeiten – statt vier Apps, die du jonglieren musst.</p>
-    <div class="xt">${tiles.map(([bg, c, i, t, d, v], k) => `<article class="xt-c rv" style="--bg:${bg};--c:${c};--d:${k * 90}ms"><span class="xt-i">${ic(i)}</span><h3>${t}</h3><p>${d}</p>${v}</article>`).join("")}</div></section>`;
+`;
 }
 function bentoHtml() {
   const now = new Date(), y = now.getFullYear(), m = now.getMonth(), first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
@@ -247,6 +267,7 @@ function renderLanding() {
   <section class="sec" id="faq"><h2>Häufige Fragen</h2><div class="faq">${[["Ist Studix kostenlos?", BILL.cfg?.enabled ? `Ja, die Grundfunktionen – Notizen, Karteikarten, Quiz, Planer, Noten – sind kostenlos. Studix AI hat ein Wochenlimit: ${aiuNum(AIQ.free)} Token im Gratis-Konto, ${aiuNum(AIQ.pro)} mit Studix Study Pro.` : "Ja. Alle Funktionen sind kostenlos."], ["Wo liegen meine Daten?", "Lokal auf deinem Gerät (auch offline nutzbar). Mit einem Konto werden Notizen, Aufgaben und Karteikarten verschlüsselt übertragen und sind auf allen Geräten gleich. Mit dem Backup-Export nimmst du sie jederzeit mit."], ["Funktioniert es für Schule und Studium?", "Ja – beim Start wählst du Schule oder Studium. Notensysteme (1–6, Punkte, Prozent) und Fächer bzw. Module passen sich an."], ["Kann ich es wie eine App installieren?", "Ja. Im Browser „Zum Home-Bildschirm“ (iPad/iPhone) bzw. „Installieren“ (Chrome/Edge) wählen."], ...(BILL.cfg?.enabled ? [["Wie bezahle ich und wie kündige ich?", "Über Stripe per Karte, Apple Pay, Google Pay oder Link. Die Mehrwertsteuer deines Landes ist im Preis enthalten und wird beim Bezahlen angezeigt. Kündigen kannst du jederzeit in den Einstellungen unter „Studix Study Pro“."]] : [])].map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div></section>
   <footer><div><a class="logo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Rechtliches", ["Impressum", "legal.html#impressum"], ["Datenschutz", "legal.html#datenschutz"], ["AGB", "legal.html#agb"], ["Widerruf", "legal.html#widerruf"]]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => Array.isArray(x) ? `<a href="${x[1]}">${x[0]}</a>` : `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Studix</div>`;
   mountMac($("#mac", landingEl));
+  mountFrame(landingEl);
   mountBento(landingEl);
   { const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } }), { threshold: .15 }); $$(".rv", landingEl).forEach(x => io2.observe(x)); }
   { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); setTimeout(() => e.target.classList.add("on"), e.target.classList.contains("mk") ? 1300 : 700); } }), { threshold: .6 }); $$(".hl", landingEl).forEach(h => io.observe(h)); }
