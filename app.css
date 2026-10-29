@@ -4094,3 +4094,24 @@ footer .logo{color:#0f0f12}
 .accbot{display:flex;gap:10px;justify-content:flex-end;margin:28px 0 8px;padding-top:18px;border-top:1px solid #ececf0}
 .accbot .btn{display:inline-flex;align-items:center;gap:8px}.accbot svg{width:16px;height:16px}
 .btn.danger-o{background:none;border:1px solid #f0c4c4;color:#c0392b}.btn.danger-o:hover{background:#fdf0f0}
+
+/* ===== Einstellungen aufgeräumt: Karten mit Stift (Bearbeiten), Beschriftung an den Tabs ===== */
+.kvcard>h2{position:relative;padding-right:64px}
+.kv-edit{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:1px solid #e6e6ea;background:#fff;display:grid;place-items:center;color:#444;cursor:pointer;padding:0}
+.kv-edit svg{width:16px;height:16px}.kv-edit:hover,.kv-edit.on{background:#111;border-color:#111;color:#fff}
+.kvcard .kv{border-bottom:1px solid #f0f0f3}
+.kvcard:not(.editing) .field.flat,.kvcard:not(.editing) #sl,.kvcard:not(.editing) .avsw button{pointer-events:none}
+.kvcard:not(.editing) select.field.flat{-webkit-appearance:none;appearance:none;background-image:none}
+.kvcard:not(.editing) input[type=number]{-moz-appearance:textfield;appearance:textfield}.kvcard:not(.editing) input[type=number]::-webkit-inner-spin-button{display:none}
+.kvcard:not(.editing) #sl button:not(.on),.kvcard:not(.editing) .avsw button:not(.on),.kvcard:not(.editing) #to-subj{display:none}
+.kvcard:not(.editing) #sl{background:none;padding:0}.kvcard:not(.editing) #sl button.on{background:none;box-shadow:none;padding:6px 0;font-size:15px;font-weight:500;justify-content:flex-start;text-align:left}
+.kvcard.editing .field.flat{background:#f6f6f8;padding:9px 12px;border-radius:10px}
+.kvcard.editing{box-shadow:0 0 0 2px #111 inset}
+.settabs button .stl{display:none}
+@media (min-width:901px){
+  .settabs.sdock{height:auto!important;padding:5px!important;gap:2px!important}
+  .settabs.sdock button[data-s]{width:auto!important;height:36px!important;padding:0 14px 0 10px!important;border-radius:12px!important;display:inline-flex!important;align-items:center;gap:8px;--s:auto!important}
+  .settabs.sdock button[data-s] .stl{display:inline;font-size:13.5px;font-weight:600}
+  .settabs.sdock button[data-s].on{background:#111!important;color:#fff!important}.settabs.sdock button[data-s].on svg{stroke:#fff}
+}
+.kv-edit.on svg,.kv-edit:hover svg{stroke:#fff}
