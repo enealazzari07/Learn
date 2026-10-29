@@ -4193,17 +4193,30 @@ html[data-theme=dark] .hf-i{background:#fff;border-color:#c9c9d2}
 .hf-i svg{width:26px;height:26px}
 html[data-theme=dark] .hf-i{background:none;border:0}
 
-/* MacBook Air von vorn, gebaut mit CSS – App im Display */
-.mac-sec{padding:8px 16px 0;overflow:hidden}
-.mac{width:min(100%,1020px);margin:0 auto;filter:drop-shadow(0 40px 40px rgba(15,15,25,.2)) drop-shadow(0 10px 12px rgba(15,15,25,.14))}
-.mac-lid{background:linear-gradient(180deg,#d9dade,#c6c7cc);border-radius:22px 22px 4px 4px;padding:2px 2px 0}
-.mac-scr{position:relative;background:#fff;border:12px solid #0a0a0c;border-bottom-width:20px;border-radius:19px 19px 3px 3px;overflow:hidden;box-sizing:content-box}
-.mac-scr iframe{display:block;width:1280px;height:800px;border:0;transform-origin:0 0;pointer-events:none}
-.mac-notch{position:absolute;left:50%;top:0;width:8.5%;height:3%;min-height:8px;transform:translateX(-50%);background:#0a0a0c;border-radius:0 0 10px 10px}
-.mac-base{position:relative;width:114%;margin:0 -7%;height:clamp(10px,1.7vw,18px);background:linear-gradient(180deg,#e8e9ec 0,#cfd0d5 70%,#b7b8be);border-radius:2px 2px 22px 22px/2px 2px 16px 16px;box-shadow:inset 0 1px 0 #fff}
-.mac-base i{position:absolute;left:50%;top:0;width:15%;height:55%;transform:translateX(-50%);background:linear-gradient(180deg,#b9bac0,#d3d4d8);border-radius:0 0 12px 12px}
-html[data-theme=dark] .mac{filter:invert(.93) hue-rotate(180deg) drop-shadow(0 40px 40px rgba(0,0,0,.5))}
-@media (max-width:700px){.mac-sec{padding:4px 10px 0}.mac-scr{border-width:7px;border-bottom-width:12px;border-radius:12px 12px 2px 2px}.mac-lid{border-radius:14px 14px 3px 3px}}
+/* MacBook Pro 16 von vorn, gebaut mit CSS nach dem Entwurf (Rahmen 2347 × 1432, alle Maße in Prozent bzw. cqw) */
+.mac-sec{padding:4px 16px 0;overflow:hidden}
+.mbp-w{container-type:inline-size;width:min(100%,1260px);margin:0 auto}
+.mbp{--u:calc(100cqw / 2347.27);position:relative;aspect-ratio:2347.27/1432;filter:drop-shadow(0 calc(var(--u)*50) calc(var(--u)*50) rgba(15,15,25,.22)) drop-shadow(0 calc(var(--u)*10) calc(var(--u)*14) rgba(15,15,25,.16))}
+.mbp>*{position:absolute;display:block;margin:0}
+.m-rim{left:7.74%;right:7.78%;top:0;bottom:3.72%;background:#b0b2b3;border-radius:calc(var(--u)*53.72) calc(var(--u)*53.72) 0 0}
+.m-rim2{left:7.78%;right:7.82%;top:.07%;bottom:3.75%;background:#97989a;border-radius:calc(var(--u)*53) calc(var(--u)*53) 0 0}
+.m-rim3{left:7.87%;right:7.91%;top:.2%;bottom:3.62%;background:#a1a3a5;border-radius:calc(var(--u)*52) calc(var(--u)*52) 0 0}
+.m-bez0{left:7.91%;right:7.95%;top:.27%;bottom:5.93%;background:#202020;border-radius:calc(var(--u)*50) calc(var(--u)*50) 0 0}
+.m-bez{left:8.16%;right:8.2%;top:.68%;bottom:5.9%;background:#000;border-radius:calc(var(--u)*44) calc(var(--u)*44) 0 0}
+.m-chin{left:8.2%;right:8.24%;top:90.31%;bottom:5.87%;background:linear-gradient(180deg,#323232,#0f0f0f)}
+.mbp-scr{left:9.12%;right:9.09%;top:2.23%;bottom:11.03%;background:#fff;overflow:hidden;border-radius:calc(var(--u)*12) calc(var(--u)*12) 0 0}
+.mbp-scr iframe{display:block;width:1440px;height:932px;border:0;transform-origin:0 0;pointer-events:none}
+.m-notch{left:45.88%;right:44.91%;top:2.23%;bottom:95.04%;background:#000;border-radius:0 0 calc(var(--u)*16) calc(var(--u)*16)}
+.m-cam{left:49.69%;right:49.65%;top:2.18%;bottom:96.73%;border-radius:50%;background:radial-gradient(circle at 50% 35%,#243f68 0,#0d0d13 70%);box-shadow:0 0 0 calc(var(--u)*2) #111}
+.m-led{left:50.94%;right:48.81%;top:2.52%;bottom:97.07%;border-radius:50%;background:#6ff857;filter:blur(calc(var(--u)*1.2))}
+.mbp-base{left:0;right:0;top:93.59%;bottom:0;overflow:hidden;border-radius:0 0 calc(var(--u)*41) calc(var(--u)*41);background:linear-gradient(180deg,#eceef0 0,#dfe1e3 14%,#b9bbbd 48%,#a4a6a8 72%,#8c8d8f 100%);box-shadow:inset 0 1px 0 #fff}
+.mbp-base .b-hi{left:2.3%;right:2.3%;top:0;height:42%;background:#fcfcfc;filter:blur(calc(var(--u)*10));opacity:.55;display:block;position:absolute}
+.mbp-base .b-sh{left:1.7%;right:1.7%;bottom:-18%;height:34%;background:#7b7c7e;filter:blur(calc(var(--u)*9));display:block;position:absolute;border-radius:50%}
+.mbp-base .b-th{left:42.32%;width:15.36%;top:0;height:31%;background:linear-gradient(90deg,#454545 0,#eff0f2 3.7%,#eff0f2 96.45%,#454545 100%);border-radius:0 0 calc(var(--u)*18) calc(var(--u)*18);box-shadow:inset 0 calc(var(--u)*-2) calc(var(--u)*3) rgba(0,0,0,.18);display:block;position:absolute}
+.m-foot{top:99.25%;bottom:0;width:5.95%;background:linear-gradient(180deg,#5a5a5a,#343434);border-radius:0 0 calc(var(--u)*6) calc(var(--u)*6)}
+.m-foot.l{left:4.79%}.m-foot.r{right:4.79%}
+html[data-theme=dark] .mbp-w{filter:invert(.93) hue-rotate(180deg)}
+@media (max-width:700px){.mac-sec{padding:0 6px}}
 /* Workflow: links Text, rechts bündig bis zum Rand die Oberflächen als isometrische Ebenen */
 .flow{overflow:hidden;padding:clamp(48px,8vw,110px) 0 clamp(40px,6vw,90px)}
 .flow-in{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);align-items:center;gap:clamp(24px,4vw,64px);max-width:1900px;margin:0 auto;padding-left:max(24px,calc((100vw - 1200px) / 2))}

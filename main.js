@@ -84,11 +84,11 @@ function mountEmbed(root) {
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   fr.addEventListener("load", () => { theme(); mark(); try { fr.contentWindow.addEventListener("hashchange", mark); } catch {} });
 }
-/* MacBook Air von vorn (reines CSS): die echte App läuft im Display und klickt sich selbst durch die Bereiche */
+/* MacBook Pro 16 von vorn (reines CSS, Maße aus dem Entwurf 2347 × 1432): die echte App läuft im Display und klickt sich selbst durch die Bereiche */
 function mountMac(root) {
   if (!root) return;
-  const scr = $(".mac-scr", root), fr = $("iframe", root), W = 1280, H = 800;
-  const fit = () => { const k = scr.clientWidth / W; fr.style.transform = `scale(${k})`; scr.style.height = Math.round(H * k) + "px"; };
+  const scr = $(".mbp-scr", root), fr = $("iframe", root), W = 1440, H = 932;
+  const fit = () => { fr.style.transform = `scale(${scr.clientWidth / W})`; };
   new ResizeObserver(fit).observe(scr); fit();
   const theme = () => { try { fr.contentDocument.documentElement.dataset.theme = themeNow(); } catch {} };
   new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -164,7 +164,7 @@ function renderLanding() {
     <p class="sub">Notizen, Zeichnungen, Karteikarten, Planer und ein KI-Tutor – in einer App, die mit dir mitdenkt. Auf iPad, Handy und PC, auch offline.</p>
     <div class="hero-cta"><a class="btn accent big" ${go}>Kostenlos starten</a><a class="btn light big" href="#how">Funktionen ansehen</a></div>
   </section>
-  <section class="mac-sec"><div class="mac" id="mac"><div class="mac-lid"><div class="mac-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe><i class="mac-notch"></i></div></div><div class="mac-base"><i></i></div></div></section>
+  <section class="mac-sec"><div class="mbp-w" id="mac"><div class="mbp"><i class="m-rim"></i><i class="m-rim2"></i><i class="m-rim3"></i><i class="m-bez0"></i><i class="m-bez"></i><i class="m-chin"></i><div class="mbp-scr"><iframe src="index.html?embed=1#/app/today" title="Studix App" tabindex="-1"></iframe></div><i class="m-notch"></i><i class="m-cam"></i><i class="m-led"></i><div class="mbp-base"><i class="b-hi"></i><i class="b-sh"></i><i class="b-th"></i></div><i class="m-foot l"></i><i class="m-foot r"></i></div></div></section>
   </section>
   <section class="flow" id="flow"><div class="flow-in"><div class="flow-t"><p class="flow-k">Workflow</p><h2>Vom ersten Satz bis zur Prüfung.</h2><p class="flow-p">Du schreibst eine Notiz, Studix macht daraus Karteikarten und Quiz, der Planer verteilt das Lernen auf deine Woche, und Studix AI erklärt, was hängen bleibt. Alles greift ineinander – nichts musst du übertragen.</p>
     <ol class="flow-l">${[["Schreiben", "Notizen, Skizzen und Formeln"], ["Lernen", "Karteikarten und Quiz aus deinen Notizen"], ["Planen", "Prüfungen und Stundenplan im Blick"], ["Vertiefen", "Studix AI erklärt und fragt dich ab"]].map(([h, p], n) => `<li><span>${n + 1}</span><b>${h}</b><small>${p}</small></li>`).join("")}</ol>
