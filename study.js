@@ -475,34 +475,47 @@ V.today = m => {
     paint(); const iv = setInterval(() => { if (!fd.isConnected) return clearInterval(iv); paint(); }, 500); LEAVE.push(() => clearInterval(iv));
   }
   if ($("#cal-g", m)) {
-    const now = new Date(); let cy = now.getFullYear(), cm = now.getMonth(), sel = iso();
+    /* Nur Mo–Fr, ab dieser Woche 4 Wochen voraus; wechselt von selbst zwischen Wochenüberblick (4 Wochen) und genauer Wochenansicht und zurück */
+    let wo = 0, sel = iso(), mode = "month", lastAct = 0;
     const itemsOn = d => [...D.tasks.filter(x => !x.done && x.due === d).map(x => ({ k: x.type === "exam" ? "exam" : "task", t: x.title })), ...calEventsOn(d).map(e => ({ k: "ev", t: e.title }))];
+    const monday = o => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7) + o * 7); return d; };
+    const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+    const WD = ["Mo", "Di", "Mi", "Do", "Fr"], g = $("#cal-g", m), det = $("#cal-d", m), box = g.closest(".w-cal");
     const drawCal = () => {
-      $("#cal-m", m).textContent = new Date(cy, cm, 1).toLocaleDateString("de-CH", { month: "long", year: "numeric" });
-      const f0 = (new Date(cy, cm, 1).getDay() + 6) % 7, today = iso();
-      let h = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(w => `<span class="wd">${w}</span>`).join("");
-      /* nur die Wochen des Monats; ist heute in der letzten Woche, rutscht oben die erste Reihe weg und unten kommt die nächste Woche dazu */
-      const wk = Math.ceil((f0 + new Date(cy, cm + 1, 0).getDate()) / 7), isNow = cy === now.getFullYear() && cm === now.getMonth(), inLast = isNow && Math.floor((f0 + now.getDate() - 1) / 7) === wk - 1, from = inLast ? 7 : 0;
-      for (let i = from; i < from + wk * 7; i++) {
-        const dt = new Date(cy, cm, 1 - f0 + i), ds = iso(dt), out = dt.getMonth() !== cm, it = itemsOn(ds);
-        h += `<button class="cd ${out ? "out" : ""} ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><span>${dt.getDate()}</span><em>${it.length ? "<u></u>" : ""}</em></button>`;
+      const m0 = monday(wo), today = iso(), f = x => x.toLocaleDateString("de-CH", { day: "numeric", month: "short" });
+      box.dataset.mode = mode;
+      if (mode === "week") {
+        $("#cal-m", m).textContent = wo === 0 ? "Diese Woche" : f(m0) + " – " + f(addD(m0, 4));
+        g.innerHTML = WD.map((w, n) => { const dt = addD(m0, n), ds = iso(dt), it = itemsOn(ds); return `<button class="wk-r ${ds === today ? "today" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><b>${w}<span>${dt.getDate()}</span></b><span class="wk-i">${it.length ? it.slice(0, 2).map(x => `<span class="wk-e k${x.k}"><i></i>${esc(x.t)}</span>`).join("") + (it.length > 2 ? `<small>+${it.length - 2}</small>` : "") : `<em>frei</em>`}</span></button>`; }).join("");
+        det.innerHTML = "";
+        $$("[data-cd]", g).forEach(b => b.onclick = () => { lastAct = Date.now(); sel = b.dataset.cd; mode = "month"; drawCal(); });
+        return;
       }
-      $("#cal-g", m).innerHTML = h; $("#cal-g", m).style.setProperty("--wk", wk);
-      $$("[data-cd]", $("#cal-g", m)).forEach(b => b.onclick = () => { if (swiped) return; if (sel === b.dataset.cd) return taskModal(null, sel); sel = b.dataset.cd; const d = parseISO(sel); if (d.getMonth() !== cm) { cm = d.getMonth(); cy = d.getFullYear(); } drawCal(); });
+      const end = addD(m0, 25), mo = x => x.toLocaleDateString("de-CH", { month: "long" });
+      $("#cal-m", m).textContent = (m0.getMonth() === end.getMonth() ? mo(m0) : mo(m0).slice(0, 3) + " – " + mo(end).slice(0, 3)) + " " + end.getFullYear();
+      let h = WD.map(w => `<span class="wd">${w}</span>`).join("");
+      for (let w = 0; w < 4; w++) for (let n = 0; n < 5; n++) {
+        const dt = addD(m0, w * 7 + n), ds = iso(dt), it = itemsOn(ds);
+        h += `<button class="cd ${ds === today ? "today" : ""} ${ds === sel ? "sel" : ""} ${it.some(x => x.k === "exam") ? "ex" : ""}" data-cd="${ds}"><span>${dt.getDate()}</span><em>${it.length ? "<u></u>" : ""}</em></button>`;
+      }
+      g.innerHTML = h;
+      $$("[data-cd]", g).forEach(b => b.onclick = () => { lastAct = Date.now(); if (swiped) return; if (sel === b.dataset.cd) return taskModal(null, sel); sel = b.dataset.cd; drawCal(); });
       const l = itemsOn(sel), KL = { exam: "Prüfung", task: "Aufgabe", ev: "Termin" };
       /* fester Bereich: Datum + immer 3 Zeilen (bis 2 Einträge + „weitere“), auch bei 0 Einträgen gleich hoch */
       const srt = [...l].sort((p, q) => (q.k === "exam") - (p.k === "exam")), more = l.length > 2 ? l.length - 2 : 0, row = x => `<span class="cd-i k${x.k}"><i></i><span class="cd-t"><b>${KL[x.k]}</b> ${esc(x.t)}</span></span>`;
       const rows = srt.slice(0, 2).map(row); while (rows.length < 2) rows.push(`<span class="cd-i ph"><span class="cd-t">${rows.length === 0 && !l.length ? "Keine Einträge" : "&nbsp;"}</span></span>`);
       rows.push(more ? `<span class="cd-i more"><span class="cd-t">+${more} weitere</span></span>` : `<span class="cd-i ph"><span class="cd-t">&nbsp;</span></span>`);
-      $("#cal-d", m).innerHTML = `<span class="cd-dt">${sel === today ? "Heute" : fmtD(sel)}</span>` + rows.join("");
+      det.innerHTML = `<span class="cd-dt">${sel === today ? "Heute" : fmtD(sel)}</span>` + rows.join("");
     };
-    const shift = d => { cm += d; if (cm < 0) { cm = 11; cy--; } if (cm > 11) { cm = 0; cy++; } drawCal(); };
-    $("#cal-m", m).onclick = () => { const n = new Date(); cy = n.getFullYear(); cm = n.getMonth(); sel = iso(); drawCal(); };
-    let swiped = false, sx = 0, sy = 0, down = false; const g = $("#cal-g", m);
+    const swap = to => { box.classList.add("fading"); setTimeout(() => { mode = to; if (to === "week") { wo = 0; } else { wo = 0; sel = iso(); } drawCal(); box.classList.remove("fading"); }, 260); };
+    const shift = d => { lastAct = Date.now(); wo = Math.max(0, wo + d); drawCal(); };
+    $("#cal-m", m).onclick = () => { lastAct = Date.now(); wo = 0; sel = iso(); mode = "month"; drawCal(); };
+    let swiped = false, sx = 0, sy = 0, down = false;
     g.addEventListener("pointerdown", e => { down = true; swiped = false; sx = e.clientX; sy = e.clientY; });
     g.addEventListener("pointerup", e => { if (!down) return; down = false; const dx = e.clientX - sx, dy = e.clientY - sy; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { swiped = true; shift(dx < 0 ? 1 : -1); setTimeout(() => { swiped = false; }, 50); } });
     g.addEventListener("pointercancel", () => { down = false; });
     g.addEventListener("wheel", e => { if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 20) { e.preventDefault(); shift(e.deltaX > 0 ? 1 : -1); } }, { passive: false });
+    const iv = setInterval(() => { if (!box.isConnected) return clearInterval(iv); if (document.hidden || box.matches(":hover") || Date.now() - lastAct < 8000) return; swap(mode === "month" ? "week" : "month"); }, 7000); LEAVE.push(() => clearInterval(iv));
     drawCal();
   }
 };
