@@ -5,6 +5,7 @@ const CO_COL = ["#e5484d", "#f59e0b", "#16a34a", "#2563eb", "#7c3aed", "#ec4899"
 const coColor = s => CO_COL[[...String(s)].reduce((a, c) => a + c.charCodeAt(0), 0) % CO_COL.length];
 const coName = () => (D.profile.name || (CLOUD.user?.email || "Gast").split("@")[0]).trim();
 const coLink = id => location.origin + location.pathname + "#/app/join/" + id;
+const meCol = () => coColor(CLOUD.user?.id || coName());
 const coIni = n => (String(n).trim()[0] || "?").toUpperCase();
 
 V.join = async (m, id) => {
@@ -21,12 +22,12 @@ V.join = async (m, id) => {
 };
 
 function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
-  const me = { key: uid(), name: coName() }; me.color = coColor(CLOUD.user?.id || me.key);
+  const me = { key: uid(), name: coName() }; me.color = meCol();
   const av = $("#co-av", m), btn = $("#co-m", m); let ch = null, conn = "", peers = {}, lastType = 0, pend = null, tPush = 0, tSave = 0, dead = false;
   const state = () => ({ html: lumiHtml(body), tb: TBX.get(), ink: ink.st.strokes });
   const paint = () => {
     const list = Object.values(peers).map(a => a[0]).filter(Boolean);
-    av.innerHTML = list.length ? `<i style="background:${list[0].color}">${esc(coIni(list[0].name))}</i>` + (list.length > 1 ? `<i class="more">+${list.length - 1}</i>` : "") : ""; av.title = list.map(p => p.name).join(", ");
+    av.innerHTML = list.length ? `<i style="background:${list[0].color}">${esc(coIni(list[0].name))}</i>` + (list.length > 1 ? `<i class="more">+${list.length - 1}</i>` : "") : ""; av.title = list.map(p => p.name).join(", "); { const sv = JSON.stringify(list.slice(0, 5).map(p => ({ n: p.name, c: p.color }))); if (d.share && list.length && d.peers !== sv) { d.peers = sv; save(); } }
     btn.classList.toggle("on", !!d.share); btn.title = d.share ? "Zusammenarbeit" : "Zusammenarbeiten – andere einladen";
   };
   const caretOff = () => { const s = getSelection(); if (document.activeElement !== body || !s.rangeCount || !body.contains(s.anchorNode)) return -1; const r = document.createRange(); r.selectNodeContents(body); r.setEnd(s.anchorNode, s.anchorOffset); return r.toString().length; };

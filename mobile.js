@@ -20,7 +20,7 @@ PHONE.addEventListener?.("change", e => { document.documentElement.classList.tog
     const icn = d => ic(d.type === "draw" ? "brush" : d.type === "file" ? "file" : "note");
     m.classList.add("homew", "mhome");
     m.innerHTML = `<div class="mh">
-      <header class="mh-top"><div><small>${new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" })}</small><h1>${esc(greet)}</h1></div><button class="mh-av" data-go="settings" aria-label="Profil">${esc((D.profile.name || "S").trim()[0].toUpperCase())}</button></header>
+      <header class="mh-top"><div><small>${new Date().toLocaleDateString("de-CH", { weekday: "long", day: "numeric", month: "long" })}</small><h1>${esc(greet)}</h1></div><button class="mh-av" style="background:${meCol()}" data-go="settings" aria-label="Profil">${esc((D.profile.name || "S").trim()[0].toUpperCase())}</button></header>
       <div class="mh-stats"><button data-go="focus"><b>${mins}<i>/${goal}</i></b><small>Min. heute</small></button><button data-go="cards"><b>${due}</b><small>Karten fällig</small></button><button data-go="focus"><b>${typeof streak === "function" ? streak() : 0}</b><small>Tage Serie</small></button></div>
       <button class="mh-ai" id="mh-ai">${ic("spark")}<span>Frag Studix AI …</span></button>
       <section><h2>Heute</h2><div id="mh-todos"></div><form class="mh-add" id="mh-f">${ic("plus")}<input id="mh-i" placeholder="Aufgabe hinzufügen" autocomplete="off" maxlength="140"></form></section>

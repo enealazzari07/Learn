@@ -4083,3 +4083,7 @@ footer .logo{color:#0f0f12}
 .dtr .da{display:flex;justify-content:flex-end}
 /* Zusammenarbeit: ein Avatar, die anderen als +N im Kreis dahinter */
 .co-av i.more{margin-left:-10px;font-size:11px}
+
+.dtr .pin{color:#f59e0b!important}.dtr .pin svg{fill:currentColor}
+.dtr .dshare{display:inline-flex;align-items:center;margin-left:6px}.dtr .dshare i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font:700 10px/1 Inter,system-ui,sans-serif;font-style:normal;border:2px solid #fff;margin-left:-6px;box-sizing:content-box}
+.dtr .dshare i:first-child{margin-left:0}.dtr .dshare i.more,.co-av i.more{background:#e9e9ee!important;color:#444}
