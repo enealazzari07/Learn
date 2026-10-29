@@ -4305,3 +4305,9 @@ html[data-theme=dark] .pr-panel{background:#f1f0ee}
 .gfr .k.td::after{top:calc(50% - .75px);height:calc(50% + .75px)}
 .gfr .k.tu::after{top:0;height:calc(50% + .75px)}
 #how,#pricing{position:relative;z-index:1}
+
+/* Bento: Kästchen quadratisch und genau so gross wie das Linienraster */
+#how .bento3{gap:0!important}
+#how .bn-card,#how .bn-card:hover{border-radius:0!important;background:#f8f8f9!important}
+.gfr .v.tall{-webkit-mask-image:linear-gradient(transparent,#000 160px);mask-image:linear-gradient(transparent,#000 160px)}
+@media (max-width:900px){.gfr .v.tall{-webkit-mask-image:none;mask-image:none}}

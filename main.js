@@ -186,7 +186,8 @@ function mountFrame(root) {
     const V = (x, ya, yb, c = "") => h += `<i class="v ${c}" style="left:${x}px;top:${ya}px;height:${yb - ya}px"></i>`;
     const H = y => h += `<i class="h" style="top:${y}px"></i>`;
     const K = (x, y, c) => h += `<i class="k ${c}" style="left:${x}px;top:${y}px"></i>`;
-    V(xl, ytop, ye, "fade"); V(xr, ytop, ye, "fade"); V(x1, yb0, ybm); V(x2, ybm, yb1);
+    const fv = $(".flow-v", root), yr = fv ? Y(R(fv).bottom) - 90 : ytop;   /* rechte Linie läuft weiter hoch bis zum Bild des Workflow-Blocks */
+    V(xl, ytop, ye, "fade"); V(xr, Math.min(ytop, yr), ye, "fade tall"); V(x1, yb0, ybm); V(x2, ybm, yb1);
     [y0, yb0, ybm, yb1, ye].forEach(H);
     [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, "p"); K(xr, y, "p"); });
     K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
