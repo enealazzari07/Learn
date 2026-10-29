@@ -540,7 +540,7 @@ V.settings = m => {
     <div class="kv"><span>${KVI.user}Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
     <div class="kv"><span>${KVI.mail}E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
     <div class="kv"><span>${KVI.phone}Telefon</span><input class="field flat" id="sph" type="tel" value="${esc(p.phone || "")}" placeholder="+41 79 123 45 67" autocomplete="tel"></div>
-    <div class="kv"><span>${KVI.cal}Geburtstag</span><input class="field flat" id="sbd" type="date" required value="${esc(p.birthday || "")}"></div>
+    <div class="kv"><span>${KVI.cal}Geburtstag<em class="kvreq">Pflicht</em></span><input class="field flat" id="sbd" type="date" required max="${iso()}" value="${esc(p.birthday || "")}"><small class="kvh">Bitte angeben – wird für die Altersangabe (Jugendschutz) benötigt.</small></div>
     <div class="kv"><span>${KVI.globe}Land / Region</span><div class="kvc"><select class="field flat" id="sc">${countryOptions(proCountry())}</select><small id="sch">${priceHint(proCountry()) ? "Studix Study Pro: " + priceHint(proCountry()) : ""}</small></div></div>
     <div class="kv"><span>${KVI.pin}Ort</span><input class="field flat" id="sci" value="${esc(p.city || "")}" placeholder="z. B. Zürich"></div>
     <div class="kv"><span>${KVI.book}${p.level === "uni" ? "Hochschule" : "Schule"}</span><input class="field flat" id="ssc" value="${esc(p.school || "")}" placeholder="${p.level === "uni" ? "z. B. ETH Zürich" : "z. B. Kantonsschule"}"></div>
