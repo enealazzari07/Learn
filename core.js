@@ -389,7 +389,7 @@ const swissOn = () => true;   // Studix ist für die Schweiz gemacht
 const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
 const AI_MODELS = [
-  ["gemini-flash-lite-latest", "Flash Lite", "Standard · 500 pro Tag", "Gemini"], ["gemini-flash-latest", "Flash", "Besser · ca. 20 pro Tag", "Gemini"], ["gemini-2.5-flash-lite", "2.5 Flash Lite", "Reserve · ca. 20 pro Tag", "Gemini"],
+  ["gemini-flash-lite-latest", "Flash Lite", "Standard", "Gemini"], ["gemini-flash-latest", "Flash", "Besser", "Gemini"], ["gemini-2.5-flash-lite", "2.5 Flash Lite", "Reserve", "Gemini"],
   ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell · zählt 0,5×", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug · zählt 0,5×", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B · zählt 0,5×", "Groq"]];
 const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq" };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
