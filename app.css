@@ -4466,7 +4466,7 @@ svg.prov-logo{width:1.15em;height:1.15em;flex:none;fill:none;stroke:none;vertica
 
 /* Häufige Fragen: etwas nach rechts gerückt, links schaut ein Teil des Clipboards aus dem Seitenrand */
 #faq{position:relative}
-.faq-clip{position:absolute;top:36px;right:calc(100% - 36px);width:360px;pointer-events:none;z-index:4;user-select:none}
+.faq-clip{position:absolute;top:148px;right:calc(100% - 36px);width:360px;pointer-events:none;z-index:4;user-select:none}
 .faq-clip img{display:block;width:100%;height:auto}
 /* Der blaue Ordner läuft nach links über den Bildschirmrand hinaus (abgeschnitten), egal wie breit der Bildschirm ist */
 .faq-clip i{position:absolute;right:calc(100% - 3px);top:3.18%;height:96.5%;width:100vw;background:#add9f5}
