@@ -176,6 +176,25 @@ function authHeroMount(hero) {
 }
 const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 /* Anmelde-/Registrierseite: Formular links, Foto mit schwebenden Karten rechts */
+/* Zugangscode: ohne gueltigen Code (einmal pro Browser) gibt es weder Anmeldung noch Registrierung */
+const accessOk = () => { try { return localStorage.getItem("studix-access") === "1"; } catch { return false; } };
+function accessScreen() {
+  const app = $("#app"); document.title = "Studix – Zugangscode";
+  app.innerHTML = `<div class="authwrap"><div class="authshell" style="grid-template-columns:1fr">
+    <form class="authform" onsubmit="return false" novalidate style="margin:auto"><a class="logo authlogo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a>
+      <div class="authmid"><h1>Zugangscode</h1><p class="authsub">Studix ist aktuell nur mit Code zugänglich. Gib deinen Zugangscode ein.</p>
+        <label class="lbl" for="ac-c">Code</label><div class="fld"><input class="field pill" id="ac-c" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="letter-spacing:.12em;text-transform:uppercase"></div>
+        <p class="note authmsg" id="ac-m" aria-live="polite"></p>
+        <button class="btn authgo" id="ac-go" type="submit">Weiter</button></div></form></div></div>`;
+  const f = $(".authform", app), i = $("#ac-c", f), m = $("#ac-m", f), b = $("#ac-go", f); let busy = false;
+  const go = async () => {
+    if (busy || !i.value.trim()) return; busy = true; b.disabled = true; m.textContent = "Prüfe …";
+    try { const r = await fetch("/api/access", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: i.value }) }); if (!r.ok) throw 0; try { localStorage.setItem("studix-access", "1"); } catch {} route(); return; }
+    catch { m.className = "note authmsg err"; m.textContent = "Dieser Code ist ungültig."; }
+    busy = false; b.disabled = false;
+  };
+  f.onsubmit = e => { e.preventDefault(); go(); }; b.onclick = e => { e.preventDefault(); go(); }; i.focus();
+}
 function authScreen(mode = "in") {
   const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = up ? "Studix – Konto erstellen" : "Studix – Anmelden";
   app.innerHTML = `<div class="authwrap"><div class="authshell">
@@ -200,6 +219,7 @@ function authScreen(mode = "in") {
 }
 function cloudLoginModal() {
   if (!cloudOn()) return toast("Cloud ist noch nicht eingerichtet.");
+  if (!accessOk()) { location.hash = "#/app"; return route(); }
   const { el, close } = modal(`<h3>Konto</h3><p class="note">Melde dich an, damit deine Notizen, Aufgaben und Karteikarten auf allen Geräten da sind.</p>${cloudAuthHtml()}`);
   cloudAuthBind(el, close);
 }
