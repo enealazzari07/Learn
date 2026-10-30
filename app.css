@@ -4459,3 +4459,7 @@ svg.prov-logo{width:1.15em;height:1.15em;flex:none;fill:none;stroke:none;vertica
 .lp-m-in svg{display:block;width:100%;height:100%;overflow:visible}
 .lp-mascot:focus-visible{outline:2px solid #0f0f12;outline-offset:4px;border-radius:18px}
 @media (hover:none),(pointer:coarse),(max-width:1024px){.lp-mascot{display:none!important}}
+
+/* „Auf allen Plattformen“: Hand ohne Weichzeichner-Verlauf, sitzt direkt zwischen den beiden Rasterlinien (Handy-Bild beginnt an der oberen, der Arm kommt aus der unteren) */
+#flow,#steps{margin-bottom:0!important}
+.plat-v img{-webkit-mask-image:none!important;mask-image:none!important}

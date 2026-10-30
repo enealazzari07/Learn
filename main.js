@@ -198,11 +198,11 @@ function mountFrame(root) {
     const K = (x, y, c) => h += `<i class="k ${c}" style="left:${x}px;top:${y}px"></i>`;
     const fv = $(".flow-v", root), yfb = fv ? Y(R(fv).bottom) : ytop;   /* Unterkante des Workflow-Blocks: waagrechte Linie, die rechte senkrechte Linie startet dort mit einem T */
     const lapE = $(".mbp-front", root), yLb0 = lapE ? Y(R(lapE).bottom) : 0;
-    const stp = $("#steps", root), ps = stp ? Y(R(stp).top) : 0, pe = stp ? Y(R(stp).bottom) : 0, gap = ps > 0 && pe > ps;   /* Abschnitt „Auf allen Plattformen“: neben dem Handy keine linke Linie */
-    if (gap) { V(xl, 0, ps); V(xl, pe, ye); } else V(xl, 0, ye);   /* linke Linie läuft über die ganze Seite bis nach oben */
+    const stp = $("#steps", root), gap = !!stp && yfb > 0 && y0 > yfb;   /* Abschnitt „Auf allen Plattformen“: neben dem Handy keine linke Linie – sie endet genau an der Rasterlinie darüber (T) und beginnt genau an der darunter (T) */
+    if (gap) { V(xl, 0, yfb); V(xl, y0, ye); } else V(xl, 0, ye);   /* linke Linie läuft über die ganze Seite bis nach oben */
     if (yLb0 && yLb0 < yfb) { V(xr, 0, yLb0); V(xr, yfb, ye); } else V(xr, 0, ye);   /* rechts: endet auf der Laptop-Linie, im Workflow-Abschnitt keine Linie, danach weiter */ V(x1, yb0, ybm); V(x2, ybm, yb1);
-    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, gap && Math.abs(yfb - ps) < 3 ? "tu" : "p"); K(xr, yfb, yLb0 && yLb0 < yfb ? "td" : "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
-    [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, gap && Math.abs(y - pe) < 3 ? "td" : "p"); K(xr, y, "p"); });
+    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, gap ? "tu" : "p"); K(xr, yfb, yLb0 && yLb0 < yfb ? "td" : "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
+    [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, gap && y === y0 ? "td" : "p"); K(xr, y, "p"); });
     K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
     /* Oben: waagrechte Linien (unter der Navigation, über den vier Funktionen, unter dem Laptop – er steht genau darauf) */
     const hero = $(".hero3", root), hf = $(".hfeat", root), lap = $(".mbp-front", root);
