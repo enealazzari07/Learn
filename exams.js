@@ -26,12 +26,16 @@ V.exams = m => {
   const list = exList(), upcoming = list.filter(t => !t.due || t.due >= iso()), past = list.filter(t => t.due && t.due < iso());
   const card = t => { const sj = subj(t.subjectId), st = exStats(t), pct = st.goals ? Math.round(st.done / st.goals * 100) : 0, dt = t.due ? parseISO(t.due) : null;
     const meta = [sj ? esc(sj.name) : "Kein Fach", st.goals ? `${st.done} von ${st.goals} Lernzielen` : "Keine Lernziele", st.cards ? `${st.cards} Karten` : "", st.quizzes ? `${st.quizzes} Quiz${st.best != null ? " · " + st.best + "%" : ""}` : ""].filter(Boolean).join(" · ");
-    return `<div class="exr" data-x="${t.id}" tabindex="0" style="--c:#0f0f12"><div class="exr-d">${dt ? `<b>${dt.getDate()}</b><small>${dt.toLocaleDateString("de-CH", { month: "short" }).replace(".", "")}</small>` : `<b>–</b><small>offen</small>`}</div><div class="exr-t"><b>${esc(t.title)}</b><small>${meta}</small></div><div class="exr-p" title="${pct}% der Lernziele"><i style="width:${pct}%"></i></div><span class="exr-l">${exLeft(t)}</span></div>`; };
+    return `<div class="exr" data-x="${t.id}" tabindex="0" style="--c:#0f0f12"><div class="exr-d">${dt ? `<b>${dt.getDate()}</b><small>${dt.toLocaleDateString("de-CH", { month: "short" }).replace(".", "")}</small>` : `<b>–</b><small>offen</small>`}</div><div class="exr-t"><b>${esc(t.title)}</b><small>${meta}</small></div><div class="exr-p" title="${pct}% der Lernziele"><i style="width:${pct}%"></i></div><span class="exr-l">${exLeft(t)}</span><button class="dmore exr-m" data-xm="${t.id}" aria-label="Mehr" title="Mehr">${ic("more")}</button></div>`; };
   m.innerHTML = `<div class="page">${pageHead("<b>Prüfungen</b>", dkAct("cards", "Alle Karteikarten", 'data-go="cards"') + dkAct("quiz", "Freies Quiz", 'data-go="quiz"') + '<i class="sdk-sep" aria-hidden="true"></i>' + dkAct("plus", "Prüfung eintragen", 'id="exn"'))}
   ${upcoming.length ? `<div class="exlist">${upcoming.map(card).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("book")}</div><h3>Noch keine Prüfung</h3><p>Trage eine Prüfung ein – im Planer, im Kalender oder hier. Sie bekommt automatisch eine Mappe mit Lernzielen, Karteikarten und Quiz.</p><button class="btn accent" id="exn2">${ic("plus")}Prüfung eintragen</button></div>`}
   ${past.length ? `<h2 class="sh2">Vergangen</h2><div class="exlist past">${past.slice(-6).reverse().map(card).join("")}</div>` : ""}</div>`;
   bindCommon(m);
   $$("[data-x]", m).forEach(c => c.onclick = () => go("exam/" + c.dataset.x));
+  $$("[data-xm]", m).forEach(b => b.onclick = e => { e.stopPropagation(); const t = exById(b.dataset.xm); if (!t) return; menu(b, [
+    { label: "Öffnen", icon: "book", fn: () => go("exam/" + t.id) },
+    { label: "Bearbeiten", icon: "edit", fn: () => taskModal(t) },
+    { label: t.done ? "Wieder öffnen" : "Als erledigt markieren", icon: "check", fn: () => { t.done = !t.done; t.doneAt = t.done ? Date.now() : undefined; save(); V.exams(m); } }]); });
   const nw = () => taskModal(null, "", { type: "exam" }); $("#exn", m).onclick = nw; $("#exn2", m) && ($("#exn2", m).onclick = nw);
 };
 
