@@ -2,6 +2,7 @@
    POST { action:"status" }            mit Supabase-Token → { access:bool } (ob dieses Konto schon freigeschaltet ist)
    POST { action:"redeem", code }      mit Supabase-Token → schaltet das Konto frei. Early-Backer-/Pro-Codes geben zusätzlich Pro gratis + Abzeichen "Early Backer" (pro Konto einmal).
    Gespeichert in app_metadata des Kontos (nur mit SUPABASE_SERVICE_ROLE_KEY schreibbar). Beides in einer Datei, weil Vercel Hobby nur 12 Funktionen erlaubt.
+   Codes mit begrenzten Einlösungen (z. B. 20x) liegen als SHA-256 in der Datenbank (supabase/access-codes.sql) und schalten nur den Zugang frei.
    Codes: nur SHA-256 im Quelltext. Zugangscode: Umgebungsvariable ACCESS_CODE überschreibt den eingebauten; weitere Codes siehe _codes.js. */
 const crypto = require("crypto");
 const L = require("./_lib");
@@ -20,7 +21,13 @@ module.exports = async function handler(req, res) {
     if (b.action === "status") return res.status(200).json({ access: !!(await meta()).access });
     const code = C.norm(b.code), hit = C.match(code), base = code.length >= 6 && crypto.timingSafeEqual(C.sha(code), WANT());
     await new Promise(r => setTimeout(r, 600));   // bremst Durchprobieren
-    if (!hit && !base) return res.status(403).json({ error: "Dieser Code ist ungültig." });
+    let limited = false;   // Code mit begrenzter Einlösung (Tabelle lumi_access_codes, siehe supabase/access-codes.sql)
+    if (!hit && !base && code.length >= 6) {
+      let st = "invalid"; try { st = await L.sb("POST", "rpc/lumi_code_redeem", { p_hash: C.sha(code).toString("hex"), p_user: user.id }); } catch {}
+      if (st === "used_up") return res.status(403).json({ error: "Dieser Code wurde schon so oft eingelöst, wie er gilt." });
+      limited = st === "ok";
+    }
+    if (!hit && !base && !limited) return res.status(403).json({ error: "Dieser Code ist ungültig." });
     const m = { access: true };
     if (hit && !(await L.grantOf(user.id))) { const until = new Date(); until.setMonth(until.getMonth() + hit.months); m.early_backer = true; m.pro_until = until.toISOString(); }
     const r = await fetch(adminUrl(user.id), { method: "PUT", headers: adminHeaders(key), body: JSON.stringify({ app_metadata: m }) });
