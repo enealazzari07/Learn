@@ -18,7 +18,7 @@ async function pdfEditor(m, d, blob) {
   const fp = folderPath(d.folderId);
   m.innerHTML = `<div class="ned dfull pdfed"><div class="ned-bar">
     <div class="nb-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><button class="icon-btn pdf-thtg" id="thtg" aria-label="Seitenübersicht" title="Seitenübersicht" aria-pressed="false">${ic("note")}</button><div class="nb-name"><b id="cr" title="Zum Umbenennen klicken">${esc(d.title)}</b><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div></div>
-    <div class="ned-tools" id="tb"><span class="tt-lbl">Auf die Seite tippen, um zu schreiben</span><i class="sep"></i><button class="tbtn" id="fsm" title="Schrift kleiner" aria-label="Schrift kleiner"><b style="font-size:12px">A</b></button><button class="tbtn" id="fsp" title="Schrift größer" aria-label="Schrift größer"><b style="font-size:17px">A</b></button><label class="tbtn" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #1c1c22;line-height:1">A</b><input type="color" id="cin" value="#1c1c22" hidden></label></div>
+    <div class="ned-tools" id="tb"><span class="tt-lbl">Auf die Seite tippen, um zu schreiben</span><i class="sep"></i><button class="tbtn" id="fsm" title="Schrift kleiner" aria-label="Schrift kleiner"><b style="font-size:12px">A</b></button><button class="tbtn" id="fsp" title="Schrift größer" aria-label="Schrift größer"><b style="font-size:17px">A</b></button><label class="tbtn" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #1c1c22;line-height:1">A</b><input type="color" id="cin" value="#1c1c22" hidden></label><i class="sep"></i><button class="tbtn on" id="gapt" title="Lücken und Formularfelder hervorheben" aria-pressed="true">${ic("edit")}<span class="gl">Lücken <b id="gapc">0</b></span></button></div>
     <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><div class="modesw" id="msw" role="tablist"><i class="knob"></i><button role="tab" data-m="write" class="on" title="Text auf die Seite schreiben">${ic("text")}<span>Text</span></button><button role="tab" data-m="draw" title="Mit Stift zeichnen">${ic("brush")}<span>Zeichnen</span></button></div><button class="icon-btn" id="pdfs" aria-label="Im PDF suchen" title="Im PDF suchen (Strg+F)">${ic("search")}</button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button><button class="icon-btn aitog" id="ai-m" aria-label="AI ein- und ausklappen" title="AI ein- und ausklappen">${ic("aipanel")}<span class="hide-sm">AI</span></button></div></div>
   <div class="pdfwrap"><aside class="pdfthumbs" id="thumbs" aria-label="Seitenübersicht"></aside><article class="ned-paper pdfpaper" id="paperc"><div class="pdfpages" id="pages"><p class="empty pdfload">PDF wird geladen …</p></div></article>
   <div class="pdfsearch" id="psr" hidden><input id="psq" type="search" placeholder="Im PDF suchen …" aria-label="Im PDF suchen" autocomplete="off"><span id="psc"></span><button class="tbtn" id="psp" aria-label="Vorheriger Treffer" title="Vorheriger Treffer">${ic("back")}</button><button class="tbtn" id="psn" aria-label="Nächster Treffer" title="Nächster Treffer">${ic("back")}</button><button class="tbtn" id="psx" aria-label="Schliessen">${ic("x")}</button></div>
@@ -40,6 +40,40 @@ async function pdfEditor(m, d, blob) {
   const ink = createInk(pages, d, { bar: $(".ned-bar", m), onChange: () => { svEl.textContent = "Speichert…"; dirtyInk(); } });
   LEAVE.push(() => ink.destroy());
   let texts = (await KV.get("ann:" + d.id)) || [], size = 18, color = "#1c1c22", focusTx = null;
+  let gapVals = (await KV.get("gap:" + d.id)) || {}, gapN = 0;
+  const dirtyGap = debounce(async () => { if (!D.docs.includes(d)) return; d.updated = Date.now(); await KV.set("gap:" + d.id, gapVals); save(); svEl.textContent = "Gespeichert"; }, 600);
+  /* Lücken erkennen: Unterstriche, Punktreihen und PDF-Formularfelder werden zu Eingabefeldern direkt auf der Seite */
+  async function detectGaps(o) {
+    const n = +o.h.dataset.n; if (o.h.querySelector(".pdfgaps")) return; const layer = document.createElement("div"); layer.className = "pdfgaps"; o.h.appendChild(layer);
+    const vp = o.vp, W = vp.width, H = vp.height; let i = 0;
+    const put = (x, y, w, h, key, fs, kind) => {
+      const e = document.createElement(kind === "check" ? "input" : "input"); e.className = "pdfgap" + (kind === "check" ? " chk" : ""); if (kind === "check") e.type = "checkbox"; else { e.type = "text"; e.spellcheck = false; e.autocomplete = "off"; }
+      e.style.cssText = `left:${(x / W * 100).toFixed(3)}%;top:${(y / H * 100).toFixed(3)}%;width:${(w / W * 100).toFixed(3)}%;height:${(h / H * 100).toFixed(3)}%;font-size:${(fs / W * 100).toFixed(3)}cqw`;
+      const v = gapVals[key]; if (kind === "check") e.checked = !!v; else if (v) e.value = v;
+      e.oninput = () => { gapVals[key] = kind === "check" ? e.checked : e.value; svEl.textContent = "Speichert…"; dirtyGap(); };
+      e.onkeydown = ev => ev.stopPropagation(); layer.appendChild(e); gapN++; const c = $("#gapc", m); if (c) c.textContent = gapN;
+    };
+    try {
+      const tc = await o.pg.getTextContent();
+      for (const it of tc.items) {
+        const str = it.str || ""; if (!/_{3,}|\.{4,}|…{2,}|-{6,}|―{3,}/.test(str)) continue;
+        const t = it.transform, fh = Math.hypot(t[2], t[3]) || 10, len = str.length || 1, re = /_{3,}|\.{4,}|…{2,}|-{6,}|―{3,}/g; let mm;
+        while ((mm = re.exec(str))) {
+          const [vx, vy] = vp.convertToViewportPoint(t[4] + it.width * mm.index / len, t[5]), w = it.width * mm[0].length / len;
+          put(vx, vy - fh * 1.05, Math.max(w, fh * 2), fh * 1.3, n + ":" + (i++), fh * .95, "text");
+        }
+      }
+    } catch {}
+    try {
+      const an = await o.pg.getAnnotations({ intent: "display" });
+      an.filter(a => a.subtype === "Widget" && !a.readOnly && (a.fieldType === "Tx" || (a.fieldType === "Btn" && a.checkBox))).forEach((a, k) => {
+        const [x1, y1, x2, y2] = vp.convertToViewportRectangle(a.rect), key = n + ":w" + (a.id || k); const fv = a.fieldValue;
+        if (gapVals[key] === undefined && fv && fv !== "Off") gapVals[key] = a.fieldType === "Btn" ? true : String(fv);
+        put(Math.min(x1, x2), Math.min(y1, y2), Math.abs(x2 - x1), Math.abs(y2 - y1), key, Math.max(9, Math.abs(y2 - y1) * .62), a.fieldType === "Btn" ? "check" : "text");
+      });
+    } catch {}
+    if (!layer.children.length) layer.remove();
+  }
 
   if (pdf) {
     const first = await pdf.getPage(1), vp0 = first.getViewport({ scale: 1 }), N = pdf.numPages;
@@ -51,6 +85,7 @@ async function pdfEditor(m, d, blob) {
     const render = async o => {
       if (o.done) return; o.done = true; const cv = $("canvas", o.h), dpr = Math.min(2, devicePixelRatio || 1), w = o.h.clientWidth || 800, vp = o.pg.getViewport({ scale: w / o.vp.width * dpr });
       cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); try { await o.pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise; } catch {}
+      detectGaps(o);
     };
     const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) render(holders[+e.target.dataset.n - 1]); }), { rootMargin: "800px 0px" });
     holders.forEach(o => io.observe(o.h)); LEAVE.push(() => io.disconnect());
@@ -95,11 +130,12 @@ async function pdfEditor(m, d, blob) {
   };
   texts.forEach(txEl);
   pages.addEventListener("pointerdown", e => {
-    if (ink.st.on || e.target.closest(".pdftx") || !e.target.closest(".pdfpg") || e.button > 0) return;
+    if (ink.st.on || e.target.closest(".pdftx,.pdfgap") || !e.target.closest(".pdfpg") || e.button > 0) return;
     e.preventDefault(); const r = pages.getBoundingClientRect(), t = { x: Math.round(e.clientX - r.left - r.width / 2), y: Math.round(e.clientY - r.top - size * .6), text: "", size, color };
     texts.push(t); txEl(t).focus();
   });
   const applyTx = () => { if (focusTx) { focusTx.t.size = size; focusTx.t.color = color; focusTx.e.style.fontSize = size + "px"; focusTx.e.style.color = color; dirtyTx(); } };
+  $("#gapt", m).onclick = e => { const on = pages.classList.toggle("gaps-off"); e.currentTarget.classList.toggle("on", !on); e.currentTarget.setAttribute("aria-pressed", !on); };
   $$("#tb .tbtn", m).forEach(b => b.onmousedown = ev => ev.preventDefault());
   $("#fsm", m).onclick = () => { size = Math.max(10, size - 2); applyTx(); }; $("#fsp", m).onclick = () => { size = Math.min(64, size + 2); applyTx(); };
   $("#cin", m).oninput = e => { color = e.target.value; $("#cl", m).style.borderColor = color; applyTx(); }; $("#cin", m).onclick = e => e.stopPropagation(); $("#cl", m).parentElement.onclick = () => $("#cin", m).click();
