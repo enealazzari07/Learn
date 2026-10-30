@@ -190,16 +190,18 @@ function mountFrame(root) {
     const H = y => h += `<i class="h" style="top:${y}px"></i>`;
     const K = (x, y, c) => h += `<i class="k ${c}" style="left:${x}px;top:${y}px"></i>`;
     const fv = $(".flow-v", root), yfb = fv ? Y(R(fv).bottom) : ytop;   /* Unterkante des Workflow-Blocks: waagrechte Linie, die rechte senkrechte Linie startet dort mit einem T */
-    V(xl, 0, ye); V(xr, 0, ye);   /* beide senkrechten Linien laufen über die ganze Seite bis nach oben */ V(x1, yb0, ybm); V(x2, ybm, yb1);
-    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, "p"); K(xr, yfb, "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
+    const lapE = $(".mbp-front", root), yLb0 = lapE ? Y(R(lapE).bottom) : 0;
+    V(xl, 0, ye);   /* linke Linie läuft über die ganze Seite bis nach oben */
+    if (yLb0 && yLb0 < yfb) { V(xr, 0, yLb0); V(xr, yfb, ye); } else V(xr, 0, ye);   /* rechts: endet auf der Laptop-Linie, im Workflow-Abschnitt keine Linie, danach weiter */ V(x1, yb0, ybm); V(x2, ybm, yb1);
+    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, "p"); K(xr, yfb, yLb0 && yLb0 < yfb ? "td" : "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
     [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, "p"); K(xr, y, "p"); });
     K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
     /* Oben: waagrechte Linien mit Verzweigungen (T) zwischen den vier Funktionen; der Laptop hängt genau zwischen zwei Linien und steht auf der unteren */
     const hero = $(".hero3", root), hf = $(".hfeat", root), lap = $(".mbp-front", root);
     if (hero && hf && lap) {
-      const hr = R(hero), fr0 = R(hf), lr = R(lap), kids = [...hf.children].map(R), yH0 = Y(hr.top) + 96, yH1 = Y(fr0.top) - 28, yLt = Y(lr.top), yLb = Y(lr.bottom);
-      [yH0, yH1, yLt, yLb].forEach(y => { H(y); K(xl, y, "p"); K(xr, y, "p"); });
-      kids.slice(0, -1).forEach((c, i) => { const x = Math.round((c.right + kids[i + 1].left) / 2 - rt.left); V(x, yH1, yLt); K(x, yH1, "td"); K(x, yLt, "tu"); });
+      const hr = R(hero), fr0 = R(hf), lr = R(lap), kids = [...hf.children].map(R), yH0 = Y(hr.top) + 96, yH1 = Y(fr0.top) - 28, yLt = Y(lr.top), yLb = yLb0;
+      [yH0, yH1, yLb].forEach(y => { H(y); K(xl, y, "p"); K(xr, y, y === yLb && yLb < yfb ? "tu" : "p"); });
+      kids.slice(0, -1).forEach((c, i) => { const x = Math.round((c.right + kids[i + 1].left) / 2 - rt.left); V(x, yH1, yLt); K(x, yH1, "td"); });
     }
     ov.innerHTML = h;
   };
