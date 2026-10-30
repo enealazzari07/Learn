@@ -14,7 +14,7 @@ async function plusLoad(invoices = false) {
   if (!CLOUD.sb || !CLOUD.user) { BILL.row = null; BILL.loaded = true; return; }
   /* Early-Backer-Code vom Zugangsbildschirm: nach der Anmeldung einmalig einlösen (3 Monate Pro + Abzeichen) */
   let early = ""; try { early = localStorage.getItem("studix-early") || ""; } catch {}
-  if (early) { try { await billPost2("/api/redeem", { code: early }); try { localStorage.removeItem("studix-early"); } catch {} toast("Early Backer: 3 Monate Pro geschenkt 🎉"); } catch (e) { if (/ungültig/.test(e.message)) { try { localStorage.removeItem("studix-early"); } catch {} } } }
+  if (early) { try { await billPost2("/api/redeem", { code: early }); try { localStorage.removeItem("studix-early"); } catch {} toast("Early Backer: Pro geschenkt 🎉"); } catch (e) { if (/ungültig/.test(e.message)) { try { localStorage.removeItem("studix-early"); } catch {} } } }
   try { BILL.row = await subCall({ action: "get", invoices }); } catch {}
   BILL.loaded = true;
 }
