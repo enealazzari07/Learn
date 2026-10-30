@@ -229,8 +229,6 @@ function mountGrid(hero) {
 /* Bento-Raster (nach Magic UI): Dateien-Marquee, animierte Erinnerungsliste, Strahlen zu den KI-Anbietern, Kalender */
 const BENTO_FILES = [["Zellatmung.note", "In den Mitochondrien wird Glukose mit Sauerstoff zu CO₂ und Wasser abgebaut – dabei entsteht ATP."], ["Vokabeln Unit 4.deck", "48 Karten · 18 heute fällig. Spaced Repetition zeigt sie genau dann, wenn du sie fast vergessen hast."], ["Skript Analysis.pdf", "Grenzwerte, Ableitungen und Integrale – mit Markierungen und Notizen direkt im PDF."], ["Skizze Zelle.draw", "Zeichnung mit Stift, Marker und Formen – im selben Dokument wie deine Notizen."], ["Referat Geschichte.note", "Gliederung, Quellen und Stichpunkte – Studix AI fasst dir alles in fünf Punkten zusammen."]];
 const BENTO_LIST = [["cal", "#2563eb", "Mathe-Klausur in 6 Tagen", "Prüfungen"], ["cards", "#0e9f6e", "18 Karteikarten fällig", "Lernen"], ["check", "#ff6a3d", "Aufgaben S. 54 morgen fällig", "Planer"], ["spark", "#5b3df5", "Quiz aus deinen Notizen bereit", "Studix AI"], ["note", "#d6431f", "Referat Biologie: Entwurf speichern", "Dokumente"], ["cal", "#8b5cf6", "Fokus-Block 25 Min. abgeschlossen", "Fokus"]];
-const GEMINI_SVG = '<svg viewBox="0 0 24 24"><defs><linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4285f4"/><stop offset=".55" stop-color="#9b72cb"/><stop offset="1" stop-color="#d96570"/></linearGradient></defs><path fill="url(#gm)" d="M12 1.5C12.7 7.6 16.4 11.3 22.5 12 16.4 12.7 12.7 16.4 12 22.5 11.3 16.4 7.6 12.7 1.5 12 7.6 11.3 11.3 7.6 12 1.5Z"/></svg>';
-const GROQ_SVG = '<svg viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#f55036"/><path fill="#fff" d="M12.1 5.2a6.8 6.8 0 1 0 4.1 12.2l-1.4-1.6a4.7 4.7 0 1 1 1.5-3.4v.4h-3.7v2.1h6v-2.5a6.8 6.8 0 0 0-6.5-7.2z"/></svg>';
 /* Zusätzliche Landing-Abschnitte (Farbe, Bewegung, mehr Inhalt) */
 const LP_SUBJ = [["Mathe", "#2563eb"], ["Biologie", "#0e9f6e"], ["Deutsch", "#ff6a3d"], ["Geschichte", "#a16207"], ["Chemie", "#8b5cf6"], ["Physik", "#0891b2"], ["Englisch", "#e11d48"], ["Informatik", "#4f46e5"], ["Recht", "#475569"], ["Medizin", "#db2777"], ["Wirtschaft", "#d97706"], ["Kunst", "#16a34a"]];
 function extraHtml(go) {
@@ -299,6 +297,12 @@ function renderLanding() {
   { const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } }), { threshold: .15 }); $$(".rv", landingEl).forEach(x => io2.observe(x)); }
   { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); setTimeout(() => e.target.classList.add("on"), e.target.classList.contains("mk") ? 1300 : 700); } }), { threshold: .6 }); $$(".hl", landingEl).forEach(h => io.observe(h)); }
   $$(".pnav-links a", landingEl).forEach(a => a.addEventListener("click", () => $("#nav").classList.remove("open")));
+  /* Klick auf Funktionen / Preise / Fragen und andere Anker der Startseite: weich zum Abschnitt scrollen (der Router würde sonst nach oben springen) */
+  landingEl.addEventListener("click", e => {
+    const a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a) return;
+    const id = a.getAttribute("href").slice(1), t = id && !id.startsWith("/") ? document.getElementById(id) : null; if (!t || !landingEl.contains(t)) return;
+    e.preventDefault(); scrollTo({ top: Math.max(0, t.getBoundingClientRect().top + scrollY), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
 }
 
 /* ---------- boot ---------- */

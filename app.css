@@ -4425,7 +4425,7 @@ html[data-theme=dark] #faq .faq details,html[data-theme=dark] #faq .faq details[
 @media (max-width:560px){.pc-h.c3,.pc-r.c3{grid-template-columns:minmax(0,1fr) 62px 62px 62px;font-size:12.5px}}
 
 /* Eingebettete App im Laptop: oben bündig, kein grauer Streifen – nur die Notch des Laptops liegt über der App */
-html.embed #app #main.main,html.embed #app #main.main:not(.doc-full),html.embed #app #main.main.doc-full,html.embed .shell .main.main,html.embed .shell .main.homew:not(.doc-full){margin-top:0!important;border-top:0!important;border-top-left-radius:0!important;border-top-right-radius:0!important;min-height:calc(100dvh - 10px)!important}
+html.embed #app #main.main,html.embed #app #main.main:not(.doc-full),html.embed #app #main.main.doc-full,html.embed .shell .main.main,html.embed .shell .main.homew:not(.doc-full){margin:0!important;border:0!important;border-radius:0!important;min-height:100dvh!important}
 
 /* Preise: drei Karten nebeneinander im grauen Feld, das bis an die Rasterlinien reicht; Umschalter Monatlich/Jährlich */
 .pr-panel{display:block!important;padding:28px 0 34px!important;margin-inline:-14px}
@@ -4441,6 +4441,13 @@ html.embed #app #main.main,html.embed #app #main.main:not(.doc-full),html.embed 
 .pr-card .pr-col .btn{margin-top:6px}
 .pr-panel[data-per=month] .py,.pr-panel[data-per=year] .pm{display:none}
 @media (max-width:900px){.pr-3{grid-template-columns:1fr}.pr-card{padding:22px 24px;border-left:0;border-top:1px solid #dcdbd8}.pr-card:first-child{border-top:0}}
-/* Rahmen der eingebetteten App im Laptop: schwarz statt grauer Haarlinie (liegt über der App, bleibt unter der Notch) */
-.mbp-scr::after{content:"";position:absolute;inset:0;border:3px solid #000;pointer-events:none;z-index:3}
-.mbp-scr{background:#000}
+/* Eingebettete App im Laptop: ganz schwarzer Rahmen mit abgerundeten Ecken, keine grauen Linien.
+   Der Ring liegt über der Laptop-Grafik (verdeckt deren hellen Haarbogen an den Bildschirm-Ecken), die Mitte bleibt frei, unten bleibt der Sockel unberührt. */
+.mbp-w{container-type:inline-size}
+.mbp-scr{background:#000;border-radius:8px 8px 0 0!important}
+.mbp::after{content:"";position:absolute;left:9.114%;top:2.235%;width:81.77%;height:86.73%;border-radius:14px 14px 0 0;box-shadow:0 0 0 1.1cqw #000,inset 0 0 0 .45cqw #000;clip-path:inset(-3cqw -3cqw 0 -3cqw);pointer-events:none;z-index:6}
+
+/* KI-Anbieter-Logos (Originalfarben, nicht verändern) */
+svg.prov-logo{width:1.15em;height:1.15em;flex:none;fill:none;stroke:none;vertical-align:-.2em;border-radius:5px}
+.ai-note svg.prov-logo{display:inline-block!important;width:13px;height:13px;margin:0 3px 0 1px;vertical-align:-2px}
+.mdl svg.prov-logo,.mp-h svg.prov-logo,.mp-i svg.prov-logo{width:18px;height:18px;border-radius:5px}
