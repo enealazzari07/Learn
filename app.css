@@ -4423,3 +4423,21 @@ html[data-theme=dark] #faq .faq details,html[data-theme=dark] #faq .faq details[
 /* Vergleichstabelle mit drei Stufen (Gratis, Essential, Pro) */
 .pc-h.c3,.pc-r.c3{grid-template-columns:minmax(0,1fr) 96px 96px 96px}
 @media (max-width:560px){.pc-h.c3,.pc-r.c3{grid-template-columns:minmax(0,1fr) 62px 62px 62px;font-size:12.5px}}
+
+/* Eingebettete App im Laptop: oben bündig, kein grauer Streifen – nur die Notch des Laptops liegt über der App */
+html.embed #app #main.main,html.embed #app #main.main:not(.doc-full),html.embed #app #main.main.doc-full,html.embed .shell .main.main,html.embed .shell .main.homew:not(.doc-full){margin-top:0!important;border-top:0!important;border-top-left-radius:0!important;border-top-right-radius:0!important;min-height:calc(100dvh - 10px)!important}
+
+/* Preise: drei Karten nebeneinander im grauen Feld, das bis an die Rasterlinien reicht; Umschalter Monatlich/Jährlich */
+.pr-panel{display:block!important;padding:28px 0 34px!important;margin-inline:-14px}
+.pr-sw{display:flex;justify-content:center;gap:4px;width:max-content;margin:0 auto 26px;padding:4px;background:#e6e5e2;border-radius:999px}
+.pr-sw button{all:unset;cursor:pointer;padding:9px 20px;border-radius:999px;font:600 14px/1 inherit;color:#5d5d66;transition:background .2s,color .2s}
+.pr-sw button.on{background:#0f0f12;color:#fff}.pr-sw button em{font-style:normal;font-size:12px;color:#0e9f6e;margin-left:4px}.pr-sw button.on em{color:#7ee0b4}
+.pr-3{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr))}
+.pr-card{padding:6px 32px 8px;border-left:1px solid #dcdbd8;min-width:0}.pr-card:first-child{border-left:0}
+.pr-card .pr-col{padding:6px 0 4px}
+.pr-card .pr-ul{margin:0;padding:22px 0 0;list-style:none;display:grid;gap:11px;align-content:start;font-size:14.5px;color:#2a2a30}
+.pr-card .pr-ul li{display:flex;gap:11px;align-items:flex-start;line-height:1.35}
+.pr-card .pr-ul svg{width:17px;height:17px;flex:none;margin-top:1px;stroke:#0f0f12;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.pr-card .pr-col .btn{margin-top:6px}
+.pr-panel[data-per=month] .py,.pr-panel[data-per=year] .pm{display:none}
+@media (max-width:900px){.pr-3{grid-template-columns:1fr}.pr-card{padding:22px 24px;border-left:0;border-top:1px solid #dcdbd8}.pr-card:first-child{border-top:0}}

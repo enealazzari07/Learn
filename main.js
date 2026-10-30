@@ -25,6 +25,7 @@ function route() {
   renderView();
 }
 addEventListener("hashchange", route);
+document.addEventListener("click", e => { const b = e.target.closest && e.target.closest(".pr-sw button"); if (!b) return; const pn = b.closest(".pr-panel"); pn.dataset.per = b.dataset.per; pn.querySelectorAll(".pr-sw button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-selected", x === b); }); });
 addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k" && !e.shiftKey && location.hash.startsWith("#/app")) { e.preventDefault(); go("search"); } else if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey && location.hash.startsWith("#/app") && !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || "")) && !e.target.isContentEditable) { e.preventDefault(); go("search"); } });
 
 /* ---------- landing ---------- */
@@ -32,19 +33,22 @@ function pricingHtml(go) {
   const c = BILL.cfg; if (!c || !c.enabled) return "";
   const eur = v => `${new Intl.NumberFormat("de-CH", { minimumFractionDigits: v % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(v / 100)} ${({ chf: "CHF", eur: "€", usd: "USD" })[(c.currency || "eur").toLowerCase()] || ""}`, li = a => a.map(x => `<li>${ic("check")}${x}</li>`).join("");
   const tick = `<i class="cb a"></i><i class="cb b"></i><i class="cb c"></i><i class="cb d"></i>`;
+  const pctY = c.yearly && c.monthly ? Math.round((1 - c.yearly / (c.monthly * 12)) * 100) : 0;
+  /* Preis mit Monats-/Jahresansicht (Umschalter oben): beide Texte stehen im Code, CSS zeigt den gewählten */
+  const priceMY = (m, y) => !m ? price(y, "/ Jahr") : !y ? price(m, "/ Monat") : `<p class="pr"><b class="pm">${eur(m)}</b><small class="pm"> / Monat</small><b class="py">${eur(y)}</b><small class="py"> / Jahr</small></p><p class="note pm">Monatlich kündbar.</p><p class="note py">Nur ${eur(Math.round(y / 12))} pro Monat${m * 12 > y ? ` – du sparst ${Math.round((1 - y / (m * 12)) * 100)} %` : ""}.</p>`;
   const price = (v, per) => `<p class="pr"><b>${eur(v)}</b>${per ? `<small> ${per}</small>` : ""}</p>`;
   const free = [`Bis zu ${FREE_LIMITS.docs} Dokumente, ${FREE_LIMITS.boards} Whiteboards`, "Karteikarten &amp; Quiz", "Planer, Noten, Fokus-Timer", `Studix AI: bis zu ${aiuNum(AIQ.free)} Token pro Woche*`, "Sync auf allen Geräten"];
   const ess = ["Alles aus Gratis", `Studix AI: bis zu ${aiuNum(AIQ.ess)} Token pro Woche* – halb so viel wie Pro`, "Unbegrenzt Dokumente &amp; Whiteboards", "Längere Antworten", "Workspace &amp; Live-Zusammenarbeit", "Jederzeit kündbar"];
   const pro = ["Alles aus Gratis", `${c.trial || 14} Tage kostenlos testen`, `Studix AI: bis zu ${aiuNum(AIQ.pro)} Token pro Woche*`, "Unbegrenzt Dokumente &amp; Whiteboards", "Workspace &amp; Live-Zusammenarbeit", "Bild-Analyse &amp; Sprachgespräch", "Längere Antworten", "Neue Pro-Funktionen zuerst", "Jederzeit kündbar"];
   return `<section class="sec" id="pricing"><p class="pr-k">Preise</p><h2>Einfache Preise.</h2><p class="lead">Starte kostenlos – upgrade, wenn du mehr Studix AI willst.</p>
   <div class="pr-steps">${[["adduser", "Kostenlos starten", "Konto anlegen und sofort loslegen."], ["spark", "Pro testen", `${c.trial || 14} Tage gratis, ohne Risiko.`], ["check", "Jederzeit kündbar", "Keine Bindung, keine Kosten danach."]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><div><b>${h}</b><small>${p}</small></div></div>`).join("")}</div>
-  <div class="pr-panel">${tick}
-    <div class="pr-col"><span class="pr-l">Gratis</span>${price(0)}<p class="note">Für immer kostenlos.</p><a class="btn" ${go}>Kostenlos starten</a></div>
-    <ul class="pr-ul">${li(free)}</ul>
-    ${c.essential ? `<div class="pr-col pr-pro"><span class="pr-l">Studix Essential</span>${price(c.essential, "/ Monat")}${c.essentialYearly ? `<p class="note">oder ${eur(c.essentialYearly)} / Jahr</p>` : ""}<a class="btn" ${go}>Essential wählen</a></div>
-    <ul class="pr-ul">${li(ess)}</ul>` : ""}
-    <div class="pr-col pr-pro"><span class="pr-l">Studix Study Pro</span>${c.monthly ? price(c.monthly, "/ Monat") + (c.yearly ? `<p class="note">oder ${eur(c.yearly)} / Jahr</p>` : "") : price(c.yearly, "/ Jahr")}<a class="btn accent" ${go}>${c.trial || 14} Tage gratis testen</a></div>
-    <ul class="pr-ul">${li(pro)}</ul></div>
+  <div class="pr-panel" data-per="month">${tick}
+    ${c.yearly ? `<div class="pr-sw" role="tablist" aria-label="Abrechnung"><button type="button" class="on" data-per="month" role="tab" aria-selected="true">Monatlich</button><button type="button" data-per="year" role="tab" aria-selected="false">Jährlich${pctY ? ` <em>−${pctY} %</em>` : ""}</button></div>` : ""}
+    <div class="pr-3" style="--n:${c.essential ? 3 : 2}">
+      <div class="pr-card"><div class="pr-col"><span class="pr-l">Gratis</span>${price(0)}<p class="note">Für immer kostenlos.</p><a class="btn" ${go}>Kostenlos starten</a></div><ul class="pr-ul">${li(free)}</ul></div>
+      ${c.essential ? `<div class="pr-card"><div class="pr-col"><span class="pr-l">Studix Essential</span>${priceMY(c.essential, c.essentialYearly)}<a class="btn" ${go}>Essential wählen</a></div><ul class="pr-ul">${li(ess)}</ul></div>` : ""}
+      <div class="pr-card pr-hot"><div class="pr-col"><span class="pr-l">Studix Study Pro</span>${priceMY(c.monthly, c.yearly)}<a class="btn accent" ${go}>${c.trial || 14} Tage gratis testen</a></div><ul class="pr-ul">${li(pro)}</ul></div>
+    </div></div>
   <p class="pr-f">${planCompareLink()}<span>Preise inkl. gesetzlicher Mehrwertsteuer deines Landes – sie wird beim Bezahlen automatisch berechnet.</span></p>
   <p class="pr-n">* Das Studix-AI-Kontingent ist keine zugesicherte Leistung: Es gibt keine Garantie, dass du es immer in dieser Höhe oder überhaupt nutzen kannst. Menge, Modelle und Verfügbarkeit hängen von externen Anbietern ab und können angepasst, zeitweise eingeschränkt oder ausgesetzt werden – auch mit Studix Study Pro. Deine gesetzlichen Rechte (z. B. Kündigung) bleiben unberührt.</p>
   <p class="pr-n">Soweit gesetzlich zulässig, haften wir nicht für technische Fehler der KI, die Nichtbereitstellung von Servern (auch von Drittanbietern), die Datensicherung und Datenverlust. Sichere wichtige Inhalte regelmässig über den Export. Zwingende Haftung bleibt unberührt, Näheres in den <a href="legal.html#agb">AGB</a>.</p></section>`;
@@ -200,12 +204,11 @@ function mountFrame(root) {
     [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, gap && Math.abs(yfb - ps) < 3 ? "tu" : "p"); K(xr, yfb, yLb0 && yLb0 < yfb ? "td" : "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
     [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, gap && Math.abs(y - pe) < 3 ? "td" : "p"); K(xr, y, "p"); });
     K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
-    /* Oben: waagrechte Linien mit Verzweigungen (T) zwischen den vier Funktionen; der Laptop hängt genau zwischen zwei Linien und steht auf der unteren */
+    /* Oben: waagrechte Linien (unter der Navigation, über den vier Funktionen, unter dem Laptop – er steht genau darauf) */
     const hero = $(".hero3", root), hf = $(".hfeat", root), lap = $(".mbp-front", root);
     if (hero && hf && lap) {
-      const hr = R(hero), fr0 = R(hf), lr = R(lap), kids = [...hf.children].map(R), yH0 = Y(hr.top) + 96, yH1 = Y(fr0.top) - 28, yLt = Y(lr.top), yLb = yLb0;
+      const hr = R(hero), fr0 = R(hf), lr = R(lap), yH0 = Y(hr.top) + 96, yH1 = Y(fr0.top) - 28, yLb = yLb0;
       [yH0, yH1, yLb].forEach(y => { H(y); K(xl, y, "p"); K(xr, y, y === yLb && yLb < yfb ? "tu" : "p"); });
-      kids.slice(0, -1).forEach((c, i) => { const x = Math.round((c.right + kids[i + 1].left) / 2 - rt.left); V(x, yH1, yLt); K(x, yH1, "td"); });
     }
     ov.innerHTML = h;
   };
