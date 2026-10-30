@@ -4403,3 +4403,16 @@ html[data-theme=dark] #faq .faq details,html[data-theme=dark] #faq .faq details[
 /* Exklusives "Early Backer"-Abzeichen */
 .probadge.early{background:linear-gradient(135deg,#f6d365,#e9a23b 55%,#c9731a);color:#2b1700;box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 2px 8px rgba(201,115,26,.35)}
 .probadge.early+.probadge.nm{margin-left:6px}
+
+/* Kopfleiste der Seiten (Dokumente, Workspace, Einstellungen, Noten …): kompakter, Linie weiter oben, kleinere Knöpfe */
+.setcrumb{margin-top:-20px!important;margin-bottom:12px!important;padding-bottom:10px!important}
+.docsed>.pagehead,.aip-t.pagehead{margin-top:10px!important;margin-bottom:12px!important;padding-bottom:10px!important}
+.settabs.sdock{height:auto!important;min-height:0!important;padding:3px!important;gap:2px!important;border-radius:14px!important}
+.sdock button,.sdock .theme-tg{--s:32px!important;width:32px!important;height:32px!important;border-radius:10px!important}
+.sdock .sdk-i svg{width:18px!important;height:18px!important}
+.sdock .sdk-sep{height:16px!important;margin:0 3px!important}
+@media (max-width:900px){.settabs.sdock{height:auto!important}.sdock button,.sdock .theme-tg{--s:34px!important;width:34px!important;height:34px!important}}
+.setcrumb{min-height:0!important}
+.setcrumb>.sdock{height:auto!important}
+.setcrumb .dk-search,.setcrumb .dk-search .sdk-i{height:32px}.setcrumb .dk-search{width:32px;border-radius:16px}.setcrumb .dk-search .sdk-i{width:32px}
+.docspaper{padding-top:10px!important}
