@@ -407,9 +407,14 @@ V.docs = (m, id) => {
 let pendingQuiz = null;
 const clip = (t, n = 14000) => t.length > n ? t.slice(0, n) : t;
 function textToHtml(t) {
-  const lines = t.split("\n"); let out = "", inList = false;
-  for (const l of lines) { const b = l.match(/^\s*[-•*]\s+(.*)/); if (b) { if (!inList) { out += "<ul>"; inList = true; } out += `<li>${esc(b[1])}</li>`; } else { if (inList) { out += "</ul>"; inList = false; } if (l.trim()) out += `<p>${esc(l)}</p>`; } }
-  return out + (inList ? "</ul>" : "");
+  const lines = t.split("\n"); let out = "", list = "";
+  const end = () => { if (list) { out += `</${list}>`; list = ""; } };
+  for (const l of lines) {
+    const b = l.match(/^\s*[-•*]\s+(.*)/), n = l.match(/^\s*\d+[.)]\s+(.*)/), h = l.match(/^\s*(#{1,3})\s+(.*)/);
+    if (b || n) { const k = b ? "ul" : "ol"; if (list !== k) { end(); out += `<${k}>`; list = k; } out += `<li>${esc((b || n)[1])}</li>`; }
+    else { end(); if (h) out += `<h${h[1].length === 1 ? 2 : h[1].length === 2 ? 2 : 3}>${esc(h[2].replace(/\*\*/g, ""))}</h${h[1].length === 3 ? 3 : 2}>`; else if (l.trim()) out += `<p>${esc(l)}</p>`; }
+  }
+  end(); return out;
 }
 async function aiTool(kind, text, ctx = {}) {
   text = (text || "").trim();

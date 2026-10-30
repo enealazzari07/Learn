@@ -17,20 +17,26 @@ Verfügbare Aktionen (Felder in Klammern sind optional):
 - complete_task {task} – Aufgabe als erledigt markieren
 - add_grade {subject, title, value, (weight)} – Note eintragen
 - delete_doc {doc} – Dokument löschen (der Nutzer muss bestätigen)
+- search_docs {query} – LESEN: durchsucht Titel und Inhalt ALLER Dokumente und liefert Treffer mit Ausschnitt. Nutze es, wenn der Nutzer ein Dokument sucht oder die Liste unten nicht reicht.
+- read_doc {doc, (from)} – LESEN: liefert den Text eines Dokuments (ab Zeichen "from", höchstens 6000). Nutze es, bevor du über Inhalt antwortest, den du nicht siehst.
 - open {view:"today"|"docs"|"cards"|"quiz"|"planner"|"grades"|"focus"|"settings"|"search"} oder {doc} – Bereich oder Dokument öffnen
-"doc", "task", "deck" und "subject" gibst du mit der ID oder dem Titel aus der Liste unten an. Rechne relative Datumsangaben („nächsten Freitag“) anhand von „Heute“ in ein echtes Datum um. Erfinde keine Dokumente, die nicht in der Liste stehen. Neu erstellte Notizen, Datenbanken und Kartenstapel öffnet die App automatisch. Schreibe Notizen vollständig und gut strukturiert (kurze Absätze, Listen mit "- ", Überschriften als eigene kurze Zeile). "Aktuell geöffnet" in der Liste ist das Dokument, auf das sich „dieses Dokument“ bezieht. Wenn nur eine Frage gestellt wird, antworte normal ohne Block. Frage kurz nach, wenn eine wichtige Angabe fehlt (z. B. das Datum einer Prüfung).`;
+LESEN-Aktionen (search_docs, read_doc) sendest du ALLEIN im Block, ohne Text davor und ohne andere Aktionen; die App liefert dir das Ergebnis, danach antwortest du richtig. Maximal 3 Leseschritte. Die Liste unten enthält alle Dokumente (Titel nach Ordner) – ohne Inhalt, spare Tokens: lies nur, was nötig ist.
+"doc", "task", "deck" und "subject" gibst du mit der ID oder dem Titel aus der Liste unten an. Rechne relative Datumsangaben („nächsten Freitag“) anhand von „Heute“ in ein echtes Datum um. Erfinde keine Dokumente, die nicht in der Liste stehen. Neu erstellte Notizen, Datenbanken und Kartenstapel öffnet die App automatisch. Schreibe Notizen vollständig und gut strukturiert: Überschriften mit "## " (Unterpunkte "### ") als eigene Zeile, kurze Absätze durch Leerzeile getrennt, Aufzählungen mit "- ", Schritte mit "1. ", keine Wiederholungen, Wichtiges kurz und klar. "Aktuell geöffnet" in der Liste ist das Dokument, auf das sich „dieses Dokument“ bezieht. Wenn nur eine Frage gestellt wird, antworte normal ohne Block. Frage kurz nach, wenn eine wichtige Angabe fehlt (z. B. das Datum einer Prüfung).`;
 
 function agentContext() {
   const path = f => folderPath(f).map(x => x.name).join("/");
   const L = (t, a) => a.length ? `${t}:\n${a.join("\n")}\n` : "";
   const cur = (location.hash.match(/#\/app\/doc\/([^/]+)/) || [])[1], cd = cur && D.docs.find(x => x.id === cur);
   const edTxt = cd && window.__lumiEd ? `Text des geöffneten Dokuments (für suggest_edits):\n"""\n${window.__lumiEd.text().slice(0, 7000)}\n"""\n` : "";
+  /* alle Dokumente, nach Ordner gruppiert: "Ordner: [id] Titel; [id] Titel" – ohne Inhalt, damit wenige Tokens anfallen */
+  const groups = new Map();
+  [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 400).forEach(d => { const k = d.folderId ? path(d.folderId) : "Home"; (groups.get(k) || groups.set(k, []).get(k)).push(`[${d.id}] ${String(d.title || "Ohne Titel").slice(0, 45)}${d.type && d.type !== "note" ? " (" + d.type + ")" : ""}`); });
   return (cd ? `Aktuell geöffnet: [${cd.id}] ${cd.title}\n` : "") + edTxt + `Heute: ${iso()} (${new Date().toLocaleDateString("de-DE", { weekday: "long" })})\n` +
-    L("Fächer", D.subjects.map(s => `- ${s.name}`)) +
-    L("Ordner", D.folders.slice(0, 60).map(f => `- ${path(f.id)}`)) +
-    L("Dokumente", [...D.docs].sort((a, b) => b.updated - a.updated).slice(0, 50).map(d => `- [${d.id}] ${d.title}${d.folderId ? " (" + path(d.folderId) + ")" : ""}`)) +
-    L("Kartenstapel", D.decks.slice(0, 30).map(k => `- [${k.id}] ${k.title} (${k.cards.length} Karten)`)) +
-    L("Offene Aufgaben", D.tasks.filter(t => !t.done).slice(0, 30).map(t => `- [${t.id}] ${t.title}${t.type === "exam" ? " (Prüfung)" : ""}${t.due ? " bis " + t.due : ""}`));
+    L("Fächer", D.subjects.length ? [D.subjects.map(s => s.name).join(", ")] : []) +
+    L("Ordner", D.folders.length ? [D.folders.slice(0, 80).map(f => path(f.id)).join(", ")] : []) +
+    L(`Dokumente (${D.docs.length})`, [...groups].map(([k, v]) => `${k}: ${v.join("; ")}`)) +
+    L("Kartenstapel", D.decks.slice(0, 30).map(k => `[${k.id}] ${k.title} (${k.cards.length})`)) +
+    L("Offene Aufgaben", D.tasks.filter(t => !t.done).slice(0, 30).map(t => `[${t.id}] ${t.title}${t.type === "exam" ? " (Prüfung)" : ""}${t.due ? " bis " + t.due : ""}`));
 }
 
 const norm = s => String(s || "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -73,14 +79,42 @@ const ACTIONS = {
   async open(a) { if (a.doc) { const d = findDoc(a.doc); if (!d) throw "Dokument nicht gefunden"; return { label: `„${d.title}“ öffnen`, go: (d.type === "draw" ? "draw/" : "doc/") + d.id }; } const v = String(a.view || ""); if (!V[v]) throw "Bereich unbekannt"; return { label: "Öffnen: " + (NAVS.find(n => n[0] === v)?.[1] || v), go: v }; },
 };
 
+/* Lese-Werkzeuge: liefern der KI Daten zurück (kein Eintrag in der Oberfläche) */
+const LOOKUPS = {
+  async search_docs(a) {
+    const q = norm(a.query), words = q.split(" ").filter(w => w.length > 1); if (!words.length) return "Keine Suchbegriffe.";
+    const hits = [];
+    for (const d of D.docs) {
+      if (d.type === "draw") continue; const title = norm(d.title); let txt = ""; try { txt = await docText(d); } catch {}
+      const low = norm(txt), sc = words.reduce((n, w) => n + (title.includes(w) ? 3 : 0) + (low.includes(w) ? 1 : 0), 0); if (!sc) continue;
+      const i = Math.max(0, low.indexOf(words.find(w => low.includes(w)) || "")); hits.push([sc, `[${d.id}] ${d.title}${txt ? " – …" + txt.replace(/\s+/g, " ").slice(Math.max(0, i - 40), i + 140) + "…" : ""}`]);
+    }
+    return hits.sort((x, y) => y[0] - x[0]).slice(0, 6).map(h => h[1]).join("\n") || "Keine Treffer.";
+  },
+  async read_doc(a) {
+    const d = findDoc(a.doc); if (!d) return "Dokument nicht gefunden."; const t = (await docText(d)).replace(/\n{3,}/g, "\n\n"), from = Math.max(0, +a.from || 0);
+    return `„${d.title}“ (${t.length} Zeichen)\n` + (t.slice(from, from + 6000) || "(leer)") + (t.length > from + 6000 ? `\n… weiter mit from=${from + 6000}` : "");
+  },
+};
+let lastAsk = null;
+/* ai() mit gemerkter Anfrage, damit Lese-Schritte die Unterhaltung fortsetzen können */
+function agentAi(prompt, opts) { lastAsk = { prompt, opts }; return ai(prompt, opts); }
+
 /* returns {text, acts} – text without the action block; acts = [{label, go?, err?}] */
-async function runAgent(reply) {
+async function runAgent(reply, depth = 0) {
   const m = String(reply || "").match(/<lumi-actions>([\s\S]*?)<\/lumi-actions>/i);
   const text = String(reply || "").replace(/<lumi-actions>[\s\S]*?(<\/lumi-actions>|$)/i, "").trim();
   if (!m) return { text, acts: [] };
   let list; try { list = JSON.parse(m[1].trim().replace(/^```(json)?|```$/g, "")); } catch { return { text: text + "\n\n(Die Aktion konnte nicht gelesen werden.)", acts: [] }; }
+  const arr = Array.isArray(list) ? list : [list], reads = arr.filter(a => LOOKUPS[a?.action]);
+  if (reads.length && lastAsk && depth < 3) {
+    const out = []; for (const a of reads.slice(0, 3)) { try { out.push(`${a.action}: ${await LOOKUPS[a.action](a)}`); } catch (e) { out.push(`${a.action}: Fehler`); } }
+    const { prompt, opts } = lastAsk, ask = { prompt: "Ergebnis deiner Leseaktion(en):\n" + out.join("\n\n") + "\n\nAntworte jetzt dem Nutzer (und führe nötige Aktionen aus).", opts: { ...opts, sources: false, image: null, history: [...(opts.history || []), { role: "user", text: prompt }, { role: "assistant", text: String(reply).slice(0, 600) }] } };
+    lastAsk = ask; const r2 = await ai(ask.prompt, ask.opts); if (!r2) return { text: "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts: [] };
+    return runAgent(r2, depth + 1);
+  }
   const acts = [];
-  for (const a of (Array.isArray(list) ? list : [list]).slice(0, 12)) {
+  for (const a of arr.filter(a => !LOOKUPS[a?.action]).slice(0, 12)) {
     try { const fn = ACTIONS[a?.action]; if (!fn) throw "Unbekannte Aktion"; acts.push(await fn(a)); }
     catch (e) { acts.push({ label: String(e?.message || e), err: true }); }
   }
@@ -93,7 +127,7 @@ async function runAgent(reply) {
 
 /* ---------- AI everywhere: command bar (Strg/Cmd + Umschalt + K, "Neu" menus, document bars) ---------- */
 async function agentAsk(text) {
-  const r = await ai(text, { system: sysBase(AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (typeof msContext === "function" && msContext() ? "\n" + msContext() : "")), max: 2000, quiet: true });
+  const r = await agentAi(text, { system: sysBase(AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (typeof msContext === "function" && msContext() ? "\n" + msContext() : "")), max: 2000, quiet: true });
   if (!r) return null; return runAgent(r);
 }
 function openAiCommand(prefill = "") {
@@ -112,17 +146,23 @@ function openAiCommand(prefill = "") {
     $(".aic-sug", el).hidden = true; out.hidden = false; out.innerHTML = `<div class="aic-think">${ic("spark")}<span>Lumi AI schreibt …</span></div>`;
     const r = await agentAsk(q);
     if (!r) { out.innerHTML = `<p class="note">Das hat leider nicht geklappt. Versuche es bitte noch einmal.</p>`; return; }
-    out.innerHTML = `<p>${streamHtml(r.text)}</p>${r.acts.length ? `<div class="acts" style="--base:${Math.min(2600, r.text.split(/\s+/).length * 30 + 200)}ms">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : /^doc\//.test(a.go || "") ? "note" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
+    out.innerHTML = `<p>${streamHtml(r.text)}</p>${r.acts.length ? `<div class="acts" style="--base:${streamMs(r.text)}ms">${r.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : /^doc\//.test(a.go || "") ? "note" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}`;
     $$("[data-ag]", out).forEach(b => b.onclick = () => { close(); go(b.dataset.ag); });
     if (r.acts.some(a => a.open)) setTimeout(close, 900);
   };
 }
 document.addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "k" && document.getElementById("app") && !document.getElementById("app").hidden) { e.preventDefault(); openAiCommand(); } });
 
-/* word-by-word fade-in for AI text */
+/* Wort-für-Wort-Einblendung: Aufzählungspunkte erscheinen erst, wenn der Text der Zeile da ist; streamMs = Gesamtdauer (für die Box darunter) */
+const streamStep = text => Math.min(34, 2400 / Math.max(1, String(text || "").split(/\s+/).filter(Boolean).length));
+const streamMs = text => Math.round(String(text || "").split(/\s+/).filter(Boolean).length * streamStep(text)) + 380;
 function streamHtml(text) {
-  const parts = String(text || "").split(/(\s+)/); let n = 0; const total = parts.filter(p => p.trim()).length, step = Math.min(34, 2400 / Math.max(1, total));
-  return parts.map(p => p.trim() ? `<span class="sw" style="animation-delay:${Math.round(n++ * step)}ms">${esc(p)}</span>` : esc(p).replace(/\n/g, "<br>")).join("");
+  const step = streamStep(text); let n = 0;
+  return String(text || "").split("\n").map(line => {
+    const b = line.match(/^\s*(?:[-•*]|\d+[.)])\s+(.*)/), body = b ? b[1] : line, num = b && /^\s*\d/.test(line) ? line.match(/\d+/)[0] + "." : "";
+    const html = body.split(/(\s+)/).map(p => p.trim() ? `<span class="sw" style="animation-delay:${Math.round(n++ * step)}ms">${esc(p)}</span>` : esc(p)).join("");
+    return b ? `<span class="sli"><i class="sb" style="animation-delay:${Math.round(n * step + 60)}ms">${num ? esc(num) : ""}</i>${html}</span>` : html + "<br>";
+  }).join("").replace(/(<br>)+$/, "").replace(/<\/span><br>(?=<span class="sli")/g, "</span>");
 }
 function wordReveal(root, maxMs = 4800) {
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = []; let n; while ((n = w.nextNode())) if (n.nodeValue.trim() && !n.parentElement.closest("table,pre,input")) nodes.push(n);
