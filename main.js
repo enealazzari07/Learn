@@ -34,12 +34,15 @@ function pricingHtml(go) {
   const tick = `<i class="cb a"></i><i class="cb b"></i><i class="cb c"></i><i class="cb d"></i>`;
   const price = (v, per) => `<p class="pr"><b>${eur(v)}</b>${per ? `<small> ${per}</small>` : ""}</p>`;
   const free = [`Bis zu ${FREE_LIMITS.docs} Dokumente, ${FREE_LIMITS.boards} Whiteboards`, "Karteikarten &amp; Quiz", "Planer, Noten, Fokus-Timer", `Studix AI: bis zu ${aiuNum(AIQ.free)} Token pro Woche*`, "Sync auf allen Geräten"];
+  const ess = ["Alles aus Gratis", `Studix AI: bis zu ${aiuNum(AIQ.ess)} Token pro Woche* – halb so viel wie Pro`, "Unbegrenzt Dokumente &amp; Whiteboards", "Längere Antworten", "Jederzeit kündbar"];
   const pro = ["Alles aus Gratis", `${c.trial || 14} Tage kostenlos testen`, `Studix AI: bis zu ${aiuNum(AIQ.pro)} Token pro Woche*`, "Unbegrenzt Dokumente &amp; Whiteboards", "Bild-Analyse &amp; Sprachgespräch", "Längere Antworten", "Neue Pro-Funktionen zuerst", "Jederzeit kündbar"];
   return `<section class="sec" id="pricing"><p class="pr-k">Preise</p><h2>Einfache Preise.</h2><p class="lead">Starte kostenlos – upgrade, wenn du mehr Studix AI willst.</p>
   <div class="pr-steps">${[["adduser", "Kostenlos starten", "Konto anlegen und sofort loslegen."], ["spark", "Pro testen", `${c.trial || 14} Tage gratis, ohne Risiko.`], ["check", "Jederzeit kündbar", "Keine Bindung, keine Kosten danach."]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><div><b>${h}</b><small>${p}</small></div></div>`).join("")}</div>
   <div class="pr-panel">${tick}
     <div class="pr-col"><span class="pr-l">Gratis</span>${price(0)}<p class="note">Für immer kostenlos.</p><a class="btn" ${go}>Kostenlos starten</a></div>
     <ul class="pr-ul">${li(free)}</ul>
+    ${c.essential ? `<div class="pr-col pr-pro"><span class="pr-l">Studix Essential</span>${price(c.essential, "/ Monat")}<a class="btn" ${go}>Essential wählen</a></div>
+    <ul class="pr-ul">${li(ess)}</ul>` : ""}
     <div class="pr-col pr-pro"><span class="pr-l">Studix Study Pro</span>${c.monthly ? price(c.monthly, "/ Monat") + (c.yearly ? `<p class="note">oder ${eur(c.yearly)} / Jahr</p>` : "") : price(c.yearly, "/ Jahr")}<a class="btn accent" ${go}>${c.trial || 14} Tage gratis testen</a></div>
     <ul class="pr-ul">${li(pro)}</ul></div>
   <p class="pr-f">${planCompareLink()}<span>Preise inkl. gesetzlicher Mehrwertsteuer deines Landes – sie wird beim Bezahlen automatisch berechnet.</span></p>

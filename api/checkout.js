@@ -1,5 +1,5 @@
 /* Startet eine Stripe-Checkout-Sitzung für Studix Study Pro (Abo) mit Stripe Managed Payments.
-   Erwartet POST { plan: "monthly" | "yearly" } mit Supabase-Token. Mit Managed Payments ist Stripe Verkäufer (Merchant of Record):
+   Erwartet POST { plan: "monthly" | "yearly" | "essential" } mit Supabase-Token. Mit Managed Payments ist Stripe Verkäufer (Merchant of Record):
    Mehrwertsteuer in 80+ Ländern, Rechnungen, Abführung, Betrugsabwehr und Streitfälle übernimmt Stripe. */
 const L = require("./_lib");
 const PK = () => String(process.env.STRIPE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "").trim();
@@ -12,15 +12,15 @@ module.exports = async function handler(req, res) {
   try {
     const plansP = L.plans().catch(() => ({ monthly: {}, yearly: {} }));   // läuft parallel zur Anmeldeprüfung
     const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
-    const body = await L.readJson(req), { country = "", embedded = false } = body, wantTrial = body.plan === "trial" || body.trial === true, plan = body.plan === "yearly" ? "yearly" : "monthly";
+    const body = await L.readJson(req), { country = "", embedded = false } = body, plan = body.plan === "yearly" ? "yearly" : body.plan === "essential" ? "essential" : "monthly", wantTrial = plan !== "essential" && (body.plan === "trial" || body.trial === true);
     const live = await L.liveSubscription(user.id, { fresh: true });   // direkt aus Stripe
     const P = (await plansP)[plan]; if (!P?.price) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
-    if (live && L.ACTIVE.includes(live.status) && live.status !== "past_due") return res.status(409).json({ error: "Du hast Studix Study Pro bereits – verwalte es unter Einstellungen." });
+    if (live && L.ACTIVE.includes(live.status) && live.status !== "past_due") return res.status(409).json({ error: "Du hast bereits ein Abo – verwalte oder wechsle es unter Einstellungen." });
     const trial = wantTrial && !live, base = L.siteUrl(req), customer = await L.validCustomer(live?.customer), avail = Object.keys(P.opts || {}), cur = avail.length ? L.currencyFor(req, avail, String(country).slice(0, 2)) : "";
     const common = {
       mode: "subscription", managed_payments: { enabled: process.env.STRIPE_MANAGED_PAYMENTS === "off" ? false : true },
       client_reference_id: user.id, ...(customer ? { customer } : { customer_email: user.email || undefined }),
-      subscription_data: { metadata: { user_id: user.id }, ...(trial ? { trial_period_days: TRIAL } : {}) }, metadata: { user_id: user.id },
+      subscription_data: { metadata: { user_id: user.id, tier: plan === "essential" ? "essential" : "pro" }, ...(trial ? { trial_period_days: TRIAL } : {}) }, metadata: { user_id: user.id },
       success_url: `${base}/?plus=success#/app/settings`, cancel_url: `${base}/?plus=cancel#/app/settings`,
     };
     /* MwSt. ist im Preis immer enthalten (tax_behavior: inclusive), egal in welcher Währung */

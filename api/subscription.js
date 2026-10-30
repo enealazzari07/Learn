@@ -9,11 +9,21 @@ module.exports = async function handler(req, res) {
   if (!L.sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   try {
     const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Bitte zuerst anmelden." });
-    const { action = "get", invoices = true } = await L.readJson(req);
+    const body = await L.readJson(req), { action = "get", invoices = true } = body;
     if (action === "cancel" || action === "resume") {
       const cur = await L.liveSubscription(user.id, { fresh: true });
       if (!cur || !L.ACTIVE.includes(cur.status)) return res.status(404).json({ error: "Kein aktives Abo gefunden." });
       await L.stripe("POST", "/subscriptions/" + cur.id, { cancel_at_period_end: action === "cancel" ? "true" : "false" });
+      L.dropSubCache(user.id);
+    }
+    if (action === "switch") {   // Essential <-> Pro im laufenden Abo (anteilig abgerechnet)
+      const cur = await L.liveSubscription(user.id, { fresh: true });
+      if (!cur || !L.ACTIVE.includes(cur.status)) return res.status(404).json({ error: "Kein aktives Abo gefunden." });
+      const pl = body.plan === "essential" ? "essential" : body.plan === "yearly" ? "yearly" : "monthly", P = (await L.plans())[pl];
+      const amount = P?.opts?.[cur.currency] ?? P?.cents; if (!P?.product || !amount) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
+      if ((pl === "essential") === (cur.tier === "essential") && (pl === "essential" || (pl === "yearly") === (cur.interval === "year"))) return res.status(409).json({ error: "Diesen Tarif hast du bereits." });
+      const live = await L.stripe("GET", "/subscriptions/" + cur.id);
+      await L.stripe("POST", "/subscriptions/" + cur.id, { items: [{ id: live.items.data[0].id, price_data: { currency: cur.currency, product: P.product, unit_amount: amount, recurring: { interval: pl === "yearly" ? "year" : "month" }, tax_behavior: "inclusive" } }], metadata: { user_id: user.id, tier: pl === "essential" ? "essential" : "pro" }, proration_behavior: "create_prorations", cancel_at_period_end: "false" });
       L.dropSubCache(user.id);
     }
     let sub = await L.liveSubscription(user.id, { fresh: action !== "get", withInvoices: invoices !== false });

@@ -27,6 +27,13 @@ Das Abo wird dem Konto über `metadata.user_id` zugeordnet (Stripe-Suche), mit F
 
 Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in Stripe kann gelöscht werden.
 
+## Studix Essential (günstiger Tarif)
+Dritte Stufe zwischen Gratis und Pro: **3 CHF pro Monat**, halb so viel Studix AI wie Pro (75 000 Token pro Woche, 15 000 pro 5 Std.), unbegrenzt Dokumente und Whiteboards, längere Antworten –
+aber **ohne Bild-Analyse und Sprachgespräch** (die bleiben Pro) und ohne Testversion. Wechsel Essential ↔ Pro geht direkt in der App (Einstellungen → Pro), der Preisunterschied wird anteilig abgerechnet.
+
+Einrichtung: In Stripe ein **zweites Produkt „Studix Essential“** mit demselben Produktsteuercode wie Pro anlegen (der Preis wird aus `ESSENTIAL_MONTHLY_CENTS` gebildet, ein Stripe-Preis ist nicht nötig).
+Ohne dieses Produkt bleibt Essential unsichtbar und es gibt nur Gratis und Pro. Das Abo erkennt die Stufe an `metadata.tier` bzw. am Produkt.
+
 ## Vercel-Umgebungsvariablen
 | Name | Wert |
 |---|---|
@@ -39,6 +46,9 @@ Ein Webhook wird **nicht** mehr gebraucht. Ein bereits angelegter Endpunkt in St
 | `STRIPE_MANAGED_PAYMENTS` | `off` schaltet Managed Payments für Tests ab |
 | `PRO_MONTHLY_CENTS` | optional: Monatspreis in Rappen/Cent, in jeder Währung – überschreibt die Stripe-Preise. Ohne Angabe gelten die Preise des Produkts in Stripe |
 | `PRO_YEARLY_DISCOUNT` | Rabatt des Jahresabos in % gegenüber 12 Monaten (Standard `40`); der Jahrespreis wird daraus berechnet, wenn Stripe keinen eigenen Jahrespreis hat. Alternativ `PRO_YEARLY_CENTS` fest |
+| `STRIPE_ESSENTIAL_PRODUCT_ID` | optional, falls das Produkt nicht „Studix Essential“ heißt |
+| `ESSENTIAL_MONTHLY_CENTS` | Monatspreis von **Studix Essential** in Rappen/Cent, in jeder Währung (Standard `300` = 3 CHF/€/USD) |
+| `AI_ESSENTIAL_WINDOW_TOKENS` / `AI_ESSENTIAL_SESSION_TOKENS` | KI-Token von Essential pro Woche / pro 5 Std. (Standard `75000` / `15000`, also die Hälfte von Pro) |
 | `PRO_TRIAL_DAYS` | Testversion in Tagen, Standard `14` |
 | `AI_FREE_WINDOW_TOKENS` | KI-Token pro Woche für Gratis-Konten (Standard `25000` Studix-Token = echte Token ÷ 10, `0` = unbegrenzt) |
 | `AI_PRO_WINDOW_TOKENS` | KI-Token pro Woche für Studix Study Pro (Standard `150000`, `0` = unbegrenzt) |

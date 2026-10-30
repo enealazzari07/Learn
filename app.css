@@ -4419,3 +4419,7 @@ html[data-theme=dark] #faq .faq details,html[data-theme=dark] #faq .faq details[
 
 /* Laptop liegt über den senkrechten Linien (sein Sockel ist breiter als der Linienabstand) und steht genau auf der Rasterlinie */
 .mac-sec{position:relative;z-index:4}
+
+/* Vergleichstabelle mit drei Stufen (Gratis, Essential, Pro) */
+.pc-h.c3,.pc-r.c3{grid-template-columns:minmax(0,1fr) 96px 96px 96px}
+@media (max-width:560px){.pc-h.c3,.pc-r.c3{grid-template-columns:minmax(0,1fr) 62px 62px 62px;font-size:12.5px}}

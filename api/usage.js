@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
   if (!L.sameOrigin(req)) return res.status(403).json({ error: "Forbidden" });
   const user = await L.userFromReq(req); if (!user) return res.status(401).json({ error: "Nicht angemeldet" });
   if (!L.FREE_TOKENS) return res.status(200).json({ enabled: false });
-  const [pro, w] = await Promise.all([L.isProLive(user.id), L.aiUsed(user.id)]);
+  const [tier, w] = await Promise.all([L.tierOf(user.id), L.aiUsed(user.id)]), pro = tier === "pro";
   if (!w) return res.status(200).json({ enabled: false });
-  res.status(200).json({ enabled: true, pro, ...L.aiUsage(pro, w), hours: L.WINDOW_H, sHours: L.SESSION_H });
+  res.status(200).json({ enabled: true, pro, tier, ...L.aiUsage(tier, w), hours: L.WINDOW_H, sHours: L.SESSION_H });
 };

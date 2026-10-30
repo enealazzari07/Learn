@@ -39,6 +39,16 @@ async function plans() {
       }
     } catch (e) { if (priceCache.v) return priceCache.v; }
   }
+  /* Studix Essential: günstigerer Tarif (Standard 3.00 je Währung) mit halbem KI-Budget. Braucht ein Produkt „Studix Essential“ in Stripe (oder STRIPE_ESSENTIAL_PRODUCT_ID); der Preis kommt aus ESSENTIAL_MONTHLY_CENTS */
+  out.essential = { price: "", opts: {} };
+  if (stripeKey() && (out.monthly.price || out.yearly.price)) {
+    try {
+      let ep = process.env.STRIPE_ESSENTIAL_PRODUCT_ID || "";
+      if (!ep) ep = ((await stripe("GET", "/products", { active: "true", limit: 100 })).data || []).find(p => /(lumi|studix)\s*(study\s*)?essential/i.test(p.name || ""))?.id || "";
+      const ec = +process.env.ESSENTIAL_MONTHLY_CENTS || 300, cur = Object.keys(out.monthly.opts || {}); if (!cur.length) cur.push(out.currency || "chf");
+      if (ep) out.essential = { price: "dyn", product: ep, cents: ec, opts: Object.fromEntries(cur.map(c => [c, ec])) };
+    } catch (e) { if (priceCache.v?.essential) out.essential = priceCache.v.essential; }
+  }
   if (out.monthly.price || out.yearly.price) priceCache = { at: Date.now(), v: out };
   return out;
 }
@@ -120,6 +130,7 @@ function shapeSub(sub, invoices = []) {
   const it = sub.items?.data?.[0] || {}, pr = it.price || {}, pm = sub.default_payment_method && typeof sub.default_payment_method === "object" ? sub.default_payment_method : null, card = pm?.card;
   const end = sub.status === "trialing" && sub.trial_end ? sub.trial_end : (sub.current_period_end || it.current_period_end);
   return {
+    tier: sub.metadata?.tier === "essential" || (pr.product && typeof pr.product === "string" && pr.product === priceCache.v?.essential?.product) ? "essential" : "pro",
     id: sub.id, customer: typeof sub.customer === "string" ? sub.customer : sub.customer?.id, status: sub.status,
     interval: pr.recurring?.interval || null, amount: pr.unit_amount ?? null, currency: pr.currency || null, tax_behavior: pr.tax_behavior || null,
     created: iso(sub.start_date || sub.created), trial_end: iso(sub.trial_end), current_period_end: iso(end), cancel_at_period_end: !!sub.cancel_at_period_end, cancel_at: iso(sub.cancel_at), canceled_at: iso(sub.canceled_at), ended_at: iso(sub.ended_at),
@@ -163,7 +174,13 @@ async function grantOf(uid) {
 }
 const grantActive = g => !!g && !!g.until && new Date(g.until).getTime() > Date.now();
 const dropGrantCache = uid => grantCache.delete(uid);
-const isProLive = async uid => { if (grantActive(await grantOf(uid))) return true; try { const s = await liveSubscription(uid); return !!s && ACTIVE.includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5); } catch { return false; } };
+/* Stufe des Kontos: "pro" | "essential" | "free" (Early-Backer-Geschenk zählt als Pro) */
+const tierOf = async uid => {
+  if (grantActive(await grantOf(uid))) return "pro";
+  try { const s = await liveSubscription(uid); if (s && ACTIVE.includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5)) return s.tier === "essential" ? "essential" : "pro"; } catch {}
+  return "free";
+};
+const isProLive = async uid => (await tierOf(uid)) !== "free";
 /* Kunden-ID nur verwenden, wenn der Kunde bei Stripe (in diesem Modus) noch existiert – sonst „No such customer“ */
 const validCustomer = async id => { if (!id) return null; try { const c = await stripe("GET", "/customers/" + id); return c && !c.deleted ? id : null; } catch { return null; } };
 const dropSubCache = uid => subCache.delete(uid);
@@ -173,13 +190,18 @@ const dropSubCache = uid => subCache.delete(uid);
    Gibt null zurück, wenn Service-Key oder SQL fehlen → dann bleibt die KI offen. */
 const num = (v, d) => v === undefined || v === "" ? d : (+v || 0);
 const FREE_TOKENS = num(process.env.AI_FREE_WINDOW_TOKENS, 25000), PRO_TOKENS = num(process.env.AI_PRO_WINDOW_TOKENS, 150000), WINDOW_H = Math.max(1, Math.round(num(process.env.AI_WINDOW_HOURS, 168)));
-const limitFor = pro => pro ? PRO_TOKENS : FREE_TOKENS;   // 0 = unbegrenzt
+/* Essential: etwa halb so viel wie Pro (AI_ESSENTIAL_WINDOW_TOKENS / AI_ESSENTIAL_SESSION_TOKENS) */
+const ESS_TOKENS = num(process.env.AI_ESSENTIAL_WINDOW_TOKENS, 75000);
+const tierName = t => t === true || t === "pro" ? "pro" : t === "essential" ? "essential" : "free";   // true (alt) = Pro
+const limitFor = t => ({ pro: PRO_TOKENS, essential: ESS_TOKENS, free: FREE_TOKENS })[tierName(t)];   // 0 = unbegrenzt
 /* Zusätzlich ein kurzes Fenster (Standard 5 Std.): Gratis 5 000, Pro 30 000 Token */
 const FREE_S = num(process.env.AI_FREE_SESSION_TOKENS, 5000), PRO_S = num(process.env.AI_PRO_SESSION_TOKENS, 30000), SESSION_H = Math.max(1, Math.round(num(process.env.AI_SESSION_HOURS, 5)));
-const limitS = pro => pro ? PRO_S : FREE_S;
+const ESS_S = num(process.env.AI_ESSENTIAL_SESSION_TOKENS, 15000);
+const limitS = t => ({ pro: PRO_S, essential: ESS_S, free: FREE_S })[tierName(t)];
 const nf = n => Math.round(n).toLocaleString("de-CH");
-const limitMsg = (pro, hours) => `Dein ${hours >= 168 ? "Wochenlimit" : "Limit"} für Studix AI ist erreicht. Es setzt sich ${hours >= 168 ? "eine Woche nach deiner ersten Anfrage" : "nach Ablauf des Zeitfensters"} zurück${pro ? "." : ` – oder nutze Studix Study Pro mit ${nf(PRO_TOKENS)} Token statt ${nf(FREE_TOKENS)}.`}`;
-const limitMsgS = pro => `Dein ${SESSION_H}-Stunden-Limit für Studix AI ist erreicht. Es setzt sich ${SESSION_H} Stunden nach deiner ersten Anfrage zurück${pro ? "." : ` – oder nutze Studix Study Pro mit ${nf(PRO_S)} Token statt ${nf(FREE_S)}.`}`;
+const upsell = (t, big, small) => tierName(t) === "pro" ? "." : tierName(t) === "essential" ? ` – oder wechsle zu Studix Study Pro mit ${nf(big[0])} Token statt ${nf(big[1])}.` : ` – oder nutze Studix Essential (${nf(small[0])}) bzw. Study Pro (${nf(big[0])} Token) statt ${nf(small[1])}.`;
+const limitMsg = (t, hours) => `Dein ${hours >= 168 ? "Wochenlimit" : "Limit"} für Studix AI ist erreicht. Es setzt sich ${hours >= 168 ? "eine Woche nach deiner ersten Anfrage" : "nach Ablauf des Zeitfensters"} zurück${upsell(t, [PRO_TOKENS, tierName(t) === "essential" ? ESS_TOKENS : FREE_TOKENS], [ESS_TOKENS, FREE_TOKENS])}`;
+const limitMsgS = t => `Dein ${SESSION_H}-Stunden-Limit für Studix AI ist erreicht. Es setzt sich ${SESSION_H} Stunden nach deiner ersten Anfrage zurück${upsell(t, [PRO_S, tierName(t) === "essential" ? ESS_S : FREE_S], [ESS_S, FREE_S])}`;
 const winOf = (j, h) => j && typeof j === "object" ? { used: +j.tokens || 0, reset: j.started ? new Date(new Date(j.started).getTime() + h * 36e5).toISOString() : null } : null;
 const both = (w, s) => w ? { ...w, s } : null;   // Wochenfenster + optional das 5-Stunden-Fenster (s)
 const aiUsed = async uid => {
@@ -196,7 +218,7 @@ const aiAdd = async (uid, t) => {
   } catch { return null; }
 };
 /* Prüft beide Fenster: gibt null (frei) oder [429, Body] zurück */
-const aiBlock = (pro, w) => {
+const aiBlock = (pro, w) => {   // pro = Stufe ("pro" | "essential" | "free")
   const lim = limitFor(pro), ls = limitS(pro), s = w.s;
   const usage = { used: w.used, limit: lim || null, reset: w.reset, s: s ? { used: s.used, limit: ls || null, reset: s.reset } : null };
   if (ls && s && s.used >= ls) return [429, { error: limitMsgS(pro), limit: true, usage }];
@@ -208,11 +230,11 @@ const aiUsage = (pro, w) => ({ used: w.used, limit: limitFor(pro) || null, reset
 /* Gemeinsame Prüfung für KI-Aufrufe (Anmeldung, Gratis-Budget). Gibt { acct } oder { deny: [status, body] } zurück. */
 async function aiGate(req) {
   const user = await userFromReq(req); if (!user) return { deny: [401, { error: "Bitte melde dich an, um Studix AI zu nutzen." }] };
-  if (!FREE_TOKENS) return { acct: { id: user.id, pro: false, free: false } };
-  const pro = await isProLive(user.id), w = await aiUsed(user.id);
-  if (!w) return { acct: { id: user.id, pro, free: false } };
-  const bl = aiBlock(pro, w); if (bl) return { deny: bl };
-  return { acct: { id: user.id, pro, free: true } };   // free = Verbrauch wird mitgezählt (auch bei Pro, dort mit höherem Limit)
+  if (!FREE_TOKENS) return { acct: { id: user.id, pro: false, tier: "free", free: false } };
+  const tier = await tierOf(user.id), pro = tier === "pro", w = await aiUsed(user.id);
+  if (!w) return { acct: { id: user.id, pro, tier, free: false } };
+  const bl = aiBlock(tier, w); if (bl) return { deny: bl };
+  return { acct: { id: user.id, pro, tier, free: true } };   // free = Verbrauch wird mitgezählt (auch bei Pro, dort mit höherem Limit)
 }
 /* Funktionen nur für Studix Study Pro (Bild-Analyse, Sprache): für Gratis-Konten gesperrt – aber nur, wenn man Pro überhaupt kaufen kann (Stripe eingerichtet) */
 async function proFeatureDeny(acct, feature) {
@@ -220,4 +242,4 @@ async function proFeatureDeny(acct, feature) {
   try { if (!(await billingReady())) return null; } catch { return null; }
   return [402, { error: `${feature} ist mit Studix Study Pro verfügbar.`, pro: true }];
 }
-module.exports = { proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitS, limitMsg, WINDOW_H, SESSION_H, FREE_S, PRO_S, aiBlock, aiUsage, aiUsed, aiAdd, liveSubscription, isProLive, grantOf, grantActive, dropGrantCache, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+module.exports = { proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitS, limitMsg, WINDOW_H, SESSION_H, FREE_S, PRO_S, aiBlock, aiUsage, aiUsed, aiAdd, liveSubscription, isProLive, tierOf, ESS_TOKENS, ESS_S, grantOf, grantActive, dropGrantCache, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
