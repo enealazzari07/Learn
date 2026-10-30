@@ -12,15 +12,8 @@ async function subCall(body) {
 /* Abo live aus Stripe laden; invoices=true holt zusätzlich die letzten Rechnungen */
 async function plusLoad(invoices = false) {
   if (!CLOUD.sb || !CLOUD.user) { BILL.row = null; BILL.loaded = true; return; }
-  /* Early-Backer-Code vom Zugangsbildschirm: nach der Anmeldung einmalig einlösen (3 Monate Pro + Abzeichen) */
-  let early = ""; try { early = localStorage.getItem("studix-early") || ""; } catch {}
-  if (early) { try { await billPost2("/api/access", { code: early, redeem: true }); try { localStorage.removeItem("studix-early"); } catch {} toast("Early Backer: Pro geschenkt 🎉"); } catch (e) { if (/ungültig/.test(e.message)) { try { localStorage.removeItem("studix-early"); } catch {} } } }
   try { BILL.row = await subCall({ action: "get", invoices }); } catch {}
   BILL.loaded = true;
-}
-async function billPost2(path, body) {
-  const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body || {}) });
-  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Fehler " + r.status); return j;
 }
 async function billPost(path, body) {
   const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body || {}) });

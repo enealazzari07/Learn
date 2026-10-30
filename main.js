@@ -19,7 +19,8 @@ function route() {
   if (!h.startsWith("app") || (!EMBED && cloudGate())) document.getElementById("hdock")?.remove();   // Chat-Leiste der Startseite nicht auf Landing/Login stehen lassen
   if (!h.startsWith("app")) { landingEl.hidden = false; appEl.hidden = true; document.title = "Studix – Lernen, das funktioniert"; if (!landingEl.dataset.r) renderLanding(); window.scrollTo(0, 0); return; }
   landingEl.hidden = true; appEl.hidden = false; document.title = "Studix";
-  if (!EMBED && cloudGate()) return accessOk() ? authScreen() : accessScreen();
+  if (!EMBED && cloudGate()) return authScreen();
+  if (!EMBED && !accessOk()) return accessScreen();
   if (!EMBED && !D.profile.onboarded && !onboardShown) { onboardShown = true; buildShell(); renderView(); onboarding(); return; }
   renderView();
 }

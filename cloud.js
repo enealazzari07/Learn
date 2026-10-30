@@ -85,6 +85,7 @@ async function cloudInit() {
   if (CLOUD.user) { try { const { error } = await CLOUD.sb.auth.getUser(); if (error && ([401, 403, 404].includes(error.status) || /sub claim|does not exist|not found/i.test(error.message || ""))) { await CLOUD.sb.auth.signOut({ scope: "local" }); CLOUD.user = null; } } catch {} }   // gelöschtes Konto: alte Anmeldung verwerfen
   if (CLOUD.user && (cloudUnconfirmed(CLOUD.user) || !(await mfaGate()))) { try { await CLOUD.sb.auth.signOut(); } catch {} CLOUD.user = null; }
   if (CLOUD.user) { try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); } }
+  await accessCheck();
   CLOUD.sb.auth.onAuthStateChange((ev, s) => { if (ev === "PASSWORD_RECOVERY") setTimeout(recoveryModal, 600); const was = CLOUD.user; CLOUD.user = s?.user || null; if (ev === "SIGNED_IN" && !was && CLOUD.user) cloudAfterLogin(); if (ev === "SIGNED_OUT") { BILL.row = null; LS.set("lumi-sync", "0"); $("#app").innerHTML = ""; route(); } });
   addEventListener("online", cloudPush);
 }
@@ -93,6 +94,7 @@ async function cloudAfterLogin() {
   if (!(await mfaGate())) { try { await CLOUD.sb.auth.signOut(); } catch {} return; }
   plusLoad(false).then(() => { try { refreshNav(); if (curView === "settings") renderView(); } catch {} }).catch(() => {});
   try { if (await cloudPull()) { await loadData(); try { migrateFolders(); } catch {} } } catch { cloudStatus("err"); }
+  await accessCheck();
   $("#app").innerHTML = ""; route();
 }
 function cloudStatus() { const e = document.getElementById("cl-st"); if (e) e.textContent = CLOUD.user ? (CLOUD.dirty.size ? "Wird synchronisiert …" : "Synchronisiert") : ""; }
@@ -176,24 +178,34 @@ function authHeroMount(hero) {
 }
 const cloudGate = () => !!(CLOUD.sb && !CLOUD.user);
 /* Anmelde-/Registrierseite: Formular links, Foto mit schwebenden Karten rechts */
-/* Zugangscode: ohne gueltigen Code (einmal pro Browser) gibt es weder Anmeldung noch Registrierung */
-const accessOk = () => { try { return localStorage.getItem("studix-access") === "1"; } catch { return false; } };
+/* Pre-Launch Early Access: Startseite und Anmeldung sind offen; nach der Anmeldung braucht das Konto einmalig einen Zugangscode (Freischaltung steht serverseitig im Konto) */
+const eaKey = () => "studix-ea-" + (CLOUD.user?.id || "");
+const accessOk = () => { if (!CLOUD.user) return true; if (CLOUD.ea === CLOUD.user.id) return true; try { return localStorage.getItem(eaKey()) === "1"; } catch { return false; } };
+const accessSet = () => { CLOUD.ea = CLOUD.user?.id; try { localStorage.setItem(eaKey(), "1"); } catch {} };
+async function accessCheck() {
+  if (!CLOUD.user || accessOk()) return;
+  try { const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "status" }) }); if (r.ok && (await r.json()).access) accessSet(); } catch {}
+}
 function accessScreen() {
-  const app = $("#app"); document.title = "Studix – Zugangscode";
+  const app = $("#app"); document.title = "Studix – Early Access";
   app.innerHTML = `<div class="authwrap"><div class="authshell" style="grid-template-columns:1fr">
     <form class="authform" onsubmit="return false" novalidate style="margin:auto"><a class="logo authlogo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a>
-      <div class="authmid"><h1>Zugangscode</h1><p class="authsub">Studix ist aktuell nur mit Code zugänglich. Gib deinen Zugangscode ein.</p>
-        <label class="lbl" for="ac-c">Code</label><div class="fld"><input class="field pill" id="ac-c" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="letter-spacing:.12em;text-transform:uppercase"></div>
+      <div class="authmid"><h1>Early Access</h1><p class="authsub">Studix ist noch in der Pre-Launch-Phase. Gib deinen Zugangscode ein, um fortzufahren.</p>
+        <label class="lbl" for="ac-c">Zugangscode</label><div class="fld"><input class="field pill" id="ac-c" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="letter-spacing:.12em;text-transform:uppercase"></div>
         <p class="note authmsg" id="ac-m" aria-live="polite"></p>
-        <button class="btn authgo" id="ac-go" type="submit">Weiter</button></div></form></div></div>`;
+        <button class="btn authgo" id="ac-go" type="submit">Fortfahren</button>
+        <button class="link" id="ac-out" type="button">Abmelden</button></div></form></div></div>`;
   const f = $(".authform", app), i = $("#ac-c", f), m = $("#ac-m", f), b = $("#ac-go", f); let busy = false;
   const go = async () => {
-    if (busy || !i.value.trim()) return; busy = true; b.disabled = true; m.textContent = "Prüfe …";
-    try { const r = await fetch("/api/access", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: i.value }) }); if (!r.ok) throw 0; const j = await r.json().catch(() => ({})); try { localStorage.setItem("studix-access", "1"); if (j.early) localStorage.setItem("studix-early", i.value.trim()); } catch {} route(); return; }
-    catch { m.className = "note authmsg err"; m.textContent = "Dieser Code ist ungültig."; }
+    if (busy || !i.value.trim()) return; busy = true; b.disabled = true; m.className = "note authmsg"; m.textContent = "Prüfe …";
+    try {
+      const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "redeem", code: i.value }) }), j = await r.json().catch(() => ({}));
+      if (!r.ok) { m.className = "note authmsg err"; m.textContent = j.error || "Dieser Code ist ungültig."; }
+      else { accessSet(); if (j.gift) toast("Early Backer: Pro geschenkt 🎉"); try { await plusLoad(false); } catch {} $("#app").innerHTML = ""; route(); return; }
+    } catch { m.className = "note authmsg err"; m.textContent = "Keine Verbindung. Versuche es noch einmal."; }
     busy = false; b.disabled = false;
   };
-  f.onsubmit = e => { e.preventDefault(); go(); }; b.onclick = e => { e.preventDefault(); go(); }; i.focus();
+  f.onsubmit = e => { e.preventDefault(); go(); }; b.onclick = e => { e.preventDefault(); go(); }; $("#ac-out", f).onclick = async () => { try { await CLOUD.sb.auth.signOut(); } catch {} }; i.focus();
 }
 function authScreen(mode = "in") {
   const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = up ? "Studix – Konto erstellen" : "Studix – Anmelden";
@@ -219,7 +231,6 @@ function authScreen(mode = "in") {
 }
 function cloudLoginModal() {
   if (!cloudOn()) return toast("Cloud ist noch nicht eingerichtet.");
-  if (!accessOk()) { location.hash = "#/app"; return route(); }
   const { el, close } = modal(`<h3>Konto</h3><p class="note">Melde dich an, damit deine Notizen, Aufgaben und Karteikarten auf allen Geräten da sind.</p>${cloudAuthHtml()}`);
   cloudAuthBind(el, close);
 }
