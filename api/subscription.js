@@ -19,11 +19,11 @@ module.exports = async function handler(req, res) {
     if (action === "switch") {   // Essential <-> Pro im laufenden Abo (anteilig abgerechnet)
       const cur = await L.liveSubscription(user.id, { fresh: true });
       if (!cur || !L.ACTIVE.includes(cur.status)) return res.status(404).json({ error: "Kein aktives Abo gefunden." });
-      const pl = body.plan === "essential" ? "essential" : body.plan === "yearly" ? "yearly" : "monthly", P = (await L.plans())[pl];
+      const pl = ["essential", "essentialYearly", "yearly"].includes(body.plan) ? body.plan : "monthly", pe = pl.startsWith("essential"), py = pl === "yearly" || pl === "essentialYearly", P = (await L.plans())[pl];
       const amount = P?.opts?.[cur.currency] ?? P?.cents; if (!P?.product || !amount) return res.status(400).json({ error: "Dieser Tarif ist nicht eingerichtet." });
-      if ((pl === "essential") === (cur.tier === "essential") && (pl === "essential" || (pl === "yearly") === (cur.interval === "year"))) return res.status(409).json({ error: "Diesen Tarif hast du bereits." });
+      if (pe === (cur.tier === "essential") && py === (cur.interval === "year")) return res.status(409).json({ error: "Diesen Tarif hast du bereits." });
       const live = await L.stripe("GET", "/subscriptions/" + cur.id);
-      await L.stripe("POST", "/subscriptions/" + cur.id, { items: [{ id: live.items.data[0].id, price_data: { currency: cur.currency, product: P.product, unit_amount: amount, recurring: { interval: pl === "yearly" ? "year" : "month" }, tax_behavior: "inclusive" } }], metadata: { user_id: user.id, tier: pl === "essential" ? "essential" : "pro" }, proration_behavior: "create_prorations", cancel_at_period_end: "false" });
+      await L.stripe("POST", "/subscriptions/" + cur.id, { items: [{ id: live.items.data[0].id, price_data: { currency: cur.currency, product: P.product, unit_amount: amount, recurring: { interval: py ? "year" : "month" }, tax_behavior: "inclusive" } }], metadata: { user_id: user.id, tier: pe ? "essential" : "pro" }, proration_behavior: "create_prorations", cancel_at_period_end: "false" });
       L.dropSubCache(user.id);
     }
     let sub = await L.liveSubscription(user.id, { fresh: action !== "get", withInvoices: invoices !== false });

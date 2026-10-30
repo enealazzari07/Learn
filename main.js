@@ -41,7 +41,7 @@ function pricingHtml(go) {
   <div class="pr-panel">${tick}
     <div class="pr-col"><span class="pr-l">Gratis</span>${price(0)}<p class="note">Für immer kostenlos.</p><a class="btn" ${go}>Kostenlos starten</a></div>
     <ul class="pr-ul">${li(free)}</ul>
-    ${c.essential ? `<div class="pr-col pr-pro"><span class="pr-l">Studix Essential</span>${price(c.essential, "/ Monat")}<a class="btn" ${go}>Essential wählen</a></div>
+    ${c.essential ? `<div class="pr-col pr-pro"><span class="pr-l">Studix Essential</span>${price(c.essential, "/ Monat")}${c.essentialYearly ? `<p class="note">oder ${eur(c.essentialYearly)} / Jahr</p>` : ""}<a class="btn" ${go}>Essential wählen</a></div>
     <ul class="pr-ul">${li(ess)}</ul>` : ""}
     <div class="pr-col pr-pro"><span class="pr-l">Studix Study Pro</span>${c.monthly ? price(c.monthly, "/ Monat") + (c.yearly ? `<p class="note">oder ${eur(c.yearly)} / Jahr</p>` : "") : price(c.yearly, "/ Jahr")}<a class="btn accent" ${go}>${c.trial || 14} Tage gratis testen</a></div>
     <ul class="pr-ul">${li(pro)}</ul></div>
@@ -194,10 +194,11 @@ function mountFrame(root) {
     const K = (x, y, c) => h += `<i class="k ${c}" style="left:${x}px;top:${y}px"></i>`;
     const fv = $(".flow-v", root), yfb = fv ? Y(R(fv).bottom) : ytop;   /* Unterkante des Workflow-Blocks: waagrechte Linie, die rechte senkrechte Linie startet dort mit einem T */
     const lapE = $(".mbp-front", root), yLb0 = lapE ? Y(R(lapE).bottom) : 0;
-    V(xl, 0, ye);   /* linke Linie läuft über die ganze Seite bis nach oben */
+    const stp = $("#steps", root), ps = stp ? Y(R(stp).top) : 0, pe = stp ? Y(R(stp).bottom) : 0, gap = ps > 0 && pe > ps;   /* Abschnitt „Auf allen Plattformen“: neben dem Handy keine linke Linie */
+    if (gap) { V(xl, 0, ps); V(xl, pe, ye); } else V(xl, 0, ye);   /* linke Linie läuft über die ganze Seite bis nach oben */
     if (yLb0 && yLb0 < yfb) { V(xr, 0, yLb0); V(xr, yfb, ye); } else V(xr, 0, ye);   /* rechts: endet auf der Laptop-Linie, im Workflow-Abschnitt keine Linie, danach weiter */ V(x1, yb0, ybm); V(x2, ybm, yb1);
-    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, "p"); K(xr, yfb, yLb0 && yLb0 < yfb ? "td" : "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
-    [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, "p"); K(xr, y, "p"); });
+    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, gap && Math.abs(yfb - ps) < 3 ? "tu" : "p"); K(xr, yfb, yLb0 && yLb0 < yfb ? "td" : "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
+    [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, gap && Math.abs(y - pe) < 3 ? "td" : "p"); K(xr, y, "p"); });
     K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
     /* Oben: waagrechte Linien mit Verzweigungen (T) zwischen den vier Funktionen; der Laptop hängt genau zwischen zwei Linien und steht auf der unteren */
     const hero = $(".hero3", root), hf = $(".hfeat", root), lap = $(".mbp-front", root);

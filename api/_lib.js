@@ -30,24 +30,28 @@ async function plans() {
         out[k] = { price: list[0].id, cents: list[0].unit_amount, opts, ids, product: list[0].product.id }; out.currency = list[0].currency;
       }
       /* Preise: Monat = Stripe-Preis des Produkts (optional PRO_MONTHLY_CENTS überschreibt); Jahr = 12 Monate minus 40 % Rabatt (PRO_YEARLY_DISCOUNT), sofern in Stripe kein eigener Jahrespreis existiert */
-      const mc = +process.env.PRO_MONTHLY_CENTS || 0;   // optional; ohne Angabe gelten die Beträge der Stripe-Preise
+      const mc = +process.env.PRO_MONTHLY_CENTS || 600;   // Pro: 6 pro Monat (PRO_MONTHLY_CENTS überschreibt; die Stripe-Preise des Produkts werden nur noch als Produkt genutzt)
       if (mc && out.monthly.product && Object.keys(out.monthly.opts || {}).length) { Object.keys(out.monthly.opts).forEach(c => { out.monthly.opts[c] = mc; }); out.monthly.cents = mc; }
-      if (!out.yearly.price && out.monthly.product && Object.keys(out.monthly.opts || {}).length) {
-        const disc = process.env.PRO_YEARLY_DISCOUNT === undefined || process.env.PRO_YEARLY_DISCOUNT === "" ? 40 : Math.min(90, Math.max(0, +process.env.PRO_YEARLY_DISCOUNT || 0));
-        const yc = +process.env.PRO_YEARLY_CENTS || Math.round(Object.values(out.monthly.opts)[0] * 12 * (100 - disc) / 100), opts = {}; Object.entries(out.monthly.opts).forEach(([c, v]) => { opts[c] = process.env.PRO_YEARLY_CENTS ? yc : Math.round(v * 12 * (100 - disc) / 100); });
-        out.yearly = { price: "dyn", cents: yc, opts, ids: {}, product: out.monthly.product };
+      /* Jahr: Pro 40 pro Jahr (PRO_YEARLY_CENTS); nur wenn PRO_YEARLY_DISCOUNT gesetzt ist, wird er stattdessen aus 12 Monaten minus Rabatt berechnet */
+      const yEnv = +process.env.PRO_YEARLY_CENTS || (process.env.PRO_YEARLY_DISCOUNT ? 0 : 4000);
+      if (out.monthly.product && Object.keys(out.monthly.opts || {}).length) {
+        const disc = Math.min(90, Math.max(0, +process.env.PRO_YEARLY_DISCOUNT || 0)), opts = {}; Object.entries(out.monthly.opts).forEach(([c, v]) => { opts[c] = yEnv || Math.round(v * 12 * (100 - disc) / 100); });
+        const yc = Object.values(opts)[0];
+        if (!out.yearly.price) out.yearly = { price: "dyn", cents: yc, opts, ids: {}, product: out.monthly.product };
+        else if (out.yearly.product) { out.yearly.opts = opts; out.yearly.cents = yc; out.yearly.ids = {}; out.yearly.price = "dyn"; }
       }
     } catch (e) { if (priceCache.v) return priceCache.v; }
   }
   /* Studix Essential: günstigerer Tarif (Standard 3.00 je Währung) mit halbem KI-Budget. Braucht ein Produkt „Studix Essential“ in Stripe (oder STRIPE_ESSENTIAL_PRODUCT_ID); der Preis kommt aus ESSENTIAL_MONTHLY_CENTS */
-  out.essential = { price: "", opts: {} };
+  out.essential = { price: "", opts: {} }; out.essentialYearly = { price: "", opts: {} };
   if (stripeKey() && (out.monthly.price || out.yearly.price)) {
     try {
       let ep = process.env.STRIPE_ESSENTIAL_PRODUCT_ID || "";
       if (!ep) ep = ((await stripe("GET", "/products", { active: "true", limit: 100 })).data || []).find(p => /(lumi|studix)\s*(study\s*)?essential/i.test(p.name || ""))?.id || "";
       const ec = +process.env.ESSENTIAL_MONTHLY_CENTS || 300, cur = Object.keys(out.monthly.opts || {}); if (!cur.length) cur.push(out.currency || "chf");
-      if (ep) out.essential = { price: "dyn", product: ep, cents: ec, opts: Object.fromEntries(cur.map(c => [c, ec])) };
-    } catch (e) { if (priceCache.v?.essential) out.essential = priceCache.v.essential; }
+      const ey = +process.env.ESSENTIAL_YEARLY_CENTS || 2000;   // Essential: 3 pro Monat, 20 pro Jahr
+      if (ep) { out.essential = { price: "dyn", product: ep, cents: ec, opts: Object.fromEntries(cur.map(c => [c, ec])) }; out.essentialYearly = { price: "dyn", product: ep, cents: ey, opts: Object.fromEntries(cur.map(c => [c, ey])) }; }
+    } catch (e) { if (priceCache.v?.essential) { out.essential = priceCache.v.essential; out.essentialYearly = priceCache.v.essentialYearly || out.essentialYearly; } }
   }
   if (out.monthly.price || out.yearly.price) priceCache = { at: Date.now(), v: out };
   return out;
