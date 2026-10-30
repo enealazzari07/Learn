@@ -22,7 +22,7 @@ Verfügbare Aktionen (Felder in Klammern sind optional):
 - search_docs {query} – LESEN: durchsucht Titel und Inhalt ALLER Dokumente und liefert Treffer mit Ausschnitt. Nutze es, wenn der Nutzer ein Dokument sucht oder die Liste unten nicht reicht.
 - read_doc {doc, (from)} – LESEN: liefert den Text eines Dokuments (ab Zeichen "from", höchstens 6000). Nutze es, bevor du über Inhalt antwortest, den du nicht siehst.
 - open {view:"today"|"docs"|"cards"|"quiz"|"planner"|"grades"|"focus"|"settings"|"search"} oder {doc} – Bereich oder Dokument öffnen
-LESEN-Aktionen (search_docs, read_doc) sendest du ALLEIN im Block, ohne Text davor und ohne andere Aktionen; die App liefert dir das Ergebnis, danach antwortest du richtig. Maximal 3 Leseschritte. Die Liste unten enthält alle Dokumente (Titel nach Ordner) – ohne Inhalt, spare Tokens: lies nur, was nötig ist.
+LESEN-Aktionen (search_docs, read_doc) sendest du ALLEIN im Block, ohne Text davor und ohne andere Aktionen; die App liefert dir das Ergebnis, danach antwortest du richtig. Maximal 3 Leseschritte. Steht unten „Automatisch gefunden“, nutze diesen Text sofort und antworte direkt – kündige nichts an. Die Liste unten enthält alle Dokumente (Titel nach Ordner) – ohne Inhalt, spare Tokens: lies nur, was nötig ist.
 "doc", "task", "deck" und "subject" gibst du mit der ID oder dem Titel aus der Liste unten an. Rechne relative Datumsangaben („nächsten Freitag“) anhand von „Heute“ in ein echtes Datum um. Erfinde keine Dokumente, die nicht in der Liste stehen. Neu erstellte Notizen, Datenbanken und Kartenstapel öffnet die App automatisch. Schreibe Notizen vollständig und gut strukturiert in content mit dieser Syntax: "# " / "## " / "### " für Überschriften, "- " für Listen, "1. " für nummerierte Listen, "> " für Zitate, **fett**, *kursiv*, Tabellen mit | Spalte | Spalte | (erste Zeile = Kopf), Leerzeile zwischen Absätzen. Für Schrift, Grösse, Ausrichtung, Zeilenabstand, Design oder Seitenbreite nutze format_doc statt den Text neu zu schreiben. "Aktuell geöffnet" in der Liste ist das Dokument, auf das sich „dieses Dokument“ bezieht. Wenn nur eine Frage gestellt wird, antworte normal ohne Block. Frage kurz nach, wenn eine wichtige Angabe fehlt (z. B. das Datum einer Prüfung).`;
 
 function agentContext() {
@@ -102,6 +102,18 @@ const LOOKUPS = {
   },
 };
 let lastAsk = null;
+/* Vorab-Suche ohne KI-Aufruf: passt ein Dokumenttitel (oder Ordnername) zur Anfrage, bekommt die KI den Text gleich mitgeliefert – nichts muss „vorgelesen“ werden */
+const STOP = new Set("fasse fass zusammen zusammenfassung mir mein meine meinen meiner meinem das den der die dem des ein eine einen und oder von vom für über ueber mit zum zur aus bitte kannst kanst kannst du ich mal noch dazu dieses diese diesem dokument datei notiz erkläre erklaere erklär lies lese lesen suche such finde öffne oeffne zeige zeig mach mache erstelle schreibe schreib was wie warum wann welche welcher alle aktuell aktuelle aktuellen neueste letzte letzten".split(" "));
+async function agentPrefetch(text) {
+  const words = [...new Set(norm(text).replace(/[^a-zäöüß0-9 ]/g, " ").split(" ").filter(w => w.length >= 3 && !STOP.has(w)))].map(w => w.length > 6 ? w.slice(0, 5) : w);
+  if (!words.length) return "";
+  const path = f => folderPath(f).map(x => x.name).join(" ");
+  const sc = D.docs.filter(d => d.type !== "draw").map(d => { const t = norm(d.title + " " + (d.folderId ? path(d.folderId) : "")); return [words.filter(w => t.includes(w)).length + (words.every(w => t.includes(w)) ? 1 : 0), d]; }).filter(x => x[0] > 0).sort((a, b) => b[0] - a[0] || b[1].updated - a[1].updated);
+  if (!sc.length) return "";
+  const top = sc[0][1]; let body = ""; try { body = (await docText(top)).replace(/\n{3,}/g, "\n\n").slice(0, 6000); } catch {}
+  const more = sc.slice(1, 4).map(x => `[${x[1].id}] ${x[1].title}`);
+  return `\nAutomatisch gefunden (passt zur Anfrage): [${top.id}] ${top.title}${more.length ? "\nWeitere mögliche: " + more.join("; ") : ""}\nText von „${top.title}“:\n"""\n${body || "(leer oder keine Textvorschau)"}\n"""\nNutze diesen Text direkt für die Antwort. Sag NIE „ich lese gleich“ – lies nicht vor, antworte sofort.\n`;
+}
 /* ai() mit gemerkter Anfrage, damit Lese-Schritte die Unterhaltung fortsetzen können */
 function agentAi(prompt, opts) { lastAsk = { prompt, opts }; return ai(prompt, opts); }
 
@@ -109,7 +121,15 @@ function agentAi(prompt, opts) { lastAsk = { prompt, opts }; return ai(prompt, o
 async function runAgent(reply, opt = {}, depth = 0) {
   const m = String(reply || "").match(/<lumi-actions>([\s\S]*?)<\/lumi-actions>/i);
   const text = String(reply || "").replace(/<lumi-actions>[\s\S]*?(<\/lumi-actions>|$)/i, "").trim();
-  if (!m) return { text, acts: [] };
+  if (!m) {
+    /* Die KI kündigt Lesen an, sendet aber keinen Block → automatisch suchen und weiterfragen */
+    if (lastAsk && depth < 2 && /\b(ich lese|lese ich|ich schaue|schaue ich|ich sehe .{0,30}nach|ich durchsuche|ich öffne|ich suche|ich prüfe)\b/i.test(text)) {
+      const q = lastAsk.prompt, pre = await agentPrefetch(q), found = pre || "Keine passenden Dokumente gefunden.";
+      const ask = { prompt: "Ergebnis der Suche:\n" + found + "\n\nAntworte jetzt direkt auf die Anfrage: " + q, opts: { ...lastAsk.opts, sources: false, image: null } };
+      lastAsk = ask; const r2 = await ai(ask.prompt, ask.opts); if (r2) return runAgent(r2, opt, depth + 1);
+    }
+    return { text, acts: [] };
+  }
   let list; try { list = JSON.parse(m[1].trim().replace(/^```(json)?|```$/g, "")); } catch { return { text: text + "\n\n(Die Aktion konnte nicht gelesen werden.)", acts: [] }; }
   const arr = Array.isArray(list) ? list : [list], reads = arr.filter(a => LOOKUPS[a?.action]);
   if (reads.length && lastAsk && depth < 3) {
@@ -132,7 +152,7 @@ async function runAgent(reply, opt = {}, depth = 0) {
 
 /* ---------- AI everywhere: command bar (Strg/Cmd + Umschalt + K, "Neu" menus, document bars) ---------- */
 async function agentAsk(text) {
-  const r = await agentAi(text, { system: sysBase(AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext()), max: 2000, quiet: true });
+  const pre = await agentPrefetch(text), r = await agentAi(text, { system: sysBase(AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + pre), max: 2000, quiet: true });
   if (!r) return null; return runAgent(r);
 }
 function openAiCommand(prefill = "") {
