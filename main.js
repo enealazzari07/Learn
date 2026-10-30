@@ -215,6 +215,27 @@ function mountFrame(root) {
   $$("#faq details", root).forEach(d => d.addEventListener("toggle", () => setTimeout(upd, 30)));
   new ResizeObserver(upd).observe(document.body); addEventListener("load", upd); upd(); setTimeout(upd, 1200); setTimeout(upd, 3500);
 }
+/* Maskottchen unten rechts: ruht als kleiner Stapel („Hey.“), startet beim Darüberfahren (Animation + Vergrösserung), wird beim Weggehen wieder klein; Klick führt zur Anmeldung */
+async function mountMascot(root) {
+  let txt = ""; try { const r = await fetch("float-anim.svg"); if (!r.ok) return; txt = await r.text(); } catch { return; }
+  if (!/^\s*<svg[\s>]/.test(txt) || /<script/i.test(txt)) return;
+  const a = document.createElement("a"); a.className = "lp-mascot"; a.href = "#/app"; a.setAttribute("aria-label", "Zur Anmeldung – Studix starten");
+  a.innerHTML = `<div class="lp-m-in">${txt}</div>`; root.appendChild(a);
+  const svg = $("svg", a); if (!svg) return;
+  const R = [450, 370, 560, 260], B = [230, 150, 830, 850], calm = matchMedia("(prefers-reduced-motion: reduce)").matches;   // R = Ruhe (nur die Pillen), B = ganze Animation
+  let cur = R.slice(), raf = 0;
+  const setVB = v => svg.setAttribute("viewBox", v.map(x => x.toFixed(1)).join(" "));
+  svg.setAttribute("preserveAspectRatio", "xMaxYMax meet"); setVB(R);
+  const stopAnim = () => { try { svg.pauseAnimations(); svg.setCurrentTime(0); } catch {} };
+  stopAnim();
+  const go = to => {
+    cancelAnimationFrame(raf); const from = cur.slice(), t0 = performance.now();
+    const step = now => { const k = Math.min(1, (now - t0) / 420), e = 1 - Math.pow(1 - k, 3); cur = from.map((f, i) => f + (to[i] - f) * e); setVB(cur); if (k < 1) raf = requestAnimationFrame(step); else if (to === R) stopAnim(); };
+    raf = requestAnimationFrame(step);
+  };
+  const on = () => { a.classList.add("on"); if (!calm) { try { svg.unpauseAnimations(); } catch {} } go(B); }, off = () => { a.classList.remove("on"); go(R); };
+  a.addEventListener("pointerenter", on); a.addEventListener("pointerleave", off); a.addEventListener("focus", on); a.addEventListener("blur", off);
+}
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
 function mountGrid(hero) {
   const box = $(".agp", hero), emb = $("#emb", hero), N = 30, SZ = 40, NS = "http://www.w3.org/2000/svg";
@@ -293,6 +314,7 @@ function renderLanding() {
   <footer><div><a class="logo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a><p style="margin-top:12px;max-width:260px">Die Lern-App für Schule und Studium.</p></div>${[["App", "Notizen", "Zeichnen", "Karteikarten", "Quiz"], ["Planen", "Stundenplan", "Aufgaben", "Noten", "Fokus-Timer"], ["Rechtliches", ["Impressum", "legal.html#impressum"], ["Datenschutz", "legal.html#datenschutz"], ["AGB", "legal.html#agb"], ["Widerruf", "legal.html#widerruf"]]].map(c => `<div><b>${c[0]}</b>${c.slice(1).map(x => Array.isArray(x) ? `<a href="${x[1]}">${x[0]}</a>` : `<a href="#/app">${x}</a>`).join("")}</div>`).join("")}</footer><div class="copy">© ${new Date().getFullYear()} Studix</div>`;
   mountMac($("#mac", landingEl));
   mountFrame(landingEl);
+  mountMascot(landingEl);
   mountBento(landingEl);
   { const io2 = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io2.unobserve(e.target); } }), { threshold: .15 }); $$(".rv", landingEl).forEach(x => io2.observe(x)); }
   { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); setTimeout(() => e.target.classList.add("on"), e.target.classList.contains("mk") ? 1300 : 700); } }), { threshold: .6 }); $$(".hl", landingEl).forEach(h => io.observe(h)); }
