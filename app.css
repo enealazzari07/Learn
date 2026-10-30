@@ -4424,8 +4424,8 @@ html[data-theme=dark] #faq .faq details,html[data-theme=dark] #faq .faq details[
 .pc-h.c3,.pc-r.c3{grid-template-columns:minmax(0,1fr) 96px 96px 96px}
 @media (max-width:560px){.pc-h.c3,.pc-r.c3{grid-template-columns:minmax(0,1fr) 62px 62px 62px;font-size:12.5px}}
 
-/* Eingebettete App im Laptop: oben bündig, kein grauer Streifen – nur die Notch des Laptops liegt über der App */
-html.embed #app #main.main,html.embed #app #main.main:not(.doc-full),html.embed #app #main.main.doc-full,html.embed .shell .main.main,html.embed .shell .main.homew:not(.doc-full){margin:0!important;border:0!important;border-radius:0!important;min-height:100dvh!important}
+/* Eingebettete App im Laptop: schmaler, gleichmässiger grauer Rand um die App (oben, rechts, unten), alles im Bildschirm sichtbar */
+html.embed #app #main.main,html.embed #app #main.main:not(.doc-full),html.embed #app #main.main.doc-full,html.embed .shell .main.main,html.embed .shell .main.homew:not(.doc-full){margin:6px 6px 6px 0!important;min-height:calc(100dvh - 12px)!important}
 
 /* Preise: drei Karten nebeneinander im grauen Feld, das bis an die Rasterlinien reicht; Umschalter Monatlich/Jährlich */
 .pr-panel{display:block!important;padding:28px 0 34px!important;margin-inline:-14px}
@@ -4445,7 +4445,7 @@ html.embed #app #main.main,html.embed #app #main.main:not(.doc-full),html.embed 
    Der Ring liegt über der Laptop-Grafik (verdeckt deren hellen Haarbogen an den Bildschirm-Ecken), die Mitte bleibt frei, unten bleibt der Sockel unberührt. */
 .mbp-w{container-type:inline-size}
 .mbp-scr{background:#000;border-radius:8px 8px 0 0!important}
-.mbp::after{content:"";position:absolute;left:9.114%;top:2.235%;width:81.77%;height:86.73%;border-radius:14px 14px 0 0;box-shadow:0 0 0 1.1cqw #000,inset 0 0 0 .45cqw #000;clip-path:inset(-3cqw -3cqw 0 -3cqw);pointer-events:none;z-index:6}
+.mbp::after{content:"";position:absolute;left:9.114%;top:2.235%;width:81.77%;height:86.73%;border-radius:14px 14px 0 0;box-shadow:0 0 0 1.1cqw #000;clip-path:inset(-3cqw -3cqw 0 -3cqw);pointer-events:none;z-index:6}
 
 /* KI-Anbieter-Logos (Originalfarben, nicht verändern) */
 svg.prov-logo{width:1.15em;height:1.15em;flex:none;fill:none;stroke:none;vertical-align:-.2em;border-radius:5px}
