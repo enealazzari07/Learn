@@ -13,6 +13,7 @@ V.join = async (m, id) => {
   const fail = t => { m.innerHTML = `<div class="page"><div class="emptybox"><h3>${esc(t)}</h3><button class="btn" onclick="location.hash='#/app'">Zur Startseite</button></div></div>`; };
   if (!/^[0-9a-f-]{36}$/i.test(id || "")) return fail("Ungültiger Einladungslink");
   if (!CLOUD.user) return fail("Bitte melde dich an, um der Zusammenarbeit beizutreten");
+  if (teamPending()) { try { await plusLoad(false); } catch {} } if (teamLocked()) return fail("Gemeinsames Bearbeiten gibt es mit Studix Essential oder Study Pro – nicht im Gratis-Konto." + teamHint());
   const ex = D.docs.find(x => x.share === id); if (ex) return location.replace("#/app/doc/" + ex.id);
   const { data, error } = await CLOUD.sb.rpc("lumi_share_get", { p_id: id }); const row = data && data[0];
   if (error || !row || row.rev < 0) return fail("Diese Einladung gibt es nicht mehr");
@@ -77,7 +78,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   const onMove = e => sendCur(e), onLeave = e => sendCur(e, true);
   paper.addEventListener("pointermove", onMove); paper.addEventListener("pointerleave", onLeave);
   function start() {
-    if (!d.share || ch || !CLOUD.sb || !CLOUD.user) return paint();
+    if (!d.share || ch || !CLOUD.sb || !CLOUD.user || teamLocked() || teamPending()) return paint();   // Gratis: keine Live-Verbindung
     ch = CLOUD.sb.channel("lumi-share-" + d.share, { config: { presence: { key: me.key }, broadcast: { self: false } } });
     ch.on("presence", { event: "sync" }, () => { peers = ch.presenceState(); delete peers[me.key]; paint(); curEls.forEach((e, k) => { if (!peers[k]) { e.remove(); curEls.delete(k); } }); })
       .on("broadcast", { event: "doc" }, ({ payload }) => { if (payload?.pull) pull(); else apply(payload); })
@@ -88,6 +89,7 @@ function collabAttach({ d, m, body, TBX, ink, dirty, svEl }) {
   const stop = () => { if (ch) { try { ch.untrack(); CLOUD.sb.removeChannel(ch); } catch {} ch = null; } conn = ""; peers = {}; paint(); };
   body.addEventListener("input", touch);
   btn.onclick = () => {
+    if (teamLocked()) return teamUpsell("Das gemeinsame Bearbeiten von Dateien in Echtzeit");
     if (!CLOUD.user) { const { el, close } = modal(`<h3>Zusammenarbeiten</h3><p class="note">Zum gemeinsamen Schreiben melde dich zuerst an – dann kannst du Notizen per Link teilen.</p><div class="row end"><button class="btn primary" id="co-login">Anmelden</button></div>`); $("#co-login", el).onclick = () => { close(); cloudLoginModal(); }; return; }
     const { el, close } = modal(`<h3>Zusammenarbeiten</h3><div id="co-body"></div>`), box = $("#co-body", el);
     const draw = () => {

@@ -46,12 +46,14 @@ async function wsHome(m) {
 V.wsjoin = async (m, code) => {
   m.innerHTML = `<div class="page"><div class="emptybox"><h3>Einladung wird geöffnet …</h3></div></div>`;
   if (!CLOUD.user) return wsGate(m, "Bitte melde dich an, um dem Workspace beizutreten.");
+  if (teamPending()) { try { await plusLoad(false); } catch {} } if (teamLocked()) return wsPaywall(m);
   try { try { LS.set("ws-pending", ""); } catch {} const id = await wsRpc("lumi_ws_join", { p_code: String(code || ""), p_who: wsWho() }); toast("Du bist dem Workspace beigetreten"); location.replace("#/app/workspace/" + id); }
   catch (e) { m.innerHTML = `<div class="page"><div class="emptybox"><h3>${esc(wsMsg(e))}</h3><button class="btn" onclick="location.hash='#/app/workspace'">Zu den Workspaces</button></div></div>`; }
 };
 
 /* ---------- Workspace öffnen ---------- */
-V.workspace = (m, id, fid = "") => id ? wsOpen(m, id, fid) : wsHome(m);
+const wsPaywall = m => { m.innerHTML = `<div class="page"><div class="emptybox"><div class="big-ic">${ic("team")}</div><h3>Workspace</h3><p>Gemeinsame Workspaces und das Bearbeiten von Dateien in Echtzeit gibt es mit Studix Essential und Studix Study Pro – nicht im Gratis-Konto.${esc(teamHint())}</p><button class="btn primary" id="ws-up">Pläne ansehen</button></div></div>`; $("#ws-up", m).onclick = () => { window.__setTab = "pro"; go("settings"); }; };
+V.workspace = async (m, id, fid = "") => { if (teamPending()) { try { await plusLoad(false); } catch {} } return teamLocked() ? wsPaywall(m) : id ? wsOpen(m, id, fid) : wsHome(m); };
 
 async function wsOpen(m, wid, fid) {
   if (!CLOUD.user) return wsGate(m, "Melde dich an, um diesen Workspace zu öffnen.");

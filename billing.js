@@ -76,7 +76,15 @@ const dIn = n => n === 1 ? "1 Tag" : n + " Tagen";
 const isTrial = () => isPlus() && BILL.row.status === "trialing";
 const isEss = () => isPlus() && BILL.row.tier === "essential";   // Studix Essential (günstiger, halbes KI-Budget)
 const isPro = () => isPlus() && !isEss();
-const essFeatures = () => [`Studix AI mit bis zu ${aiuNum(AIQ.ess)} Token pro Woche und ${aiuNum(AIQ.essS)} pro 5 Stunden – halb so viel wie Pro`, "Unbegrenzt Dokumente & Whiteboards", "Längere Antworten", "Jederzeit kündbar"];
+/* Workspace und Live-Zusammenarbeit (gemeinsam Dateien bearbeiten): nur mit Essential oder Pro – solange man ein Abo überhaupt kaufen kann */
+const teamPending = () => !!(BILL.cfg && BILL.cfg.enabled && CLOUD.user && !BILL.loaded);
+const teamLocked = () => !!(BILL.cfg && BILL.cfg.enabled && CLOUD.user && BILL.loaded && !isPlus());
+const teamHint = () => BILL.cfg && BILL.cfg.essential ? ` Studix Essential gibt es ab ${money(BILL.cfg.essential)} pro Monat.` : "";
+function teamUpsell(what) {
+  const { el, close } = modal(`<h3>Mit Essential oder Pro</h3><p class="note">${esc(what)} gibt es mit Studix Essential und Studix Study Pro – nicht im Gratis-Konto.${esc(teamHint())}</p><div class="row end"><button class="btn ghost" data-c>Später</button><button class="btn primary" id="tu-go">Pläne ansehen</button></div>`);
+  $("[data-c]", el).onclick = close; $("#tu-go", el).onclick = () => { close(); window.__setTab = "pro"; go("settings"); };
+}
+const essFeatures = () => [`Studix AI mit bis zu ${aiuNum(AIQ.ess)} Token pro Woche und ${aiuNum(AIQ.essS)} pro 5 Stunden – halb so viel wie Pro`, "Unbegrenzt Dokumente & Whiteboards", "Workspace & Live-Zusammenarbeit", "Längere Antworten", "Jederzeit kündbar"];
 const money = (c, cur) => `${new Intl.NumberFormat("de-CH", { minimumFractionDigits: c % 100 ? 2 : 0, maximumFractionDigits: 2 }).format(c / 100)} ${curName(String(cur || (BILL.cfg && BILL.cfg.currency) || "eur").toLowerCase())}`;
 const dateDE = d => new Date(d).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
 const dateShort = d => new Date(d).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -84,12 +92,12 @@ const SUB_STATUS = { trialing: "Testversion", active: "Aktiv", past_due: "Zahlun
 const INV_STATUS = { paid: "Bezahlt", open: "Offen", draft: "Entwurf", void: "Storniert", uncollectible: "Uneinbringlich" };
 const cardName = b => ({ visa: "Visa", mastercard: "Mastercard", amex: "American Express", discover: "Discover", jcb: "JCB", diners: "Diners Club", unionpay: "UnionPay" })[b] || (b ? b[0].toUpperCase() + b.slice(1) : "Karte");
 
-const proFeatures = () => [`Studix AI mit bis zu ${aiuNum(AIQ.pro)} Token pro Woche und ${aiuNum(AIQ.proS)} pro 5 Stunden (Gratis: bis zu ${aiuNum(AIQ.free)} / ${aiuNum(AIQ.freeS)}) – ohne Garantie, kann eingeschränkt werden`, "Unbegrenzt Dokumente & Whiteboards", "Bild-Analyse & Sprachgespräch", "Längere Antworten", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
+const proFeatures = () => [`Studix AI mit bis zu ${aiuNum(AIQ.pro)} Token pro Woche und ${aiuNum(AIQ.proS)} pro 5 Stunden (Gratis: bis zu ${aiuNum(AIQ.free)} / ${aiuNum(AIQ.freeS)}) – ohne Garantie, kann eingeschränkt werden`, "Unbegrenzt Dokumente & Whiteboards", "Workspace & Live-Zusammenarbeit", "Bild-Analyse & Sprachgespräch", "Längere Antworten", "Alle kommenden Pro-Funktionen", "Du unterstützt die Weiterentwicklung von Studix"];
 /* Was ist in Gratis und in Pro enthalten – Tabelle (Einstellungen → Pro und Startseite) */
 function planCompareHtml() {
   const ck = `<span class="pc-y">${ic("check")}</span>`, no = `<span class="pc-n">–</span>`;
   const ess = !!(BILL.cfg && BILL.cfg.essential), X = (a, e, b) => ess ? [a, e, b] : [a, b];
-  const rows = [["Dokumente <small>Notizen, Dateien &amp; PDFs</small>", ...X(`bis zu <b>${FREE_LIMITS.docs}</b>`, "Unbegrenzt", "Unbegrenzt")], ["Whiteboards &amp; Zeichnungen", ...X(`bis zu <b>${FREE_LIMITS.boards}</b>`, "Unbegrenzt", "Unbegrenzt")], ["Karteikarten &amp; Quiz", ...X(ck, ck, ck)], ["Planer, Noten, Prüfungen &amp; Fokus-Timer", ...X(ck, ck, ck)], ["Sync auf allen Geräten", ...X(ck, ck, ck)],
+  const rows = [["Dokumente <small>Notizen, Dateien &amp; PDFs</small>", ...X(`bis zu <b>${FREE_LIMITS.docs}</b>`, "Unbegrenzt", "Unbegrenzt")], ["Whiteboards &amp; Zeichnungen", ...X(`bis zu <b>${FREE_LIMITS.boards}</b>`, "Unbegrenzt", "Unbegrenzt")], ["Karteikarten &amp; Quiz", ...X(ck, ck, ck)], ["Planer, Noten, Prüfungen &amp; Fokus-Timer", ...X(ck, ck, ck)], ["Sync auf allen Geräten", ...X(ck, ck, ck)], ["Workspace &amp; Live-Zusammenarbeit <small>Dateien gemeinsam in Echtzeit bearbeiten</small>", ...X(no, ck, ck)],
     [`Studix AI Limit <small>Gemini &amp; Groq – Wochenlimit und 5-Stunden-Limit, jeweils ab deiner ersten Anfrage</small>`, ...X(`<b>${aiuNum(AIQ.free)}</b> / Woche<br><b>${aiuNum(AIQ.freeS)}</b> / 5 Std.`, `<b>${aiuNum(AIQ.ess)}</b> / Woche<br><b>${aiuNum(AIQ.essS)}</b> / 5 Std.`, `<b>${aiuNum(AIQ.pro)}</b> / Woche<br><b>${aiuNum(AIQ.proS)}</b> / 5 Std.`)], ["Bild-Analyse &amp; Sprachgespräch", ...X(no, no, ck)], ["Längere Antworten", ...X(no, ck, ck)], ["Neue Pro-Funktionen zuerst", ...X(no, no, ck)]];
   return `<div class="pcm"><h3>Was ist inbegriffen</h3><div class="pc-t" role="table"><div class="pc-h${ess ? " c3" : ""}" role="row"><span></span><b>Gratis</b>${ess ? "<b>Essential</b>" : ""}<b>Pro</b></div>${rows.map(([t, ...v]) => `<div class="pc-r${ess ? " c3" : ""}" role="row"><span>${t}</span>${v.map(x => `<span>${x}</span>`).join("")}</div>`).join("")}</div><p class="note">Studix-Token entsprechen etwa einem Zehntel der echten Modell-Token. Gemini Flash 1×, Groq 0,5×.</p></div>`;
 }

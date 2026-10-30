@@ -34,8 +34,8 @@ function pricingHtml(go) {
   const tick = `<i class="cb a"></i><i class="cb b"></i><i class="cb c"></i><i class="cb d"></i>`;
   const price = (v, per) => `<p class="pr"><b>${eur(v)}</b>${per ? `<small> ${per}</small>` : ""}</p>`;
   const free = [`Bis zu ${FREE_LIMITS.docs} Dokumente, ${FREE_LIMITS.boards} Whiteboards`, "Karteikarten &amp; Quiz", "Planer, Noten, Fokus-Timer", `Studix AI: bis zu ${aiuNum(AIQ.free)} Token pro Woche*`, "Sync auf allen Geräten"];
-  const ess = ["Alles aus Gratis", `Studix AI: bis zu ${aiuNum(AIQ.ess)} Token pro Woche* – halb so viel wie Pro`, "Unbegrenzt Dokumente &amp; Whiteboards", "Längere Antworten", "Jederzeit kündbar"];
-  const pro = ["Alles aus Gratis", `${c.trial || 14} Tage kostenlos testen`, `Studix AI: bis zu ${aiuNum(AIQ.pro)} Token pro Woche*`, "Unbegrenzt Dokumente &amp; Whiteboards", "Bild-Analyse &amp; Sprachgespräch", "Längere Antworten", "Neue Pro-Funktionen zuerst", "Jederzeit kündbar"];
+  const ess = ["Alles aus Gratis", `Studix AI: bis zu ${aiuNum(AIQ.ess)} Token pro Woche* – halb so viel wie Pro`, "Unbegrenzt Dokumente &amp; Whiteboards", "Längere Antworten", "Workspace &amp; Live-Zusammenarbeit", "Jederzeit kündbar"];
+  const pro = ["Alles aus Gratis", `${c.trial || 14} Tage kostenlos testen`, `Studix AI: bis zu ${aiuNum(AIQ.pro)} Token pro Woche*`, "Unbegrenzt Dokumente &amp; Whiteboards", "Workspace &amp; Live-Zusammenarbeit", "Bild-Analyse &amp; Sprachgespräch", "Längere Antworten", "Neue Pro-Funktionen zuerst", "Jederzeit kündbar"];
   return `<section class="sec" id="pricing"><p class="pr-k">Preise</p><h2>Einfache Preise.</h2><p class="lead">Starte kostenlos – upgrade, wenn du mehr Studix AI willst.</p>
   <div class="pr-steps">${[["adduser", "Kostenlos starten", "Konto anlegen und sofort loslegen."], ["spark", "Pro testen", `${c.trial || 14} Tage gratis, ohne Risiko.`], ["check", "Jederzeit kündbar", "Keine Bindung, keine Kosten danach."]].map(([i, h, p]) => `<div><span class="hf-i">${ic(i)}</span><div><b>${h}</b><small>${p}</small></div></div>`).join("")}</div>
   <div class="pr-panel">${tick}
