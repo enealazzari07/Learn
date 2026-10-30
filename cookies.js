@@ -16,7 +16,7 @@
   const show = () => {
     if (document.getElementById("ckb")) return;
     const b = document.createElement("div"); b.id = "ckb"; b.setAttribute("role", "dialog"); b.setAttribute("aria-label", "Hinweis zu Cookies");
-    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.5A9 9 0 1 1 11.5 3a4 4 0 0 0 4.5 4.5 3.5 3.5 0 0 0 5 5z"/><circle cx="8.5" cy="10" r=".8" fill="#111"/><circle cx="12" cy="15.5" r=".8" fill="#111"/><circle cx="15.5" cy="12.5" r=".8" fill="#111"/><circle cx="8.5" cy="14.5" r=".8" fill="#111"/></svg><p>Nur notwendige Cookies, kein Tracking. <a href="legal.html#datenschutz">Mehr erfahren</a></p><button type="button">OK</button>`;
+    b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.5A9 9 0 1 1 11.5 3a4 4 0 0 0 4.5 4.5 3.5 3.5 0 0 0 5 5z"/><circle cx="8.5" cy="10" r=".8" fill="#111"/><circle cx="12" cy="15.5" r=".8" fill="#111"/><circle cx="15.5" cy="12.5" r=".8" fill="#111"/><circle cx="8.5" cy="14.5" r=".8" fill="#111"/></svg><p>Nur notwendige Cookies, keine Werbe-Cookies. Anonyme Statistik ohne Cookies. <a href="legal.html#datenschutz">Mehr erfahren</a></p><button type="button">OK</button>`;
     b.querySelector("button").onclick = () => { try { localStorage.setItem(KEY, "1"); } catch {} b.remove(); };
     document.body.appendChild(b);
   };
