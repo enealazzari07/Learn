@@ -124,7 +124,7 @@ async function runAgent(reply, opt = {}, depth = 0) {
   if (!m) {
     /* Die KI kündigt Lesen an, sendet aber keinen Block → automatisch suchen und weiterfragen */
     if (lastAsk && depth < 2 && /\b(ich lese|lese ich|ich schaue|schaue ich|ich sehe .{0,30}nach|ich durchsuche|ich öffne|ich suche|ich prüfe)\b/i.test(text)) {
-      const q = lastAsk.prompt, pre = await agentPrefetch(q), found = pre || "Keine passenden Dokumente gefunden.";
+      const q = lastAsk.prompt, pre = await agentPrefetch(q), found = pre || await LOOKUPS.search_docs({ query: norm(q).replace(/[^a-zäöüß0-9 ]/g, " ").split(" ").filter(w => w.length >= 3 && !STOP.has(w)).join(" ") });
       const ask = { prompt: "Ergebnis der Suche:\n" + found + "\n\nAntworte jetzt direkt auf die Anfrage: " + q, opts: { ...lastAsk.opts, sources: false, image: null } };
       lastAsk = ask; const r2 = await ai(ask.prompt, ask.opts); if (r2) return runAgent(r2, opt, depth + 1);
     }
