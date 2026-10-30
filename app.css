@@ -4238,9 +4238,9 @@ html[data-theme=dark] .plat-v img{filter:invert(.93) hue-rotate(180deg)}
 /* Startseite: keine Farbflecken im Hintergrund, Funktionsleiste direkt über dem Laptop */
 .hero3{background:none!important;padding-bottom:0!important}
 .hero3::before,.hero3::after{display:none!important}
-.hfeat{margin:40px auto 18px!important}
+.hfeat{margin:64px auto 18px!important}
 .mac-sec{padding-top:0!important}
-@media (max-width:760px){.hfeat{margin:30px auto 14px!important}}
+@media (max-width:760px){.hfeat{margin:46px auto 14px!important}}
 .flow{padding-bottom:0!important}.plat{padding-top:0!important}
 /* „Alles, was du zum Lernen brauchst.“: Inhalte direkt auf Weiss, ohne Rand und Schatten – nur weiche Ausblendung */
 #how .bn-card,#how .bn-card:hover{background:transparent!important;box-shadow:none!important;border:0!important;outline:0!important}
