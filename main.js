@@ -194,6 +194,13 @@ function mountFrame(root) {
     [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, "p"); K(xr, yfb, "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
     [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, "p"); K(xr, y, "p"); });
     K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
+    /* Oben: waagrechte Linien mit Verzweigungen (T) zwischen den vier Funktionen; der Laptop hängt genau zwischen zwei Linien und steht auf der unteren */
+    const hero = $(".hero3", root), hf = $(".hfeat", root), lap = $(".mbp-front", root);
+    if (hero && hf && lap) {
+      const hr = R(hero), fr0 = R(hf), lr = R(lap), kids = [...hf.children].map(R), yH0 = Y(hr.top) + 96, yH1 = Y(fr0.top) - 28, yLt = Y(lr.top), yLb = Y(lr.bottom);
+      [yH0, yH1, yLt, yLb].forEach(y => { H(y); K(xl, y, "p"); K(xr, y, "p"); });
+      kids.slice(0, -1).forEach((c, i) => { const x = Math.round((c.right + kids[i + 1].left) / 2 - rt.left); V(x, yH1, yLt); K(x, yH1, "td"); K(x, yLt, "tu"); });
+    }
     ov.innerHTML = h;
   };
   $$("#faq details", root).forEach(d => d.addEventListener("toggle", () => setTimeout(upd, 30)));

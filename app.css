@@ -4416,3 +4416,6 @@ html[data-theme=dark] #faq .faq details,html[data-theme=dark] #faq .faq details[
 .setcrumb>.sdock{height:auto!important}
 .setcrumb .dk-search,.setcrumb .dk-search .sdk-i{height:32px}.setcrumb .dk-search{width:32px;border-radius:16px}.setcrumb .dk-search .sdk-i{width:32px}
 .docspaper{padding-top:10px!important}
+
+/* Laptop liegt über den senkrechten Linien (sein Sockel ist breiter als der Linienabstand) und steht genau auf der Rasterlinie */
+.mac-sec{position:relative;z-index:4}
