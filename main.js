@@ -215,7 +215,7 @@ function mountFrame(root) {
   $$("#faq details", root).forEach(d => d.addEventListener("toggle", () => setTimeout(upd, 30)));
   new ResizeObserver(upd).observe(document.body); addEventListener("load", upd); upd(); setTimeout(upd, 1200); setTimeout(upd, 3500);
 }
-/* Maskottchen unten rechts: ruht als kleiner Stapel („Hey.“), startet beim Darüberfahren (Animation + Vergrösserung), wird beim Weggehen wieder klein; Klick führt zur Anmeldung. Nur am PC (Maus, breiter Bildschirm). */
+/* Maskottchen unten rechts: ruht als kleiner Stapel („Hey.“), öffnet sich beim Darüberfahren (Animation startet, hält offen an) und geht beim Wegscrollen wieder zu; Klick führt zur Anmeldung. Nur am PC (Maus, breiter Bildschirm). */
 async function mountMascot(root) {
   if (!matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1025px)").matches) return;   // nur am PC/Mac mit Maus – nicht auf iPad und Handy
   let txt = ""; try { const r = await fetch("float-anim.svg"); if (!r.ok) return; txt = await r.text(); } catch { return; }
@@ -223,19 +223,27 @@ async function mountMascot(root) {
   const a = document.createElement("a"); a.className = "lp-mascot"; a.href = "#/app"; a.setAttribute("aria-label", "Zur Anmeldung – Studix starten");
   a.innerHTML = `<div class="lp-m-in">${txt}</div>`; root.appendChild(a);
   const svg = $("svg", a); if (!svg) return;
-  const R = [450, 370, 560, 260], B = [230, 150, 830, 850], calm = matchMedia("(prefers-reduced-motion: reduce)").matches;   // R = Ruhe (nur die Pillen), B = ganze Animation
-  let cur = R.slice(), raf = 0;
+  const R = [450, 370, 560, 260], B = [330, 160, 740, 720], calm = matchMedia("(prefers-reduced-motion: reduce)").matches;   // R = Ruhe (nur die Pillen), B = ganze Animation
+  let cur = R.slice(), raf = 0, open = false, openY = 0, poll = 0;
   const setVB = v => svg.setAttribute("viewBox", v.map(x => x.toFixed(1)).join(" "));
   svg.setAttribute("preserveAspectRatio", "xMaxYMax meet"); setVB(R);
-  const stopAnim = () => { try { svg.pauseAnimations(); svg.setCurrentTime(0); } catch {} };
+  const stopAnim = () => { clearInterval(poll); try { svg.pauseAnimations(); svg.setCurrentTime(0); } catch {} };
   stopAnim();
   const go = to => {
     cancelAnimationFrame(raf); const from = cur.slice(), t0 = performance.now();
     const step = now => { const k = Math.min(1, (now - t0) / 420), e = 1 - Math.pow(1 - k, 3); cur = from.map((f, i) => f + (to[i] - f) * e); setVB(cur); if (k < 1) raf = requestAnimationFrame(step); else if (to === R) stopAnim(); };
     raf = requestAnimationFrame(step);
   };
-  const on = () => { a.classList.add("on"); if (!calm) { try { svg.unpauseAnimations(); } catch {} } go(B); }, off = () => { a.classList.remove("on"); go(R); };
-  a.addEventListener("pointerenter", on); a.addEventListener("pointerleave", off); a.addEventListener("focus", on); a.addEventListener("blur", off);
+  /* Hover öffnet und startet die Animation; sie hält im geöffneten Bild an (Pause) und bleibt offen, bis man wegscrollt */
+  const openUp = () => {
+    if (open) return; open = true; openY = scrollY; a.classList.add("on");
+    if (!calm) { try { svg.unpauseAnimations(); } catch {} clearInterval(poll); poll = setInterval(() => { try { if (svg.getCurrentTime() >= 2.7) { svg.pauseAnimations(); clearInterval(poll); } } catch { clearInterval(poll); } }, 80); }
+    else { try { svg.setCurrentTime(2.7); } catch {} }
+    go(B);
+  };
+  const closeUp = () => { if (!open) return; open = false; a.classList.remove("on"); clearInterval(poll); go(R); };
+  a.addEventListener("pointerenter", openUp); a.addEventListener("focus", openUp);
+  addEventListener("scroll", () => { if (open && Math.abs(scrollY - openY) > 60) closeUp(); }, { passive: true });
 }
 /* Animiertes Gitter (wie Magic UI „AnimatedGridPattern“): Quadrate blenden zufällig auf Gitterfeldern ein und aus */
 function mountGrid(hero) {
