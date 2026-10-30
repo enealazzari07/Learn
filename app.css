@@ -4441,3 +4441,6 @@ html.embed #app #main.main,html.embed #app #main.main:not(.doc-full),html.embed 
 .pr-card .pr-col .btn{margin-top:6px}
 .pr-panel[data-per=month] .py,.pr-panel[data-per=year] .pm{display:none}
 @media (max-width:900px){.pr-3{grid-template-columns:1fr}.pr-card{padding:22px 24px;border-left:0;border-top:1px solid #dcdbd8}.pr-card:first-child{border-top:0}}
+/* Rahmen der eingebetteten App im Laptop: schwarz statt grauer Haarlinie (liegt über der App, bleibt unter der Notch) */
+.mbp-scr::after{content:"";position:absolute;inset:0;border:3px solid #000;pointer-events:none;z-index:3}
+.mbp-scr{background:#000}
