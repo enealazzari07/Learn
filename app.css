@@ -4467,7 +4467,9 @@ svg.prov-logo{width:1.15em;height:1.15em;flex:none;fill:none;stroke:none;vertica
 /* Häufige Fragen: etwas nach rechts gerückt, links schaut ein Teil des Clipboards aus dem Seitenrand */
 #faq{position:relative}
 .faq-clip{position:absolute;top:36px;right:calc(100% - 80px);width:360px;height:auto;pointer-events:none;z-index:4;user-select:none}
-#faq>h2{margin-left:76px}
-#faq .faq{margin-left:76px}
-@media (min-width:1273px){#faq .faq{margin-inline:76px -14px}}
-@media (max-width:900px){.faq-clip{display:none}#faq>h2,#faq .faq{margin-left:0}}
+#faq>h2{margin-left:102px}
+#faq .faq{margin-left:0}
+#faq .faq summary{padding-left:102px}
+#faq .faq details p{padding-left:102px}
+@media (min-width:1273px){#faq>h2{margin-left:88px}#faq .faq{margin-inline:-14px}}
+@media (max-width:900px){.faq-clip{display:none}#faq>h2{margin-left:0}#faq .faq{margin-left:0}#faq .faq summary,#faq .faq details p{padding-left:26px}}
