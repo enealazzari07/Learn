@@ -215,8 +215,9 @@ function mountFrame(root) {
   $$("#faq details", root).forEach(d => d.addEventListener("toggle", () => setTimeout(upd, 30)));
   new ResizeObserver(upd).observe(document.body); addEventListener("load", upd); upd(); setTimeout(upd, 1200); setTimeout(upd, 3500);
 }
-/* Maskottchen unten rechts: ruht als kleiner Stapel („Hey.“), startet beim Darüberfahren (Animation + Vergrösserung), wird beim Weggehen wieder klein; Klick führt zur Anmeldung */
+/* Maskottchen unten rechts: ruht als kleiner Stapel („Hey.“), startet beim Darüberfahren (Animation + Vergrösserung), wird beim Weggehen wieder klein; Klick führt zur Anmeldung. Nur am PC (Maus, breiter Bildschirm). */
 async function mountMascot(root) {
+  if (!matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1025px)").matches) return;   // nur am PC/Mac mit Maus – nicht auf iPad und Handy
   let txt = ""; try { const r = await fetch("float-anim.svg"); if (!r.ok) return; txt = await r.text(); } catch { return; }
   if (!/^\s*<svg[\s>]/.test(txt) || /<script/i.test(txt)) return;
   const a = document.createElement("a"); a.className = "lp-mascot"; a.href = "#/app"; a.setAttribute("aria-label", "Zur Anmeldung – Studix starten");
