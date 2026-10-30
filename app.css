@@ -4463,3 +4463,11 @@ svg.prov-logo{width:1.15em;height:1.15em;flex:none;fill:none;stroke:none;vertica
 /* „Auf allen Plattformen“: Hand ohne Weichzeichner-Verlauf, sitzt direkt zwischen den beiden Rasterlinien (Handy-Bild beginnt an der oberen, der Arm kommt aus der unteren) */
 #flow,#steps{margin-bottom:0!important}
 .plat-v img{-webkit-mask-image:none!important;mask-image:none!important}
+
+/* Häufige Fragen: etwas nach rechts gerückt, links schaut ein Teil des Clipboards aus dem Seitenrand */
+#faq{position:relative}
+.faq-clip{position:absolute;top:36px;right:calc(100% - 80px);width:360px;height:auto;pointer-events:none;z-index:4;user-select:none}
+#faq>h2{margin-left:76px}
+#faq .faq{margin-left:76px}
+@media (min-width:1273px){#faq .faq{margin-inline:76px -14px}}
+@media (max-width:900px){.faq-clip{display:none}#faq>h2,#faq .faq{margin-left:0}}
