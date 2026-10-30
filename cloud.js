@@ -187,14 +187,14 @@ async function accessCheck() {
   try { const r = await fetch("/api/access", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ action: "status" }) }); if (r.ok && (await r.json()).access) accessSet(); } catch {}
 }
 function accessScreen() {
-  const app = $("#app"); document.title = "Studix – Early Access";
+  const app = $("#app"); document.title = LPL.tt("Studix – Early Access");
   app.innerHTML = `<div class="authwrap"><div class="authshell" style="grid-template-columns:1fr">
     <form class="authform" onsubmit="return false" novalidate style="margin:auto"><a class="logo authlogo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a>
       <div class="authmid"><h1>Early Access</h1><p class="authsub">Studix ist noch in der Pre-Launch-Phase. Gib deinen Zugangscode ein, um fortzufahren.</p>
         <label class="lbl" for="ac-c">Zugangscode</label><div class="fld"><input class="field pill" id="ac-c" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX" style="letter-spacing:.12em;text-transform:uppercase"></div>
         <p class="note authmsg" id="ac-m" aria-live="polite"></p>
         <button class="btn authgo" id="ac-go" type="submit">Fortfahren</button>
-        <button class="link" id="ac-out" type="button">Abmelden</button></div></form></div></div>`;
+        <button class="link" id="ac-out" type="button">Abmelden</button><div class="lang-sw inline"><button type="button" data-lang="en">English</button><i>·</i><button type="button" data-lang="de">Deutsch</button></div></div></form></div></div>`;
   const f = $(".authform", app), i = $("#ac-c", f), m = $("#ac-m", f), b = $("#ac-go", f); let busy = false;
   const go = async () => {
     if (busy || !i.value.trim()) return; busy = true; b.disabled = true; m.className = "note authmsg"; m.textContent = "Prüfe …";
@@ -206,9 +206,10 @@ function accessScreen() {
     busy = false; b.disabled = false;
   };
   f.onsubmit = e => { e.preventDefault(); go(); }; b.onclick = e => { e.preventDefault(); go(); }; $("#ac-out", f).onclick = async () => { try { await CLOUD.sb.auth.signOut(); } catch {} }; i.focus();
+  LPL.sync();
 }
 function authScreen(mode = "in") {
-  const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = up ? "Studix – Konto erstellen" : "Studix – Anmelden";
+  const app = $("#app"), up = mode === "up", oauth = (window.LUMI_CONFIG.oauth || []).filter(x => x === "google" || x === "apple"); document.title = LPL.tt(up ? "Studix – Konto erstellen" : "Studix – Anmelden");
   app.innerHTML = `<div class="authwrap"><div class="authshell">
     <form class="authform" onsubmit="return false" novalidate><a class="logo authlogo" href="#/"><i class="mark"></i><span class="wm"><b>S</b>tudi<b>x</b></span></a>
       <div class="authmid"><h1>${up ? "Konto erstellen" : "Willkommen zurück"}</h1><p class="authsub">${up ? "Registriere dich kostenlos – deine Daten sind auf allen Geräten gleich. Danach bestätigst du deine E-Mail." : "Melde dich an, um dein Dashboard zu öffnen."}</p>
@@ -219,7 +220,7 @@ function authScreen(mode = "in") {
         ${oauth.length ? `<div class="authoauth">${oauth.map(o => `<button class="btn ghost" type="button" data-o="${o}">${o === "google" ? `<svg width="18" height="18" viewBox="0 0 48 48" style="margin-right:10px"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 019.5 24c0-1.6.3-3.2.9-4.7l-7.8-6.1A24 24 0 000 24c0 3.9.9 7.5 2.6 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.7-4.1-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Mit Google fortfahren` : "Mit Apple fortfahren"}</button>`).join("")}</div>` : ""}
         ${up ? "" : `<button class="link" id="cl-fp" type="button">Passwort vergessen?</button>`}</div>
       <p class="authswitch">${up ? "Schon ein Konto?" : "Noch kein Konto?"} <button class="link" id="cl-sw" type="button">${up ? "Jetzt anmelden" : "Jetzt registrieren"}</button></p>
-      <div class="authfoot"><span>Mit dem Fortfahren stimmst du den <a href="legal.html#agb">AGB</a> und der <a href="legal.html#datenschutz">Datenschutzerklärung</a> zu.</span></div></form>
+      <div class="authfoot"><span>Mit dem Fortfahren stimmst du den <a href="legal.html#agb">AGB</a> und der <a href="legal.html#datenschutz">Datenschutzerklärung</a> zu.</span><span class="lang-sw inline"><button type="button" data-lang="en">English</button><i>·</i><button type="button" data-lang="de">Deutsch</button></span></div></form>
     <aside class="authhero"><a class="ah-logo" href="#/"><img src="logo-white.svg" width="40" height="40" alt=""><b><span class="wm"><b>S</b>tudi<b>x</b></span></b></a>
       <div class="ah-copy"><h2>Dein Lern- und Workspace an einem Ort.</h2><p>Notizen, Karteikarten, Planer und Studix AI – auf iPad, Handy und PC, auch offline.</p><div class="ah-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div></div>
       <div class="auth-app" aria-hidden="true"><div class="aa-bar"><i></i><i></i><i></i><span>studix.space</span></div><div class="aa-view"><iframe tabindex="-1" title="Studix App-Vorschau"></iframe></div></div></aside></div></div>`;
@@ -228,6 +229,7 @@ function authScreen(mode = "in") {
   $("#cl-sw", f).onclick = () => authScreen(up ? "in" : "up");
   $("#cl-eye", f).onclick = () => { const i = $("#cl-p", f); i.type = i.type === "password" ? "text" : "password"; };
   $$("[data-o]", f).forEach(b => b.onclick = async () => { const { error } = await CLOUD.sb.auth.signInWithOAuth({ provider: b.dataset.o, options: { redirectTo: location.origin + "/" } }); if (error) $("#cl-m", f).textContent = error.message; });
+  LPL.sync();
 }
 function cloudLoginModal() {
   if (!cloudOn()) return toast("Cloud ist noch nicht eingerichtet.");

@@ -4482,9 +4482,14 @@ svg.prov-logo{width:1.15em;height:1.15em;flex:none;fill:none;stroke:none;vertica
 /* Fusszeile: „Made with ♥ in Switzerland“ */
 .copy .heart{display:inline-block;width:13px;height:13px;margin:0 2px;vertical-align:-1px}
 
-/* Sprachumschalter in der Fusszeile der Startseite (English | Deutsch) */
-.copy .lang-sw{display:flex;justify-content:center;gap:4px;width:max-content;margin:14px auto 0;padding:3px;background:#f1f1f4;border-radius:999px}
-.copy .lang-sw button{all:unset;cursor:pointer;padding:6px 14px;border-radius:999px;font:600 12.5px/1 inherit;color:#6b6b73;transition:background .2s,color .2s}
-.copy .lang-sw button:hover{color:#0f0f12}
-.copy .lang-sw button.on{background:#0f0f12;color:#fff}
-.copy .lang-sw button:focus-visible{outline:2px solid #0f0f12;outline-offset:2px}
+/* Sprachumschalter: kleine Textlinks (Fusszeile rechts neben „Rechtliches“, auf Login-Seiten klein unten) – kein Schalter, kein Dropdown */
+.lang-sw button{all:unset;cursor:pointer;font:inherit;color:inherit;transition:color .15s}
+footer .lang-sw button{display:block;padding:4px 0;color:#444}
+footer .lang-sw button:hover,.lang-sw.inline button:hover{color:#0f0f12}
+.lang-sw button.on{color:#0f0f12;font-weight:600}
+.lang-sw button:focus-visible{outline:2px solid #0f0f12;outline-offset:3px;border-radius:4px}
+.lang-sw.inline{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:#999}
+.lang-sw.inline i{font-style:normal;opacity:.6}
+.lang-sw.inline button{color:#777;text-decoration:underline;text-underline-offset:2px}
+.lang-sw.inline button.on{color:#0f0f12;text-decoration:none}
+#ac-out+.lang-sw{display:flex;justify-content:center;margin-top:14px}
