@@ -454,22 +454,24 @@ function localQuiz(text, n = 6) {
 const htmlToText = h => { const d = document.createElement("div"); d.innerHTML = h.replace(/<\/(p|div|h[1-6]|li|tr)>/gi, "\n$&").replace(/<br\s*\/?>/gi, "\n"); return d.textContent.replace(/\n{3,}/g, "\n\n").trim(); };
 
 async function loadScript(src) { return new Promise((res, rej) => { if ($(`script[src="${src}"]`)) return res(); const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+async function fileText(b, name, mime) {
+  let t = "";
+  try {
+    if (/^text\//.test(mime) || /\.(txt|md|csv|json)$/i.test(name)) t = await b.text();
+    else if (mime === "application/pdf" || /\.pdf$/i.test(name)) {
+      await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const pdf = await pdfjsLib.getDocument({ data: await b.arrayBuffer() }).promise;
+      for (let i = 1; i <= Math.min(pdf.numPages, 40); i++) { const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x => x.str).join(" ") + "\n\n"; }
+    }
+  } catch (e) { toast("Text konnte nicht gelesen werden"); }
+  return t;
+}
 async function docText(d) {
   if (d.text) return d.text;
   let t = "";
   if (d.type === "note") { const h = await KV.get("html:" + d.id); t = htmlToText(h || ""); }
-  else if (d.type === "file") {
-    const b = await KV.get("blob:" + d.id); if (!b) return "";
-    try {
-      if (/^text\//.test(d.mime) || /\.(txt|md|csv|json)$/i.test(d.title)) t = await b.text();
-      else if (d.mime === "application/pdf" || /\.pdf$/i.test(d.title)) {
-        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-        const pdf = await pdfjsLib.getDocument({ data: await b.arrayBuffer() }).promise;
-        for (let i = 1; i <= Math.min(pdf.numPages, 40); i++) { const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x => x.str).join(" ") + "\n\n"; }
-      }
-    } catch (e) { toast("Text konnte nicht gelesen werden"); }
-  }
+  else if (d.type === "file") { const b = await KV.get("blob:" + d.id); if (!b) return ""; t = await fileText(b, d.title, d.mime); }
   d.text = t.slice(0, 60000); save(); return d.text;
 }
 
