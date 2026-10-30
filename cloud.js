@@ -189,7 +189,7 @@ function accessScreen() {
   const f = $(".authform", app), i = $("#ac-c", f), m = $("#ac-m", f), b = $("#ac-go", f); let busy = false;
   const go = async () => {
     if (busy || !i.value.trim()) return; busy = true; b.disabled = true; m.textContent = "Prüfe …";
-    try { const r = await fetch("/api/access", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: i.value }) }); if (!r.ok) throw 0; try { localStorage.setItem("studix-access", "1"); } catch {} route(); return; }
+    try { const r = await fetch("/api/access", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: i.value }) }); if (!r.ok) throw 0; const j = await r.json().catch(() => ({})); try { localStorage.setItem("studix-access", "1"); if (j.early) localStorage.setItem("studix-early", i.value.trim()); } catch {} route(); return; }
     catch { m.className = "note authmsg err"; m.textContent = "Dieser Code ist ungültig."; }
     busy = false; b.disabled = false;
   };

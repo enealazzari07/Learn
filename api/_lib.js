@@ -153,7 +153,17 @@ async function liveSubscription(uid, { fresh = false, withInvoices = false } = {
   }
   subCache.set(uid, { at: Date.now(), v }); return v;
 }
-const isProLive = async uid => { try { const s = await liveSubscription(uid); return !!s && ACTIVE.includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5); } catch { return false; } };
+/* Early-Backer-Geschenk: steht in app_metadata des Kontos (nur mit dem Service-Key schreibbar) → { until: ISO, badge } oder null */
+const grantCache = new Map();
+async function grantOf(uid) {
+  const c = grantCache.get(uid); if (c && Date.now() - c.at < 20000) return c.v;
+  let v = null; const key = SB_SERVICE();
+  if (key) { try { const r = await fetch(SB_URL() + "/auth/v1/admin/users/" + uid, { headers: { apikey: key, authorization: "Bearer " + key } }); const m = r.ok ? (await r.json()).app_metadata || {} : {}; if (m.early_backer) v = { until: m.pro_until || null, badge: "early_backer" }; } catch {} }
+  grantCache.set(uid, { at: Date.now(), v }); return v;
+}
+const grantActive = g => !!g && !!g.until && new Date(g.until).getTime() > Date.now();
+const dropGrantCache = uid => grantCache.delete(uid);
+const isProLive = async uid => { if (grantActive(await grantOf(uid))) return true; try { const s = await liveSubscription(uid); return !!s && ACTIVE.includes(s.status) && (!s.current_period_end || new Date(s.current_period_end).getTime() > Date.now() - 3 * 864e5); } catch { return false; } };
 /* Kunden-ID nur verwenden, wenn der Kunde bei Stripe (in diesem Modus) noch existiert – sonst „No such customer“ */
 const validCustomer = async id => { if (!id) return null; try { const c = await stripe("GET", "/customers/" + id); return c && !c.deleted ? id : null; } catch { return null; } };
 const dropSubCache = uid => subCache.delete(uid);
@@ -210,4 +220,4 @@ async function proFeatureDeny(acct, feature) {
   try { if (!(await billingReady())) return null; } catch { return null; }
   return [402, { error: `${feature} ist mit Studix Study Pro verfügbar.`, pro: true }];
 }
-module.exports = { proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitS, limitMsg, WINDOW_H, SESSION_H, FREE_S, PRO_S, aiBlock, aiUsage, aiUsed, aiAdd, liveSubscription, isProLive, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };
+module.exports = { proFeatureDeny, aiGate, validCustomer, FREE_TOKENS, PRO_TOKENS, limitFor, limitS, limitMsg, WINDOW_H, SESSION_H, FREE_S, PRO_S, aiBlock, aiUsage, aiUsed, aiAdd, liveSubscription, isProLive, grantOf, grantActive, dropGrantCache, dropSubCache, ACTIVE, SB_URL, SB_ANON, SB_SERVICE, stripeKey, plans, currencyFor, currencyOfCountry, CURRENCY, billingReady, sameOrigin, siteUrl, readBody, readJson, stripe, verifyStripeSignature, userFromReq, sb };

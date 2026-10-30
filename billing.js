@@ -12,8 +12,15 @@ async function subCall(body) {
 /* Abo live aus Stripe laden; invoices=true holt zusätzlich die letzten Rechnungen */
 async function plusLoad(invoices = false) {
   if (!CLOUD.sb || !CLOUD.user) { BILL.row = null; BILL.loaded = true; return; }
+  /* Early-Backer-Code vom Zugangsbildschirm: nach der Anmeldung einmalig einlösen (3 Monate Pro + Abzeichen) */
+  let early = ""; try { early = localStorage.getItem("studix-early") || ""; } catch {}
+  if (early) { try { await billPost2("/api/redeem", { code: early }); try { localStorage.removeItem("studix-early"); } catch {} toast("Early Backer: 3 Monate Pro geschenkt 🎉"); } catch (e) { if (/ungültig/.test(e.message)) { try { localStorage.removeItem("studix-early"); } catch {} } } }
   try { BILL.row = await subCall({ action: "get", invoices }); } catch {}
   BILL.loaded = true;
+}
+async function billPost2(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body || {}) });
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || "Fehler " + r.status); return j;
 }
 async function billPost(path, body) {
   const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify(body || {}) });
@@ -209,7 +216,7 @@ const countryOptions = sel => COUNTRIES.map(([k, n]) => `<option value="${k}" ${
 const priceHint = cc => { const c = BILL.cfg; if (!c || !c.enabled || !c.opts) return ""; const cur = curOf(cc) || c.currency, o = c.opts.monthly || c.opts.yearly || {}, v = o[cur] ?? o.eur; return v == null ? "" : `${new Intl.NumberFormat("de-CH", { minimumFractionDigits: v % 100 ? 2 : 0 }).format(v / 100)} ${curName(o[cur] != null ? cur : "eur")} ${c.opts.monthly ? "/ Monat" : "/ Jahr"}`; };
 
 /* Pro-Banner beim Namen: Abzeichen + Status-Pille */
-const proBadgeHtml = () => isPlus() ? `<span class="probadge nm">Pro</span>` : "";
+const proBadgeHtml = () => (BILL.row?.badge === "early_backer" ? `<span class="probadge early nm" title="Exklusives Abzeichen für die ersten Unterstützer">Early Backer</span>` : "") + (isPlus() ? `<span class="probadge nm">Pro</span>` : "");
 function proPillHtml() {
   if (!isPlus()) return ""; const r = BILL.row, n = daysLeft(r.current_period_end);
   return `<span class="trialpill ${r.cancel_at_period_end ? "end" : ""}">${r.cancel_at_period_end ? `Gekündigt – Zugang bis ${dateDE(r.current_period_end)}` : r.status === "trialing" ? `Testversion endet in ${dIn(n)}` : `Pro aktiv · verlängert am ${dateDE(r.current_period_end)}`}</span>`;
