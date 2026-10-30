@@ -4478,3 +4478,6 @@ svg.prov-logo{width:1.15em;height:1.15em;flex:none;fill:none;stroke:none;vertica
 /* nur iPad und PC: auf dem Handy (unter 700 px) kein Clipboard */
 @media (max-width:699px){.faq-clip{display:none}#faq>h2{margin-left:0}#faq .faq{margin-left:0}#faq .faq summary,#faq .faq details p{padding-left:26px}}
 @media (max-width:1272px){.faq-clip{right:calc(100% - 64px)}}
+
+/* Fusszeile: „Made with ♥ in Switzerland“ */
+.copy .heart{display:inline-block;width:13px;height:13px;margin:0 2px;vertical-align:-1px}

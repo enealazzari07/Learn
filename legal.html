@@ -29,7 +29,7 @@
 <div class="warn" id="warn" hidden><b>Hinweis für den Betreiber:</b> Die Anbieterangaben fehlen noch. Trage sie in <code>config.js</code> unter <code>legal</code> ein (Name, Anschrift, E-Mail, optional Telefon und MWST-/USt-Nr.). Ohne diese Angaben ist die Seite nicht veröffentlichungsreif. Die Texte ersetzen keine Rechtsberatung.</div>
 
 <section id="impressum"><h2>Impressum</h2>
-<p><b data-f="name"></b><br><span data-f="street"></span><br><span data-f="city"></span><br><span data-f="country"></span></p>
+<p><b data-f="name"></b><br><span data-street><span data-f="street"></span><br></span><span data-f="city"></span><br><span data-f="country"></span></p>
 <p>E-Mail: <a data-mail></a><span data-phone> · Telefon: <span data-f="phone"></span></span></p>
 <p data-vat>Umsatzsteuer-Identifikationsnummer / MWST-Nr.: <span data-f="vatId"></span></p>
 <p>Verantwortlich für den Inhalt: <span data-f="name"></span>, Anschrift wie oben.</p>
@@ -140,10 +140,11 @@
 <script>
 (function () {
   const L = window.LUMI_CONFIG.legal || {}, TABS = [["impressum", "Impressum"], ["datenschutz", "Datenschutz"], ["agb", "AGB"], ["widerruf", "Widerruf"]];
-  document.querySelectorAll("[data-f]").forEach(e => e.textContent = L[e.dataset.f] || (e.dataset.f === "privacyDate" ? "27. Oktober 2026" : ["vatId", "phone"].includes(e.dataset.f) ? "" : "[bitte ausfüllen]"));
+  document.querySelectorAll("[data-f]").forEach(e => e.textContent = L[e.dataset.f] || (e.dataset.f === "privacyDate" ? "27. Oktober 2026" : ["vatId", "phone", "street"].includes(e.dataset.f) ? "" : "[bitte ausfüllen]"));
   document.querySelectorAll("[data-mail]").forEach(a => { a.textContent = L.email || "[bitte ausfüllen]"; if (L.email) a.href = "mailto:" + L.email; });
   if (!L.vatId) document.querySelector("[data-vat]").hidden = true;
   if (!L.phone) document.querySelector("[data-phone]").hidden = true;
+  if (!L.street) document.querySelector("[data-street]").hidden = true;   // Strasse optional, bis sie eingetragen ist
   if (!L.name || !L.email) document.getElementById("warn").hidden = false;
   const nav = document.getElementById("nav"); nav.innerHTML = TABS.map(t => `<a href="#${t[0]}" data-t="${t[0]}">${t[1]}</a>`).join("");
   const show = () => { const h = (location.hash || "#impressum").slice(1), id = TABS.some(t => t[0] === h) ? h : "impressum";
