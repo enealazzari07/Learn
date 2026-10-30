@@ -190,8 +190,8 @@ function mountFrame(root) {
     const H = y => h += `<i class="h" style="top:${y}px"></i>`;
     const K = (x, y, c) => h += `<i class="k ${c}" style="left:${x}px;top:${y}px"></i>`;
     const fv = $(".flow-v", root), yfb = fv ? Y(R(fv).bottom) : ytop;   /* Unterkante des Workflow-Blocks: waagrechte Linie, die rechte senkrechte Linie startet dort mit einem T */
-    V(xl, ytop, ye, "fade"); V(xr, yfb, ye); V(x1, yb0, ybm); V(x2, ybm, yb1);
-    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xr, yfb, "td"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
+    V(xl, 0, ye); V(xr, 0, ye);   /* beide senkrechten Linien laufen über die ganze Seite bis nach oben */ V(x1, yb0, ybm); V(x2, ybm, yb1);
+    [yfb, y0, yb0, ybm, yb1, ye].forEach(H); K(xl, yfb, "p"); K(xr, yfb, "p"); if (fr) { H(yf0); K(xl, yf0, "p"); K(xr, yf0, "p"); }
     [y0, yb0, ybm, yb1, ye].forEach(y => { K(xl, y, "p"); K(xr, y, "p"); });
     K(x1, yb0, "td"); K(x1, ybm, "tu"); K(x2, ybm, "td"); K(x2, yb1, "tu");
     ov.innerHTML = h;
