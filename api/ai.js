@@ -4,13 +4,13 @@
      GROQ_API_KEY    (kostenloser Key: https://console.groq.com/keys) – sehr schnell, gut für automatische Korrektur
      GEMINI_MODEL    (optional, Standard: gemini-flash-lite-latest)
    Mindestens einer der beiden Keys genügt. Die Keys erreichen nie den Browser. */
-const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite"].filter(Boolean))];
+const CHAIN = () => [...new Set([process.env.GEMINI_MODEL, "gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-2.5-flash"].filter(Boolean))];
 const MODEL = () => CHAIN()[0];
 /* Wählbare Modelle: id wird vom Browser geschickt */
 const MODELS = [
   { id: "gemini-flash-lite-latest", p: "gemini", m: "gemini-flash-lite-latest" },
   { id: "gemini-flash-latest", p: "gemini", m: "gemini-flash-latest" },
-  { id: "gemini-pro-latest", p: "gemini", m: "gemini-pro-latest" },
+  { id: "gemini-2.5-flash-lite", p: "gemini", m: "gemini-2.5-flash-lite" },
   { id: "groq:llama-3.1-8b-instant", p: "groq", m: "llama-3.1-8b-instant" },
   { id: "groq:llama-3.3-70b-versatile", p: "groq", m: "llama-3.3-70b-versatile" },
   { id: "groq:openai/gpt-oss-120b", p: "groq", m: "openai/gpt-oss-120b" },

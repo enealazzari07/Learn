@@ -53,3 +53,8 @@ Felder und Beispiele stehen in `AGENT_RULES`. Dokumente, Aufgaben und Stapel wer
 - Text blendet Wort für Wort ein.
 - Aufzählungspunkte erscheinen erst, wenn der Text ihrer Zeile da ist.
 - Die Aktionsbox (Haken-Liste) erscheint erst, wenn der gesamte Text sichtbar ist (`streamMs` in `agent.js` liefert die Dauer).
+
+## Modelle und Reihenfolge
+Standard ist Gemini Flash Lite (500 Anfragen pro Tag). Ist ein Modell aufgebraucht (429) oder ausgelastet, probiert der Server automatisch das nächste:
+Flash Lite → Flash → 2.5 Flash Lite → 2.5 Flash → Groq (Llama 8B/70B, GPT-OSS).
+Pro-Modelle sind im Gratis-Tarif nicht nutzbar und wurden entfernt.

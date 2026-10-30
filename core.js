@@ -245,7 +245,7 @@ const swissOn = () => D.profile.swiss !== false;
 const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
 const AI_MODELS = [
-  ["gemini-flash-lite-latest", "Lite", "Schnell · hohes Gratis-Limit", "Gemini"], ["gemini-flash-latest", "Flash", "Ausgewogen · bessere Antworten", "Gemini"], ["gemini-pro-latest", "Pro", "Gründlich · im Gratis-Tarif stark begrenzt", "Gemini"],
+  ["gemini-flash-lite-latest", "Flash Lite", "Standard · 500 Anfragen pro Tag", "Gemini"], ["gemini-flash-latest", "Flash", "Besser · nur ca. 20 pro Tag", "Gemini"], ["gemini-2.5-flash-lite", "2.5 Flash Lite", "Reserve · ca. 20 pro Tag", "Gemini"],
   ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B", "Groq"]];
 const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq" };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
