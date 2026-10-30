@@ -45,7 +45,7 @@ function pricingHtml(go) {
   <p class="pr-n">* Das Studix-AI-Kontingent ist keine zugesicherte Leistung: Es gibt keine Garantie, dass du es immer in dieser Höhe oder überhaupt nutzen kannst. Menge, Modelle und Verfügbarkeit hängen von externen Anbietern ab und können angepasst, zeitweise eingeschränkt oder ausgesetzt werden – auch mit Studix Study Pro. Deine gesetzlichen Rechte (z. B. Kündigung) bleiben unberührt.</p>
   <p class="pr-n">Soweit gesetzlich zulässig, haften wir nicht für technische Fehler der KI, die Nichtbereitstellung von Servern (auch von Drittanbietern), die Datensicherung und Datenverlust. Sichere wichtige Inhalte regelmässig über den Export. Zwingende Haftung bleibt unberührt, Näheres in den <a href="legal.html#agb">AGB</a>.</p></section>`;
 }
-const EMBED_TABS = [["Heute", "today", "home"], ["Dokumente", "docs", "folder"], ["Karteikarten", "cards", "cards"], ["Planer", "planner", "cal"], ["Studix AI", "ai", "spark"]];
+const EMBED_TABS = [["Dashboard", "today", "home"], ["Dokumente", "docs", "folder"], ["Karteikarten", "cards", "cards"], ["Planer", "planner", "cal"], ["Studix AI", "ai", "spark"]];
 function mountEmbed(root) {
   const fr = $("iframe", root), box = $(".emb-view", root), tabs = $$(".emb-tab", root), W = 1280, H = 780;
   const fit = () => { const w = box.clientWidth, k = w / W; fr.style.height = H + "px"; box.style.height = Math.round(H * k) + "px"; fr.style.transform = `scale(${k})`; };

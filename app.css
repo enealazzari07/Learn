@@ -4346,3 +4346,4 @@ html[data-theme=dark] #faq .faq details,html[data-theme=dark] #faq .faq details[
 .sb:not(:empty){width:auto;height:auto;top:.12em;background:none;border-radius:0;color:#0f0f12;font-weight:700}
 @keyframes aiBullet{to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.sb{animation:none;opacity:1;transform:none}}
+.docsed .dmain{margin:0!important;max-width:none}.docspaper .dsec,.docspaper .dlist,.docspaper .dtl{text-align:left}
