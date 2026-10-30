@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi study app – flashcards, quiz, planner, grades, focus timer, AI chat, search, settings */
+/* Studix study app – flashcards, quiz, planner, grades, focus timer, AI chat, search, settings */
 
 var LEAVE = [];          // cleanup callbacks run when the view changes
 let chatPrefill = "", searchPrefill = "";
@@ -12,23 +12,23 @@ async function newDeck(subjectId = "") {
 }
 V.cards = (m, id) => {
   if (id) return V.deck(m, id);
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Spaced Repetition</p><h1>Karteikarten</h1></div><div class="row"><button class="btn ghost" id="gen">${ic("spark")}Mit Lumi AI erstellen</button><button class="btn accent" id="nd">${ic("plus")}Neuer Stapel</button></div></div>
-  ${D.decks.length ? `<div class="deckgrid">${D.decks.map(d => { const due = d.cards.filter(c => c.due <= iso()).length, s = subj(d.subjectId), mastered = d.cards.filter(c => c.box >= 4).length; return `<div class="deck" data-k="${d.id}"><div class="dtop">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)}` : "&nbsp;"}</div><h3>${esc(d.title)}</h3><p>${d.cards.length} Karten · ${mastered} gelernt</p><div class="bar2"><i style="width:${d.cards.length ? mastered / d.cards.length * 100 : 0}%"></i></div><div class="row"><span class="due ${due ? "on" : ""}">${due ? due + " fällig" : "alles erledigt"}</span><button class="btn small" data-s="${d.id}" ${d.cards.length ? "" : "disabled"}>Lernen</button></div></div>`; }).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("cards")}</div><h3>Noch keine Stapel</h3><p>Erstelle Karten selbst oder lass sie von Lumi AI aus deinen Notizen, PDFs oder einem Thema erzeugen.</p><div class="row" style="justify-content:center"><button class="btn accent" id="nd2">Stapel erstellen</button><button class="btn ghost" id="gen2">Mit Lumi AI erstellen</button></div></div>`}</div>`;
+  m.innerHTML = `<div class="page">${pageHead("<b>Karteikarten</b>", dkAct("spark", "Mit Studix AI erstellen", 'id="gen"') + '<i class="sdk-sep" aria-hidden="true"></i>' + dkAct("plus", "Neuer Stapel", 'id="nd"'))}
+  ${D.decks.length ? `<div class="deckgrid">${D.decks.map(d => { const due = d.cards.filter(c => c.due <= iso()).length, s = subj(d.subjectId), mastered = d.cards.filter(c => c.box >= 4).length; return `<div class="deck" data-k="${d.id}"><div class="dtop">${s ? `<span class="sdot" style="background:${s.color}"></span>${esc(s.name)}` : "&nbsp;"}</div><h3>${esc(d.title)}</h3><p>${d.cards.length} Karten · ${mastered} gelernt</p><div class="bar2"><i style="width:${d.cards.length ? mastered / d.cards.length * 100 : 0}%"></i></div><div class="row"><span class="due ${due ? "on" : ""}">${due ? due + " fällig" : "alles erledigt"}</span><button class="btn small" data-s="${d.id}" ${d.cards.length ? "" : "disabled"}>Lernen</button></div></div>`; }).join("")}</div>` : `<div class="emptybox"><div class="big-ic">${ic("cards")}</div><h3>Noch keine Stapel</h3><p>Erstelle Karten selbst oder lass sie von Studix AI aus deinen Notizen, PDFs oder einem Thema erzeugen.</p><div class="row" style="justify-content:center"><button class="btn accent" id="nd2">Stapel erstellen</button><button class="btn ghost" id="gen2">Mit Studix AI erstellen</button></div></div>`}</div>`;
   const gen = () => genCardsModal(); $("#gen", m).onclick = gen; $("#gen2", m) && ($("#gen2", m).onclick = gen);
   $("#nd", m).onclick = () => newDeck(); $("#nd2", m) && ($("#nd2", m).onclick = () => newDeck());
   $$("[data-k]", m).forEach(c => c.onclick = e => { if (e.target.closest("[data-s]")) return; go("cards/" + c.dataset.k); });
   $$("[data-s]", m).forEach(b => b.onclick = () => go("study/" + b.dataset.s));
 };
 function genCardsModal(deck) {
-  const { el, close } = modal(`<h3>Karteikarten mit Lumi AI erstellen</h3><label class="lbl">Quelle</label><div class="seg" id="gs"><button data-s="topic" class="on">Thema</button><button data-s="doc">Dokument</button></div>
+  const { el, close } = modal(`<h3>Karteikarten mit Studix AI erstellen</h3><label class="lbl">Quelle</label><div class="seg" id="gs"><button data-s="topic" class="on">Thema</button><button data-s="doc">Dokument</button></div>
   <div id="g-topic"><input class="field" id="gt" placeholder="z. B. Zellatmung, Französische Revolution, Pythagoras"></div><div id="g-doc" hidden><select class="field" id="gd">${D.docs.filter(d => d.type !== "draw").map(d => `<option value="${d.id}">${esc(d.title)}</option>`).join("") || "<option value=''>Keine Dokumente</option>"}</select></div>
   <label class="lbl">Anzahl</label><select class="field" id="gn"><option>8</option><option selected>12</option><option>20</option></select><div class="row end"><button class="btn accent" id="go">Erstellen</button></div>`);
   let src = "topic"; $$("#gs button", el).forEach(b => b.onclick = () => { src = b.dataset.s; $$("#gs button", el).forEach(x => x.classList.toggle("on", x === b)); $("#g-topic", el).hidden = src !== "topic"; $("#g-doc", el).hidden = src !== "doc"; });
   $("#go", el).onclick = async () => {
     const n = +$("#gn", el).value; let title = "", text = "";
-    if (src === "topic") { title = $("#gt", el).value.trim(); if (!title) return toast("Bitte ein Thema eingeben"); if (!hasKey()) return toast("Themen-Karten brauchen die eingerichtete Lumi AI. Mit „Dokument“ geht es auch offline."); }
+    if (src === "topic") { title = $("#gt", el).value.trim(); if (!title) return toast("Bitte ein Thema eingeben"); if (!hasKey()) return toast("Themen-Karten brauchen die eingerichtete Studix AI. Mit „Dokument“ geht es auch offline."); }
     else { const d = D.docs.find(x => x.id === $("#gd", el).value); if (!d) return toast("Kein Dokument vorhanden"); title = d.title; text = await docText(d); if (text.length < 20) return toast("Dokument enthält zu wenig Text"); }
-    close(); toast("Lumi AI arbeitet…");
+    close(); toast("Studix AI arbeitet…");
     let cards = null;
     if (src === "topic") cards = parseJSON(await ai(`Erstelle ${n} Karteikarten zum Thema „${title}“ auf dem Niveau ${isUni() ? "Universität" : "Schule"}. Antworte NUR mit JSON: [{"q":"Frage","a":"Antwort"}].`, { max: 3500, quiet: true }));
     else { cards = parseJSON(await ai(`Erstelle ${n} Karteikarten aus dem Text. Antworte NUR mit JSON: [{"q":"Frage","a":"Antwort"}].\nTEXT:\n${clip(text)}`, { max: 3500, quiet: true })); if (!Array.isArray(cards)) cards = localCards(text); }
@@ -41,7 +41,7 @@ V.deck = (m, id) => {
   const due = d.cards.filter(c => c.due <= iso()).length;
   m.innerHTML = `<div class="page"><div class="hd"><div class="row" style="align-items:center"><button class="icon-btn" id="bk" aria-label="Zurück">${ic("back")}</button><div><p class="eyebrow">${subj(d.subjectId)?.name || "Stapel"}</p><h1 id="dt" contenteditable spellcheck="false">${esc(d.title)}</h1></div></div>
   <div class="row"><button class="btn accent" id="st" ${d.cards.length ? "" : "disabled"}>${ic("play")}Lernen${due ? ` (${due})` : ""}</button><button class="btn ghost" id="mo">${ic("more")}</button></div></div>
-  <div class="deckbar">${subjectSelect(d.subjectId)}<button class="btn ghost" id="ai1">${ic("spark")}Lumi AI ergänzen</button><button class="btn ghost" id="imp">${ic("upload")}Importieren</button><button class="btn ghost" id="all" ${d.cards.length ? "" : "disabled"}>Alle durchgehen</button></div>
+  <div class="deckbar">${subjectSelect(d.subjectId)}<button class="btn ghost" id="ai1">${ic("spark")}Studix AI ergänzen</button><button class="btn ghost" id="imp">${ic("upload")}Importieren</button><button class="btn ghost" id="all" ${d.cards.length ? "" : "disabled"}>Alle durchgehen</button></div>
   <div class="cardlist" id="cl">${d.cards.map((c, i) => `<div class="crow" data-i="${i}"><span class="num">${i + 1}</span><textarea rows="2" data-f="q" placeholder="Frage">${esc(c.q)}</textarea><textarea rows="2" data-f="a" placeholder="Antwort">${esc(c.a)}</textarea><span class="lvl-dots" title="Lernstufe">${[0, 1, 2, 3, 4].map(k => `<i class="${c.box > k ? "on" : ""}"></i>`).join("")}</span><button class="icon-btn" data-x="${i}" aria-label="Löschen">${ic("x")}</button></div>`).join("")}</div>
   <button class="addcard" id="ac">${ic("plus")}Karte hinzufügen</button></div>`;
   $("#bk", m).onclick = () => go("cards"); $("#st", m).onclick = () => go("study/" + d.id);
@@ -81,19 +81,19 @@ V.study = (m, id, mode) => {
 
 /* ---------- quiz ---------- */
 V.quiz = m => {
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Prüfungstraining</p><h1>Quiz</h1></div></div>
+  m.innerHTML = `<div class="page">${pageHead("<b>Quiz</b>")}
   <div class="panel"><h2>Neues Quiz</h2><div class="seg" id="qs"><button data-s="topic" class="on">Thema</button><button data-s="doc">Aus Dokument</button></div>
   <div id="q-topic"><input class="field" id="qt" placeholder="Thema, z. B. „Mitose und Meiose“ oder „Ableitungsregeln“"></div><div id="q-doc" hidden><select class="field" id="qd">${D.docs.filter(d => d.type !== "draw").map(d => `<option value="${d.id}">${esc(d.title)}</option>`).join("") || "<option value=''>Keine Dokumente</option>"}</select></div>
   <div class="row"><div><label class="lbl">Fragen</label><select class="field" id="qn"><option>5</option><option selected>8</option><option>12</option><option>20</option></select></div><div><label class="lbl">Schwierigkeit</label><select class="field" id="ql"><option>leicht</option><option selected>mittel</option><option>schwer</option></select></div></div>
   <div class="row end"><button class="btn accent big" id="qg">${ic("spark")}Quiz starten</button></div></div>
   ${D.quizzes.length ? `<div class="panel"><h2>Verlauf</h2>${D.quizzes.slice(0, 8).map(q => `<div class="li"><b>${esc(q.title)}</b><small>${q.score}/${q.total} richtig · ${fmtAgo(q.date)}</small><span class="pct ${q.score / q.total >= .7 ? "ok" : ""}">${Math.round(q.score / q.total * 100)}%</span></div>`).join("")}</div>` : ""}</div>`;
-  if (quizPrefill) { $("#qt", m).value = quizPrefill.topic || ""; quizPrefill = null; if (!hasKey()) toast("Tipp: Themen-Quiz braucht die eingerichtete Lumi AI – mit „Aus Dokument“ geht es offline."); }
+  if (quizPrefill) { $("#qt", m).value = quizPrefill.topic || ""; quizPrefill = null; if (!hasKey()) toast("Tipp: Themen-Quiz braucht die eingerichtete Studix AI – mit „Aus Dokument“ geht es offline."); }
   let src = "topic"; $$("#qs button", m).forEach(b => b.onclick = () => { src = b.dataset.s; $$("#qs button", m).forEach(x => x.classList.toggle("on", x === b)); $("#q-topic", m).hidden = src !== "topic"; $("#q-doc", m).hidden = src !== "doc"; });
   $("#qg", m).onclick = async () => {
     const n = +$("#qn", m).value, lv = $("#ql", m).value; let title, text = "", qs = null;
-    if (src === "topic") { title = $("#qt", m).value.trim(); if (!title) return toast("Bitte ein Thema eingeben"); if (!hasKey()) return toast("Themen-Quiz braucht die eingerichtete Lumi AI. Mit „Aus Dokument“ geht es auch offline."); }
+    if (src === "topic") { title = $("#qt", m).value.trim(); if (!title) return toast("Bitte ein Thema eingeben"); if (!hasKey()) return toast("Themen-Quiz braucht die eingerichtete Studix AI. Mit „Aus Dokument“ geht es auch offline."); }
     else { const d = D.docs.find(x => x.id === $("#qd", m).value); if (!d) return toast("Kein Dokument vorhanden"); title = d.title; text = await docText(d); if (text.length < 80) return toast("Dokument enthält zu wenig Text"); }
-    $("#qg", m).disabled = true; $("#qg", m).textContent = "Lumi AI erstellt Fragen…";
+    $("#qg", m).disabled = true; $("#qg", m).textContent = "Studix AI erstellt Fragen…";
     const fmt = `Antworte NUR mit JSON: [{"q":"","o":["","",""],"a":0,"e":"kurze Erklärung"}] (a = Index der richtigen Option).`;
     qs = parseJSON(await ai(src === "topic" ? `Erstelle ${n} Multiple-Choice-Fragen (Niveau ${isUni() ? "Universität" : "Schule"}, Schwierigkeit ${lv}) zum Thema „${title}“. ${fmt}` : `Erstelle ${n} Multiple-Choice-Fragen (Schwierigkeit ${lv}) zum Text. ${fmt}\nTEXT:\n${clip(text)}`, { max: 3500, quiet: true }));
     if (!Array.isArray(qs)) qs = localQuiz(text, n);
@@ -124,16 +124,17 @@ V.quizrun = m => {
 
 /* ---------- planner ---------- */
 const TYPES = { hw: "Hausaufgabe", task: "Aufgabe", exam: "Prüfung", project: "Referat/Projekt" };
-let plTab = "tasks", calMonth = new Date();
+let plTab = "week", calMonth = new Date(), plWeek = null, plDay = null;
 function taskModal(task, date = "", preset = {}) {
   const t = task || { title: "", type: preset.type || "hw", subjectId: "", due: date, note: "" };
   const { el, close } = modal(`<h3>${task ? "Aufgabe bearbeiten" : "Neue Aufgabe"}</h3><label class="lbl">Titel</label><input class="field" id="tt1" value="${esc(t.title)}" placeholder="z. B. Aufgaben S. 54 Nr. 3–7">
   <div class="row"><div><label class="lbl">Art</label><select class="field" id="tt2">${Object.entries(TYPES).map(([k, v]) => `<option value="${k}" ${k === t.type ? "selected" : ""}>${v}</option>`).join("")}</select></div><div><label class="lbl">Fällig am</label><input type="date" class="field" id="tt3" value="${t.due || ""}"></div></div>
   <label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(t.subjectId, "tt4")}<label class="lbl">Lernmaterial (zum Üben & für Lernziele)</label><select class="field" id="tt6"><option value="">– keins –</option>${D.docs.filter(d => d.type !== "draw").map(d => `<option value="${d.id}" ${d.id === t.docId ? "selected" : ""}>${esc(d.title)}</option>`).join("")}</select>
-  <label class="lbl">Notiz / Lernziele</label><textarea class="field" id="tt5" rows="4">${esc(t.note || "")}</textarea><button class="btn ghost small" id="lz" type="button" style="margin-top:8px">${ic("star")}Lernziele ermitteln (Lumi AI)</button>
+  <label class="lbl">Wiederholen</label><select class="field" id="tt7">${[["", "Nie"], ["daily", "Täglich"], ["weekly", "Jede Woche"], ["monthly", "Jeden Monat"]].map(([k, l]) => `<option value="${k}" ${(t.repeat || "") === k ? "selected" : ""}>${l}</option>`).join("")}</select>
+  <label class="lbl">Notiz / Lernziele</label><textarea class="field" id="tt5" rows="4">${esc(t.note || "")}</textarea><button class="btn ghost small" id="lz" type="button" style="margin-top:8px">${ic("star")}Lernziele ermitteln (Studix AI)</button>
   <div class="row end">${task && task.type === "exam" ? `<button class="btn ghost" id="exo">${ic("book")}Prüfungsmappe</button>` : ""}${task ? `<button class="btn danger ghost" id="tdel">Löschen</button>` : ""}<button class="btn accent" id="tsv">Speichern</button></div>`);
   setTimeout(() => $("#tt1", el).focus(), 30);
-  $("#tsv", el).onclick = () => { const title = $("#tt1", el).value.trim(); if (!title) return toast("Bitte einen Titel eingeben"); Object.assign(t, { title, type: $("#tt2", el).value, due: $("#tt3", el).value, subjectId: $(".tt4", el).value, note: $("#tt5", el).value, docId: $("#tt6", el).value }); let nt = task; if (!task) { nt = { id: uid(), done: false, ...t }; D.tasks.push(nt); } if (nt.type === "exam") exAfterSave(nt, !task && !preset.quiet); save(); close(); if (nt.type !== "exam" || task) toast("Gespeichert"); refreshNav(); renderView(); };
+  $("#tsv", el).onclick = () => { const title = $("#tt1", el).value.trim(); if (!title) return toast("Bitte einen Titel eingeben"); Object.assign(t, { title, type: $("#tt2", el).value, due: $("#tt3", el).value, subjectId: $(".tt4", el).value, note: $("#tt5", el).value, docId: $("#tt6", el).value, repeat: $("#tt7", el).value }); let nt = task; if (!task) { nt = { id: uid(), done: false, ...t }; D.tasks.push(nt); } if (nt.type === "exam") exAfterSave(nt, !task && !preset.quiet); save(); close(); if (nt.type !== "exam" || task) toast("Gespeichert"); refreshNav(); renderView(); };
   $("#lz", el).onclick = async () => { const doc = D.docs.find(x => x.id === $("#tt6", el).value); const src = doc ? await docText(doc) : $("#tt5", el).value; if (!src || src.length < 15) return toast("Wähle zuerst Lernmaterial (z. B. OneNote-Seite) oder schreibe etwas in die Notiz."); $("#lz", el).disabled = true; const g = await extractGoals(src, $("#tt1", el).value || "die Prüfung"); $("#lz", el).disabled = false; const cur = $("#tt5", el).value.replace(/\n*Lernziele:[\s\S]*$/, ""); $("#tt5", el).value = (cur ? cur + "\n\n" : "") + "Lernziele:\n" + g; toast("Lernziele ergänzt"); };
   $("#exo", el) && ($("#exo", el).onclick = () => { close(); go("exam/" + task.id); });
   $("#tdel", el) && ($("#tdel", el).onclick = () => { D.tasks = D.tasks.filter(x => x !== task); save(); close(); renderView(); });
@@ -146,19 +147,80 @@ function ttModal(day, ev) {
   $("#msv", el).onclick = () => { Object.assign(e, { subjectId: $(".tm1", el).value, title: $("#tm2", el).value.trim(), start: $("#tm3", el).value || "08:00", end: $("#tm4", el).value || "08:45", room: $("#tm5", el).value.trim(), day: +$("#tm6", el).value }); if (!ev) D.tt.push({ id: uid(), ...e }); save(); close(); renderView(); };
   $("#mdel", el) && ($("#mdel", el).onclick = () => { D.tt = D.tt.filter(x => x !== ev); save(); close(); renderView(); });
 }
+
+/* Wochenansicht: Tage als Pillen, Zeitleiste mit Stunden/Terminen/Aufgaben, rechts Aktivität */
+const wkMon = d => { const x = new Date(d); x.setHours(0, 0, 0, 0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
+const hm = t => { const [h, m] = String(t || "").split(":").map(Number); return isNaN(h) ? null : h * 60 + (m || 0); };
+function activityFeed() {
+  const it = [];
+  D.tasks.forEach(t => t.done && t.doneAt && it.push({ ts: t.doneAt, ic: "check", h: "Aufgabe erledigt", s: t.title }));
+  (D.quizzes || []).forEach(q => it.push({ ts: q.date, ic: "help", h: "Quiz gespielt · " + q.score + "/" + q.total, s: q.title }));
+  D.grades.forEach(g => g.date && it.push({ ts: parseISO(g.date).getTime() + 12 * 36e5, ic: "award", h: "Note eingetragen · " + gfmt(g.value), s: g.title + (subj(g.subjectId) ? " · " + subj(g.subjectId).name : "") }));
+  D.docs.forEach(d => d.updated && it.push({ ts: d.updated, ic: "note", h: "Dokument bearbeitet", s: d.title }));
+  (D.decks || []).forEach(k => (k.updated || k.created) && it.push({ ts: k.updated || k.created, ic: "cards", h: "Karteikarten", s: k.title + " · " + (k.cards || []).length + " Karten" }));
+  return it.filter(x => x.ts && x.ts <= Date.now() + 36e5).sort((a, b) => b.ts - a.ts).slice(0, 12);
+}
+const actWhen = ts => { const d = new Date(ts), t = d.toLocaleTimeString("de-CH", { hour: "2-digit", minute: "2-digit" }), dd = daysUntil(iso(d)); return (dd === 0 ? "Heute" : dd === -1 ? "Gestern" : d.toLocaleDateString("de-CH", { day: "numeric", month: "short" })) + ", " + t; };
+let plMode = "";
+const plTint = c => /^#[0-9a-f]{6}$/i.test(c || "") ? c : "#8a8a92";
+function dayItems(i) {
+  const d = parseISO(i), dow = (d.getDay() + 6) % 7, blocks = [], allday = [];
+  D.tt.filter(e => e.day === dow).forEach(e => blocks.push({ k: "lesson", s: hm(e.start), e: hm(e.end), t: e.title || subj(e.subjectId)?.name || "Stunde", u: [subj(e.subjectId)?.name, e.room].filter(Boolean).join(" · "), id: e.id, c: plTint(subj(e.subjectId)?.color) }));
+  calEventsOn(i).forEach((e, n) => { const s = hm(e.time), c = plTint(e.color || APPLE_COLORS[(n + 3) % APPLE_COLORS.length]); if (s != null) blocks.push({ k: "event", s, e: hm(e.end || e.endTime) || s + 60, t: e.title, u: e.loc || "Kalender", c }); else allday.push({ t: e.title, u: "Termin", c }); });
+  D.tasks.filter(t => t.due === i).forEach(t => allday.push({ t: t.title, u: TYPES[t.type] || "Aufgabe", done: t.done, id: t.id, exam: t.type === "exam", c: plTint(subj(t.subjectId)?.color) }));
+  return { blocks: blocks.filter(b => b.s != null && b.e > b.s).sort((x, y) => x.s - y.s), allday };
+}
+function weekView(pb, m) {
+  if (!plMode) { try { plMode = localStorage.getItem("lumi-plmode") || (window.PHONE?.matches ? "day" : "week"); } catch { plMode = "week"; } } if (!plDay) plDay = iso();
+  const cur = parseISO(plDay), todayIso = iso(), mon = wkMon(cur), A0 = 7 * 60, A1 = 21 * 60, px = 56, now = new Date(), nm = now.getHours() * 60 + now.getMinutes();
+  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(mon); d.setDate(d.getDate() + i); return d; });
+  const fmt = (d, o) => d.toLocaleDateString("de-CH", o);
+  const label = plMode === "day" ? fmt(cur, { weekday: "long", day: "numeric", month: "long", year: "numeric" }) : plMode === "week" ? fmt(days[0], { day: "numeric", month: "short" }) + " – " + fmt(days[6], { day: "numeric", month: "short", year: "numeric" }) : plMode === "month" ? fmt(cur, { month: "long", year: "numeric" }) : "Quartal " + (Math.floor(cur.getMonth() / 3) + 1) + " · " + cur.getFullYear();
+  const blk = (b, w = "") => `<button class="plw-b ${b.k}" ${b.id ? `data-l="${b.id}"` : ""} style="--c:${b.c};top:${(Math.max(b.s, A0) - A0) / 60 * px}px;height:${Math.max(44, (Math.min(b.e, A1) - Math.max(b.s, A0)) / 60 * px - 4)}px"><b>${esc(b.t)}</b><small>${pad(Math.floor(b.s / 60))}:${pad(b.s % 60)}–${pad(Math.floor(b.e / 60))}:${pad(b.e % 60)}${b.u && !w ? " · " + esc(b.u) : ""}</small></button>`;
+  const chip = a => `<button class="plw-chip ${a.done ? "done" : ""} ${a.exam ? "exam" : ""}" style="--c:${a.c}" ${a.id ? `data-t="${a.id}"` : ""}><b>${esc(a.t)}</b><small>${esc(a.u)}</small></button>`;
+  const hours = Array.from({ length: (A1 - A0) / 60 }, (_, i) => `<div class="plw-h" style="top:${i * px}px"><span>${pad(7 + i)}:00</span></div>`).join("");
+  const nowLine = `<div class="plw-now" style="top:${(nm - A0) / 60 * px}px"><em>${now.getHours()}:${pad(now.getMinutes())}</em></div>`;
+  const mcells = (y, mo) => { const off = (new Date(y, mo, 1).getDay() + 6) % 7, dim = new Date(y, mo + 1, 0).getDate(); return [...Array(off).fill(null), ...Array.from({ length: dim }, (_, i) => new Date(y, mo, i + 1))]; };
+  let body = "";
+  if (plMode === "day" || plMode === "week") {
+    const list = plMode === "day" ? [cur] : days;
+    const pills = `<div class="plw-days">${days.map(d => { const i = iso(d); return `<button class="plw-d ${i === plDay ? "on" : ""} ${i === todayIso ? "today" : ""}" data-d="${i}"><b>${d.getDate()}</b><small>${fmt(d, { weekday: "short" }).replace(".", "")}</small></button>`; }).join("")}</div>`;
+    const cols = list.map(d => { const i = iso(d), it = dayItems(i); return { i, d, it }; });
+    body = (plMode === "day" ? pills : "") + `<div class="plw-wk ${plMode}" style="--n:${cols.length}">` + (plMode === "week" ? `<div class="plw-wh"><span></span>${cols.map(c => `<button class="plw-wd ${c.i === todayIso ? "today" : ""}" data-d="${c.i}" data-go="day"><small>${fmt(c.d, { weekday: "short" }).replace(".", "")}</small><b>${c.d.getDate()}</b></button>`).join("")}</div>` : "") +
+      (cols.some(c => c.it.allday.length) ? `<div class="plw-ah"><span></span>${cols.map(c => `<div>${c.it.allday.map(chip).join("")}</div>`).join("")}</div>` : "") +
+      `<div class="plw-grid" style="height:${(A1 - A0) / 60 * px}px"><div class="plw-hrs">${hours}</div><div class="plw-cols">${cols.map(c => `<div class="plw-col">${c.it.blocks.map(b => blk(b, plMode === "week" ? "w" : "")).join("")}${c.i === todayIso && nm >= A0 && nm <= A1 ? nowLine : ""}</div>`).join("")}</div>${cols.every(c => !c.it.blocks.length && !c.it.allday.length) ? `<p class="plw-empty">Nichts geplant. Füge Stunden im Stundenplan oder Aufgaben mit Datum hinzu.</p>` : ""}</div></div>`;
+  } else if (plMode === "month") {
+    const cells = mcells(cur.getFullYear(), cur.getMonth());
+    body = `<div class="plw-mon">${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(x => `<div class="plw-mh">${x}</div>`).join("")}${cells.map(d => { if (!d) return `<div class="plw-mc empty"></div>`; const i = iso(d), it = dayItems(i), all = [...it.blocks.map(b => ({ t: b.t, c: b.c })), ...it.allday.map(a => ({ t: a.t, c: a.c, done: a.done }))]; return `<button class="plw-mc ${i === todayIso ? "today" : ""}" data-d="${i}" data-go="day"><b>${d.getDate()}</b>${all.slice(0, 3).map(x => `<i style="--c:${x.c}" class="${x.done ? "done" : ""}">${esc(x.t)}</i>`).join("")}${all.length > 3 ? `<em>+${all.length - 3}</em>` : ""}</button>`; }).join("")}</div>`;
+  } else {
+    const q = Math.floor(cur.getMonth() / 3) * 3;
+    body = `<div class="plw-qtr">${[0, 1, 2].map(k => { const y = cur.getFullYear(), mo = q + k, cells = mcells(y, mo); return `<div class="plw-qm"><button class="plw-qt" data-d="${iso(new Date(y, mo, 1))}" data-go="month">${fmt(new Date(y, mo, 1), { month: "long" })}</button><div class="plw-qg">${["M", "D", "M", "D", "F", "S", "S"].map(x => `<small>${x}</small>`).join("")}${cells.map(d => { if (!d) return "<span></span>"; const i = iso(d), it = dayItems(i), n = it.blocks.length + it.allday.length, c = (it.blocks[0] || it.allday[0] || {}).c; return `<button class="${i === todayIso ? "today" : ""} ${n ? "has" : ""}" data-d="${i}" data-go="day" ${n ? `style="--c:${c}"` : ""}>${d.getDate()}</button>`; }).join("")}</div></div>`; }).join("")}</div>`;
+  }
+  const feed = activityFeed();
+  pb.innerHTML = `<div class="plw"><section class="plw-main"><div class="plw-hd"><button class="icon-btn" id="wp" aria-label="Zurück">${ic("back")}</button><b>${esc(label)}</b><button class="icon-btn" id="wn" aria-label="Weiter" style="transform:scaleX(-1)">${ic("back")}</button><div class="plw-sw ltr" role="tablist" aria-label="Zeitraum">${[["day", "T", "Tag"], ["week", "W", "Woche"], ["month", "M", "Monat"], ["quarter", "Q", "Quartal"]].map(([k, c, l]) => `<button type="button" class="${plMode === k ? "on" : ""}" data-pm="${k}" title="${l}" aria-label="${l}">${c}</button>`).join("")}</div><button class="btn ghost small" id="wt">Heute</button></div>${body}</section>
+  <aside class="plw-act"><h3>Aktivität</h3>${feed.length ? `<ol>${feed.map(a => `<li><span class="plw-ai">${ic(a.ic)}</span><div><small>${actWhen(a.ts)}</small><b>${esc(a.h)}</b><em>${esc(a.s)}</em></div></li>`).join("")}</ol>` : `<p class="note">Sobald du lernst, Aufgaben abhakst oder Noten einträgst, erscheint hier dein Verlauf.</p>`}</aside></div>`;
+  const redo = () => V.planner(m), step = n => { const d = new Date(cur); if (plMode === "day") d.setDate(d.getDate() + n); else if (plMode === "week") d.setDate(d.getDate() + 7 * n); else if (plMode === "month") d.setMonth(d.getMonth() + n, 1); else d.setMonth(d.getMonth() + 3 * n, 1); plDay = iso(d); redo(); };
+  $("#wp", pb).onclick = () => step(-1); $("#wn", pb).onclick = () => step(1);
+  $("#wt", pb).onclick = () => { plDay = iso(); redo(); };
+  $$("[data-pm]", pb).forEach(b => b.onclick = () => { plMode = b.dataset.pm; try { localStorage.setItem("lumi-plmode", plMode); } catch {} redo(); });
+  $$("[data-d]", pb).forEach(b => b.onclick = () => { plDay = b.dataset.d; if (b.dataset.go) { plMode = b.dataset.go; try { localStorage.setItem("lumi-plmode", plMode); } catch {} } redo(); });
+  $$("[data-t]", pb).forEach(b => b.onclick = () => taskModal(D.tasks.find(x => x.id === b.dataset.t)));
+  $$("[data-l]", pb).forEach(b => b.onclick = () => ttModal(0, D.tt.find(x => x.id === b.dataset.l)));
+}
 V.planner = m => {
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">Organisation</p><h1>Planer</h1></div><button class="btn accent" id="nt">${ic("plus")}Aufgabe</button></div><div class="seg wide" id="pt"><button data-t="tasks">Aufgaben</button><button data-t="tt">Stundenplan</button><button data-t="cal">Kalender</button></div><div id="pb"></div></div>`;
-  $$("#pt button", m).forEach(b => { b.classList.toggle("on", b.dataset.t === plTab); b.onclick = () => { plTab = b.dataset.t; V.planner(m); }; });
+  m.innerHTML = `<div class="page">${pageHead(`<span>Planer</span><i>/</i><b>${({ week: "Woche", tasks: "Aufgaben", tt: "Stundenplan", cal: "Kalender" })[plTab] || "Woche"}</b>`, [["week", "Woche"], ["tasks", "Aufgaben"], ["tt", "Stundenplan"], ["cal", "Kalender"]].map(([k, l]) => sdkBtn(k, l, `data-t="${k}"`)).join("") + '<i class="sdk-sep" aria-hidden="true"></i>' + dkAct("plus", "Aufgabe hinzufügen", 'id="nt"'), 'id="pt"')}<div id="pb"></div></div>`;
+  $$("#pt button[data-t]", m).forEach(b => { b.classList.toggle("on", b.dataset.t === plTab); b.onclick = () => { plTab = b.dataset.t; V.planner(m); }; });
   $("#nt", m).onclick = () => taskModal();
   const pb = $("#pb", m);
-  if (plTab === "tasks") {
+  if (plTab === "week") weekView(pb, m);
+  else if (plTab === "tasks") {
     const gs = [["Überfällig", x => x.due && daysUntil(x.due) < 0], ["Heute", x => x.due && daysUntil(x.due) === 0], ["Morgen", x => x.due && daysUntil(x.due) === 1], ["Diese Woche", x => x.due && daysUntil(x.due) > 1 && daysUntil(x.due) <= 7], ["Später", x => x.due && daysUntil(x.due) > 7], ["Ohne Datum", x => !x.due]];
-    const evs = (D.ms?.events || []).filter(e => e.date >= iso() && daysUntil(e.date) <= 14).slice(0, 8);
-    const open = D.tasks.filter(x => !x.done), row = x => `<label class="li task" data-e="${x.id}"><input type="checkbox" data-c="${x.id}" ${x.done ? "checked" : ""}><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#bbb"}"></span><div class="tm2"><b class="${x.done ? "strike" : ""}">${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small>${esc(subj(x.subjectId)?.name || "")}${x.note ? " · " + esc(x.note) : ""}</small></div><small class="${x.due && daysUntil(x.due) < 0 && !x.done ? "red" : ""}">${x.due ? fmtD(x.due) : ""}</small></label>`;
+    const evs = (D.apple?.events || []).filter(e => e.date >= iso() && daysUntil(e.date) <= 14).sort((x, y) => x.date.localeCompare(y.date)).slice(0, 8);
+    const open = D.tasks.filter(x => !x.done), row = x => `<label class="li task" data-e="${x.id}"><input type="checkbox" data-c="${x.id}" ${x.done ? "checked" : ""}><span class="sdot lg" style="background:${subj(x.subjectId)?.color || "#bbb"}"></span><div class="tm2"><b class="${x.done ? "strike" : ""}">${x.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(x.title)}</b><small>${x.repeat ? "↻ " + ({ daily: "täglich", weekly: "wöchentlich", monthly: "monatlich" }[x.repeat] || "") + (subj(x.subjectId) ? " · " : "") : ""}${esc(subj(x.subjectId)?.name || "")}${x.note ? " · " + esc(x.note) : ""}</small></div><small class="${x.due && daysUntil(x.due) < 0 && !x.done ? "red" : ""}">${x.due ? fmtD(x.due) : ""}</small></label>`;
     const html = gs.map(([n, f]) => { const l = open.filter(f).sort((a, b) => (a.due || "").localeCompare(b.due || "")); return l.length ? `<section class="panel"><h2 class="${n === "Überfällig" ? "red" : ""}">${n}<small>${l.length}</small></h2>${l.map(row).join("")}</section>` : ""; }).join("");
     const done = D.tasks.filter(x => x.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)).slice(0, 15);
-    pb.innerHTML = (evs.length ? `<section class="panel tint2"><h2>${msLogoSvg()} Outlook-Termine<small>${evs.length}</small></h2>${evs.map(e => `<div class="li"><span class="tm">${e.date.slice(8)}.${e.date.slice(5, 7)}.<br><small>${e.time || "ganztägig"}</small></span><div class="tm2"><b>${esc(e.title)}</b><small>${esc(e.loc)}</small></div></div>`).join("")}</section>` : "") + (html || `<div class="emptybox"><div class="big-ic">${ic("todo")}</div><h3>Keine offenen Aufgaben</h3><p>Trage Hausaufgaben, Referate und Prüfungen ein – Lumi erinnert dich im Dashboard.</p></div>`) + (done.length ? `<details class="panel"><summary>Erledigt (${done.length})</summary>${done.map(row).join("")}</details>` : "");
-    $$("[data-c]", pb).forEach(c => { c.onclick = e => e.stopPropagation(); c.onchange = () => { const x = D.tasks.find(y => y.id === c.dataset.c); x.done = c.checked; x.doneAt = Date.now(); save(); renderView(); }; });
+    pb.innerHTML = (evs.length ? `<section class="panel tint2"><h2>Kalender-Termine<small>${evs.length}</small></h2>${evs.map(e => `<div class="li"><span class="tm">${e.date.slice(8)}.${e.date.slice(5, 7)}.<br><small>${e.time || "ganztägig"}</small></span><div class="tm2"><b>${esc(e.title)}</b><small>${esc(e.loc)}</small></div></div>`).join("")}</section>` : "") + (html || `<div class="emptybox"><div class="big-ic">${ic("todo")}</div><h3>Keine offenen Aufgaben</h3><p>Trage Hausaufgaben, Referate und Prüfungen ein – Studix erinnert dich im Dashboard.</p></div>`) + (done.length ? `<details class="panel"><summary>Erledigt (${done.length})</summary>${done.map(row).join("")}</details>` : "");
+    $$("[data-c]", pb).forEach(c => { c.onclick = e => e.stopPropagation(); c.onchange = () => { const x = D.tasks.find(y => y.id === c.dataset.c); completeTask(x, c.checked); renderView(); }; });
     $$("[data-e]", pb).forEach(r => r.onclick = e => { if (e.target.matches("input")) return; e.preventDefault(); taskModal(D.tasks.find(x => x.id === r.dataset.e)); });
   } else if (plTab === "tt") {
     const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"], n = D.tt.some(e => e.day >= 5) ? 7 : 5;
@@ -166,38 +228,52 @@ V.planner = m => {
     $$("[data-a]", pb).forEach(b => b.onclick = () => ttModal(+b.dataset.a)); $$("[data-e]", pb).forEach(b => b.onclick = () => ttModal(0, D.tt.find(x => x.id === b.dataset.e)));
   } else {
     const y = calMonth.getFullYear(), mo = calMonth.getMonth(), first = new Date(y, mo, 1), off = (first.getDay() + 6) % 7, dim = new Date(y, mo + 1, 0).getDate();
-    pb.innerHTML = `<div class="calhd"><button class="icon-btn" id="cp">${ic("back")}</button><h2>${first.toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</h2><button class="icon-btn" id="cn" style="transform:scaleX(-1)">${ic("back")}</button></div><div class="calgrid">${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(d => `<div class="calh">${d}</div>`).join("")}${Array(off).fill("<div></div>").join("")}${Array.from({ length: dim }, (_, i) => { const ds = iso(new Date(y, mo, i + 1)), ts = D.tasks.filter(t => t.due === ds && !t.done), ev = msEventsOn(ds); return `<button class="cald ${ds === iso() ? "today" : ""}" data-day="${ds}"><b>${i + 1}</b><span>${ts.slice(0, 3).map(t => `<i style="background:${t.type === "exam" ? "#e5484d" : subj(t.subjectId)?.color || "#888"}"></i>`).join("")}${ev.slice(0, 2).map(() => `<i class="sq"></i>`).join("")}</span></button>`; }).join("")}</div>`;
+    pb.innerHTML = `<div class="calhd"><button class="icon-btn" id="cp">${ic("back")}</button><h2>${first.toLocaleDateString("de-CH", { month: "long", year: "numeric" })}</h2><button class="icon-btn" id="cn" style="transform:scaleX(-1)">${ic("back")}</button></div><div class="calgrid">${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(d => `<div class="calh">${d}</div>`).join("")}${Array(off).fill("<div></div>").join("")}${Array.from({ length: dim }, (_, i) => { const ds = iso(new Date(y, mo, i + 1)), ts = D.tasks.filter(t => t.due === ds && !t.done), ev = calEventsOn(ds); return `<button class="cald ${ds === iso() ? "today" : ""}" data-day="${ds}"><b>${i + 1}</b><span>${ts.slice(0, 3).map(t => `<i style="background:${t.type === "exam" ? "#e5484d" : subj(t.subjectId)?.color || "#888"}"></i>`).join("")}${ev.slice(0, 2).map(() => `<i class="sq"></i>`).join("")}</span></button>`; }).join("")}</div>`;
     $("#cp", pb).onclick = () => { calMonth = new Date(y, mo - 1, 1); V.planner(m); }; $("#cn", pb).onclick = () => { calMonth = new Date(y, mo + 1, 1); V.planner(m); };
-    $$("[data-day]", pb).forEach(b => b.onclick = () => { const ts = D.tasks.filter(t => t.due === b.dataset.day), evd = msEventsOn(b.dataset.day); const { el } = modal(`<h3>${fmtD(b.dataset.day)}</h3>${evd.map(e => `<div class="li"><span class="sdot lg" style="background:#2563eb;border-radius:3px"></span><b>${esc(e.title)}</b><small>${e.time || ""} ${esc(e.loc)}</small></div>`).join("")}${ts.map(t => `<div class="li"><span class="sdot lg" style="background:${subj(t.subjectId)?.color || "#999"}"></span><b>${t.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(t.title)}</b></div>`).join("")}${ts.length || evd.length ? "" : `<p class="empty">Keine Einträge.</p>`}<div class="row end"><button class="btn accent" id="ad">Aufgabe hinzufügen</button></div>`); $("#ad", el).onclick = () => { el.closest(".mask").remove(); taskModal(null, b.dataset.day); }; });
+    $$("[data-day]", pb).forEach(b => b.onclick = () => { const ts = D.tasks.filter(t => t.due === b.dataset.day), evd = calEventsOn(b.dataset.day); const { el } = modal(`<h3>${fmtD(b.dataset.day)}</h3>${evd.map(e => `<div class="li"><span class="sdot lg" style="background:#2563eb;border-radius:3px"></span><b>${esc(e.title)}</b><small>${e.time || ""} ${esc(e.loc)}</small></div>`).join("")}${ts.map(t => `<div class="li"><span class="sdot lg" style="background:${subj(t.subjectId)?.color || "#999"}"></span><b>${t.type === "exam" ? '<em class="xb">Prüfung</em> ' : ""}${esc(t.title)}</b></div>`).join("")}${ts.length || evd.length ? "" : `<p class="empty">Keine Einträge.</p>`}<div class="row end"><button class="btn accent" id="ad">Aufgabe hinzufügen</button></div>`); $("#ad", el).onclick = () => { el.closest(".mask").remove(); taskModal(null, b.dataset.day); }; });
   }
 };
 
 /* ---------- grades ---------- */
-const SCALES = { de: { n: "Noten 1–6", min: 1, max: 6, lowGood: true, step: .1 }, pts: { n: "Punkte 0–15", min: 0, max: 15, lowGood: false, step: 1 }, pct: { n: "Prozent", min: 0, max: 100, lowGood: false, step: 1 } };
-const SC = () => SCALES[D.profile.scale] || SCALES.de;
+const SCALES = {
+  ch: { n: "Schweiz · 1 bis 6 (6 = beste)", min: 1, max: 6, lowGood: false, step: .25 },
+  de: { n: "Deutschland · 1 bis 6 (1 = beste)", min: 1, max: 6, lowGood: true, step: .25 },
+  at: { n: "Österreich · 1 bis 5 (1 = beste)", min: 1, max: 5, lowGood: true, step: .25 },
+  pts: { n: "Punkte · 0 bis 15 (15 = beste)", min: 0, max: 15, lowGood: false, step: 1 },
+  pct: { n: "Prozent / USA · 0 bis 100 %", min: 0, max: 100, lowGood: false, step: 1 } };
+const gradeKey = () => ["pts", "pct", "de", "at"].includes(D.profile.scale) ? D.profile.scale : "ch";
+const gradeDec = k => k === "ch" || k === "de" || k === "at";   // Noten mit Dezimalstellen (.25)
+const SC = () => SCALES[gradeKey()];
 const gnorm = v => { const s = SC(); return s.lowGood ? (s.max - v) / (s.max - s.min) : (v - s.min) / (s.max - s.min); };
-const gcol = v => { const n = gnorm(v); return n >= .7 ? "#0e9f6e" : n >= .45 ? "#f59e0b" : "#e5484d"; };
+const gcol = v => { const k = gradeKey(); if (k === "de" || k === "at") return v <= 2.5 ? "#0e9f6e" : v <= 3.5 ? "#7cc23a" : v <= 4.5 ? "#f59e0b" : "#e5484d"; if (k === "ch") return v >= 5.25 ? "#0e9f6e" : v >= 4.5 ? "#7cc23a" : v >= 4 ? "#f59e0b" : "#e5484d"; const n = gnorm(v); return n >= .7 ? "#0e9f6e" : n >= .45 ? "#f59e0b" : "#e5484d"; };
 const wavg = l => { const w = l.reduce((a, g) => a + g.weight, 0); return w ? l.reduce((a, g) => a + g.value * g.weight, 0) / w : null; };
-const gfmt = v => v == null ? "–" : (D.profile.scale === "de" ? v.toFixed(2).replace(".", ",") : Math.round(v * 10) / 10 + "");
+const gfmt = v => { if (v == null || isNaN(v)) return "–"; const k = gradeKey(); if (gradeDec(k)) { let t = v.toFixed(2); if (t.endsWith("0")) t = t.slice(0, -1); return t; } return Math.round(v * 10) / 10 + ""; };
 function gradeModal(g) {
   const x = g || { subjectId: D.subjects[0]?.id || "", title: "", value: "", weight: 1, date: iso() };
   const { el, close } = modal(`<h3>${g ? "Note bearbeiten" : "Note eintragen"}</h3><label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(x.subjectId, "gm1")}<label class="lbl">Bezeichnung</label><input class="field" id="gm2" value="${esc(x.title)}" placeholder="Klassenarbeit, Test, mündlich, Klausur…">
-  <div class="row"><div><label class="lbl">${SC().n}</label><input class="field" id="gm3" type="number" inputmode="decimal" step="${SC().step}" min="${SC().min}" max="${SC().max}" value="${x.value}"></div><div><label class="lbl">${isUni() ? "Gewicht / ECTS" : "Gewicht"}</label><input class="field" id="gm4" type="number" step=".5" min=".5" value="${x.weight}"></div><div><label class="lbl">Datum</label><input class="field" id="gm5" type="date" value="${x.date}"></div></div>
+  <div class="row"><div><label class="lbl">${SC().n}${gradeKey() === "ch" ? " · ab 4 genügend" : gradeKey() === "de" || gradeKey() === "at" ? " · bis 4 genügend" : ""}</label><input class="field" id="gm3" type="number" inputmode="decimal" step="${SC().step}" min="${SC().min}" max="${SC().max}" value="${x.value}"></div><div><label class="lbl">${isUni() ? "Gewicht / ECTS" : "Gewicht"}</label><input class="field" id="gm4" type="number" step=".5" min=".5" value="${x.weight}"></div><div><label class="lbl">Datum</label><input class="field" id="gm5" type="date" value="${x.date}"></div></div>
   <div class="row end">${g ? `<button class="btn ghost danger" id="gdel">Löschen</button>` : ""}<button class="btn accent" id="gsv">Speichern</button></div>`);
   $("#gsv", el).onclick = () => { const v = parseFloat(String($("#gm3", el).value).replace(",", ".")); if (isNaN(v) || v < SC().min || v > SC().max) return toast(`Wert zwischen ${SC().min} und ${SC().max}`); Object.assign(x, { subjectId: $(".gm1", el).value, title: $("#gm2", el).value.trim() || "Note", value: v, weight: parseFloat($("#gm4", el).value) || 1, date: $("#gm5", el).value || iso() }); if (!g) D.grades.push({ id: uid(), ...x }); save(); close(); renderView(); };
   $("#gdel", el) && ($("#gdel", el).onclick = () => { D.grades = D.grades.filter(y => y !== g); save(); close(); renderView(); });
 }
 V.grades = m => {
   const all = D.grades, avg = wavg(all), by = D.subjects.map(s => ({ s, l: D.grades.filter(g => g.subjectId === s.id) })).filter(x => x.l.length);
-  m.innerHTML = `<div class="page"><div class="hd"><div><p class="eyebrow">${SC().n}</p><h1>Noten</h1></div><div class="row"><button class="btn ghost" id="goal">${ic("star")}Zielrechner</button><button class="btn accent" id="ng">${ic("plus")}Note</button></div></div>
+  m.innerHTML = `<div class="page">${pageHead("<b>Noten</b>", dkAct("goal", "Zielrechner", 'id="goal"') + '<i class="sdk-sep" aria-hidden="true"></i>' + dkAct("plus", "Note eintragen", 'id="ng"'))}
   <div class="tiles"><div class="tile big"><small>Gesamtschnitt</small><b style="color:${avg == null ? "inherit" : gcol(avg)}">${gfmt(avg)}</b></div><div class="tile"><small>Einträge</small><b>${all.length}</b></div><div class="tile"><small>Beste/r</small><b>${by.length ? esc([...by].sort((a, b) => SC().lowGood ? wavg(a.l) - wavg(b.l) : wavg(b.l) - wavg(a.l))[0].s.name) : "–"}</b></div></div>
+  <section class="subjsec"><div class="subjhd"><div><h2>${SUBJ()}</h2><p class="note">${D.subjects.length ? `${D.subjects.length} ${isUni() ? "Module" : "Fächer"} – Farbe und Name legst du hier fest, tippe auf den Namen zum Umbenennen.` : `Lege hier deine ${SUBJ()} an, dann kannst du Noten eintragen.`}</p></div><button class="btn" id="as">${ic("plus")}${isUni() ? "Modul" : "Fach"} hinzufügen</button></div>
+  <div class="subjgrid">${D.subjects.map(s => { const l = D.grades.filter(g => g.subjectId === s.id), a = l.length ? wavg(l) : null; return `<div class="scard" data-sid="${s.id}"><label class="scol" title="Farbe ändern" style="--c:${s.color}"><input type="color" value="${s.color}" data-c="${s.id}" aria-label="Farbe"></label><div class="sinfo"><input class="sname" value="${esc(s.name)}" data-n="${s.id}" aria-label="Name"><small>${l.length ? `${l.length} ${l.length === 1 ? "Note" : "Noten"} · Ø <b style="color:${gcol(a)}">${gfmt(a)}</b>` : "Noch keine Noten"}</small></div><button class="icon-btn" data-x="${s.id}" aria-label="Löschen" title="Entfernen">${ic("trash")}</button></div>`; }).join("")}<button class="scard add" id="as2" type="button">${ic("plus")}<span>${isUni() ? "Modul" : "Fach"} hinzufügen</span></button></div></section>
   ${by.length ? `<div class="panel"><h2>Übersicht</h2>${by.map(({ s, l }) => { const a = wavg(l); return `<div class="gbar"><span class="gn"><i class="sdot" style="background:${s.color}"></i>${esc(s.name)}</span><div class="gtrack"><i style="width:${Math.max(4, gnorm(a) * 100)}%;background:${gcol(a)}"></i></div><b style="color:${gcol(a)}">${gfmt(a)}</b></div>`; }).join("")}</div>
-  ${by.map(({ s, l }) => `<div class="panel"><h2><i class="sdot lg" style="background:${s.color}"></i>${esc(s.name)}<small>Ø ${gfmt(wavg(l))}</small></h2><div class="gchips">${l.sort((a, b) => a.date.localeCompare(b.date)).map(g => `<button class="gchip" data-g="${g.id}" style="--c:${gcol(g.value)}"><b>${gfmt(g.value)}</b><small>${esc(g.title)}${g.weight !== 1 ? " · ×" + g.weight : ""}</small></button>`).join("")}</div></div>`).join("")}` : `<div class="emptybox"><div class="big-ic">${ic("award")}</div><h3>Noch keine Noten</h3><p>Trage deine Noten ein und behalte Schnitt und Entwicklung im Blick. ${D.subjects.length ? "" : `Lege zuerst ${SUBJ()} an (Einstellungen).`}</p></div>`}</div>`;
-  $("#ng", m).onclick = () => D.subjects.length ? gradeModal() : toast(`Lege zuerst ${SUBJ()} an (Einstellungen)`);
+  ${by.map(({ s, l }) => `<div class="panel"><h2><i class="sdot lg" style="background:${s.color}"></i>${esc(s.name)}<small>Ø ${gfmt(wavg(l))}</small></h2><div class="gchips">${l.sort((a, b) => a.date.localeCompare(b.date)).map(g => `<button class="gchip" data-g="${g.id}" style="--c:${gcol(g.value)}"><b>${gfmt(g.value)}</b><small>${esc(g.title)}${g.weight !== 1 ? " · ×" + g.weight : ""}</small></button>`).join("")}</div></div>`).join("")}` : `<div class="emptybox"><div class="big-ic">${ic("award")}</div><h3>Noch keine Noten</h3><p>Trage deine Noten ein und behalte Schnitt und Entwicklung im Blick. ${D.subjects.length ? "" : `Lege oben zuerst ${SUBJ()} an.`}</p></div>`}</div>`;
+  const addS = async () => { await newSubject(); V.grades(m); };
+  $("#as", m).onclick = addS; $("#as2", m).onclick = addS;
+  $$("[data-x]", m).forEach(b => b.onclick = async () => { if (await confirmBox("Entfernen? Zugeordnete Dokumente bleiben erhalten, Noten dieses Fachs werden ebenfalls entfernt.", "Entfernen")) { const id = b.dataset.x; D.subjects = D.subjects.filter(s => s.id !== id); D.grades = D.grades.filter(g => g.subjectId !== id); save(); V.grades(m); } });
+  $$("[data-c]", m).forEach(i => { i.oninput = () => { subj(i.dataset.c).color = i.value; i.parentElement.style.setProperty("--c", i.value); }; i.onchange = () => save(); });
+  $$("[data-n]", m).forEach(i => { i.onchange = () => { const v = i.value.trim(); if (v) subj(i.dataset.n).name = v; else i.value = subj(i.dataset.n).name; save(); }; i.onkeydown = e => { if (e.key === "Enter") i.blur(); }; });
+  $("#ng", m).onclick = () => D.subjects.length ? gradeModal() : toast(`Lege zuerst ${SUBJ()} an`);
   $$("[data-g]", m).forEach(b => b.onclick = () => gradeModal(D.grades.find(g => g.id === b.dataset.g)));
   $("#goal", m).onclick = () => {
-    const { el } = modal(`<h3>Zielrechner</h3><p class="note">Welche Note brauchst du noch für deinen Wunschschnitt?</p><label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(D.subjects[0]?.id || "", "zs")}<div class="row"><div><label class="lbl">Zielschnitt</label><input class="field" id="zt" type="number" step="${SC().step}" value="${SC().lowGood ? 2 : 12}"></div><div><label class="lbl">Gewicht nächste Note</label><input class="field" id="zw" type="number" step=".5" value="1"></div></div><div class="result" id="zr">–</div>`);
-    const calc = () => { const l = D.grades.filter(g => g.subjectId === $(".zs", el).value), t = parseFloat($("#zt", el).value), w = parseFloat($("#zw", el).value) || 1; const W = l.reduce((a, g) => a + g.weight, 0), S = l.reduce((a, g) => a + g.value * g.weight, 0); const need = (t * (W + w) - S) / w; const ok = need >= SC().min - 1e-9 && need <= SC().max + 1e-9; $("#zr", el).innerHTML = isNaN(need) ? "–" : ok ? `Du brauchst mindestens <b style="font-size:26px">${gfmt(Math.round(need * 100) / 100)}</b>${SC().lowGood ? " (oder besser)" : ""}.` : need < SC().min ? "Ziel ist bereits sicher erreicht" : "Mit der nächsten Note ist dieses Ziel leider nicht mehr erreichbar."; };
+    const { el } = modal(`<h3>Zielrechner</h3><p class="note">Welche Note brauchst du noch für deinen Wunschschnitt?</p><label class="lbl">${isUni() ? "Modul" : "Fach"}</label>${subjectSelect(D.subjects[0]?.id || "", "zs")}<div class="row"><div><label class="lbl">Zielschnitt</label><input class="field" id="zt" type="number" step="${SC().step}" value="${({ ch: 5, de: 2, at: 2, pts: 12, pct: 75 })[gradeKey()]}"></div><div><label class="lbl">Gewicht nächste Note</label><input class="field" id="zw" type="number" step=".5" value="1"></div></div><div class="result" id="zr">–</div>`);
+    const calc = () => { const l = D.grades.filter(g => g.subjectId === $(".zs", el).value), t = parseFloat($("#zt", el).value), w = parseFloat($("#zw", el).value) || 1; const W = l.reduce((a, g) => a + g.weight, 0), S = l.reduce((a, g) => a + g.value * g.weight, 0); const need = (t * (W + w) - S) / w; const need2 = gradeDec(gradeKey()) ? (SC().lowGood ? Math.floor(need * 4 + 1e-9) : Math.ceil(need * 4 - 1e-9)) / 4 : need; const ok = need >= SC().min - 1e-9 && need <= SC().max + 1e-9; $("#zr", el).innerHTML = isNaN(need) ? "–" : ok ? `Du brauchst mindestens <b style="font-size:26px">${gfmt(Math.round(need2 * 100) / 100)}</b>${SC().lowGood ? " (oder besser)" : ""}.` : (SC().lowGood ? need > SC().max : need < SC().min) ? "Ziel ist bereits sicher erreicht" : "Mit der nächsten Note ist dieses Ziel leider nicht mehr erreichbar."; };
     $$("input,select", el).forEach(i => i.oninput = calc); calc();
   };
 };
@@ -233,8 +309,8 @@ function timerToggle() { if (T.running) { clearInterval(T.iv); T.running = false
 function timerReset() { const el = T.total - T.left; if (T.mode === "focus" && el >= 60) { addMin(Math.floor(el / 60)); toast(`${Math.floor(el / 60)} Min. gespeichert`); } clearInterval(T.iv); T.running = false; T.left = T.total; timerPaint(); }
 function timerSet(f, b) { clearInterval(T.iv); T.running = false; T.focusLen = f; T.breakLen = b; T.mode = "focus"; T.total = T.left = f * 60; }
 V.focus = m => {
-  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return [d.toLocaleDateString("de-DE", { weekday: "short" }), D.stats.days[iso(d)] || 0]; }), mx = Math.max(30, ...week.map(w => w[1]));
-  m.innerHTML = `<div class="page narrow"><div class="hd"><div><p class="eyebrow">Pomodoro</p><h1>Fokus</h1></div></div>
+  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return [d.toLocaleDateString("de-CH", { weekday: "short" }), D.stats.days[iso(d)] || 0]; }), mx = Math.max(30, ...week.map(w => w[1]));
+  m.innerHTML = `<div class="page narrow">${pageHead("<b>Fokus</b>")}
   <div class="timerbox"><div class="tring" id="tring"><div class="inner"><small id="tt-mode">Fokus</small><b id="tt-time">25:00</b></div></div>
   <div class="row" style="justify-content:center"><button class="btn big accent" id="tt-go"></button><button class="btn big ghost" id="tt-rs">${ic("rot")}Zurück</button></div>
   <div class="chips" style="justify-content:center;margin-top:18px">${[[25, 5], [50, 10], [15, 3], [90, 15]].map(([f, b]) => `<button class="chip ${T.focusLen === f ? "on" : ""}" data-p="${f},${b}">${f}/${b} Min.</button>`).join("")}</div><div style="max-width:260px;margin:14px auto 0">${subjectSelect(T.subjectId, "ts")}</div></div>
@@ -261,7 +337,7 @@ const safeUrl = u => /^https?:\/\//i.test(u) ? u : "#";
 function citeHtml(html, srcs) { if (!srcs || !srcs.length) return html; return html.replace(/\[(\d{1,2})\]/g, (m, n) => { const s = srcs.find(x => x.n === +n); return s ? `<a class="cite" href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer" title="${esc(s.title)}">${n}</a>` : m; }); }
 function srcsHtml(srcs) { return srcs && srcs.length ? `<div class="srcs"><span class="srcs-t">${ic("globe")}Quellen</span>${srcs.map(s => `<a class="src" href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer" title="${esc(s.title)}"><i>${s.n}</i><span>${esc(s.title)}</span>${ic("ext")}</a>`).join("")}</div>` : ""; }
 function chatHistory() {
-  const raw = chatMsgs().slice(0, -1).filter(x => x && x.text && (x.role === "user" || x.role === "assistant")).slice(-24);
+  const raw = chatMsgs().slice(0, -1).filter(x => x && x.text && !x.sys && (x.role === "user" || x.role === "assistant")).slice(-24);
   const out = [];
   for (const x of raw) { const t = String(x.text).slice(0, 4000); if (out.length && out[out.length - 1].role === x.role) out[out.length - 1].text += "\n\n" + t; else out.push({ role: x.role, text: t }); }
   while (out.length && out[0].role !== "user") out.shift();
@@ -270,44 +346,63 @@ function chatHistory() {
   return out;
 }
 const TK_SPIN = '<svg class="tk-sp" viewBox="0 0 24 24" aria-hidden="true">' + Array.from({ length: 8 }, (_, i) => `<circle cx="${(12 + 8.6 * Math.sin(i * Math.PI / 4)).toFixed(2)}" cy="${(12 - 8.6 * Math.cos(i * Math.PI / 4)).toFixed(2)}" r="1.9" style="--i:${i}"/>`).join("") + "</svg>";
-/* Denk-Animation: Schritte erscheinen nacheinander (Nachdenken → Gesehen → Formulieren), erledigte werden grau mit Haken */
+/* Trace-Zeilen (Denken, Quellen, Systemhinweise): Icon + Titel, optional aufklappbar */
+const trRow = (st, icon, title, body, open) => body
+  ? `<details class="tr-c" ${open ? "open" : ""}><summary class="tr-l ${st}"><i class="tr-ic">${icon}</i><span class="tr-t">${title}</span><i class="tr-chev">${ic("chev")}</i></summary><div class="tr-b">${body}</div></details>`
+  : `<div class="tr-l ${st}"><i class="tr-ic">${icon}</i><span class="tr-t">${title}</span></div>`;
+const trSources = srcs => srcs && srcs.length ? trRow("", ic("globe"), `${srcs.length} ${srcs.length === 1 ? "Quelle" : "Quellen"} verwendet`, srcs.map(s => `<a class="tr-l link" href="${esc(safeUrl(s.url))}" target="_blank" rel="noopener noreferrer"><i class="tr-ic">${ic("globe")}</i><span class="tr-t">${esc(s.title)}</span><i class="tr-ic">${ic("ext")}</i></a>`).join("")) : "";
+const traceHtml = x => { const rows = [];
+  if (x.thought) rows.push(trRow("", ic("check"), `Nachgedacht für ${x.thought} Sek.`, x.seen && x.seen.length ? `Gelesen: ${x.seen.map(t => `<b>${esc(t)}</b>`).join(", ")}` : ""));
+  const so = trSources(x.sources); if (so) rows.push(so);
+  return rows.length ? `<div class="trace">${rows.join("")}</div>` : ""; };
+const sysHtml = sy => { const hasU = typeof AIU !== "undefined" && AIU.on && !AIU.unl && (sy.kind === "limit" || sy.kind === "pro") && typeof aiuRows === "function";
+  return `<div class="trace">${trRow("err", ic("alert"), esc(sy.title), `<p>${esc(sy.text)}</p>${hasU ? `<div class="aiu-rows">${aiuRows()}</div>` : ""}${sy.kind === "pro" || sy.kind === "limit" ? `<button class="btn small" data-up="1">Study Pro ansehen</button>` : ""}`, true)}</div>`; };
+/* Denk-Animation: Schritte erscheinen nacheinander (Nachdenken → Gelesen → Formulieren), erledigte bekommen einen Haken */
 function thinkSeq(el, msgs) {
-  const row = (cls, html) => { if (!el.isConnected) return null; const r = document.createElement("div"); r.className = "tk-row " + cls; r.innerHTML = html; el.appendChild(r); msgs.scrollTop = msgs.scrollHeight; return r; };
-  const done = (r, txt, icon = "check") => { if (!r) return; r.classList.remove("on"); r.classList.add("done"); r.innerHTML = `<i class="tk-ok">${ic(icon)}</i><span>${txt}</span>`; };
+  const tr = el.firstElementChild;
+  const row = (st, icon, title) => { if (!el.isConnected) return null; const r = document.createElement("div"); r.className = "tr-l " + st; r.innerHTML = `<i class="tr-ic">${icon}</i><span class="tr-t">${title}</span>`; tr.appendChild(r); msgs.scrollTop = msgs.scrollHeight; return r; };
+  const done = (r, txt, icon = "check") => { if (!r) return; r.classList.remove("run"); r.innerHTML = `<i class="tr-ic">${ic(icon)}</i><span class="tr-t">${txt}</span>`; };
   const seen = [...chatCtx].map(id => D.docs.find(x => x.id === id)).filter(Boolean).slice(0, 3);
-  const r1 = el.firstElementChild;
-  setTimeout(() => { if (!el.isConnected) return; done(r1, "Nachgedacht", "bulb");
-    if (seen.length) { const r2 = row("on", `${TK_SPIN}<span class="shim">Liest ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")} …</span>`); setTimeout(() => { done(r2, `Gesehen: ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")}`, "eye"); const r3 = row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1500); }
-    else row("on", `${TK_SPIN}<span class="shim">Formuliert die Antwort …</span>`); }, 1400);
+  const r1 = tr.firstElementChild;
+  setTimeout(() => { if (!el.isConnected) return; done(r1, "Nachgedacht", "check");
+    if (seen.length) { const r2 = row("run", TK_SPIN, `<span class="shim">Liest ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")} …</span>`); setTimeout(() => { done(r2, `Gelesen: ${seen.map(d => `<b>${esc(d.title)}</b>`).join(", ")}`, "eye"); row("run", TK_SPIN, `<span class="shim">Formuliert die Antwort …</span>`); }, 1500); }
+    else row("run", TK_SPIN, `<span class="shim">Formuliert die Antwort …</span>`); }, 1400);
+}
+/* Chat-Antworten: Markdown (#, **fett**, Listen) wird direkt als Formatierung angezeigt; frische Antworten erscheinen Wort für Wort */
+function chatMd(text, fresh) {
+  const d = document.createElement("div"); d.innerHTML = textToHtml(String(text || ""));
+  if (fresh) wordReveal(d, 2600);
+  return d.innerHTML;
 }
 function mountChat(box, compact) {
   const draw = () => {
-    const msgs = $(".msgs", box); msgs.innerHTML = (chatMsgs().length ? chatMsgs() : [{ role: "assistant", text: `Hi${D.profile.name ? " " + D.profile.name.split(" ")[0] : ""}! Ich bin dein Lern-Tutor. Frag mich etwas, lass dir ein Thema erklären.${hasKey() ? "" : "\n\n(Lumi AI ist noch nicht eingerichtet – siehe Einstellungen → Lumi AI.)"}` }]).map((x, i) => `<div class="m ${x.role === "user" ? "u" : "a"}">${x.img ? `<img src="${x.img}" alt="">` : ""}${citeHtml(x.fresh ? streamHtml(x.text) : esc(x.text), x.sources)}${srcsHtml(x.sources)}${x.acts?.length ? `<div class="acts" style="--base:${x.fresh ? streamMs(x.text) : 0}ms">${x.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : /^doc\//.test(a.go || "") ? "note" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}${x.role === "assistant" && chatMsgs().length ? `<div class="macts"><button data-cp="${i}" title="Kopieren">${ic("copy")}</button><button data-sv="${i}" title="Als Notiz speichern">${ic("note")}</button></div>` : ""}</div>`).join("");
+    const msgs = $(".msgs", box); msgs.innerHTML = (chatMsgs().length ? chatMsgs() : [{ role: "assistant", text: `Hi${D.profile.name ? " " + D.profile.name.split(" ")[0] : ""}! Ich bin dein Lern-Tutor. Frag mich etwas, lass dir ein Thema erklären.${hasKey() ? "" : "\n\n(Studix AI ist noch nicht eingerichtet – siehe Einstellungen → Studix AI.)"}` }]).map((x, i) => `<div class="m ${x.role === "user" ? "u" : "a"}${x.sys ? " sysm" : ""}">${x.sys ? sysHtml(x.sys) : `${x.img ? `<img src="${x.img}" alt="">` : ""}${x.role === "user" ? "" : traceHtml(x)}${citeHtml(x.role === "user" ? esc(x.text) : chatMd(x.text, x.fresh), x.sources)}`}${x.acts?.length ? `<div class="acts" style="--base:${x.fresh ? Math.min(2600, (x.text.split(/\s+/).length) * 30 + 200) : 0}ms">${x.acts.map(a => `<${a.go ? "button" : "span"} class="act ${a.err ? "err" : ""}" ${a.go ? `data-ag="${esc(a.go)}"` : ""}>${ic(a.err ? "x" : /^doc\//.test(a.go || "") ? "note" : "check")}<span>${esc(a.label)}</span></${a.go ? "button" : "span"}>`).join("")}</div>` : ""}${x.role === "assistant" && !x.sys && chatMsgs().length ? `<div class="macts"><button data-cp="${i}" title="Kopieren">${ic("copy")}</button><button data-sv="${i}" title="Als Notiz speichern">${ic("note")}</button></div>` : ""}</div>`).join("");
     msgs.scrollTop = msgs.scrollHeight;
     $$("[data-ag]", msgs).forEach(b => b.onclick = () => go(b.dataset.ag));
+    $$("[data-up]", msgs).forEach(b => b.onclick = () => { if (typeof proUpsell === "function") proUpsell(); else go("settings"); });
     $$("[data-cp]", msgs).forEach(b => b.onclick = () => { navigator.clipboard?.writeText(chatMsgs()[+b.dataset.cp].text); toast("Kopiert"); });
-    $$("[data-sv]", msgs).forEach(b => b.onclick = () => newNote("", textToHtml(chatMsgs()[+b.dataset.sv].text), "Lumi-AI-Notiz"));
+    $$("[data-sv]", msgs).forEach(b => b.onclick = () => limitHit("doc") || newNote("", textToHtml(chatMsgs()[+b.dataset.sv].text), "Studix-AI-Notiz"));
     const cx = $(".ctxbar", box); if (cx) { cx.innerHTML = [...chatCtx].map(id => { const d = D.docs.find(x => x.id === id); return d ? `<span class="cx" title="${esc(d.title)}">${ic("file")}<b>${esc(d.title)}</b><button type="button" data-rm="${id}" aria-label="Entfernen">${ic("x")}</button></span>` : ""; }).join(""); cx.hidden = !chatCtx.size; $$("[data-rm]", cx).forEach(b => b.onclick = () => { chatCtx.delete(b.dataset.rm); draw(); }); $("#att", box)?.classList.toggle("on", chatCtx.size > 0); }
     const pv = $(".imgprev", box); if (pv) { pv.hidden = !chatImg; pv.innerHTML = chatImg ? `<img src="${chatImg.url}" alt=""><button aria-label="Entfernen">${ic("x")}</button>` : ""; $("button", pv)?.addEventListener("click", () => { chatImg = null; draw(); }); }
   };
-  const pickCtx = () => { const { el, close } = modal(`<h3>Kontext wählen</h3><p class="note">Lumi AI beantwortet Fragen anhand dieser Dokumente.</p><div class="pick">${D.docs.filter(d => d.type !== "draw").map(d => `<label class="li"><input type="checkbox" value="${d.id}" ${chatCtx.has(d.id) ? "checked" : ""}><b>${esc(d.title)}</b><small>${esc(subj(d.subjectId)?.name || "")}</small></label>`).join("") || `<p class="empty">Keine Dokumente.</p>`}</div><div class="row end"><button class="btn accent" id="ok">Übernehmen</button></div>`); $("#ok", el).onclick = () => { chatCtx = new Set($$("input:checked", el).map(i => i.value)); close(); draw(); }; };
+  const pickCtx = () => { const { el, close } = modal(`<h3>Kontext wählen</h3><p class="note">Studix AI beantwortet Fragen anhand dieser Dokumente.</p><div class="pick">${D.docs.filter(d => d.type !== "draw").map(d => `<label class="li"><input type="checkbox" value="${d.id}" ${chatCtx.has(d.id) ? "checked" : ""}><b>${esc(d.title)}</b><small>${esc(subj(d.subjectId)?.name || "")}</small></label>`).join("") || `<p class="empty">Keine Dokumente.</p>`}</div><div class="row end"><button class="btn accent" id="ok">Übernehmen</button></div>`); $("#ok", el).onclick = () => { chatCtx = new Set($$("input:checked", el).map(i => i.value)); close(); draw(); }; };
   const send = async text => {
     text = (text || "").trim(); if (!text && !chatImg) return; const img = chatImg; chatImg = null;
     { const cc = chatState(); cc.msgs.push({ role: "user", text: text || "Bitte erkläre das Bild.", img: img?.url }); cc.updated = Date.now(); if (cc.title === "Neuer Chat" && text) cc.title = text.slice(0, 40); } draw(); window.onChatsChanged && window.onChatsChanged();
-    const msgs = $(".msgs", box); const tkEl = document.createElement("div"); tkEl.className = "m a think tkb"; tkEl.innerHTML = `<div class="tk-row on">${ic("spark")}<span class="shim">Lumi AI denkt nach …</span></div>`; msgs.appendChild(tkEl); thinkSeq(tkEl, msgs); msgs.scrollTop = msgs.scrollHeight;
-    const c = await ctxText(), hist = chatHistory(); let r;
-    if (hasKey()) r = await agentAi(text || "Bitte erkläre das Bild.", { sources: sourcesOn() && !img, history: hist, system: sysBase(MODES[chatMode][1] + (chatInstr() ? "\n\n" + chatInstr() : "") + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (msContext() ? `\nDaten des Lernenden aus Microsoft 365 (Kalender, Teams, OneNote) – nutze sie, wenn nach Terminen, Prüfungen oder Aufgaben gefragt wird. Heute ist ${iso()}.\n${msContext()}` : "") + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), max: 2000, image: img ? { data: img.data, type: "image/jpeg" } : null });
-    else { await new Promise(r => setTimeout(r, 500)); r = msContext() && /prüfung|klausur|test|termin|kalender|aufgabe|hausaufgabe|lernziel/i.test(text) ? "Das steht aktuell in deinem Microsoft-Konto:\n\n" + msContext() + "\n\n(Demo-Modus – mit eingerichteter Lumi AI beantworte ich gezielte Fragen dazu.)" : c && chatMode === "sum" ? "Zusammenfassung (lokal):\n" + localSummary(c) : "Lumi AI ist noch nicht eingerichtet, deshalb kann ich keine echten Antworten erzeugen. Hinterlege unter Einstellungen → Lumi AI den Gemini-Key (Vercel) – dann erkläre ich Themen, frage dich ab und helfe bei Hausaufgaben. Zusammenfassungen, Karteikarten und Quiz aus Dokumenten funktionieren schon jetzt auch offline."; }
+    const msgs = $(".msgs", box); const tkEl = document.createElement("div"); tkEl.className = "m a think tkb"; tkEl.innerHTML = `<div class="trace"><div class="tr-l run">${TK_SPIN.replace("tk-sp","tk-sp")}<span class="tr-t"><span class="shim">Denkt nach …</span></span></div></div>`; msgs.appendChild(tkEl); thinkSeq(tkEl, msgs); msgs.scrollTop = msgs.scrollHeight;
+    const t0 = Date.now(), seenT = [...chatCtx].map(id => D.docs.find(x => x.id === id)).filter(Boolean).slice(0, 3).map(d => d.title), c = await ctxText(), hist = chatHistory(); let r;
+    if (hasKey()) r = await agentAi(text || "Bitte erkläre das Bild.", { sources: sourcesOn() && !img && aiModelProv(aiModelId()) === "Gemini", history: hist, system: sysBase(MODES[chatMode][1] + "\n\nFormatiere Antworten mit Markdown: **fett** für Schlüsselbegriffe, ## kurze Überschriften bei längeren Antworten, \"- \" Listen und \"1. \" nummerierte Listen. Keine Tabellen." + (chatInstr() ? "\n\n" + chatInstr() : "") + "\n\n" + AGENT_RULES + "\n\nAktueller Stand der App:\n" + agentContext() + (c ? `\nNutze diese Unterlagen des Lernenden als Grundlage:\n${c}` : "")), max: 2000, quiet: true, image: img ? { data: img.data, type: "image/jpeg" } : null });
+    else { await new Promise(r => setTimeout(r, 500)); r = c && chatMode === "sum" ? "Zusammenfassung (lokal):\n" + localSummary(c) : "Studix AI ist noch nicht eingerichtet, deshalb kann ich keine echten Antworten erzeugen. Hinterlege unter Einstellungen → Studix AI den Gemini-Key (Vercel) – dann erkläre ich Themen, frage dich ab und helfe bei Hausaufgaben. Zusammenfassungen, Karteikarten und Quiz aus Dokumenten funktionieren schon jetzt auch offline."; }
     const srcs = (window.lastAiSources || []).slice(); let acts = []; if (r && hasKey()) { try { const o = await runAgent(r); r = o.text; acts = o.acts; } catch (e) { r = r.replace(/<lumi-actions>[\s\S]*/i, "").trim(); } }
-    { const cc = chatState(); cc.msgs.push({ role: "assistant", text: r || "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts, sources: srcs, fresh: true }); cc.msgs = cc.msgs.slice(-80); cc.updated = Date.now(); draw(); cc.msgs.forEach(x => delete x.fresh); }
+    { const cc = chatState(); const issue = !r && hasKey() ? window.lastAiIssue : null; cc.msgs.push(issue ? { role: "assistant", text: issue.text, sys: issue } : { role: "assistant", text: r || "Das hat leider nicht geklappt. Versuche es bitte noch einmal.", acts, sources: srcs, fresh: true, thought: Math.max(1, Math.round((Date.now() - t0) / 1000)), seen: seenT }); cc.msgs = cc.msgs.slice(-80); cc.updated = Date.now(); draw(); cc.msgs.forEach(x => delete x.fresh); }
     save();
   };
-  box.innerHTML = `${compact ? `<header>${ic("spark")}<b>Lumi AI</b><button class="icon-btn" data-full title="Vollbild">${ic("up")}</button><button class="icon-btn" data-close aria-label="Schließen">${ic("x")}</button></header>` : ""}<div class="modes" ${compact ? "hidden" : ""}>${Object.entries(MODES).map(([k, v]) => `<button class="chip ${chatMode === k ? "on" : ""}" data-m="${k}">${v[0]}</button>`).join("")}</div><div class="msgs"></div><div class="imgprev" hidden></div>
-  <form class="t-in cmp"><div class="ctxbar"></div><input class="tin" placeholder="Frag Lumi AI etwas …" aria-label="Nachricht" autocomplete="off"><input type="file" id="cfi" accept="image/*" hidden><button type="button" id="cam" hidden aria-hidden="true"></button><div class="cmp-bar"><button type="button" class="cmp-b" id="att" title="Dateien und Dokumente" aria-label="Dateien und Dokumente">${ic("clip")}</button>${serverAI ? `<button type="button" class="mdl" id="mdl" title="Modell wählen" aria-label="Modell wählen">${ic(aiModelProv(aiModelId()).toLowerCase())}<span>${aiModelName(aiModelId())}</span>${ic("chev")}</button>` : ""}${serverInfo && serverInfo.gemini ? `<button type="button" class="cmp-b src ${sourcesOn() ? "on" : ""}" id="src" title="Quellen an / aus" aria-label="Quellen an oder aus">${ic("globe")}</button>` : ""}<span class="cmp-sp"></span><button class="send" aria-label="Senden">${ic("up")}</button></div></form>`;
+  box.innerHTML = `${compact ? `<header>${ic("spark")}<b>Studix AI</b><button class="icon-btn" data-full title="Vollbild">${ic("up")}</button><button class="icon-btn" data-close aria-label="Schließen">${ic("x")}</button></header>` : ""}<div class="modes" ${compact ? "hidden" : ""}>${Object.entries(MODES).map(([k, v]) => `<button class="chip ${chatMode === k ? "on" : ""}" data-m="${k}">${v[0]}</button>`).join("")}</div><div class="msgs"></div><div class="imgprev" hidden></div>
+  <form class="t-in cmp"><div class="ctxbar"></div><input class="tin" name="lumi-chat" type="text" placeholder="Frag Studix AI etwas …" aria-label="Nachricht" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="send" writingsuggestions="false" data-form-type="other" data-lpignore="true" data-1p-ignore><input type="file" id="cfi" accept="image/*" hidden><button type="button" id="cam" hidden aria-hidden="true"></button><div class="cmp-bar"><button type="button" class="cmp-b" id="att" title="Dateien und Dokumente" aria-label="Dateien und Dokumente">${ic("clip")}</button>${serverAI ? `<button type="button" class="mdl" id="mdl" title="Modell wählen" aria-label="Modell wählen">${ic(aiModelProv(aiModelId()).toLowerCase())}<span>${aiModelName(aiModelId())}</span>${ic("chev")}</button>` : ""}${serverInfo && serverInfo.gemini ? `<button type="button" class="cmp-b src ${sourcesOn() ? "on" : ""}" id="src" title="Quellen an / aus" aria-label="Quellen an oder aus">${ic("globe")}</button>` : ""}<span class="cmp-sp"></span><button class="send" aria-label="Senden">${ic("up")}</button></div></form><p class="ai-note">Studix AI ist eine KI und kann Fehler machen – prüfe wichtige Antworten. Studix AI wird mit Unterstützung von Google Gemini und Groq betrieben.</p>`;
   $$("[data-m]", box).forEach(b => b.onclick = () => { chatMode = b.dataset.m; $$("[data-m]", box).forEach(x => x.classList.toggle("on", x === b)); });
   $(".t-in", box).onsubmit = e => { e.preventDefault(); const i = $(".tin", box); const v = i.value; i.value = ""; send(v); };
   $("#cam", box).onclick = () => $("#cfi", box).click();
-  $("#cfi", box).onchange = async e => { const f = e.target.files[0]; if (!f) return; chatImg = { data: await blobToJpeg(f), url: "data:image/jpeg;base64," + (await blobToJpeg(f, 300)) }; e.target.value = ""; draw(); if (!hasKey()) toast("Bild-Analyse braucht die eingerichtete Lumi AI"); };
+  $("#cfi", box).onchange = async e => { const f = e.target.files[0]; if (!f) return; chatImg = { data: await blobToJpeg(f), url: "data:image/jpeg;base64," + (await blobToJpeg(f, 300)) }; e.target.value = ""; draw(); if (!hasKey()) toast("Bild-Analyse braucht die eingerichtete Studix AI"); };
   $("#att", box).onclick = pickCtx;
   $("#src", box)?.addEventListener("click", e => { D.profile.sources = !sourcesOn(); save(); e.currentTarget.classList.toggle("on", sourcesOn()); toast(sourcesOn() ? "Quellen an" : "Quellen aus"); });
   $("#mdl", box)?.addEventListener("click", e => {
@@ -326,6 +421,7 @@ function mountChat(box, compact) {
   });
   $("[data-close]", box)?.addEventListener("click", () => box.hidden = true); $("[data-full]", box)?.addEventListener("click", () => { box.hidden = true; go("ai"); });
   draw();
+  phCycle($(".tin", box));
   if (chatPrefill) { const p = chatPrefill; chatPrefill = ""; send(p); }
 }
 V.ai = m => {
@@ -333,21 +429,21 @@ V.ai = m => {
   let filter = "";
   const page = () => {
     const cur = chatState();
-    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t"><span class="aip-logo">${ic("spark")}</span><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><div class="aip-ta"><span class="aip-pj" id="cpj"></span><button class="btn small" id="ci">${ic("spark")}Anweisungen</button></div></header><div class="chatbox flat" id="cbox"></div></section></div>`;
+    m.innerHTML = `<div class="aip"><aside class="aip-l" id="aipl"></aside><section class="aip-r"><header class="aip-t setcrumb pagehead"><button class="icon-btn aip-mob" id="cmob" aria-label="Chats">${ic("menu")}</button><span>Studix AI</span><i>/</i><input id="ct" value="${esc(cur.title)}" aria-label="Chat-Titel" maxlength="60"><nav class="settabs sdock aip-ta"><span class="aip-pj" id="cpj"></span>${aiuRingHtml()}${dkAct("instr", "Anweisungen", 'id="ci"')}</nav></header><div class="chatbox flat" id="cbox"></div></section></div>`;
     aside(); mountChat($("#cbox", m), false); hdr();
     $("#ct", m).onchange = e => { chatState().title = e.target.value.trim() || "Neuer Chat"; save(); aside(); };
-    $("#ci", m).onclick = instrModal; $("#cmob", m).onclick = e => menu(e.currentTarget, [{ label: "Neuer Chat", icon: "plus", fn: () => { newChat(filter); page(); } }, ...D.chats.slice(0, 12).map(c => ({ label: c.title, icon: "note", fn: () => { D.curChat = c.id; page(); } }))]);
+    $("#ci", m).onclick = instrModal; $(".aiu", m) && ($(".aiu", m).onclick = e => { e.stopPropagation(); aiuPop(e.currentTarget); }); aiuLoad().then(() => { const ta = $(".aip-ta", m); if (ta && !$(".aiu", ta)) aiuMount(ta, $("#ci", ta)); }); $("#cmob", m).onclick = e => menu(e.currentTarget, [{ label: "Neuer Chat", icon: "plus", fn: () => { newChat(filter); page(); } }, ...D.chats.slice(0, 12).map(c => ({ label: c.title, icon: "note", fn: () => { D.curChat = c.id; page(); } }))]);
   };
   const hdr = () => { const c = chatState(), p = D.cprojects.find(x => x.id === c.projectId); const e = $("#cpj", m); if (e) e.textContent = p ? p.name : ""; };
   const aside = () => {
     const box = $("#aipl", m); if (!box) return; const cur = chatState();
     const list = D.chats.filter(c => !c.docId && (!filter || c.projectId === filter)).sort((a, b) => b.updated - a.updated);
-    box.innerHTML = `<button class="aip-new" id="cn">${ic("plus")}<span>Neuer Chat</span></button>
+    box.innerHTML = `<div class="aip-top"><button class="aip-new" id="cn">${ic("plus")}<span>Neuer Chat</span></button><button class="aip-new aip-voice" id="cvc">${ic("mic")}<span>AI Voice</span></button></div>
       <div class="aip-h"><span>Projekte</span><button class="icon-btn sm" id="pn" aria-label="Neues Projekt">${ic("plus")}</button></div>
       <div class="aip-list">${D.cprojects.map(p => `<div class="aip-i ${filter === p.id ? "on" : ""}" data-p="${p.id}" tabindex="0">${ic("folder")}<span>${esc(p.name)}</span><button class="aip-m" data-pm="${p.id}" aria-label="Projekt-Menü">${ic("more")}</button></div>`).join("") || `<p class="aip-e">Gruppiere Chats mit gemeinsamen Anweisungen.</p>`}</div>
       <div class="aip-h"><span>${filter ? esc(D.cprojects.find(x => x.id === filter)?.name || "Chats") : "Chats"}</span>${filter ? `<button class="link" id="pall">Alle</button>` : ""}</div>
       <div class="aip-list aip-chats">${list.map(c => `<div class="aip-i ${c.id === cur.id ? "on" : ""}" data-c="${c.id}" tabindex="0"><span>${esc(c.title)}</span><button class="aip-m" data-cm="${c.id}" aria-label="Chat-Menü">${ic("more")}</button></div>`).join("") || `<p class="aip-e">Keine Chats</p>`}</div>`;
-    $("#cn", box).onclick = () => { newChat(filter); page(); };
+    $("#cn", box).onclick = () => { newChat(filter); page(); }; $("#cvc", box).onclick = () => go("voice");
     $("#pn", box).onclick = () => projModal();
     $("#pall", box) && ($("#pall", box).onclick = () => { filter = ""; aside(); });
     $$("[data-c]", box).forEach(b => b.onclick = e => { if (e.target.closest("[data-cm]")) return; D.curChat = b.dataset.c; save(); page(); });
@@ -358,7 +454,7 @@ V.ai = m => {
   window.onChatsChanged = () => { if ($("#aipl", m)) { aside(); const t = $("#ct", m); if (t && document.activeElement !== t) t.value = chatState().title; } else window.onChatsChanged = null; };
   const instrModal = () => {
     const c = chatState(), p = D.cprojects.find(x => x.id === c.projectId);
-    const { el, close } = modal(`<h3>Anweisungen für diesen Chat</h3><p class="note">Lumi AI beachtet diese Regeln in jeder Antwort dieses Chats.</p>
+    const { el, close } = modal(`<h3>Anweisungen für diesen Chat</h3><p class="note">Studix AI beachtet diese Regeln in jeder Antwort dieses Chats.</p>
       <textarea class="field" id="in-c" rows="5" placeholder="z. B. Antworte kurz, in einfachen Worten und mit einem Beispiel aus dem Alltag.">${esc(c.instr)}</textarea>
       <label class="lbl">Projekt</label><select class="field" id="in-p"><option value="">Kein Projekt</option>${D.cprojects.map(x => `<option value="${x.id}" ${x.id === c.projectId ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>
       ${p ? `<p class="note">Zusätzlich gelten die Anweisungen des Projekts „${esc(p.name)}“.</p>` : ""}
@@ -374,15 +470,24 @@ V.ai = m => {
   };
   page();
 };
-function mountDock() {
-  const p = $("#aipane"); if (!p) return;
-  const wasOpen = p.classList.contains("open");
-  p.innerHTML = `<button class="hai-h" id="hai-t" aria-expanded="${wasOpen}"><span class="ai-ic">${ic("spark")}</span><div><b>Lumi AI</b><small>Frag etwas zu deinen Unterlagen</small></div><i class="hai-chev">${ic("chev")}</i></button><div class="chatbox flat" id="hcb"></div>`;
+/* Unten auf der Startseite bleibt ein Bereich frei: nur die Eingabe. Beim Schreiben wird der ganze Bereich weiß und der Chat groß. */
+function mountDock(m) {
+  document.getElementById("hdock")?.remove();
+  const el = document.createElement("div"); el.id = "hdock"; el.className = "hdock";
+  el.innerHTML = `<div class="hd-bg"></div><div class="hd-in"><div class="hd-top"><button type="button" class="btn small hd-new">${ic("plus")}Neuer Chat</button>${aiuRingHtml()}<button type="button" class="icon-btn hd-x" aria-label="Schließen">${ic("x")}</button></div><div class="chatbox flat" id="hcb"></div></div>`;
+  document.body.appendChild(el);
   if (!window.__dockFresh) { window.__dockFresh = true; if (chatMsgs().length) newChat(); }
-  mountChat($("#hcb", p), false);
-  const tog = o => { p.classList.toggle("open", o); $("#hai-t", p).setAttribute("aria-expanded", o); };
-  $("#hai-t", p).onclick = () => tog(!p.classList.contains("open"));
-  $(".t-in", p).addEventListener("submit", () => tog(true), true); $(".tin", p).addEventListener("focus", () => tog(true));
+  const mount = () => { mountChat($("#hcb", el), false); const t = $(".tin", el); t.addEventListener("input", () => tog(true)); $(".t-in", el).addEventListener("submit", () => tog(true), true); };
+  const fit = () => { const r0 = m.getBoundingClientRect(), r = { left: r0.left, width: r0.width, top: Math.max(0, r0.top), bottom: Math.min(innerHeight, r0.bottom) }; el.style.setProperty("--dl", r.left + "px"); el.style.setProperty("--dw", r.width + "px"); el.style.setProperty("--gx", (parseFloat(getComputedStyle(m).paddingLeft) || 22) + "px"); el.style.setProperty("--dt", r.top + "px"); const tin = $(".t-in", el), bh = (tin ? tin.offsetHeight : 100) + 24; el.style.setProperty("--dtc", r.bottom - bh + "px"); if (innerWidth > 900) m.style.setProperty("padding-bottom", bh + "px", "important"); el.style.setProperty("--db", innerHeight - r.bottom + "px"); };
+  const tog = o => { if (o === el.classList.contains("open")) return; fit(); el.classList.toggle("open", o); document.body.classList.toggle("hd-open2", o); if (!o) { document.activeElement?.blur?.(); $(".msgs", el).scrollTop = 1e9; } else setTimeout(() => { const ms = $(".msgs", el); ms.scrollTop = ms.scrollHeight; }, 60); };
+  const key = e => { if (e.key === "Escape" && el.classList.contains("open") && !document.querySelector(".popmenu,.mpop,.modal")) tog(false); };
+  $(".hd-x", el).onclick = () => tog(false); $(".aiu", el) && ($(".aiu", el).onclick = e => { e.stopPropagation(); aiuPop(e.currentTarget); }); aiuLoad().then(() => { const h = $(".hd-top", el); if (h && !$(".aiu", h)) aiuMount(h, $(".hd-x", h)); });
+  $(".hd-new", el).onclick = () => { newChat(); mount(); $(".tin", el).focus(); };
+  addEventListener("resize", fit); document.addEventListener("keydown", key); mount(); fit(); setTimeout(fit, 300);
+  /* folgt dem Raster, wenn die Seitenleiste ein-/ausgeklappt wird (iPad, Drehen, Fenstergröße) */
+  let lw = 0, ll = 0; const ro = new ResizeObserver(() => { const r = m.getBoundingClientRect(); if (Math.abs(r.width - lw) > 0.5 || Math.abs(r.left - ll) > 0.5) { lw = r.width; ll = r.left; fit(); } }); ro.observe(m);
+  const shell = document.querySelector(".shell"), mo = shell && new MutationObserver(() => { fit(); setTimeout(fit, 120); setTimeout(fit, 320); }); if (mo) mo.observe(shell, { attributes: true, attributeFilter: ["class"] });
+  LEAVE.push(() => { el.remove(); document.body.classList.remove("hd-open2"); try { ro.disconnect(); mo && mo.disconnect(); } catch {} removeEventListener("resize", fit); document.removeEventListener("keydown", key); });
 }
 function toggleChatPanel() { const p = $("#cpanel"); if (p.hidden) { p.hidden = false; mountChat(p, true); } else p.hidden = true; }
 
@@ -412,67 +517,114 @@ async function importAll(file) {
     D = Object.assign(DEFAULT(), j.data); for (const [k, v] of Object.entries(j.html || {})) await KV.set("html:" + k, v); for (const [k, v] of Object.entries(j.draw || {})) await KV.set("draw:" + k, v); for (const [k, v] of Object.entries(j.ink || {})) await KV.set("ink:" + k, v); for (const [k, v] of Object.entries(j.ann || {})) await KV.set("ann:" + k, v); for (const [k, v] of Object.entries(j.db || {})) await KV.set("db:" + k, v); for (const [k, v] of Object.entries(j.blobs || {})) await KV.set("blob:" + k, await (await fetch(v)).blob()); await KV.set("data", D); toast("Backup geladen"); location.reload();
   } catch { toast("Ungültige Backup-Datei"); }
 }
+const KVI = Object.fromEntries(Object.entries({
+  user: '<circle cx="12" cy="8.2" r="3.6"/><path d="M5 20c.6-3.6 3.5-5.5 7-5.5s6.4 1.9 7 5.5"/>',
+  mail: '<rect x="3.5" y="5.5" width="17" height="13" rx="3.5"/><path d="M4.5 8l7.5 5.5L19.5 8"/>',
+  phone: '<path d="M6.5 3.5h3l1.5 4-2 1.3a10 10 0 0 0 4.2 4.2l1.3-2 4 1.5v3a2 2 0 0 1-2.2 2A15 15 0 0 1 4.5 5.7a2 2 0 0 1 2-2.2z"/>',
+  cal: '<rect x="3.5" y="5" width="17" height="15" rx="4"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.4 5.2 3.4 8.5s-1 6.1-3.4 8.5c-2.4-2.4-3.4-5.2-3.4-8.5s1-6.1 3.4-8.5z"/>',
+  pin: '<path d="M12 21s6.5-5.6 6.5-11a6.5 6.5 0 0 0-13 0c0 5.4 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  book: '<path d="M5 4.5h10a3 3 0 0 1 3 3V19.5H8a3 3 0 0 1-3-3z"/><path d="M5 16.5a3 3 0 0 1 3-3h10"/>',
+  cap: '<path d="M2.8 9.5L12 5l9.2 4.5L12 14z"/><path d="M6.5 11.8V16c1.4 1.3 3.2 2 5.5 2s4.1-.7 5.5-2v-4.2"/>',
+  link: '<path d="M10.3 13.7l3.4-3.4"/><path d="M8.6 15.4l-1.2 1.2a3.1 3.1 0 01-4.4-4.4l3.2-3.2a3.1 3.1 0 014.4 0"/><path d="M15.4 8.6l1.2-1.2a3.1 3.1 0 014.4 4.4l-3.2 3.2a3.1 3.1 0 01-4.4 0"/>',
+  star: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/>',
+}).map(([k, v]) => [k, `<svg class="kvi" viewBox="0 0 24 24" aria-hidden="true">${v}</svg>`]));
 V.settings = m => {
   const p = D.profile;
-  m.innerHTML = `<div class="page narrow"><div class="hd"><div><p class="eyebrow">Persönlich</p><h1>Einstellungen</h1></div></div>
-  <div class="panel"><h2>${ic("adduser")}Profil</h2><label class="lbl">Name</label><input class="field" id="sn" value="${esc(p.name)}"><label class="chk" style="display:flex;gap:10px;align-items:center;margin:12px 0 2px;font-size:14px"><input type="checkbox" id="swz" ${swissOn() ? "checked" : ""}> Ich komme aus der Schweiz – Lumi AI schreibt ohne „ß“ (immer „ss“)</label><label class="lbl">Ich bin</label><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div><label class="lbl">Tagesziel (Minuten Lernzeit)</label><input class="field" id="sg" type="number" min="5" max="600" value="${p.goalMin || 45}"><label class="lbl">Notensystem</label><select class="field" id="ss">${Object.entries(SCALES).map(([k, v]) => `<option value="${k}" ${p.scale === k ? "selected" : ""}>${v.n}</option>`).join("")}</select></div>
-  <div class="panel"><h2>${SUBJ()}</h2><div class="subjed">${D.subjects.map(s => `<div class="li"><input type="color" value="${s.color}" data-c="${s.id}"><input class="field slim" value="${esc(s.name)}" data-n="${s.id}"><button class="icon-btn" data-x="${s.id}" aria-label="Löschen">${ic("trash")}</button></div>`).join("")}</div><button class="btn ghost" id="as">${ic("plus")}${isUni() ? "Modul" : "Fach"} hinzufügen</button></div>
-  <div class="panel"><h2>${ic("spark")}Lumi AI</h2>
-  ${serverAI ? `<div class="msstate ok"><b><i class="ldot on"></i>Lumi AI aktiv – ${[serverInfo?.gemini ? "Google Gemini" : "", serverInfo?.groq ? "Groq" : ""].filter(Boolean).join(" + ") || "Server-KI"}</b><span>Läuft serverseitig über Vercel, du musst nichts eintragen.${serverInfo?.groq ? "" : " Für schnelle Auto-Korrektur zusätzlich <code>GROQ_API_KEY</code> in Vercel setzen."}</span></div>` : `<div class="msstate"><b><i class="ldot"></i>Server-KI noch nicht aktiv</b><span>Hinterlege in Vercel die Variable GEMINI_API_KEY und/oder GROQ_API_KEY und deploye neu – oder nutze unten einen eigenen Key.</span></div>`}
+  if (!p.scale) { p.scale = obScaleFor(proCountry()); save(); }
+  m.innerHTML = `<div class="page setpage"><div class="setcrumb"><span>Einstellungen</span><i>/</i><b id="setcrumb">Profil</b><nav class="settabs sdock" role="tablist" aria-label="Einstellungen">${[["gen", "Profil", '<circle cx="12" cy="8.2" r="3.6"/><path d="M5 20c.6-3.6 3.5-5.5 7-5.5s6.4 1.9 7 5.5"/>'], ["ai", "Studix AI", '<path d="M11 3.5l1.9 5.1 5.1 1.9-5.1 1.9L11 17.5l-1.9-5.1L4 10.5l5.1-1.9z"/><path d="M18.5 15.5l.6 1.6 1.6.6-1.6.6-.6 1.6-.6-1.6-1.6-.6 1.6-.6z"/>'], ["acc", "Konto", '<path d="M7.2 18.5a4.6 4.6 0 01-.7-9.1 6 6 0 0111.6 1.2 3.95 3.95 0 01-.6 7.9z"/>'], ["pro", "Pro", '<path d="M4 8.5l4.2 3.6L12 5.5l3.8 6.6L20 8.5l-1.6 9.5H5.6z"/><path d="M6 20.5h12"/>'], ["con", "Verbindungen", '<path d="M10.3 13.7l3.4-3.4"/><path d="M8.6 15.4l-1.2 1.2a3.1 3.1 0 01-4.4-4.4l3.2-3.2a3.1 3.1 0 014.4 0"/><path d="M15.4 8.6l1.2-1.2a3.1 3.1 0 014.4 4.4l-3.2 3.2a3.1 3.1 0 01-4.4 0"/>'], ["dat", "Daten", '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>']].map(([k, n, p]) => `<button type="button" role="tab" data-s="${k}" aria-label="${n}" title="${n}"><span class="sdk-i"><svg viewBox="0 0 24 24">${p}</svg></span><span class="stl">${n}</span></button>`).join("")}<i class="sdk-sep" aria-hidden="true"></i><button class="theme-tg" id="theme-tg" type="button" aria-label="Hell oder dunkel umschalten" title="Hell / Dunkel"><svg class="tg-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="tg-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button></nav></div><div class="setbody">
+  <div class="setsec" data-s="gen">
+  <div class="prof-head"><div class="pgrid" aria-hidden="true">${(() => { let x = 7; return Array.from({ length: 140 }, () => { x = (x * 1103515245 + 12345) & 0x7fffffff; return `<i class="${x % 100 < 24 ? "f" : ""}"></i>`; }).join(""); })()}</div><span class="av-xl" style="background:${meCol()}">${esc((p.name || CLOUD.user?.email || "L").trim()[0].toUpperCase())}</span><div><h1>${esc(p.name || "Dein Name")}${proBadgeHtml()}</h1><p>${esc(CLOUD.user?.email || "Nicht angemeldet")}</p>${proPillHtml()}</div>${CLOUD.user ? `<button class="btn ghost small pf-auth" id="pf-auth" type="button">${ic("x")}Abmelden</button>` : cloudOn() ? `<button class="btn accent small pf-auth" id="pf-auth" type="button">${ic("adduser")}Anmelden</button>` : ""}</div>
+  ${proBannerHtml()}
+  <div class="panel kvcard kv-wide"><h2>${ic("adduser")}Persönliche Angaben<button class="kv-edit" type="button" aria-label="Bearbeiten" title="Bearbeiten">${ic("pen")}</button></h2>
+    <div class="kvg">
+    <div class="kv"><span>${KVI.user}Name</span><input class="field flat" id="sn" value="${esc(p.name)}" placeholder="Dein Name"></div>
+    <div class="kv"><span>${KVI.mail}E-Mail</span><b>${esc(CLOUD.user?.email || "Nicht angemeldet")}</b></div>
+    <div class="kv"><span>${KVI.phone}Telefon</span><input class="field flat" id="sph" type="tel" value="${esc(p.phone || "")}" placeholder="+41 79 123 45 67" autocomplete="tel"></div>
+    <div class="kv"><span>${KVI.cal}Geburtstag<em class="kvreq">Pflicht</em></span><input class="field flat" id="sbd" type="date" required max="${iso()}" value="${esc(p.birthday || "")}"><small class="kvh">Bitte angeben – wird für die Altersangabe (Jugendschutz) benötigt.</small></div>
+    <div class="kv"><span>${KVI.globe}Land / Region</span><div class="kvc"><select class="field flat" id="sc">${countryOptions(proCountry())}</select><small id="sch">${priceHint(proCountry()) ? "Studix Study Pro: " + priceHint(proCountry()) : ""}</small></div></div>
+    <div class="kv"><span>${KVI.pin}Ort</span><input class="field flat" id="sci" value="${esc(p.city || "")}" placeholder="z. B. Zürich"></div>
+    <div class="kv"><span>${KVI.book}${p.level === "uni" ? "Hochschule" : "Schule"}</span><input class="field flat" id="ssc" value="${esc(p.school || "")}" placeholder="${p.level === "uni" ? "z. B. ETH Zürich" : "z. B. Kantonsschule"}"></div>
+    <div class="kv"><span>${KVI.cap}${p.level === "uni" ? "Studiengang" : "Klasse"}</span><input class="field flat" id="scl" value="${esc(p.course || "")}" placeholder="${p.level === "uni" ? "z. B. Biologie, 3. Semester" : "z. B. 3b"}"></div>
+    <div class="kv"><span>${KVI.user}Ich bin</span><div class="seg" id="sl"><button data-l="school" class="${p.level === "school" ? "on" : ""}">Schüler:in</button><button data-l="uni" class="${p.level === "uni" ? "on" : ""}">Student:in</button></div></div>
+    <div class="kv"><span>${KVI.star}Profilfarbe</span><div class="avsw" id="avsw">${CO_COL.map(c => `<button type="button" data-c="${c}" style="background:${c}" class="${meCol() === c ? "on" : ""}" aria-label="Farbe"></button>`).join("")}</div></div>
+    </div>
+  </div>
+  <div class="panel aiuse" id="aiuse" hidden></div>
+  <div class="sthome setfull"><span class="sth-i">${ic("table")}</span><div><b>Startseite</b><small>Blöcke ersetzen, verschieben und in der Größe ändern – mit Vorlagen.</small></div><button class="btn ghost small" id="hed-open" type="button">${ic("pen")}Bearbeiten</button></div>
+  ${CLOUD.user ? `<div class="accbot"><button class="btn ghost" id="set-out" type="button">${ic("logout")}Abmelden</button><button class="btn danger-o" id="set-del" type="button">${ic("trash")}Konto löschen</button></div>` : ""}
+  </div><div class="setsec" data-s="ai">
+  <div class="panel"><h2>${ic("spark")}Studix AI</h2>
+  ${serverAI ? `<div class="msstate ok"><b><i class="ldot on"></i>Studix AI aktiv – ${[serverInfo?.gemini ? "Google Gemini" : "", serverInfo?.groq ? "Groq" : ""].filter(Boolean).join(" + ") || "Server-KI"}</b><span>Läuft serverseitig über Vercel, du musst nichts eintragen.${serverInfo?.groq ? "" : " Für schnelle Auto-Korrektur zusätzlich <code>GROQ_API_KEY</code> in Vercel setzen."}</span></div>` : `<div class="msstate"><b><i class="ldot"></i>Server-KI noch nicht aktiv</b><span>Hinterlege in Vercel die Variable GEMINI_API_KEY und/oder GROQ_API_KEY und deploye neu – oder nutze unten einen eigenen Key.</span></div>`}
   ${serverAI && serverInfo?.gemini ? `<label class="chk" style="display:flex;gap:10px;align-items:center;margin:12px 0 2px;font-size:14px"><input type="checkbox" id="srcs" ${sourcesOn() ? "checked" : ""}> Quellen anzeigen (Google-Suche, verlinkt) – lässt sich im Chat jederzeit ein- und ausschalten</label>` : ""}
-  <div class="acset"><label class="lbl">Automatische Korrektur beim Schreiben</label><div class="seg" id="ac-m"><button data-v="suggest" class="${(p.autoCorrect || "suggest") === "suggest" ? "on" : ""}">Vorschläge</button><button data-v="auto" class="${p.autoCorrect === "auto" ? "on" : ""}">Automatisch</button><button data-v="off" class="${p.autoCorrect === "off" ? "on" : ""}">Aus</button></div>
+  <div class="acset"><label class="lbl">Automatische Korrektur beim Schreiben</label><div class="seg" id="ac-m"><button data-v="suggest" class="${(p.autoCorrect || "suggest") === "suggest" ? "on" : ""}">Unterstreichen</button><button data-v="auto" class="${p.autoCorrect === "auto" ? "on" : ""}">Automatisch</button><button data-v="off" class="${p.autoCorrect === "off" ? "on" : ""}">Aus</button></div>
   ${serverAI ? `<label class="lbl">Modell für die Korrektur</label><select class="field" id="ac-s">${aiModelList().map(([id, n, d, pv]) => `<option value="${id}" ${autoModelId() === id ? "selected" : ""}>${pv} ${n} – ${d}</option>`).join("")}</select><p class="note">Groq-Modelle sind besonders schnell. Dafür in Vercel den Key <code>GROQ_API_KEY</code> setzen (kostenlos auf console.groq.com).</p>` : ""}</div>
-  <details class="msh" ${serverAI ? "" : "open"}><summary>Einrichtung: kostenlose Lumi AI mit Google Gemini</summary><ol>
+  <details class="msh" ${serverAI ? "" : "open"}><summary>Einrichtung: kostenlose Studix AI mit Google Gemini</summary><ol>
     <li>Auf <b>aistudio.google.com/apikey</b> einen API-Key erstellen (kostenloser Tarif).</li>
     <li>In Vercel: Projekt → <b>Settings → Environment Variables</b> → Name <code>GEMINI_API_KEY</code>, Wert = dein Key (Environment: Production).</li>
     <li>Optional <code>GEMINI_MODEL</code> setzen. Standard ist <code>gemini-flash-lite-latest</code> (Google-Alias, fällt bei abgeschalteten Modellen automatisch auf Ersatz zurück) (günstigstes Modell mit kostenlosem Kontingent).</li>
     <li>Danach <b>Deployments → Redeploy</b>. Der Key bleibt auf dem Server und gelangt nie in den Browser.</li></ol></details>
   <details class="msh"><summary>Erweitert: eigenen Anthropic-API-Key nutzen</summary><p class="note">Nur nötig, wenn die Server-KI nicht aktiv ist. Der Key wird nur in diesem Browser gespeichert.</p><label class="lbl">API-Key</label><input class="field" id="sk" type="password" placeholder="sk-ant-…" value="${esc(p.apiKey)}" autocomplete="off"><label class="lbl">Modell</label><input class="field" id="sm" value="${esc(p.model)}"></details></div>
+  </div><div class="setsec" data-s="acc">
   ${cloudPanelHtml()}
-  ${msPanelHtml()}
+  </div><div class="setsec" data-s="pro">${plusPanelHtml()}<aside class="proemb" id="pro-emb">${proEmbIdle()}</aside>
+  </div><div class="setsec" data-s="con">
+  ${applePanelHtml()}
+  </div><div class="setsec" data-s="dat">
   <div class="panel"><h2>Daten</h2><p class="note">Alles liegt lokal auf diesem Gerät (IndexedDB) und funktioniert offline. Erstelle regelmäßig ein Backup – z. B. um auf Handy, iPad und PC dieselben Daten zu nutzen.</p><div class="row"><button class="btn ghost" id="ex">${ic("download")}Backup exportieren</button><button class="btn ghost" id="im">${ic("upload")}Backup importieren</button><input type="file" id="imf" accept="application/json" hidden><button class="btn ghost danger" id="rs">${ic("trash")}Alles löschen</button></div></div>
-  <div class="row end"><button class="btn accent big" id="sv">Speichern</button></div></div>`;
+  </div>
+  <div class="savestat" id="savestat" aria-live="polite"></div></div></div>`;
+  $$(".kv-edit", m).forEach(b => b.onclick = () => { const c = b.closest(".kvcard"), on = c.classList.toggle("editing"); b.classList.toggle("on", on); b.innerHTML = ic(on ? "check" : "pen"); b.title = on ? "Fertig" : "Bearbeiten"; if (on) c.querySelector("input.field,select.field")?.focus(); });
+  $$("#avsw button", m).forEach(b => b.onclick = () => { D.profile.avColor = b.dataset.c; save(); $$("#avsw button", m).forEach(x => x.classList.toggle("on", x === b)); $$(".av-xl,.prof .av", document).forEach(e => e.style.background = b.dataset.c); });
+  $("#set-out", m) && ($("#set-out", m).onclick = () => cloudLogout()); $("#set-del", m) && ($("#set-del", m).onclick = () => accountDeleteModal());
   $$("#sl button", m).forEach(b => b.onclick = () => { $$("#sl button", m).forEach(x => x.classList.toggle("on", x === b)); });
-  $("#as", m).onclick = async () => { await newSubject(); V.settings(m); };
-  $$("[data-x]", m).forEach(b => b.onclick = async () => { if (await confirmBox("Entfernen? Zugeordnete Dokumente bleiben erhalten.", "Entfernen")) { D.subjects = D.subjects.filter(s => s.id !== b.dataset.x); save(); V.settings(m); } });
-  $$("[data-c]", m).forEach(i => i.oninput = () => { subj(i.dataset.c).color = i.value; save(); }); $$("[data-n]", m).forEach(i => i.onchange = () => { subj(i.dataset.n).name = i.value.trim() || subj(i.dataset.n).name; save(); });
   $("#ex", m).onclick = exportAll; $("#im", m).onclick = () => $("#imf", m).click(); $("#imf", m).onchange = e => e.target.files[0] && importAll(e.target.files[0]);
   $("#rs", m).onclick = async () => { if (await confirmBox("Wirklich ALLE Daten löschen? Das kann nicht rückgängig gemacht werden.", "Alles löschen")) { indexedDB.deleteDatabase("lumi"); localStorage.clear(); setTimeout(() => location.hash = "#/", 100); setTimeout(() => location.reload(), 300); } };
-  bindMsPanel(m); cloudBindPanel(m);
+  bindApplePanel(m); cloudBindPanel(m); plusBindPanel(m);
+  const SETN = { gen: "Profil", ai: "Studix AI", acc: "Konto & Cloud", pro: "Studix Study Pro", con: "Verbindungen", dat: "Daten" };
+  const showT = t => { window.__setTab = t; $(".setpage", m).dataset.t = t; $("#setcrumb", m).textContent = SETN[t] || ""; if (t === "pro" && CLOUD.user && typeof plusRefresh === "function") plusRefresh(m, true).then(() => typeof plusAuto === "function" && plusAuto()); $$("#side [data-st]").forEach(b => b.classList.toggle("on", b.dataset.st === t)); $$(".settabs button[data-s]", m).forEach(b => b.classList.toggle("on", b.dataset.s === t)); $$(".setsec", m).forEach(x => x.classList.toggle("on", x.dataset.s === t)); };
+  $$(".settabs button[data-s]", m).forEach(b => b.onclick = () => showT(b.dataset.s)); $("#sc", m)?.addEventListener("change", e => { p.country = e.target.value; p.scale = obScaleFor(p.country); save(); try { proApply(); } catch {} const hh = $("#sch", m); if (hh) hh.textContent = priceHint(p.country) ? "Studix Study Pro: " + priceHint(p.country) : ""; const bn = $(".probanner", m); if (bn) { bn.replaceWith(Object.assign(document.createElement("div"), { innerHTML: proBannerHtml() }).firstElementChild); $("#pro-go", m)?.addEventListener("click", () => showT("pro")); } const pp = $(".propanel", m); if (pp) { pp.replaceWith(Object.assign(document.createElement("div"), { innerHTML: plusPanelHtml() }).firstElementChild); plusBindPanel(m); } toast("Region gespeichert"); });
+  aiuBlockFill(m); if (CLOUD.user) aiuLoad().then(() => aiuBlockFill(m));
+  window.__showSetTab = showT; showT(window.__setTab || "gen"); $("#pro-go", m)?.addEventListener("click", () => showT("pro"));
+  $("#theme-tg", m)?.addEventListener("click", e => themeToggle(e.currentTarget)); $("#pf-auth", m)?.addEventListener("click", () => CLOUD.user ? cloudLogout() : (typeof authScreen === "function" ? authScreen("in") : cloudLoginModal()));
+
   $("#srcs", m)?.addEventListener("change", e => { p.sources = e.target.checked; save(); });
-  $("#swz", m)?.addEventListener("change", e => { p.swiss = e.target.checked; save(); toast(e.target.checked ? "Lumi AI schreibt jetzt mit „ss“ statt „ß“" : "„ß“ ist wieder erlaubt"); });
+  $("#hed-open", m)?.addEventListener("click", () => homeEditor());
   $$("#ac-m button", m).forEach(b => b.onclick = () => { p.autoCorrect = b.dataset.v; save(); $$("#ac-m button", m).forEach(x => x.classList.toggle("on", x === b)); });
   $("#ac-s", m) && ($("#ac-s", m).onchange = e => { p.autoModel = e.target.value; save(); });
-  $("#sv", m).onclick = () => { p.goalMin = Math.max(5, parseInt($("#sg", m).value) || 45); p.name = $("#sn", m).value.trim(); p.level = $("#sl .on", m)?.dataset.l || p.level; p.scale = $("#ss", m).value; p.apiKey = $("#sk", m).value.trim(); p.model = $("#sm", m).value.trim() || "claude-sonnet-5-5"; save(); refreshNav(); toast("Gespeichert"); };
+  /* Automatisch speichern: beim Tippen (verzögert) und beim Ändern – mit kleiner Rückmeldung statt Speichern-Button */
+  let svT = null; const stat = t => { const e = $("#savestat", m); if (!e) return; e.textContent = t; e.classList.toggle("on", !!t); };
+  const commit = () => { p.name = $("#sn", m).value.trim(); [["sph", "phone"], ["sbd", "birthday"], ["sci", "city"], ["ssc", "school"], ["scl", "course"]].forEach(([id, k]) => { const e = $("#" + id, m); if (e) p[k] = e.value.trim(); }); p.level = $("#sl .on", m)?.dataset.l || p.level; p.apiKey = $("#sk", m).value.trim(); p.model = $("#sm", m).value.trim() || "claude-sonnet-5-5"; save(); refreshNav(); stat("Gespeichert ✓"); clearTimeout(svT); svT = setTimeout(() => stat(""), 1800); };
+  const later = () => { stat("Speichert …"); clearTimeout(svT); svT = setTimeout(commit, 600); };
+  ["#sn", "#sk", "#sm", "#sph", "#sci", "#ssc", "#scl"].forEach(id => $(id, m)?.addEventListener("input", later)); ["#sn", "#sk", "#sm", "#sph", "#sbd", "#sci", "#ssc", "#scl"].forEach(id => $(id, m)?.addEventListener("change", () => { clearTimeout(svT); commit(); }));
+  $$("#sl button", m).forEach(b => b.addEventListener("click", () => setTimeout(commit, 0)));
+  LEAVE.push(() => { clearTimeout(svT); });
 };
 
-/* ---------- Microsoft settings panel ---------- */
-function msPanelHtml() {
-  const c = msCfg(), ready = msReady();
-  const services = `<div class="msv">${Object.entries(MS_SVC).map(([k, v]) => `<label><input type="checkbox" data-sv="${k}" ${c.services[k] ? "checked" : ""}> ${v.n}</label>`).join("")}</div><label class="msv" style="margin-top:10px"><label><input type="checkbox" id="mx" ${c.autoExams ? "checked" : ""}> Prüfungen/Tests aus dem Kalender automatisch als Aufgabe eintragen</label></label>`;
-  const setup = `<ol>
-    <li>Öffne <b>portal.azure.com</b> → <b>Microsoft Entra ID</b> → <b>App-Registrierungen</b> → <b>Neue Registrierung</b>.</li>
-    <li>Name „Lumi“, Kontotypen: <i>„Konten in einem beliebigen Organisationsverzeichnis und persönliche Microsoft-Konten“</i>.</li>
-    <li>Umleitungs-URI: Plattform <b>Single-Page-Anwendung (SPA)</b> mit genau diesem Wert: <code id="redir">${esc(msRedirect())}</code> <button class="btn ghost small" id="cprd" type="button">Kopieren</button></li>
-    <li>Die <b>Anwendungs-(Client-)ID</b> kopieren und in der Datei <code>config.js</code> bei <code>msClientId</code> eintragen (oder unten testweise einfügen).</li>
-    <li>Unter <b>API-Berechtigungen → Microsoft Graph → Delegiert</b>: <code>User.Read</code>, <code>Calendars.Read</code>, <code>Notes.Read</code> – optional <code>EduAssignments.Read</code>, <code>EduRoster.ReadBasic</code>, <code>Chat.Read</code>, <code>Team.ReadBasic.All</code>.</li>
-    <li>Blockiert eine Schule/Uni die Zustimmung, muss die IT sie einmal erteilen. Private Microsoft-Konten funktionieren für Kalender und OneNote ohne Admin.</li></ol>`;
-  return `<div class="panel msp"><h2>${msLogoSvg()} Microsoft 365</h2>
-  <p class="note">Mit einem Klick anmelden: Lumi liest – nur lesend – <b>Outlook-Kalender</b>, <b>OneNote</b> und <b>Teams</b>. Prüfungen landen im Planer, OneNote-Notizbücher werden zu Ordnern und Notizen, und Lumi AI kann alles für Antworten, Lernziele, Karteikarten und Quiz nutzen. Daten und Zugriffstoken bleiben in diesem Browser.</p>
-  <div class="msstate ${c.account ? "ok" : ""}">${c.account ? `<b><i class="ldot on"></i>Verbunden als ${esc(c.account)}</b><span>${c.lastSync ? "Letzte Synchronisierung " + fmtAgo(c.lastSync) : "Noch nicht synchronisiert"}</span>` : ready ? `<b><i class="ldot"></i>Nicht verbunden</b><span>Ein Klick genügt – es öffnet sich das normale Microsoft-Login.</span>` : `<b><i class="ldot"></i>Noch nicht eingerichtet</b><span>Einmalig nötig: Client-ID hinterlegen (siehe unten). Danach geht es für alle mit einem Klick.</span>`}</div>
-  <div class="row" style="margin-top:6px">${c.account ? `<button class="btn accent" id="ms-sync">${ic("rot")}Jetzt synchronisieren</button><button class="btn ghost" id="ms-out">${ic("logout")}Abmelden</button>` : `<button class="ms-btn" id="ms-in" ${ready ? "" : "disabled"}>${msLogoSvg()}<span>Mit Microsoft anmelden</span></button>`}</div>
-  <div id="ms-rep">${c.report ? msReportHtml(c.report) : ""}</div>
-  <details class="msh" ${ready ? "" : "open"}><summary>${ready ? "Was wird gelesen?" : "Einmalige Einrichtung (für dich als App-Betreiber:in)"}</summary>${ready ? "" : setup}${services}</details>
-  <details class="msh"><summary>Erweitert: eigene Client-ID / Tenant</summary><label class="lbl">Anwendungs-(Client-)ID</label><input class="field" id="mc" value="${esc(c.clientId || "")}" placeholder="${ready ? "leer lassen = vorkonfigurierte ID" : "z. B. 12345678-abcd-…"}" autocomplete="off"><label class="lbl">Verzeichnis (Tenant)</label><input class="field" id="mt" value="${esc(c.tenant === "common" ? "" : c.tenant)}" placeholder="common"><p class="note" style="margin-top:6px">„common“ funktioniert für Schul-, Uni- und private Konten.</p>${ready ? `<p class="note">Umleitungs-URI in Azure: <code>${esc(msRedirect())}</code></p>` : ""}</details>
-  <p class="note" style="margin-top:12px">Die Anmeldung funktioniert nur über die öffentliche https-Adresse der App, nicht über eine lokal geöffnete Datei.</p></div>`;
+
+/* Platzhalter im Chat-Eingabefeld: tippt nacheinander verschiedene Beispiel-Fragen (nur solange das Feld leer und nicht fokussiert ist) */
+const PH_LIST = ["Frag Studix AI etwas …", "Erkläre mir die Zellatmung …", "Erstelle 10 Karteikarten zu Mathe …", "Fasse mein letztes Dokument zusammen …", "Mach ein Quiz zu meiner nächsten Prüfung …", "Was soll ich heute zuerst lernen? …", "Erstelle einen Lernplan für diese Woche …", "Hilf mir bei dieser Aufgabe …"];
+function phCycle(inp) {
+  if (!inp || inp.dataset.ph) return; inp.dataset.ph = "1"; const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches; let i = 0, tm;
+  const idle = () => document.activeElement !== inp && !inp.value;
+  const step = (txt, n, dir) => {
+    if (!inp.isConnected) return;
+    if (!idle()) { inp.placeholder = PH_LIST[0]; return void (tm = setTimeout(() => step(PH_LIST[i % PH_LIST.length], PH_LIST[i % PH_LIST.length].length, 0), 600)); }
+    if (dir === 1) { n++; inp.placeholder = txt.slice(0, n) + "▏"; if (n < txt.length) tm = setTimeout(() => step(txt, n, 1), 38 + Math.random() * 30); else tm = setTimeout(() => { inp.placeholder = txt; tm = setTimeout(() => step(txt, n, -1), 2300); }, 120); }
+    else if (dir === -1) { n -= 2; inp.placeholder = txt.slice(0, Math.max(0, n)) + "▏"; if (n > 0) tm = setTimeout(() => step(txt, n, -1), 16); else { i++; tm = setTimeout(() => { const nx = PH_LIST[i % PH_LIST.length]; step(nx, 0, 1); }, 260); } }
+    else { tm = setTimeout(() => step(txt, txt.length, -1), 1200); }
+  };
+  if (reduce) { tm = setInterval(() => { if (!inp.isConnected) return clearInterval(tm); if (idle()) inp.placeholder = PH_LIST[++i % PH_LIST.length]; }, 4000); return; }
+  tm = setTimeout(() => step(PH_LIST[0], PH_LIST[0].length, -1), 2500);
 }
-const msReportHtml = r => `<div class="msrep"><b>Ergebnis der letzten Synchronisierung</b><span>${r.events} Termine · ${r.exams} Prüfungen eingetragen · ${r.pages} OneNote-Seiten · ${r.tasks} Teams-Aufgaben · ${r.chats} Chats</span>${(r.errors || []).map(e => `<em>Hinweis: ${esc(e)}</em>`).join("")}</div>`;
-function bindMsPanel(m) {
-  const c = msCfg(), rd = () => { c.clientId = $("#mc", m).value.trim(); c.tenant = $("#mt", m).value.trim() || "common"; c.autoExams = $("#mx", m).checked; $$("[data-sv]", m).forEach(i => c.services[i.dataset.sv] = i.checked); save(); };
-  $$("#mc,#mt,#mx,[data-sv]", m).forEach(i => i.onchange = rd);
-  $("#cprd", m) && ($("#cprd", m).onclick = () => { navigator.clipboard?.writeText(msRedirect()); toast("Umleitungs-URI kopiert"); });
-  const sync = async () => { const b = $("#ms-sync", m) || $("#ms-in", m); if (b) b.disabled = true; toast("Synchronisiere mit Microsoft…"); try { const r = await msSync(); $("#ms-rep", m).innerHTML = msReportHtml(r); toast(r.errors.length ? "Fertig – mit Hinweisen" : `Fertig: ${r.events} Termine, ${r.pages} Seiten, ${r.exams + r.tasks} neue Einträge`); } catch (e) { toast("Sync fehlgeschlagen: " + e.message); } refreshNav(); V.settings(m); };
-  $("#ms-in", m) && ($("#ms-in", m).onclick = async () => { rd(); if (await msQuickLogin()) V.settings(m); });
-  $("#ms-sync", m) && ($("#ms-sync", m).onclick = sync);
-  $("#ms-out", m) && ($("#ms-out", m).onclick = async () => { await msLogout(); toast("Abgemeldet"); V.settings(m); });
+
+/* Aufgabe abhaken – wiederkehrende Aufgaben erzeugen automatisch den nächsten Termin */
+function completeTask(x, done = true) {
+  x.done = done; if (done) { x.progress = 100; x.doneAt = Date.now(); } else { x.doneAt = undefined; }
+  if (done && x.repeat && !x.spawned) {
+    const base = x.due ? parseISO(x.due) : new Date(), step = d => { const n = new Date(d); if (x.repeat === "daily") n.setDate(n.getDate() + 1); else if (x.repeat === "weekly") n.setDate(n.getDate() + 7); else n.setMonth(n.getMonth() + 1); return n; };
+    let nx = step(base), guard = 0; const today = parseISO(iso()); while (nx <= today && guard++ < 400) nx = step(nx);
+    D.tasks.push({ ...x, id: uid(), done: false, progress: 0, doneAt: undefined, spawned: false, due: iso(nx) }); x.spawned = true; toast("Nächste Wiederholung: " + fmtD(iso(nx)));
+  }
+  save(); refreshNav();
 }

@@ -1,0 +1,15 @@
+{
+  "name": "lumi-desktop",
+  "productName": "Lumi",
+  "version": "1.0.0",
+  "description": "Lumi – die Lern-App für Schule und Studium (Desktop-Fenster für Windows)",
+  "main": "main.js",
+  "author": "Lumi",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": { "electron": "45.0.0", "@electron/packager": "20.3.0" },
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-packager . Lumi --platform=win32 --arch=x64 --out=../dist --overwrite --asar --prune=true --app-copyright=\"Lumi\" --win32metadata.CompanyName=Lumi --win32metadata.ProductName=Lumi"
+  }
+}

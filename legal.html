@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rechtliches – Studix</title>
+<link rel="icon" type="image/svg+xml" href="logo-orange.svg"><link rel="icon" type="image/png" sizes="64x64" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<style>
+ .meta{color:#777;font-size:13px;margin:-6px 0 14px}
+ body{background:var(--bg,#f6f5f3);color:#0a0a0a;font:16px/1.6 Inter,system-ui,sans-serif;margin:0}
+ main{max-width:760px;margin:0 auto;padding:40px 20px 80px}
+ nav{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0 28px}
+ nav a{padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--line,#e8e6e2);color:inherit;text-decoration:none;font-weight:600;font-size:14px}
+ nav a.on{background:#0a0a0a;color:#fff}
+ section{display:none;background:#fff;border-radius:24px;padding:28px 30px;border:1px solid var(--line,#e8e6e2)}
+ section.on{display:block}
+ h1{font-size:34px;letter-spacing:-.03em;margin:8px 0 0} h2{font-size:24px;margin:0 0 14px} h3{font-size:17px;margin:22px 0 4px}
+ p,li{color:#333} a{color:#5b3df5}
+ .warn{background:#fff4e5;border:1px solid #ffd59a;border-radius:14px;padding:12px 16px;margin:16px 0;font-size:14px}
+ .back{font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<main>
+<a class="back" href="./" style="display:inline-flex;align-items:center;gap:10px"><img src="logo.png" alt="" width="28" height="28">Zurück zu Studix</a>
+<h1>Rechtliches</h1>
+<nav id="nav"></nav>
+<div class="warn" id="warn" hidden><b>Hinweis für den Betreiber:</b> Die Anbieterangaben fehlen noch. Trage sie in <code>config.js</code> unter <code>legal</code> ein (Name, Anschrift, E-Mail, optional Telefon und MWST-/USt-Nr.). Ohne diese Angaben ist die Seite nicht veröffentlichungsreif. Die Texte ersetzen keine Rechtsberatung.</div>
+
+<section id="impressum"><h2>Impressum</h2>
+<p><b data-f="name"></b><br><span data-f="street"></span><br><span data-f="city"></span><br><span data-f="country"></span></p>
+<p>E-Mail: <a data-mail></a><span data-phone> · Telefon: <span data-f="phone"></span></span></p>
+<p data-vat>Umsatzsteuer-Identifikationsnummer / MWST-Nr.: <span data-f="vatId"></span></p>
+<p>Verantwortlich für den Inhalt: <span data-f="name"></span>, Anschrift wie oben.</p>
+<h3>Zahlungsabwicklung</h3><p>Das kostenpflichtige Abonnement „Studix Study Pro“ wird über <b>Stripe Managed Payments</b> verkauft. Verkäufer und Rechnungssteller ist dabei Stripe („Sold through Link“); Stripe berechnet und führt die Umsatzsteuer ab. Die Angaben des Verkäufers stehen auf deiner Rechnung bzw. Quittung.</p>
+<h3>Danksagung und Lizenzen</h3><p>Der animierte Wechsel zwischen hellem und dunklem Design (Theme Toggler) ist eine Anpassung von <a href="https://magicui.design" target="_blank" rel="noopener">Magic UI</a> (MIT-Lizenz) von Nazam Kalsi, chishiyac und dikshantgulekar20-oss. Eingebunden sind ausserdem die Open-Source-Bibliotheken supabase-js (MIT) und pdf.js (Apache-2.0).</p>
+<h3>Streitbeilegung</h3><p>Die EU-Kommission stellte bis 2025 eine Plattform zur Online-Streitbeilegung bereit; diese wurde eingestellt. Wir sind weder bereit noch verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen. Bei Fragen oder Beschwerden schreibe uns bitte direkt – wir antworten in der Regel innerhalb weniger Werktage.</p></section>
+
+<section id="datenschutz"><h2>Datenschutzerklärung</h2>
+<p class="meta">Stand: <span data-f="privacyDate"></span></p>
+<p>Diese Erklärung beschreibt, welche personenbezogenen Daten bei der Nutzung von Studix verarbeitet werden, wozu, auf welcher Rechtsgrundlage und welche Rechte du hast. Sie gilt nach der EU-Datenschutz-Grundverordnung (DSGVO) und dem Schweizer Datenschutzgesetz (nDSG).</p>
+
+<h3>1. Verantwortlicher</h3>
+<p>Verantwortlich ist der im Impressum genannte Anbieter. Kontakt für alle Datenschutzfragen: <a data-mail></a>.</p>
+
+<h3>2. Grundprinzip: erst einmal nur auf deinem Gerät</h3>
+<p>Studix funktioniert ohne Konto. Notizen, Zeichnungen, Dateien, Karteikarten, Aufgaben, Noten, Prüfungen und Einstellungen werden dann ausschliesslich in deinem Browser (IndexedDB bzw. lokaler Speicher) gespeichert und nicht an uns übertragen. Erst wenn du ein Konto anlegst und dich anmeldest, werden diese Daten synchronisiert (Abschnitt 4). Wenn du die Browserdaten löschst und kein Konto hast, sind die Daten weg – erstelle bei Bedarf über Einstellungen → Daten eine Sicherung.</p>
+
+<h3>3. Hosting und technische Zugriffsdaten (Vercel)</h3>
+<p>Die App und die serverseitigen Funktionen werden bei <b>Vercel Inc.</b> (USA) gehostet; die Funktionen laufen in der Region Frankfurt (EU). Beim Aufruf verarbeitet Vercel technisch notwendige Daten (IP-Adresse, Datum und Uhrzeit, aufgerufene Adresse, Browser- und Geräteangaben) in Server-Logs, um die Seite auszuliefern, Missbrauch abzuwehren und Fehler zu finden. Aus der IP-Adresse leitet Vercel das Land ab; wir verwenden es nur, um dir Währung und Preis passend vorzuschlagen, und speichern es nicht. Rechtsgrundlage: berechtigtes Interesse an einem sicheren und stabilen Betrieb (Art. 6 Abs. 1 lit. f DSGVO).</p>
+
+<h3>4. Konto und Synchronisierung (Supabase)</h3>
+<p>Wenn du dich registrierst, nutzen wir <b>Supabase</b> (Supabase Inc., USA; unser Projekt läuft in der AWS-Region <b>eu-central-1 (Frankfurt am Main, Deutschland)</b>) für die Anmeldung und die Datenhaltung. Datenbank, Anmeldedaten und synchronisierte Inhalte werden dort gespeichert; ein Zugriff auf Daten durch den Anbieter oder dessen Unterauftragnehmer aus Drittländern (z. B. für Support oder Betrieb) ist nicht ausgeschlossen, siehe Abschnitt 11. Verarbeitet werden:</p>
+<ul><li><b>Kontodaten:</b> E-Mail-Adresse, Passwort (nur als Hash, nie im Klartext), Zeitpunkte von Registrierung und Anmeldung, Konto-ID.</li>
+<li><b>App-Daten:</b> alle Inhalte, die du in Studix anlegst (z. B. Notizen, Zeichnungen, Dateien, Karteikarten, Aufgaben, Noten, Chats mit Studix AI, Einstellungen), werden als dein Datensatz in unserer Datenbank gespeichert und zwischen deinen Geräten abgeglichen.</li>
+<li><b>KI-Nutzungszähler:</b> Konto-ID, Anzahl verbrauchter KI-Einheiten und Beginn des aktuellen Zeitfensters, damit das Gratis-Limit eingehalten werden kann (Abschnitt 6).</li></ul>
+<p>Die Zugriffsregeln der Datenbank (Row Level Security) sorgen dafür, dass du nur deine eigenen Daten lesen und ändern kannst. Die Daten werden bei der Übertragung (TLS) und im Ruhezustand durch den Anbieter verschlüsselt; sie sind <b>nicht Ende-zu-Ende-verschlüsselt</b> – der Betreiber hat mit Administratorrechten technisch Zugriff, nutzt diesen aber nur zur Wartung und zur Bearbeitung deiner Anfragen. Zweck und Rechtsgrundlage: Bereitstellung des Kontos und der Synchronisierung (Art. 6 Abs. 1 lit. b DSGVO).</p>
+<p>Wenn du dich abmeldest oder ein anderes Konto verwendest, werden die lokal gespeicherten Daten des vorherigen Kontos nicht mit dem neuen vermischt.</p>
+
+<h3>5. Zusammenarbeit und Freigaben</h3>
+<p>Wenn du ein Dokument zur gemeinsamen Bearbeitung teilst, werden der Inhalt, die Cursor-Position und ein Anzeigename über Supabase Realtime an die Personen übertragen, die den Freigabe-Link kennen. Teile Links nur mit Personen, die den Inhalt sehen dürfen. Die Freigabe kannst du jederzeit beenden.</p>
+
+<h3>6. Studix AI</h3>
+<p>Wenn du Studix AI nutzt, sendet unser Server deine Eingabe, den bisherigen Chatverlauf, ausgewählte Inhalte aus deinen Notizen oder Dateien (sofern du sie anhängst oder die Funktion sie nutzt) und ggf. Bilder an einen KI-Anbieter, um die Antwort zu erzeugen: <b>Google</b> (Gemini; Google LLC, USA) und/oder <b>Groq</b> (Groq, Inc., USA). Bei eingeschalteter Quellensuche kann Google Suchanfragen zu deiner Frage ausführen. Die Anfrage läuft über unseren Server; die Schlüssel zu den Anbietern liegen nur dort. Wir speichern die KI-Anfragen nicht in einem eigenen Protokoll; dein Chatverlauf gehört zu deinen App-Daten (Abschnitt 4). Die Anbieter verarbeiten die Eingaben nach ihren eigenen Bedingungen; Hinweise dazu findest du in deren Datenschutzhinweisen. <b>Bitte gib keine sensiblen Daten oder Daten Dritter (z. B. Gesundheits- oder Zeugnisdaten anderer) in Studix AI ein.</b> Rechtsgrundlage: Vertragserfüllung bzw. deine Entscheidung, die Funktion zu nutzen (Art. 6 Abs. 1 lit. b DSGVO).</p>
+<p><b>Studix Voice (Sprachgespräch):</b> Wenn du Studix Voice nutzt, greift Studix auf das Mikrofon deines Geräts zu, aber nur nach deiner Erlaubnis und nur, solange die Seite offen ist. Die Spracherkennung übernimmt, wenn vorhanden, dein Browser; dabei kann dein Browser-Anbieter (z. B. Google bei Chrome und Edge, Apple bei Safari) die Aufnahme verarbeiten – siehe dessen Datenschutzhinweise. Fehlt diese Funktion (z. B. in Firefox oder in der Windows-App), wird eine kurze Aufnahme über unseren Server an Google (Gemini) zur Umwandlung in Text gesendet und danach nicht gespeichert. Die Antwort wird als Text erzeugt (Abschnitt oben) und direkt in deinem Browser mit der freien Stimme „Thorsten“ (Piper, MIT-Lizenz; Stimmdaten CC0) vorgelesen – dabei verlässt der Text dein Gerät nicht. Beim ersten Start wird das Stimmmodell (ca. 60 MB) von jsDelivr und Hugging Face geladen und in deinem Browser gespeichert; dabei erfahren diese Anbieter deine IP-Adresse. Ist das nicht möglich, liest eine Stimme deines Geräts den Text vor. Wir speichern keine Audioaufnahmen. Der gesprochene Text und die Antworten erscheinen als „Voice-Chat“ in deinem Chatverlauf.</p>
+<p>Optional kannst du in den Einstellungen einen eigenen API-Schlüssel eines KI-Anbieters hinterlegen. Der Schlüssel bleibt in deinem Browser; die Anfragen gehen dann direkt von deinem Browser an den Anbieter, ohne unseren Server.</p>
+<p>Für alle Konten gilt ein Nutzungsbudget pro Woche und pro 5 Stunden (Gratis und Pro). Dafür speichern wir den Verbrauch pro Konto (Abschnitt 4).</p>
+
+<h3>7. Zahlung und Abonnement (Stripe Managed Payments / Link)</h3>
+<p>Das Abonnement „Studix Study Pro“ wird über <b>Stripe Managed Payments</b> verkauft. Stripe (je nach Land Stripe Payments Europe Ltd., Irland, oder ein verbundenes Unternehmen, auch in den USA) tritt als Verkäufer (Merchant of Record) auf, ist für die Zahlungsabwicklung, Umsatzsteuer, Rechnungen, Betrugsprävention und Streitfälle zuständig und verarbeitet deine Zahlungs- und Rechnungsdaten (Name, E-Mail, Rechnungsadresse, Zahlungsmittel, ggf. USt-ID, IP-Adresse, Geräte- und Betrugspräventionsdaten) in eigener Verantwortung. Hinweise: <a href="https://stripe.com/privacy" target="_blank" rel="noopener">stripe.com/privacy</a>. Das Zahlungsformular von Stripe ist in Studix eingebettet; dafür wird <b>Stripe.js</b> von js.stripe.com geladen. Kartendaten gelangen nie auf unsere Server.</p>
+<p>Wir speichern <b>keine</b> Abo- oder Zahlungsdaten in unserer Datenbank. Wenn du die Abo-Seite öffnest, rufen wir Status, Plan, Preis, Laufzeit, Testende, nächste Zahlung, die Kennzeichnung des Zahlungsmittels (Kartenmarke, letzte vier Ziffern, Ablaufdatum) und deine Rechnungen live bei Stripe ab. Damit Stripe dein Abo deinem Studix-Konto zuordnen kann, speichern wir bei Stripe deine Konto-ID und deine E-Mail-Adresse. Rechtsgrundlage: Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) und gesetzliche Aufbewahrungspflichten (lit. c).</p>
+
+<h3>8. Optionale Kalender-Verbindung</h3>
+<ul>
+<li><b>Kalender-Abos (z. B. Apple-Kalender, ICS):</b> Die von dir eingetragene Kalenderadresse wird über unseren Server abgerufen (damit der Browser die Datei lesen kann) und nicht gespeichert; die Termine werden in deinen App-Daten abgelegt. Behandle die Adresse wie ein Passwort.</li></ul>
+
+<h3>9. Von Dritten geladene Programmteile</h3>
+<p>Beim Laden einzelner Funktionen werden Bibliotheken von Content-Delivery-Netzwerken geladen; dabei erhält der Betreiber des Netzwerks technisch bedingt deine IP-Adresse: <b>jsDelivr</b> (Supabase-Bibliothek), <b>cdnjs / Cloudflare</b> (PDF-Anzeige und PDF-Bearbeitung), <b>Stripe</b> (Zahlungsformular) und <b>Google Fonts</b> (Schriftarten, nur im Design-Werkzeug). Rechtsgrundlage: berechtigtes Interesse an einer funktionierenden App (Art. 6 Abs. 1 lit. f DSGVO).</p>
+
+<h3>10. Cookies und lokaler Speicher</h3>
+<p>Studix verwendet keine Werbe- oder Tracking-Cookies und keine Analyse- oder Reichweitenmessung. Gespeichert werden nur technisch notwendige Daten in deinem Browser: Anmelde-Sitzung, die E-Mail-Adresse deines Kontos (für Anmeldung und den Versand von System-E-Mails wie Bestätigung oder Passwort-Zurücksetzen), deine App-Daten (IndexedDB), Einstellungen (z. B. Seitenleiste, Darstellung) und ein Offline-Zwischenspeicher der App. Da diese Daten für den von dir gewünschten Dienst erforderlich sind, ist keine Einwilligung nötig.</p>
+
+<h3>11. Empfänger und Drittlandübermittlung</h3>
+<p>Empfänger sind unsere Auftragsverarbeiter und Dienstleister: Vercel (Hosting), Supabase (Konto und Datenbank), Google und Groq (nur bei Nutzung von Studix AI), Stripe (Zahlung) sowie die in Abschnitt 9 genannten Netzwerke. Mehrere dieser Anbieter sitzen in den USA oder können Daten dort verarbeiten. Die Übermittlung stützt sich auf Angemessenheitsbeschlüsse bzw. das EU-US Data Privacy Framework (sofern der Anbieter zertifiziert ist) oder auf EU-Standardvertragsklauseln. Speicherorte: Konto- und App-Daten liegen bei Supabase in Frankfurt am Main (eu-central-1); die serverseitigen Funktionen laufen bei Vercel in der Region Frankfurt. Bei Nutzung von Studix AI werden die dafür nötigen Inhalte an Google bzw. Groq übertragen, die sie auch ausserhalb der EU verarbeiten können. Wir verkaufen keine Daten und geben sie nicht zu Werbezwecken weiter.</p>
+
+<h3>12. Speicherdauer</h3>
+<p>Kontodaten und App-Daten speichern wir bis zur Löschung deines Kontos. Schreibe uns für die Löschung eine E-Mail von deiner Konto-Adresse an <a data-mail></a>; wir löschen dein Konto samt synchronisierten Daten und die bei uns hinterlegten Zuordnungen. Rechnungs- und Zahlungsdaten bewahrt Stripe als Verkäufer gemäss den gesetzlichen Fristen auf (in der Regel 6 bis 10 Jahre). Serverprotokolle werden von Vercel nach der dort vorgesehenen kurzen Frist automatisch gelöscht.</p>
+
+<h3>13. Deine Rechte</h3>
+<p>Du hast das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung, Datenübertragbarkeit (Export unter Einstellungen → Daten) und Widerspruch gegen Verarbeitungen auf Grundlage berechtigter Interessen. Eine erteilte Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen. Schreibe uns dazu an <a data-mail></a>. Du kannst dich ausserdem bei einer Aufsichtsbehörde beschweren, in der Schweiz beim Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB), in der EU bei der Behörde deines Wohnorts.</p>
+
+<h3>14. Alter</h3>
+<p>Studix richtet sich auch an Schülerinnen und Schüler. Unter 16 Jahren (bzw. dem in deinem Land geltenden Alter) nutze Studix bitte nur mit Zustimmung deiner Erziehungsberechtigten. Das kostenpflichtige Abo können nur volljährige Personen abschliessen.</p>
+
+<h3>15. Datensicherheit und Änderungen</h3>
+<p>Wir schützen die Daten durch verschlüsselte Übertragung, Zugriffsbeschränkungen und die Trennung der Schlüssel vom Browser. Eine absolute Sicherheit gibt es im Internet nicht. Wir passen diese Erklärung an, wenn sich die App oder die Rechtslage ändert; massgeblich ist die jeweils hier veröffentlichte Fassung.</p></section>
+
+<section id="agb"><h2>Allgemeine Geschäftsbedingungen</h2>
+<p class="meta">Stand: <span data-f="privacyDate"></span></p>
+<h3>1. Geltung und Anbieter</h3><p>Diese AGB gelten für die Nutzung von Studix und das kostenpflichtige Abonnement „Studix Study Pro“ des im Impressum genannten Anbieters. Studix mit seinen Grundfunktionen (Notizen, Karteikarten, Planer, Noten, Fokus-Timer) ist kostenlos. Abweichende Bedingungen der Nutzer:innen gelten nicht.</p>
+<h3>2. Konto</h3><p>Für die Synchronisierung brauchst du ein Konto mit gültiger E-Mail-Adresse. Du bist für die Geheimhaltung deines Passworts verantwortlich und gibst richtige Angaben an. Minderjährige nutzen Studix mit Zustimmung ihrer Erziehungsberechtigten; ein Abo können nur Volljährige abschliessen.</p>
+<h3>3. Gratis-Nutzung und Studix AI</h3><p>Studix AI steht mit einem Nutzungsbudget pro Woche und einem zusätzlichen 5-Stunden-Limit zur Verfügung: derzeit 25’000 Token pro Woche (5’000 pro 5 Stunden) im Gratis-Konto und 150’000 Token pro Woche (30’000 pro 5 Stunden) mit Studix Study Pro (die Fenster beginnen mit deiner ersten Anfrage; der Verbrauch ist in der App im Verbrauchsring sichtbar). Verschiedene Modelle verbrauchen das Budget unterschiedlich schnell. Das Budget ist eine unverbindliche Leistung ohne Anspruch auf eine bestimmte Menge oder dauerhafte Verfügbarkeit: Wir können Budget, Modelle und Verfügbarkeit jederzeit anpassen, einschränken oder zeitweise aussetzen, auch bei Studix Study Pro; zwingende gesetzliche Rechte (z. B. Kündigung, anteilige Erstattung bei Minderleistung) bleiben unberührt. Antworten von Studix AI werden automatisch erzeugt, können fehlerhaft sein und ersetzen keine eigene Prüfung, keine Fachberatung und keine Prüfungsleistung.</p>
+<h3>3a. Hinweis zu KI-Antworten</h3><p>Studix AI ist eine künstliche Intelligenz und wird mit Unterstützung von Google Gemini und Groq betrieben. Ihre Antworten können falsch, unvollständig, veraltet, verzerrt oder missverständlich sein und können erfundene Angaben (auch Quellen und Zitate) enthalten. Sie sind keine Rechts-, Steuer-, Medizin-, Finanz- oder sonstige Fachberatung. Prüfe wichtige Inhalte selbst, bevor du dich darauf verlässt, sie abgibst oder danach handelst. Du nutzt die KI-Funktionen auf eigene Verantwortung und bleibst für die Verwendung der Ergebnisse (z. B. in Hausaufgaben, Prüfungen oder Arbeiten) selbst verantwortlich, einschliesslich der Regeln deiner Schule oder Hochschule zu KI-Hilfsmitteln. Wir haften für Inhalte und Ergebnisse der KI nur nach Ziffer 14.</p>
+<h3>4. Studix Study Pro: Leistung</h3><p>Studix Study Pro schaltet die auf der Abo-Seite genannten Funktionen frei, insbesondere Studix AI ohne das Gratis-Budget. Der Funktionsumfang kann weiterentwickelt werden; wesentliche Leistungen werden nicht ohne gleichwertigen Ersatz entfernt.</p>
+<h3>5. Vertragsschluss und Verkäufer</h3><p>Das Abo wird über Stripe Managed Payments verkauft; Stripe ist Verkäufer (Merchant of Record), erhebt die Zahlung, stellt die Rechnung aus und führt die Umsatzsteuer ab. Es gelten ergänzend die Bedingungen von Stripe/Link, die beim Bezahlen angezeigt werden. Der Vertrag kommt mit Abschluss des Bezahlvorgangs zustande; die Pro-Funktionen werden danach freigeschaltet.</p>
+<h3>6. Testversion</h3><p>Neue Abonnent:innen können Studix Study Pro einmal pro Konto 14 Tage kostenlos testen. Kündigst du nicht vor Ablauf der Testversion (in Studix unter Einstellungen → Study Pro), wird nach den 14 Tagen der angezeigte Preis berechnet und das Abo läuft im gewählten Rhythmus weiter. Für den Abschluss der Testversion ist eine Zahlungsmethode nötig.</p>
+<h3>7. Preise und Mehrwertsteuer</h3><p>Es gelten die beim Kauf angezeigten Preise (Monats- oder Jahresabo, in CHF, EUR oder USD je nach Land). Die gesetzliche Umsatzsteuer ist im Preis enthalten und wird auf der Rechnung ausgewiesen. Preisänderungen gelten nur für künftige Zeiträume; wir kündigen sie rechtzeitig vor der nächsten Verlängerung an, und du kannst vorher kündigen.</p>
+<h3>8. Laufzeit und Kündigung</h3><p>Das Abo verlängert sich automatisch um den gewählten Zeitraum (Monat oder Jahr), bis du kündigst. Du kannst jederzeit zum Ende des laufenden Zeitraums kündigen, direkt in Studix unter Einstellungen → Study Pro; die Kündigung wird sofort wirksam, der Zugang bleibt bis zum Ende des bezahlten Zeitraums bestehen. Bis dahin kannst du die Kündigung zurücknehmen. Bereits bezahlte Zeiträume werden ausser im Fall des Widerrufs oder gesetzlicher Ansprüche nicht anteilig erstattet.</p>
+<h3>9. Zahlung</h3><p>Die Zahlung erfolgt über Stripe zum jeweiligen Beginn des Zeitraums. Schlägt eine Zahlung fehl, kann der Zugang zu Pro-Funktionen eingeschränkt werden, bis die Zahlung nachgeholt ist; Stripe kann die Zahlung erneut versuchen.</p>
+<h3>10. Widerruf</h3><p>Verbraucher:innen steht ein Widerrufsrecht nach der Widerrufsbelehrung zu.</p>
+<h3>11. Deine Inhalte und Speicherort</h3><p>Deine Inhalte gehören dir. Synchronisierte Inhalte speichern wir bei unserem Datenbank-Anbieter Supabase in Frankfurt am Main (AWS-Region eu-central-1); weitere Angaben stehen in der Datenschutzerklärung. Du räumst uns nur die Rechte ein, die zum Speichern, Synchronisieren, Anzeigen und – auf deinen Wunsch – zur Verarbeitung durch Studix AI nötig sind. Du versicherst, dass du die Inhalte, die du hochlädst oder teilst, nutzen darfst und keine Rechte Dritter oder Gesetze verletzt. Wir sichern deine Daten nicht garantiert; erstelle bei wichtigen Inhalten eine eigene Sicherung (Einstellungen → Daten).</p>
+<h3>12. Zulässige Nutzung</h3><p>Missbrauch, Angriffe auf den Dienst, das automatisierte Auslesen der KI-Funktionen, das Umgehen von Limits und die Nutzung für rechtswidrige Inhalte sind untersagt. Bei schwerem oder wiederholtem Verstoss dürfen wir das Konto sperren.</p>
+<h3>13. Verfügbarkeit</h3><p>Wir bemühen uns um eine hohe Verfügbarkeit, schulden aber keine ununterbrochene Erreichbarkeit; Wartung und Störungen bei Drittanbietern (z. B. Hosting, KI, Zahlung) sind möglich.</p>
+<h3>14. Haftung</h3><p>Wir haften unbeschränkt bei Vorsatz und grober Fahrlässigkeit, bei Verletzung von Leben, Körper und Gesundheit sowie nach zwingendem Recht (z. B. Produkthaftung). Bei leichter Fahrlässigkeit haften wir nur bei Verletzung wesentlicher Vertragspflichten und begrenzt auf den vorhersehbaren, vertragstypischen Schaden. Soweit gesetzlich zulässig, haften wir nicht für technische Fehler der KI, für die Nichtbereitstellung oder Störung von Servern (auch solchen von Drittanbietern), für die Datensicherung und für Datenverlust; die unbeschränkte und die zwingende Haftung in den vorstehenden Sätzen bleibt unberührt. Für Datenverlust haften wir ausserdem nur, soweit er auch bei regelmässiger Sicherung durch dich nicht vermeidbar gewesen wäre. Für Inhalte und Antworten von Studix AI übernehmen wir keine Gewähr.</p>
+<h3>15. Änderungen</h3><p>Wir dürfen diese AGB mit Wirkung für die Zukunft ändern, wenn dies aus triftigem Grund (z. B. Gesetzesänderung, neue Funktionen) erforderlich und für dich zumutbar ist. Wir informieren dich in der App oder per E-Mail; widersprichst du nicht innerhalb von 30 Tagen, gelten die Änderungen. Auf diese Folge weisen wir bei der Mitteilung hin.</p>
+<h3>16. Schlussbestimmungen</h3><p>Es gilt das Recht des im Impressum genannten Sitzstaates des Anbieters unter Ausschluss des UN-Kaufrechts. Zwingende Verbraucherschutzvorschriften deines Wohnsitzstaates bleiben unberührt, ebenso dein Recht, am Wohnsitz zu klagen. Sollte eine Bestimmung unwirksam sein, bleibt der Rest wirksam.</p></section>
+
+<section id="widerruf"><h2>Widerrufsbelehrung</h2>
+<p class="meta">Stand: <span data-f="privacyDate"></span></p>
+<p>Diese Belehrung gilt für Verbraucher:innen, die „Studix Study Pro“ abonnieren.</p>
+<h3>Widerrufsrecht</h3><p>Du hast das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des Vertragsabschlusses. Bei einer Testversion beginnt die Frist mit dem Start der Testversion. Um dein Widerrufsrecht auszuüben, musst du uns (<span data-f="name"></span>, <span data-f="street"></span>, <span data-f="city"></span>, E-Mail: <a data-mail></a>) mittels einer eindeutigen Erklärung (z. B. per E-Mail) über deinen Entschluss, diesen Vertrag zu widerrufen, informieren. Du kannst dafür das untenstehende Muster-Widerrufsformular verwenden, das jedoch nicht vorgeschrieben ist. Zur Wahrung der Widerrufsfrist reicht es aus, dass du die Mitteilung über die Ausübung des Widerrufsrechts vor Ablauf der Widerrufsfrist absendest. Alternativ kannst du dich an den auf deiner Rechnung genannten Verkäufer (Stripe) wenden.</p>
+<h3>Folgen des Widerrufs</h3><p>Wenn du diesen Vertrag widerrufst, erstatten wir bzw. der Verkäufer dir alle Zahlungen, die wir von dir erhalten haben, unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag, an dem die Mitteilung über deinen Widerruf eingegangen ist. Für die Rückzahlung verwenden wir dasselbe Zahlungsmittel, das du bei der ursprünglichen Transaktion eingesetzt hast; dir werden wegen der Rückzahlung keine Entgelte berechnet. Hast du verlangt, dass die Dienstleistung während der Widerrufsfrist beginnen soll, so hast du uns einen angemessenen Betrag zu zahlen, der dem Anteil der bis zum Widerruf bereits erbrachten Leistungen im Vergleich zum Gesamtumfang entspricht. Während einer kostenlosen Testversion fällt kein Entgelt an.</p>
+<h3>Vorzeitiges Erlöschen des Widerrufsrechts</h3><p>Das Widerrufsrecht erlischt bei einem Vertrag über die Erbringung digitaler Dienstleistungen vorzeitig, wenn wir mit der Ausführung begonnen haben, nachdem du ausdrücklich zugestimmt hast, dass wir vor Ablauf der Widerrufsfrist mit der Ausführung beginnen, und du bestätigt hast, dass du dadurch dein Widerrufsrecht verlierst, sobald die Leistung vollständig erbracht ist. Bei einem laufenden Abo tritt dies erst mit vollständiger Erbringung der Leistung ein, nicht bereits mit Beginn.</p>
+<h3>Hinweis für Kund:innen ausserhalb der EU/des EWR</h3><p>In der Schweiz und in einigen anderen Ländern besteht kein gesetzliches Widerrufsrecht für Online-Verträge. Wir gewähren die oben genannte Frist von vierzehn Tagen dennoch freiwillig auch Verbraucher:innen in diesen Ländern. Zwingende Rechte deines Landes bleiben unberührt.</p>
+<h3>Muster-Widerrufsformular</h3>
+<p>(Wenn du den Vertrag widerrufen willst, fülle dieses Formular aus und sende es zurück.)</p>
+<p>– An <span data-f="name"></span>, <span data-f="street"></span>, <span data-f="city"></span>, E-Mail: <a data-mail></a>:<br>
+– Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen Vertrag über die Erbringung der folgenden Dienstleistung: Studix Study Pro (Abonnement)<br>
+– Bestellt am (*) / erhalten am (*):<br>
+– Name des/der Verbraucher(s):<br>
+– Anschrift des/der Verbraucher(s):<br>
+– E-Mail-Adresse deines Studix-Kontos:<br>
+– Unterschrift des/der Verbraucher(s) (nur bei Mitteilung auf Papier):<br>
+– Datum:<br>
+(*) Unzutreffendes streichen.</p>
+</section>
+</main>
+<script src="config.js"></script>
+<script>
+(function () {
+  const L = window.LUMI_CONFIG.legal || {}, TABS = [["impressum", "Impressum"], ["datenschutz", "Datenschutz"], ["agb", "AGB"], ["widerruf", "Widerruf"]];
+  document.querySelectorAll("[data-f]").forEach(e => e.textContent = L[e.dataset.f] || (e.dataset.f === "privacyDate" ? "27. Oktober 2026" : ["vatId", "phone"].includes(e.dataset.f) ? "" : "[bitte ausfüllen]"));
+  document.querySelectorAll("[data-mail]").forEach(a => { a.textContent = L.email || "[bitte ausfüllen]"; if (L.email) a.href = "mailto:" + L.email; });
+  if (!L.vatId) document.querySelector("[data-vat]").hidden = true;
+  if (!L.phone) document.querySelector("[data-phone]").hidden = true;
+  if (!L.name || !L.email) document.getElementById("warn").hidden = false;
+  const nav = document.getElementById("nav"); nav.innerHTML = TABS.map(t => `<a href="#${t[0]}" data-t="${t[0]}">${t[1]}</a>`).join("");
+  const show = () => { const h = (location.hash || "#impressum").slice(1), id = TABS.some(t => t[0] === h) ? h : "impressum";
+    document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === id)); nav.querySelectorAll("a").forEach(a => a.classList.toggle("on", a.dataset.t === id)); };
+  addEventListener("hashchange", show); show();
+})();
+</script>
+</body>
+</html>

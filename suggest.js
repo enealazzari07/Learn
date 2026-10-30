@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – Änderungsvorschläge direkt im Text (wie „Änderungen nachverfolgen“): durchgestrichen = alt, markiert = neu, ✓ übernehmen · ✕ verwerfen */
+/* Studix – Änderungsvorschläge direkt im Text (wie „Änderungen nachverfolgen“): durchgestrichen = alt, markiert = neu, ✓ übernehmen · ✕ verwerfen */
 const Suggest = (() => {
   let seq = 0;
   const IC_OK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 12.5l4.2 4.2L18.5 7.5"/></svg>', IC_NO = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
@@ -134,7 +134,7 @@ const Suggest = (() => {
     function suggestAt(scope, edits, opt = {}) {
       const caret = opt.avoidCaret ? caretOffset(scope) : -1, c0 = opt.direct ? caretOffset(scope) : -1; let n = 0, shift = 0;
       for (const e of [...edits].sort((x, y) => y.start - x.start)) {
-        if (caret >= 0 && caret >= e.start && caret <= e.end + 1) continue;
+        if (caret >= 0 && caret >= e.start && caret <= e.end + (opt.fast ? 0 : 1)) continue;
         const r = rangeAt(scope, e.start, e.end); if (!r) continue;
         if (opt.direct) { const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); document.execCommand("insertText", false, e.replace); n++; if (c0 >= 0 && e.end <= c0) shift += e.replace.length - (e.end - e.start); }
         else if (suggestRange(r, e.replace, { quiet: true, mini: opt.mini })) n++;

@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi databases – table, board and calendar views over the same rows (AppFlowy/Notion-style, own implementation) */
+/* Studix databases – table, board and calendar views over the same rows (AppFlowy/Notion-style, own implementation) */
 
 const DB_COLORS = ["#e6defe", "#dbeafe", "#d1fae5", "#fef3c7", "#ffe4e6", "#e0f2fe", "#fce7f3", "#ede9fe"];
 const DB_TYPES = { text: "Text", num: "Zahl", date: "Datum", select: "Auswahl", check: "Checkbox" };
@@ -11,6 +11,7 @@ const DB_TPL = {
 };
 
 async function newDatabase(folderId = docFolder, kind) {
+  if (limitHit("doc")) return;
   if (!kind) return menu($("#newbtn") || document.body, [{ label: "Lernplan (Board)", icon: "todo", fn: () => newDatabase(folderId, "plan") }, { label: "Prüfungen & Noten", icon: "award", fn: () => newDatabase(folderId, "exams") }, { label: "Leseliste", icon: "book", fn: () => newDatabase(folderId, "read") }, { label: "Leere Datenbank", icon: "table", fn: () => newDatabase(folderId, "blank") }]);
   const names = { plan: "Lernplan", exams: "Prüfungen", read: "Leseliste", blank: "Neue Datenbank" }, id = uid();
   D.docs.unshift({ id, type: "db", title: names[kind], subjectId: subjectOfFolder(folderId), folderId, updated: Date.now(), created: Date.now(), text: "" });
@@ -75,7 +76,7 @@ async function dbEditor(m, d) {
     const tc = titleCol(), first = (new Date(calY, calM, 1).getDay() + 6) % 7, dim = new Date(calY, calM + 1, 0).getDate(), today = iso();
     let cells = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(w => `<span class="wd">${w}</span>`).join("") + Array(first).fill("<i></i>").join("");
     for (let n = 1; n <= dim; n++) { const ds = `${calY}-${pad(calM + 1)}-${pad(n)}`, rs = data.rows.filter(r => r.v[dc.id] === ds); cells += `<div class="dcell ${ds === today ? "today" : ""}" data-d="${ds}"><b>${n}</b>${rs.slice(0, 3).map(r => `<span class="dev" data-r="${r.id}">${esc(r.v[tc?.id] || "Eintrag")}</span>`).join("")}${rs.length > 3 ? `<small>+${rs.length - 3}</small>` : ""}</div>`; }
-    box.innerHTML = `<div class="dcal"><div class="dcal-h"><button class="icon-btn sm" id="cp" aria-label="Zurück">${ic("back")}</button><h2>${new Date(calY, calM, 1).toLocaleDateString("de-DE", { month: "long", year: "numeric" })}</h2><button class="icon-btn sm nx" id="cn" aria-label="Weiter">${ic("back")}</button></div><div class="dcg">${cells}</div></div>`;
+    box.innerHTML = `<div class="dcal"><div class="dcal-h"><button class="icon-btn sm" id="cp" aria-label="Zurück">${ic("back")}</button><h2>${new Date(calY, calM, 1).toLocaleDateString("de-CH", { month: "long", year: "numeric" })}</h2><button class="icon-btn sm nx" id="cn" aria-label="Weiter">${ic("back")}</button></div><div class="dcg">${cells}</div></div>`;
     $("#cp", box).onclick = () => { if (--calM < 0) { calM = 11; calY--; } draw(); }; $("#cn", box).onclick = () => { if (++calM > 11) { calM = 0; calY++; } draw(); };
     $$(".dev", box).forEach(e => e.onclick = ev => { ev.stopPropagation(); rowModal(data.rows.find(x => x.id === e.dataset.r)); });
     $$(".dcell", box).forEach(c => c.onclick = async () => { const t = (await ask("Neuer Eintrag am " + fmtD(c.dataset.d), { placeholder: "Titel", ok: "Hinzufügen" }))?.trim(); if (!t) return; addRow({ [tc.id]: t, [dc.id]: c.dataset.d }); draw(); });
@@ -90,12 +91,12 @@ async function dbEditor(m, d) {
   $("#grp", m).onclick = e => menu(e.currentTarget, selCols().map(c => ({ label: c.name, icon: data.group === c.id ? "check" : "", fn: () => { data.group = c.id; touch(); draw(); } })));
   const rename = () => { const b = $("#cr", m); if (!b) return; const inp = document.createElement("input"); inp.className = "nb-in"; inp.value = d.title; inp.maxLength = 80; b.replaceWith(inp); inp.focus(); inp.select(); let done = false; const fin = ok => { if (done) return; done = true; if (ok && inp.value.trim()) { d.title = inp.value.trim(); d.updated = Date.now(); save(); } const nb = document.createElement("b"); nb.id = "cr"; nb.textContent = d.title; inp.replaceWith(nb); nb.onclick = rename; }; inp.onblur = () => fin(true); inp.onkeydown = e => { if (e.key === "Enter") inp.blur(); else if (e.key === "Escape") fin(false); }; };
   $("#cr", m).onclick = rename;
-  $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Zeilen mit Lumi AI vorschlagen …", icon: "spark", fn: async () => {
-    if (!hasKey()) return toast("Lumi AI ist noch nicht eingerichtet (Einstellungen → Lumi AI).");
-    const topic = (await ask("Wofür soll Lumi AI Einträge erstellen?", { placeholder: "z. B. Lernplan für die Bio-Klausur in 2 Wochen", ok: "Erstellen" }))?.trim(); if (!topic) return;
-    toast("Lumi AI erstellt Einträge …"); const spec = data.cols.map(c => `"${c.name}" (${DB_TYPES[c.type]}${c.type === "select" ? ": " + (c.opts || []).map(o => o.n).join("/") : c.type === "date" ? ", JJJJ-MM-TT" : ""})`).join(", ");
+  $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Zeilen mit Studix AI vorschlagen …", icon: "spark", fn: async () => {
+    if (!hasKey()) return toast("Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI).");
+    const topic = (await ask("Wofür soll Studix AI Einträge erstellen?", { placeholder: "z. B. Lernplan für die Bio-Klausur in 2 Wochen", ok: "Erstellen" }))?.trim(); if (!topic) return;
+    toast("Studix AI erstellt Einträge …"); const spec = data.cols.map(c => `"${c.name}" (${DB_TYPES[c.type]}${c.type === "select" ? ": " + (c.opts || []).map(o => o.n).join("/") : c.type === "date" ? ", JJJJ-MM-TT" : ""})`).join(", ");
     const r = await ai(`Erzeuge höchstens 8 Zeilen für eine Tabelle zum Thema: ${topic}. Heute ist ${iso()}. Spalten: ${spec}. Antworte NUR mit einem JSON-Array aus Objekten, deren Schlüssel die Spaltennamen sind.`, { system: sysBase(), max: 1200, quiet: true });
-    let arr; try { arr = JSON.parse((r || "").replace(/```(json)?/g, "").trim()); } catch { return toast("Die Lumi-AI-Antwort war nicht lesbar – bitte nochmal versuchen."); }
+    let arr; try { arr = JSON.parse((r || "").replace(/```(json)?/g, "").trim()); } catch { return toast("Die Studix-AI-Antwort war nicht lesbar – bitte nochmal versuchen."); }
     let n = 0; for (const o of (Array.isArray(arr) ? arr : []).slice(0, 8)) { const v = {}; data.cols.forEach(c => { const x = o[c.name]; if (x === undefined || x === null) return; if (c.type === "select") { const s = String(x); c.opts ||= []; if (!opt(c, s)) c.opts.push({ n: s, c: c.opts.length % 8 }); v[c.id] = s; } else if (c.type === "num") v[c.id] = +x || 0; else if (c.type === "check") v[c.id] = !!x; else v[c.id] = String(x); }); data.rows.push({ id: uid(), v }); n++; }
     touch(); draw(); toast(n + " Einträge hinzugefügt"); } }, { label: "Zusammenfassen", icon: "list", fn: () => aiTool("summary", d.title + "\n" + flat(), { title: d.title, subjectId: d.subjectId }) }]);
   $("#mo-m", m).onclick = e => menu(e.currentTarget, [{ label: "Umbenennen", icon: "pen", fn: rename }, { label: "Als CSV exportieren", icon: "download", fn: () => { const q = s => `"${String(s ?? "").replace(/"/g, '""')}"`; dlFile(d.title + ".csv", "text/csv", [data.cols.map(c => q(c.name)).join(";"), ...data.rows.map(r => data.cols.map(c => q(c.type === "check" ? (r.v[c.id] ? "ja" : "nein") : r.v[c.id])).join(";"))].join("\n")); } }, { label: "Zeilen als Aufgaben in den Planer", icon: "cal", fn: () => { const dc = colOf("date"), tc = titleCol(); if (!dc) return toast("Keine Datums-Spalte vorhanden"); let n = 0; data.rows.filter(r => r.v[dc.id] && r.v[tc.id]).forEach(r => { if (!D.tasks.some(t => t.title === r.v[tc.id] && t.due === r.v[dc.id])) { D.tasks.push({ id: uid(), title: r.v[tc.id], type: /pr(ü|ue)fung|klausur|test/i.test(r.v[tc.id]) ? "exam" : "task", due: r.v[dc.id], subjectId: d.subjectId || "", note: "Aus Datenbank „" + d.title + "“", done: false }); n++; } }); save(); toast(n + " Aufgaben übernommen"); } }, "-", { label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); } }, { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); go("docs/" + (d.folderId || "")); } }]);

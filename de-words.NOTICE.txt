@@ -1,0 +1,6 @@
+de-words.txt – Wortliste für die lokale Rechtschreibkorrektur (spell.js)
+
+Zusammengestellt aus
+- Worthäufigkeiten: hermitdave/FrequencyWords (OpenSubtitles 2018, MIT-Lizenz), nach Häufigkeit sortiert
+- Gültigkeitsprüfung der Wortformen mit dem Hunspell-Wörterbuch de_CH (igerman98, Björn Jacke; GPLv2/GPLv3)
+- Schweizer Schreibweise: Formen mit „ß“ wurden zusätzlich als „ss“ aufgenommen

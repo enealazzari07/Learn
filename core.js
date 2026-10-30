@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi – core helpers: DOM, icons, storage (IndexedDB), AI, modals */
+/* Studix – core helpers: DOM, icons, storage (IndexedDB), AI, modals */
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -13,10 +13,14 @@ const pad = n => String(n).padStart(2, "0");
 const iso = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const parseISO = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
 const daysUntil = s => Math.round((parseISO(s) - parseISO(iso())) / 864e5);
-const fmtD = s => parseISO(s).toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+const fmtD = s => parseISO(s).toLocaleDateString("de-CH", { weekday: "short", day: "numeric", month: "short" });
 const fmtAgo = ts => { const m = Math.round((Date.now() - ts) / 6e4); if (m < 1) return "gerade eben"; if (m < 60) return `vor ${m} Min.`; const h = Math.round(m / 60); if (h < 24) return `vor ${h} Std.`; const d = Math.round(h / 24); return d === 1 ? "gestern" : `vor ${d} Tagen`; };
 
 /* ---------- icons ---------- */
+/* Logo als Vektor (Sprite einmal pro Seite, Icons verweisen per <use>) */
+const LOGO_SPRITE = '<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true"><symbol id="lgsym" viewBox="0 0 2000 2000"><g fill="currentColor" stroke="none"><path d="Ebene_2"/><path d="M1408.49,884.08h463.78c36.28,0,65.69-28.93,65.69-64.62V285.26c0-35.69-29.41-64.62-65.69-64.62h-844.77c-36.28,0-65.69,28.93-65.69,64.62v121.23l380.31-3.14c36.49-.3,66.23,28.71,66.24,64.6l.13,416.14Z"/><path d="M1407.19,1351.16l1.3-467.08h-380.99c-36.28,0-65.69-28.93-65.69-64.62v-412.97H448.23c-23.69,0-45.55,12.55-57.2,32.85L70.54,997.72c-5.56,9.7-8.49,20.64-8.49,31.77h0c0,28.67,23.66,51.9,52.8,51.85l554.61-1.01c36.33-.07,65.81,28.89,65.81,64.62v569.79c0,35.69,29.41,64.62,65.69,64.62h0c6.89,0,13.62-2.02,19.33-5.8l557.86-368.95c18.1-11.97,28.98-32,29.04-53.45Z"/></g></symbol></svg>';
+(() => { const put = () => { if (!document.getElementById("lgsym")) document.body.insertAdjacentHTML("afterbegin", LOGO_SPRITE); }; document.body ? put() : document.addEventListener("DOMContentLoaded", put); })();
+
 const P = {
   home: '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
@@ -34,8 +38,8 @@ const P = {
   clip: '<path d="M20.5 11.5l-8.2 8.2a5.2 5.2 0 0 1-7.4-7.4l8.4-8.4a3.5 3.5 0 0 1 5 5l-8.4 8.4a1.8 1.8 0 0 1-2.5-2.5l7.6-7.6"/>',
   gemini: '<path d="M12 2.5c.7 5.6 3.9 8.8 9.5 9.5-5.6.7-8.8 3.9-9.5 9.5-.7-5.6-3.9-8.8-9.5-9.5 5.6-.7 8.8-3.9 9.5-9.5z" fill="currentColor" stroke="none"/>',
   groq: '<path d="M16.5 8.2A6 6 0 1 0 18 12v-1.2h-5.2"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
-  spark: '<image class="ld" href="logo-dark.png" x="0" y="0" width="24" height="24"/>',
-  sparkO: '<g transform="translate(-3.036 -3.150) scale(0.05685)"><path d="M116.9 458.6C94.8 452.5 81.0 434.9 81.0 412.9C81.0 401.6 83.2 396.1 97.0 372.0C103.7 360.2 114.4 341.5 120.7 330.5C127.0 319.5 134.0 308.1 136.1 305.2C160.1 273.3 212.1 273.9 235.1 306.2C237.1 309.2 245.0 322.3 252.5 335.5C268.4 363.4 270.2 365.8 277.8 370.2C282.9 373.1 284.3 373.5 291.5 373.5C305.8 373.5 312.7 368.6 322.6 351.3C325.4 346.5 330.1 338.4 333.0 333.5C344.4 314.0 346.9 309.3 348.1 304.7C351.2 292.4 345.2 277.9 334.3 271.4C329.5 268.5 329.5 268.5 292.5 267.9C267.6 267.5 253.9 266.9 250.5 266.0C222.9 259.0 203.0 233.7 203.0 205.6C203.0 189.5 205.8 182.5 226.5 146.6C229.2 141.8 237.0 128.4 243.7 116.7C258.2 91.4 261.5 86.8 270.0 81.3C296.6 63.7 332.4 76.5 341.6 106.9C346.2 122.4 344.0 133.7 332.5 153.0C316.8 179.2 306.3 197.3 304.4 201.5C298.0 215.2 304.6 234.1 318.0 240.4C322.3 242.4 324.5 242.5 360.0 243.0C397.5 243.6 397.5 243.6 404.9 246.3C431.0 255.8 446.9 277.9 447.0 304.5C447.0 320.2 445.4 325.1 433.1 346.5C427.4 356.4 414.6 378.7 404.7 396.0C379.0 440.9 375.5 445.4 359.8 453.2C327.0 469.7 293.8 457.1 273.0 420.5C246.9 374.4 244.6 371.4 233.6 368.5C227.6 366.9 226.0 366.8 220.6 367.9C208.3 370.4 203.3 375.0 192.3 394.2C188.5 401.0 182.9 410.6 180.0 415.5C177.2 420.4 172.9 427.9 170.6 432.0C159.1 453.0 136.7 464.0 116.9 458.6Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></g>',
+  spark: '<use class="ld" href="#lgsym" x="0" y="0" width="24" height="24"/>',
+  sparkO: '<use class="ld" href="#lgsym" x="0" y="0" width="24" height="24"/>',
   gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',
   plus: '<path d="M12 5v14M5 12h14"/>', x: '<path d="M18 6L6 18M6 6l12 12"/>',
   up: '<path d="M12 19V5M5 12l7-7 7 7"/>', check: '<path d="M5 12l5 5 9-10"/>',
@@ -86,8 +90,7 @@ Object.assign(P, {
   newnote: FILL(FP("M5.18077 4.2724C6.71261 2.58284 9.08849 1.99991 12.2901 1.99991C13.2168 1.99991 14.0716 2.05133 14.8419 2.15685C14.998 2.17822 15.1433 2.24818 15.2574 2.3568L20.9274 7.75681C21.0425 7.86647 21.1198 8.00989 21.1482 8.16636C21.3485 9.27368 21.4401 10.551 21.4401 11.9999C21.4401 15.4997 20.9214 18.0652 19.4078 19.7317C17.8744 21.4199 15.4958 21.9999 12.2901 21.9999C9.08922 21.9999 6.71308 21.4198 5.18099 19.7314C3.66887 18.0651 3.15015 15.4998 3.15015 11.9999C3.15015 8.50471 3.66898 5.93983 5.18077 4.2724ZM6.29202 5.27992C5.18131 6.50499 4.65015 8.5651 4.65015 11.9999C4.65015 15.44 5.18143 17.4998 6.29181 18.7234C7.38222 19.925 9.20107 20.4999 12.2901 20.4999C15.3845 20.4999 17.2059 19.9249 18.2975 18.7231C19.4088 17.4996 19.9401 15.4401 19.9401 11.9999C19.9401 10.7184 19.8651 9.61374 19.7129 8.67156L14.4011 3.61273C13.7702 3.53814 13.0649 3.49991 12.2901 3.49991C9.20181 3.49991 7.38268 4.07698 6.29202 5.27992Z") + FP("M14.1841 2.08261C14.5983 2.08261 14.9341 2.4184 14.9341 2.83261V5.49361C14.9341 6.93711 16.104 8.10661 17.5481 8.10661H20.4991C20.9133 8.10661 21.2491 8.4424 21.2491 8.85661C21.2491 9.27082 20.9133 9.60661 20.4991 9.60661H17.5481C15.2762 9.60661 13.4341 7.76612 13.4341 5.49361V2.83261C13.4341 2.4184 13.7699 2.08261 14.1841 2.08261Z") + FP("M8.91235 12.9805C8.91235 12.5663 9.24814 12.2305 9.66235 12.2305H14.5624C14.9766 12.2305 15.3124 12.5663 15.3124 12.9805C15.3124 13.3947 14.9766 13.7305 14.5624 13.7305H9.66235C9.24814 13.7305 8.91235 13.3947 8.91235 12.9805Z") + FP("M12.1133 9.7807C12.5275 9.7807 12.8633 10.1165 12.8633 10.5307V15.4307C12.8633 15.8449 12.5275 16.1807 12.1133 16.1807C11.6991 16.1807 11.3633 15.8449 11.3633 15.4307V10.5307C11.3633 10.1165 11.6991 9.7807 12.1133 9.7807Z"), .95),
   funnel: NI("M12.0037 21C9.99225 21 9.98372 18.9937 9.98372 15.5995C9.98372 12.2052 3 9.82718 3 6.10082C3 2.95304 5.79029 3.00004 11.9995 3.00004C18.2097 3.00004 21 2.95304 21 6.10082C21 9.82718 14.0173 12.2052 14.0173 15.5995C14.0173 18.9937 14.0141 21 12.0037 21Z"),
   adduser: '<g transform="translate(2 2)"><path d="M7.8766,13.2062 C4.0326,13.2062 0.7496,13.7872 0.7496,16.1152 C0.7496,18.4432 4.0126,19.0452 7.8766,19.0452 C11.7216,19.0452 15.0036,18.4632 15.0036,16.1362 C15.0036,13.8092 11.7416,13.2062 7.8766,13.2062 Z"/><path d="M7.8766,9.8859 C10.3996,9.8859 12.4446,7.8409 12.4446,5.3179 C12.4446,2.7949 10.3996,0.7499 7.8766,0.7499 C5.3546,0.7499 3.30957019,2.7949 3.30957019,5.3179 C3.3006,7.8319 5.3306,9.8769 7.8456,9.8859 L7.8766,9.8859 Z"/><line x1="17.2037" y1="6.6691" x2="17.2037" y2="10.6791"/><line x1="19.2496" y1="8.674" x2="15.1596" y2="8.674"/></g>',
-  cal: NI("M2.74976 12.7756C2.74976 5.81959 5.06876 3.50159 12.0238 3.50159C18.9798 3.50159 21.2988 5.81959 21.2988 12.7756C21.2988 19.7316 18.9798 22.0496 12.0238 22.0496C5.06876 22.0496 2.74976 19.7316 2.74976 12.7756Z") + NI("M3.02515 9.32397H21.0331") + NI("M16.4285 13.261H16.4375") + NI("M12.0291 13.261H12.0381") + NI("M7.62135 13.261H7.63035") + NI("M16.4285 17.1129H16.4375") + NI("M12.0291 17.1129H12.0381") + NI("M7.62135 17.1129H7.63035") + NI("M16.033 2.05005V5.31205") + NI("M8.02466 2.05005V5.31205"),
-  star: NI("M8.54248 9.21765H15.3975") + NI("M11.9702 2.5C5.58324 2.5 4.50424 3.432 4.50424 10.929C4.50424 19.322 4.34724 21.5 5.94324 21.5C7.53824 21.5 10.1432 17.816 11.9702 17.816C13.7972 17.816 16.4022 21.5 17.9972 21.5C19.5932 21.5 19.4362 19.322 19.4362 10.929C19.4362 3.432 18.3572 2.5 11.9702 2.5Z"),
+  cal: '<path fill="#fff" stroke="none" d="M15.8145 4.42146H8.19413C5.55056 4.42146 3.90039 5.89357 3.90039 8.59942V16.7452C3.90039 19.4938 5.55056 21 8.19413 21H15.8067C18.4581 21 20.1004 19.5201 20.1004 16.8133V8.59942C20.1082 5.89357 18.4658 4.42146 15.8145 4.42146Z"/>' + NI("M15.8145 4.42146H8.19413C5.55056 4.42146 3.90039 5.89357 3.90039 8.59942V16.7452C3.90039 19.4938 5.55056 21 8.19413 21H15.8067C18.4581 21 20.1004 19.5201 20.1004 16.8133V8.59942C20.1082 5.89357 18.4658 4.42146 15.8145 4.42146Z") + NI("M3.98401 9.66451H20.0255") + NI("M15.6407 3V5.96174") + NI("M8.37 3V5.96174") + NI("M12.5165 16.3917H16.1516"),  star: NI("M8.54248 9.21765H15.3975") + NI("M11.9702 2.5C5.58324 2.5 4.50424 3.432 4.50424 10.929C4.50424 19.322 4.34724 21.5 5.94324 21.5C7.53824 21.5 10.1432 17.816 11.9702 17.816C13.7972 17.816 16.4022 21.5 17.9972 21.5C19.5932 21.5 19.4362 19.322 19.4362 10.929C19.4362 3.432 18.3572 2.5 11.9702 2.5Z"),
   pen: NI("M13.3352 19.5078H19.7122") + NI("M16.0578 4.85889V4.85889C14.7138 3.85089 12.8078 4.12289 11.7998 5.46589C11.7998 5.46589 6.78679 12.1439 5.04779 14.4609C3.30879 16.7789 4.95379 19.6509 4.95379 19.6509C4.95379 19.6509 8.19779 20.3969 9.91179 18.1119C11.6268 15.8279 16.6638 9.11689 16.6638 9.11689C17.6718 7.77389 17.4008 5.86689 16.0578 4.85889Z") + NI("M10.5042 7.21143L15.3682 10.8624"),
   filter: '<g transform="translate(4 4.5)"><line x1="6.33" y1="12.09" x2="0.03" y2="12.09"/><line x1="9.14" y1="2.4" x2="15.44" y2="2.4"/><path d="M4.72628792,2.34625359 C4.72628792,1.05059752 3.66812728,0 2.36314396,0 C1.05816064,0 0,1.05059752 0,2.34625359 C0,3.64190965 1.05816064,4.69250717 2.36314396,4.69250717 C3.66812728,4.69250717 4.72628792,3.64190965 4.72628792,2.34625359 Z"/><path d="M16,12.0537464 C16,10.7580903 14.942654,9.70749283 13.6376706,9.70749283 C12.3318727,9.70749283 11.2737121,10.7580903 11.2737121,12.0537464 C11.2737121,13.3494025 12.3318727,14.4 13.6376706,14.4 C14.942654,14.4 16,13.3494025 16,12.0537464 Z"/></g>',
   image: NI("M2.75 12.0001C2.75 18.9371 5.063 21.2501 12 21.2501C18.937 21.2501 21.25 18.9371 21.25 12.0001C21.25 5.06312 18.937 2.75012 12 2.75012C5.063 2.75012 2.75 5.06312 2.75 12.0001Z") + NI("M10.5987 8.78419C10.5987 9.75719 9.81066 10.5452 8.83766 10.5452C7.86566 10.5452 7.07666 9.75719 7.07666 8.78419C7.07666 7.81119 7.86566 7.02319 8.83766 7.02319C9.81066 7.02319 10.5987 7.81119 10.5987 8.78419Z") + NI("M21.1201 14.6666C20.2391 13.7606 18.9931 11.9296 16.7041 11.9296C14.4151 11.9296 14.3651 15.9676 12.0291 15.9676C9.69206 15.9676 8.75106 14.5966 7.22806 15.3126C5.70606 16.0276 4.46606 18.8736 4.46606 18.8736"),
@@ -110,7 +113,7 @@ Object.assign(P, {
   up: '<path d="M12 19V5.5M6.2 11.3L12 5.5l5.8 5.8"/>',
   check: '<path d="M5.5 12.6l4.2 4.2 8.8-9.5"/>',
   play: FG('<path d="M8.2 5.8v12.4c0 1.1 1.2 1.7 2.1 1.2l9.2-6.2a1.4 1.4 0 0 0 0-2.4L10.3 4.6C9.4 4 8.2 4.7 8.2 5.8z"/>'),
-  pause: '<rect x="6.5" y="5" width="3.7" height="14" rx="1.85"/><rect x="13.8" y="5" width="3.7" height="14" rx="1.85"/>',
+  pause: '<rect x="6.5" y="5" width="3.7" height="14" rx="1.85" fill="currentColor" stroke="none"/><rect x="13.8" y="5" width="3.7" height="14" rx="1.85" fill="currentColor" stroke="none"/>',
   trash: '<path d="M5.5 7h13M9.5 7V5.7c0-.9.7-1.7 1.7-1.7h1.6c1 0 1.7.8 1.7 1.7V7M7 7l.7 10.8A2.5 2.5 0 0 0 10.2 20h3.6a2.5 2.5 0 0 0 2.5-2.2L17 7M10.3 11v5M13.7 11v5"/>',
   download: '<path d="M12 4.5v11M7.3 11.3l4.7 4.7 4.7-4.7M5.5 19.5h13"/>',
   bold: '<path d="M7.5 5.5h5a3.3 3.3 0 0 1 0 6.6h-5zM7.5 12.1h6a3.2 3.2 0 0 1 0 6.4h-6z"/>',
@@ -154,11 +157,99 @@ Object.assign(P, {
 P.gear = P.filter;
 
 
+/* Ausgefüllte Varianten für aktive Navigationspunkte (schwarz gefüllt, Details ausgespart) */
+const KO = 'style="stroke:var(--ko,#ececf0)"';
+Object.assign(P, {
+  "book-f": '<path fill="currentColor" stroke="currentColor" stroke-linejoin="round" d="M4.5 6.6c2.8-.6 5.2 0 7.5 1.8 2.3-1.8 4.7-2.4 7.5-1.8v11c-2.8-.6-5.2 0-7.5 1.8-2.3-1.8-4.7-2.4-7.5-1.8z"/><path ' + KO + ' d="M12 8.4v11"/>',
+  "award-f": '<circle cx="12" cy="9" r="5.5" fill="currentColor"/><path fill="currentColor" stroke-linejoin="round" d="M8.7 13.3l-1.2 6.7 4.5-2.4 4.5 2.4-1.2-6.7"/>',
+  "timer-f": '<circle cx="12" cy="13.5" r="7.5" fill="currentColor"/><path d="M9.5 3.2h5"/><path ' + KO + ' d="M12 9.8v3.9l2.5 1.6"/>',
+  "search-f": '<circle cx="11" cy="11" r="7" fill="currentColor"/><path d="M16.2 16.2L20.2 20.2"/>',
+  "globe-f": '<circle cx="12" cy="12" r="9" fill="currentColor"/><path ' + KO + ' d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3z"/>',
+  "cal-f": '<path fill="currentColor" d="M15.8145 4.42146H8.19413C5.55056 4.42146 3.90039 5.89357 3.90039 8.59942V16.7452C3.90039 19.4938 5.55056 21 8.19413 21H15.8067C18.4581 21 20.1004 19.5201 20.1004 16.8133V8.59942C20.1082 5.89357 18.4658 4.42146 15.8145 4.42146Z"/><path d="M15.6407 3V5.96174"/><path d="M8.37 3V5.96174"/><path ' + KO + ' d="M3.98401 9.66451H20.0255"/><path ' + KO + ' d="M12.5165 16.3917H16.1516"/>',});
+["link", "download", "adduser"].forEach(n => { if (P[n]) P[n + "-f"] = '<g stroke-width="2.7">' + P[n] + '</g>'; });
+P["sparkO-f"] = P.spark;
+P["mic-f"] = '<rect x="9" y="3.5" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v2.5"/>';
+
+/* Eigene Icons (Lesezeichen für Prüfungen, Einstellungen, Geschenk für „14 Tage gratis“) */
+P.bookmark = '<path d="M7.78 3h8.44C19.17 3 21 5.08 21 8.03v7.95C21 18.92 19.17 21 16.22 21H7.78C4.84 21 3 18.92 3 15.97V8.03C3 5.08 4.84 3 7.78 3z"/><path d="M11.48 3v9.88l2.61-1.44 2.59 1.44-.001-9.82"/>';
+P["bookmark-f"] = '<path fill="currentColor" d="M7.78 3h8.44C19.17 3 21 5.08 21 8.03v7.95C21 18.92 19.17 21 16.22 21H7.78C4.84 21 3 18.92 3 15.97V8.03C3 5.08 4.84 3 7.78 3z"/><path ' + KO + ' d="M11.48 3v9.88l2.61-1.44 2.59 1.44-.001-9.82"/>';
+P.gift = '<g transform="scale(.96)"><path d="M8.53 3.44h8.44c2.95 0 4.78 2.08 4.78 5.03v7.94c0 2.95-1.83 5.03-4.78 5.03H8.53c-2.95 0-4.78-2.08-4.78-5.03V8.46c0-2.94 1.84-5.02 4.78-5.02z"/><path d="M14.25 14.48c0-1.74 1.21-3.15 2.7-3.15.64 0 1.16.52 1.16 1.16 0 1.4-1.73 2.54-3.86 2.54-2.13 0-3.86-1.14-3.86-2.54 0-.64.52-1.16 1.16-1.16 1.49 0 2.7 1.41 2.7 3.15"/><path d="M11.38 18.18l2.87-3.15 2.87 3.15"/><path d="M21.75 15.11h-18M14.25 3.44v18"/></g>';
+P.gear = '<g transform="translate(2 1)" fill="currentColor" stroke="none"><path d="M10.27 1c.72 0 1.41.29 1.91.8.5.52.77 1.22.75 1.94 0 .16.05.35.15.51.16.27.41.46.71.54.3.07.61.03.88-.13 1.28-.73 2.91-.29 3.64.98l.62 1.08c.02.03.04.06.05.09.66 1.25.22 2.83-1.01 3.55-.18.1-.32.25-.42.42-.16.27-.2.59-.12.88.08.3.27.55.54.7.61.35 1.06.94 1.24 1.62.18.68.08 1.41-.27 2.02l-.66 1.11c-.73 1.26-2.36 1.69-3.63.96-.17-.1-.36-.15-.56-.16h-.01c-.29 0-.59.12-.8.34-.22.22-.34.51-.34.82-.01 1.47-1.2 2.66-2.66 2.66H9.01c-1.47 0-2.66-1.19-2.66-2.66 0-.18-.05-.37-.15-.53-.16-.27-.41-.47-.7-.55-.29-.08-.61-.03-.88.12-.63.35-1.37.43-2.04.24-.68-.19-1.26-.65-1.6-1.27L.36 15.99c-.73-1.27-.3-2.89.97-3.62.36-.21.58-.6.58-1.01 0-.41-.23-.8-.58-1.01C.06 9.62-.38 7.99.35 6.72l.68-1.11c.72-1.25 2.35-1.69 3.62-.97.18.1.36.16.55.16.62 0 1.14-.51 1.15-1.15-.01-.7.27-1.37.77-1.87.5-.5 1.17-.78 1.88-.78h1.25zm0 1.5H9.01c-.31 0-.6.12-.82.34-.22.22-.34.51-.33.82-.02 1.46-1.22 2.64-2.66 2.64-.46-.01-.91-.13-1.3-.36-.54-.31-1.26-.12-1.58.43l-.68 1.11c-.31.54-.12 1.25.43 1.57.82.47 1.33 1.36 1.33 2.31 0 .95-.51 1.83-1.33 2.31-.55.32-.74 1.03-.42 1.58l.63 1.09c.16.28.41.48.71.57.29.08.62.05.89-.1.4-.23.86-.35 1.32-.35.23 0 .46.03.68.09.68.18 1.26.63 1.61 1.24.23.38.35.82.35 1.28 0 .65.52 1.17 1.16 1.17h1.25c.64 0 1.16-.52 1.17-1.16 0-.71.27-1.38.78-1.88.5-.5 1.19-.8 1.89-.78.46.01.9.14 1.28.36.56.32 1.27.13 1.59-.42l.66-1.11c.15-.25.19-.57.11-.87-.08-.29-.27-.55-.54-.7-.62-.36-1.06-.93-1.24-1.62-.18-.68-.08-1.41.27-2.02.23-.4.57-.74.97-.97.54-.32.73-1.03.42-1.58-.01-.02-.02-.05-.03-.07l-.59-1.02c-.32-.56-1.03-.75-1.59-.43-.6.36-1.32.46-2 .28-.69-.18-1.26-.61-1.62-1.23-.23-.38-.35-.83-.36-1.28.01-.34-.11-.65-.33-.87-.22-.22-.52-.35-.83-.35z"/><path d="M9.65 7.97c1.87 0 3.39 1.52 3.39 3.39 0 1.87-1.52 3.39-3.39 3.39-1.87 0-3.39-1.52-3.39-3.39 0-1.87 1.52-3.39 3.39-3.39zm0 1.5c-1.04 0-1.89.85-1.89 1.89 0 1.04.85 1.89 1.89 1.89 1.04 0 1.89-.85 1.89-1.89 0-1.04-.85-1.89-1.89-1.89z"/></g>';
+/* Einheitliche, weiche Linien-Icons (24er-Raster, Strichstaerke 1.8, runde Enden, grosse Eckenradien) */
+Object.assign(P, {
+  ext: '<path d="M13.5 5.5h5v5M18.5 5.5L11 13"/><path d="M18.5 14.5v1.8a3.7 3.7 0 0 1-3.7 3.7H7.7A3.7 3.7 0 0 1 4 16.3V9.2a3.7 3.7 0 0 1 3.7-3.7h2"/>',
+  eye: '<path d="M3 12c2-4.1 5.2-6.2 9-6.2s7 2.1 9 6.2c-2 4.1-5.2 6.2-9 6.2S5 16.1 3 12z"/><circle cx="12" cy="12" r="2.8"/>',
+  bulb: '<path d="M9.6 18.4h4.8M10.6 21h2.8"/><path d="M12 3.5a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8v.2h5v-.2c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3.5z"/>',
+  shield: '<path d="M12 3.8l5.8 2a2.4 2.4 0 0 1 1.7 2.3v4c0 4-2.6 6.9-6.8 8.7a1.6 1.6 0 0 1-1.4 0C6.9 19 4.5 16 4.5 12V8.1a2.4 2.4 0 0 1 1.7-2.3z"/>',
+  bolt: '<path d="M13.3 3.9c.5-.6 1.5-.2 1.3.6l-.9 5h3.6c.8 0 1.2.9.7 1.5l-7.4 9c-.5.6-1.5.2-1.3-.6l.9-5H6.6c-.8 0-1.2-.9-.7-1.5z"/>',
+  send: '<path d="M20 4L10.3 13.7"/><path d="M20 4l-5.3 15.2a1 1 0 0 1-1.9.1l-2.4-5.6-5.6-2.4a1 1 0 0 1 .1-1.9z"/>',
+  funnel: '<path d="M5.2 6.8c-.3-.9.3-1.8 1.3-1.8h11c1 0 1.6.9 1.3 1.8a2.2 2.2 0 0 1-.6.9L14 11.9v5.5c0 .6-.3 1.1-.8 1.4l-2 1.1c-.7.4-1.7-.1-1.7-1v-7L5.8 7.7a2.2 2.2 0 0 1-.6-.9z"/>',
+  book: '<path d="M12 7.6C10.4 6.2 8.2 5.6 5.7 6A1.7 1.7 0 0 0 4.3 7.7v8.7c0 1 .9 1.7 1.9 1.5 2.3-.4 4.2.1 5.8 1.6"/><path d="M12 7.6c1.6-1.4 3.8-2 6.3-1.6a1.7 1.7 0 0 1 1.4 1.7v8.7c0 1-.9 1.7-1.9 1.5-2.3-.4-4.2.1-5.8 1.6zM12 7.6v10"/>',
+  "book-f": '<path fill="currentColor" d="M12 7.6C10.4 6.2 8.2 5.6 5.7 6A1.7 1.7 0 0 0 4.3 7.7v8.7c0 1 .9 1.7 1.9 1.5 2.3-.4 4.2.1 5.8 1.6 1.6-1.5 3.5-2 5.8-1.6 1 .2 1.9-.5 1.9-1.5V7.7A1.7 1.7 0 0 0 18.3 6c-2.5-.4-4.7.2-6.3 1.6z"/><path ' + KO + ' d="M12 7.6v10"/>',
+  cursor: '<path d="M6.6 5l11 5.5c.8.4.7 1.5-.2 1.7l-4.6 1.1-1.3 4.6c-.3.9-1.5.9-1.7 0z"/>',
+  flame: '<path d="M12 20.8c3.9 0 6.4-2.5 6.4-6 0-2.3-1.1-3.9-2.4-5.5-.4 1.2-1.2 2-2.3 2.4.2-2.8-.8-5.2-3-7.1-.4 2.9-2.8 4.5-4 7.3-.7 1.5-.6 3.2.2 4.4 1 1.6 2.7 2.5 5.1 2.5z"/>',
+});
+/* Studix-AI-Icon in der Seitenleiste: Umriss (inaktiv) und gefuellt (aktiv) */
+P.sparkO = '<g transform="translate(1.5 .8) scale(.0105)" stroke-width="171" stroke-linejoin="round" stroke-linecap="round"><path d="Ebene_2"/><path d="M1408.48,875.37v8.71h463.78c36.28,0,65.69-28.93,65.69-64.62V285.26c0-35.69-29.41-64.62-65.69-64.62h-844.77c-36.28,0-65.69,28.93-65.69,64.62v121.23l9.64-.08"/><path d="M961.81,406.49H448.23c-23.69,0-45.55,12.55-57.2,32.85L70.54,997.72c-5.56,9.7-8.49,20.64-8.49,31.77h0c0,28.67,23.66,51.9,52.8,51.85l554.61-1.01c36.33-.07,65.81,28.89,65.81,64.62v569.79c0,35.69,29.41,64.62,65.69,64.62h0c6.89,0,13.62-2.02,19.33-5.8l557.86-368.95c18.1-11.97,28.98-32,29.04-53.45l1.3-467.08"/></g>';
+P["sparkO-f"] = '<g transform="translate(1.5 .8) scale(.0105)"><path fill="currentColor" stroke="none" d="Ebene_2"/><path fill="currentColor" stroke="none" d="M1408.49,884.08h463.78c36.28,0,65.69-28.93,65.69-64.62V285.26c0-35.69-29.41-64.62-65.69-64.62h-844.77c-36.28,0-65.69,28.93-65.69,64.62v121.23l380.31-3.14c36.49-.3,66.23,28.71,66.24,64.6l.13,416.14Z"/><path fill="currentColor" stroke="none" d="M1407.19,1351.16l1.3-467.08h-380.99c-36.28,0-65.69-28.93-65.69-64.62v-412.97H448.23c-23.69,0-45.55,12.55-57.2,32.85L70.54,997.72c-5.56,9.7-8.49,20.64-8.49,31.77h0c0,28.67,23.66,51.9,52.8,51.85l554.61-1.01c36.33-.07,65.81,28.89,65.81,64.62v569.79c0,35.69,29.41,64.62,65.69,64.62h0c6.89,0,13.62-2.02,19.33-5.8l557.86-368.95c18.1-11.97,28.98-32,29.04-53.45Z"/></g>';
+P.alert = '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.8v5M12 16.2h.01"/>';
+/* Eigene Zeichnungen statt Fremd-Icons: alle Formen selbst auf dem 24er-Raster gebaut (runde Ecken, Strichstaerke 1.8) */
+(() => {
+  const HOUSE = 'M12 3.4c-.8 0-1.4.2-2 .7L5 8.3C3.9 9.2 3.4 10.3 3.4 11.7v5.5C3.4 19.5 5.1 21 7.4 21h9.2c2.3 0 4-1.5 4-3.8v-5.5c0-1.4-.5-2.5-1.6-3.4l-5-4.2c-.6-.5-1.2-.7-2-.7z'; const HOUSE_OLD = 'M5 10.6c0-.7.3-1.3.8-1.7l5-4.1c.7-.6 1.7-.6 2.4 0l5 4.1c.5.4.8 1 .8 1.7V17a3.2 3.2 0 0 1-3.2 3.2H8.2A3.2 3.2 0 0 1 5 17z';
+  const FOLD = 'M3.6 10.2C3.6 6.4 5.2 4.2 8.2 4.2c1.6 0 2.5.4 3.3 1.4.8 1 1.5 1.7 2.7 1.7h2.1c2.4 0 4.2 1.8 4.2 4.2v5.6c0 2.4-1.8 4.2-4.2 4.2H7.8c-2.4 0-4.2-1.8-4.2-4.2z'; const FOLD_OLD = 'M3.8 8.2a2.8 2.8 0 0 1 2.8-2.8h2.9c.6 0 1.1.2 1.5.6l.7.8c.4.4.9.6 1.5.6h4.2a2.8 2.8 0 0 1 2.8 2.8v6.6a3 3 0 0 1-3 3H6.8a3 3 0 0 1-3-3z';
+  const PAGE = 'M8 3.2h6.2c.6 0 1.1.2 1.5.6l3.7 3.7c.4.4.6.9.6 1.5v8A4 4 0 0 1 16 21H8a4 4 0 0 1-4-4V7.2a4 4 0 0 1 4-4z'; const PAGE_OLD = 'M8 3.8h5.8L19 9v8a3.2 3.2 0 0 1-3.2 3.2H8A3.2 3.2 0 0 1 4.8 17V7A3.2 3.2 0 0 1 8 3.8z';
+  const CAL = '<rect x="3.2" y="5" width="17.6" height="15.8" rx="5"/>';
+  const ticks = Array.from({ length: 8 }, (_, i) => { const a = i * Math.PI / 4, f = r => (12 + r * Math.cos(a)).toFixed(2) + " " + (12 + r * Math.sin(a)).toFixed(2); return `M${f(8.1)}L${f(9.9)}`; }).join("");
+  Object.assign(P, {
+    home: `<path d="${HOUSE}"/><path d="M9.4 16.4h5.2"/>`,
+    "home-f": `<path fill="currentColor" d="${HOUSE}"/><path ${KO} d="M9.4 16.4h5.2"/>`,
+    folder: `<path d="${FOLD}"/><path d="M8.6 14.4h6.8"/>`,
+    "folder-f": `<path fill="currentColor" d="${FOLD}"/><path ${KO} d="M8.6 14.4h6.8"/>`,
+    note: `<path d="${PAGE}"/><path d="M14.4 3.4V7a1.6 1.6 0 0 0 1.6 1.6h3.6M8.2 12.6h4.2M8.2 16h6.4"/>`,
+    "note-f": `<path fill="currentColor" d="${PAGE}"/><path ${KO} d="M14.4 3.4V7a1.6 1.6 0 0 0 1.6 1.6h3.6M8.2 12.6h4.2M8.2 16h6.4"/>`,
+    newnote: `<path d="${PAGE}"/><path d="M14.4 3.4V7a1.6 1.6 0 0 0 1.6 1.6h3.6M12 11.8v5.2M9.4 14.4h5.2"/>`,
+    pen: '<path d="M5 19l.9-3.9L16.4 4.6a2.1 2.1 0 0 1 3 3L8.9 18.1z"/><path d="M14.6 6.4l3 3M12.6 20.4h6.6"/>',
+    edit: '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="5.2"/><path d="M9 15.2l.5-2.3 4.7-4.7a1.5 1.5 0 0 1 2.1 2.1l-4.7 4.7z"/><path d="M13 9.4l1.6 1.6"/>',
+    cal: CAL + '<path d="M3.2 10.2h17.6M8 3.2v3.4M16 3.2v3.4M13 15.4h3"/>',
+    "cal-f": `<rect fill="currentColor" x="3.2" y="5" width="17.6" height="15.8" rx="5"/><path d="M8 3.2v3.4M16 3.2v3.4"/><path ${KO} d="M3.2 10.2h17.6M13 15.4h3"/>`,
+    gear: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+    upload: '<path d="M12 15.4V5.8M8.2 9.4L12 5.6l3.8 3.8M5 14.6v1.7A3.2 3.2 0 0 0 8.2 19.5h7.6a3.2 3.2 0 0 0 3.2-3.2v-1.7"/>',
+    image: '<rect x="3.8" y="3.8" width="16.4" height="16.4" rx="5"/><circle cx="9" cy="9.2" r="1.6"/><path d="M4.4 16.4l4.2-3.7c.7-.6 1.7-.6 2.4 0l2.3 2.1 2-1.7c.6-.5 1.5-.5 2.1 0l2.2 2"/>',
+    adduser: '<circle cx="10" cy="8.4" r="3.4"/><path d="M3.8 19.2c.4-3.2 2.9-5.1 6.2-5.1 1.3 0 2.5.3 3.5.9"/><path d="M18 9.2v5.6M15.2 12h5.6"/>',
+    filter: '<path d="M5 7.5h6.6M16.4 7.5H19M5 16.5h2.6M12.4 16.5H19"/><circle cx="14" cy="7.5" r="2.2"/><circle cx="10" cy="16.5" r="2.2"/>',
+    logout: '<path d="M10 4.6H7.5A3.2 3.2 0 0 0 4.3 7.8v8.4a3.2 3.2 0 0 0 3.2 3.2H10"/><path d="M15 8l4 4-4 4M19 12H9.5"/>',
+    login: '<path d="M14 4.6h2.5a3.2 3.2 0 0 1 3.2 3.2v8.4a3.2 3.2 0 0 1-3.2 3.2H14"/><path d="M9 8l-4 4 4 4M5 12h9.5"/>',
+    gift: '<rect x="4" y="9.2" width="16" height="10.8" rx="3.2"/><path d="M4 12.8h16M12 9.2V20"/><path d="M12 9.2C10.6 9.2 8.4 8.8 8.4 7A1.9 1.9 0 0 1 10.3 5.2c1.4 0 1.7 2.1 1.7 4zM12 9.2c1.4 0 3.6-.4 3.6-2.2a1.9 1.9 0 0 0-1.9-1.8c-1.4 0-1.7 2.1-1.7 4z"/>',
+    globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.4 3.8 5.2 3.8 8.5s-1.2 6.1-3.8 8.5c-2.6-2.4-3.8-5.2-3.8-8.5S9.4 5.9 12 3.5z"/>',
+    clip: '<path d="M18.6 10.4l-7.5 7.5a3.9 3.9 0 0 1-5.5-5.5l7.7-7.7a2.6 2.6 0 0 1 3.7 3.7l-7.6 7.6a1.3 1.3 0 0 1-1.8-1.8l6.9-6.9"/>',
+    more: '<g stroke-width="3.2"><path d="M6 12h.01M12 12h.01M18 12h.01"/></g>',
+    gemini: '<path d="M12 2.5c.7 5.6 3.9 8.8 9.5 9.5-5.6.7-8.8 3.9-9.5 9.5-.7-5.6-3.9-8.8-9.5-9.5 5.6-.7 8.8-3.9 9.5-9.5z" fill="currentColor" stroke="none"/>',
+    groq: '<path d="M16.5 8.2A6 6 0 1 0 18 12v-1.2h-5.2"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/>',
+  });
+  P.file = P.note; P.brush = P.pen;
+  P.bookmark = '<rect x="3" y="3" width="18" height="18" rx="5.6"/><path d="M11.5 3v9.9l2.6-1.5 2.6 1.5V3"/>';
+  P["bookmark-f"] = `<rect fill="currentColor" x="3" y="3" width="18" height="18" rx="5.6"/><path ${KO} d="M11.5 3v9.9l2.6-1.5 2.6 1.5V3"/>`;
+  P.star = P.bookmark;
+  P["adduser-f"] = '<g stroke-width="2.7">' + P.adduser + '</g>';
+})();
+P.log = '<rect x="4" y="3.8" width="16" height="16.4" rx="5"/><path d="M8.4 9h.01M11.6 9h4M8.4 12.4h.01M11.6 12.4h4M8.4 15.8h.01M11.6 15.8h2.4"/>';
+/* Weiche, stark abgerundete Formen fuer die uebrigen Icons */
+Object.assign(P, {
+  award: '<circle cx="12" cy="9" r="5.6"/><path d="M8.7 13.4l-1.2 6.3c-.1.6.5 1 1 .7l2.9-1.8c.4-.2.8-.2 1.2 0l2.9 1.8c.5.3 1.1-.1 1-.7l-1.2-6.3"/>',
+  shield: '<path d="M12 3.6c-.5 0-1 .1-1.5.3L6.2 5.6C5 6 4.3 7.1 4.3 8.3v3.7c0 3.6 2.4 6.5 6.4 8.4.9.4 1.7.4 2.6 0 4-1.9 6.4-4.8 6.4-8.4V8.3c0-1.2-.7-2.3-1.9-2.7l-4.3-1.7c-.5-.2-1-.3-1.5-.3z"/>',
+  trash: '<path d="M5.5 7h13M9.4 7V5.8C9.4 4.8 10.2 4 11.2 4h1.6c1 0 1.8.8 1.8 1.8V7M7.2 7l.6 10.6a2.8 2.8 0 0 0 2.8 2.6h2.8a2.8 2.8 0 0 0 2.8-2.6L16.8 7M10.4 11v5M13.6 11v5"/>',
+  funnel: '<path d="M5.6 7c-.4-1 .3-2 1.4-2h10c1.1 0 1.8 1 1.4 2-.1.4-.4.7-.7 1L14 12v5.4c0 .7-.4 1.3-1 1.6l-1.8 1c-.8.4-1.8-.1-1.8-1.1V12L6.3 8c-.3-.3-.6-.6-.7-1z"/>',
+  cursor: '<path d="M6.4 5.2l11.2 5.4c1 .5.9 1.8-.2 2.1l-4.5 1.1-1.2 4.6c-.3 1.1-1.7 1.2-2.1.2z"/>',
+  ext: '<path d="M13.5 5.5h5v5M18.5 5.5L11 13"/><path d="M18.5 14.5v1.8a3.8 3.8 0 0 1-3.8 3.8H7.8A3.8 3.8 0 0 1 4 16.3V9.2a3.8 3.8 0 0 1 3.8-3.7h2"/>',
+  bolt: '<path d="M13.4 3.8c.6-.7 1.7-.1 1.5.8l-.8 4.6h3.5c.9 0 1.4 1 .8 1.7l-7.4 8.9c-.6.7-1.7.1-1.5-.8l.8-4.6H6.8c-.9 0-1.4-1-.8-1.7z"/>',
+  eye: '<path d="M3 12c1.9-4 5.1-6.1 9-6.1s7.1 2.1 9 6.1c-1.9 4-5.1 6.1-9 6.1S4.9 16 3 12z"/><circle cx="12" cy="12" r="2.9"/>',
+});
+const icOn = n => P[n + "-f"] ? n + "-f" : n;
 const ic = (n, c = "ic") => `<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${P[n] || ""}</svg>`;
 
 /* ---------- toast & modal ---------- */
 let _tt;
-function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove("on"), 2800); }
+function toast(m) { if (/^(ab|an)gemeldet\b/i.test(String(m).trim())) return; const t = $("#toast"); t.textContent = m; t.classList.add("on"); clearTimeout(_tt); _tt = setTimeout(() => t.classList.remove("on"), 2800); }
 function modal(html, cls = "") {
   const m = document.createElement("div"); m.className = "mask";
   m.innerHTML = `<div class="st-modal ${cls}" role="dialog" aria-modal="true"><button class="x" aria-label="Schließen">${ic("x")}</button>${html}</div>`;
@@ -195,35 +286,76 @@ function menu(anchor, items) {
 }
 
 /* ---------- storage ---------- */
+/* App-Vorschau auf der Startseite (?embed=1): eigene Demo-Daten nur im Arbeitsspeicher – nie das Konto, nie echte Daten, nie eine E-Mail-Adresse */
+const EMBED_MODE = /[?&]embed=1/.test(location.search);
 const KV = {
-  db: null, tried: false,
+  db: null, tried: false, mem: new Map(),
   async open() {
     if (this.db || this.tried) return this.db; this.tried = true;
     try { this.db = await new Promise((res, rej) => { const r = indexedDB.open("lumi", 1); r.onupgradeneeded = () => r.result.createObjectStore("kv"); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } catch { this.db = null; }
     return this.db;
   },
   async get(k) {
+    if (EMBED_MODE) return this.mem.get(k);
     const db = await this.open();
     if (!db) { try { return JSON.parse(localStorage.getItem("lumi:" + k)); } catch { return undefined; } }
     return new Promise(res => { const r = db.transaction("kv").objectStore("kv").get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(undefined); });
   },
   async set(k, v) {
+    if (EMBED_MODE) { this.mem.set(k, v); return; }
     const db = await this.open();
     if (!db) { try { localStorage.setItem("lumi:" + k, JSON.stringify(v)); } catch { toast("Speicher voll oder gesperrt"); } return; }
     return new Promise(res => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = () => res(); t.onerror = () => { toast("Speichern fehlgeschlagen"); res(); }; });
   },
   async del(k) {
+    if (EMBED_MODE) { this.mem.delete(k); return; }
     const db = await this.open(); if (!db) { try { localStorage.removeItem("lumi:" + k); } catch {} return; }
     return new Promise(res => { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").delete(k); t.oncomplete = () => res(); t.onerror = () => res(); });
   },
 };
-const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "de", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], folders: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
+const DEFAULT = () => ({ v: 1, profile: { name: "", level: "school", scale: "ch", apiKey: "", model: "claude-sonnet-5-5", onboarded: false }, subjects: [], folders: [], docs: [], tasks: [], tt: [], decks: [], grades: [], stats: { days: {}, reviews: {} }, chat: [], quizzes: [] });
 let D = DEFAULT();
+/* Demo-Daten für die Vorschau (Fächer, Dokumente, Aufgaben, Stundenplan, Karteikarten, Noten) */
+function demoData() {
+  const d = DEFAULT(), now = Date.now(), day = 864e5, at = n => iso(new Date(now + n * day)), wd = (new Date().getDay() + 6) % 7;
+  const S = [["s1", "Mathe", "#2563eb"], ["s2", "Biologie", "#0e9f6e"], ["s3", "Englisch", "#ff6a3d"]];
+  d.profile = Object.assign(d.profile, { name: "Alex", onboarded: true, level: "school", scale: "ch" });
+  d.subjects = S.map(([id, name, color]) => ({ id, name, color }));
+  d.folders = S.map(([id, name, color]) => ({ id: "f" + id, name, parent: "", color, subjectId: id })); d.foldersInit = true;
+  const note = (id, title, sid, text, ago, extra = {}) => ({ id, type: "note", title, subjectId: sid, folderId: "f" + sid, paper: "white", updated: now - ago * 36e5, created: now - ago * 36e5 - day, text, ...extra });
+  d.docs = [
+    note("d1", "Zellatmung einfach erklärt", "s2", "In den Mitochondrien wird Glukose mit Sauerstoff zu Kohlenstoffdioxid und Wasser abgebaut. Dabei entsteht ATP als Energieträger der Zelle.", 2, { pinned: true }),
+    note("d2", "Satz des Pythagoras", "s1", "a² + b² = c² – in jedem rechtwinkligen Dreieck gilt: Die Summe der Kathetenquadrate ist das Hypotenusenquadrat.", 5),
+    note("d3", "Ableitungen – Übersicht", "s1", "Potenzregel, Produktregel, Kettenregel und typische Beispiele zum Üben.", 26),
+    note("d4", "Referat Klimawandel", "s2", "Gliederung, Quellen und Stichpunkte für das Referat am Freitag.", 30),
+    note("d5", "Unit 4 – Vocabulary", "s3", "Wichtige Wörter und Wendungen zum Thema „Travelling“.", 50),
+  ];
+  d.docs.forEach(x => { if (x.type === "note") KV.mem.set("html:" + x.id, `<h1>${x.title}</h1><p>${x.text}</p>`); });
+  d.tasks = [
+    { id: "t1", title: "Aufgaben S. 54 Nr. 3–7", type: "hw", due: at(1), subjectId: "s1", note: "", done: false },
+    { id: "t2", title: "Referat Zellatmung vorbereiten", type: "task", due: at(0), subjectId: "s2", note: "", done: false },
+    { id: "t3", title: "Vokabeln Unit 4 lernen", type: "task", due: at(0), subjectId: "s3", note: "", done: true },
+    { id: "t4", title: "Mathe-Klausur", type: "exam", due: at(6), subjectId: "s1", note: "Kapitel 3–5", done: false },
+  ];
+  const lesson = (day, start, end, sid, room) => ({ id: "l" + day + start, day, start, end, subjectId: sid, title: S.find(x => x[0] === sid)[1], room });
+  d.tt = [0, 1, 2, 3, 4].flatMap(k => [lesson(k, "08:00", "08:45", ["s1", "s2", "s3", "s1", "s2"][k], "A" + (10 + k)), lesson(k, "09:00", "09:45", ["s3", "s1", "s2", "s3", "s1"][k], "B" + (20 + k))]);
+  d.decks = [
+    { id: "k1", title: "Zellatmung", subjectId: "s2", cards: [["Wo findet die Zellatmung statt?", "In den Mitochondrien"], ["Was ist ATP?", "Der Energieträger der Zelle"], ["Edukte der Zellatmung?", "Glukose und Sauerstoff"], ["Produkte der Zellatmung?", "CO₂, Wasser und Energie"], ["Wie heisst die Gärung ohne Sauerstoff?", "Anaerobe Gärung"], ["Wo entsteht die meiste ATP?", "In der Atmungskette"]].map(([q, a], i) => ({ id: "c" + i, q, a, box: i % 3, due: i < 4 ? at(0) : at(2) })) },
+    { id: "k2", title: "Vocabulary Unit 4", subjectId: "s3", cards: [["die Reise", "journey"], ["das Gepäck", "luggage"], ["die Verspätung", "delay"], ["buchen", "to book"]].map(([q, a], i) => ({ id: "v" + i, q, a, box: 1, due: at(i < 2 ? 0 : 3) })) },
+  ];
+  d.grades = [["s1", "Klausur Funktionen", 5.5, 2, -12], ["s1", "Test Geometrie", 4.5, 1, -30], ["s2", "Test Zelle", 5, 1, -9], ["s3", "Vokabeltest 3", 5.5, 1, -5], ["s3", "Mündlich", 5, 1, -20]].map(([sid, title, value, weight, n], i) => ({ id: "g" + i, subjectId: sid, title, value, weight, date: at(n) }));
+  d.stats = { days: { [at(0)]: 28, [at(-1)]: 45, [at(-2)]: 50, [at(-3)]: 35, [at(-4)]: 40, [at(-5)]: 20, [at(-6)]: 45 }, reviews: {} };
+  return d;
+}
+
 let _st;
 function save() { clearTimeout(_st); _st = setTimeout(() => KV.set("data", D), 250); }
 async function loadData() {
+  if (EMBED_MODE) { D = demoData(); return; }
   const d = (await KV.get("data")) || {}; const base = DEFAULT();
   D = Object.assign(base, d); D.profile = Object.assign(base.profile, d.profile || {}); D.stats = Object.assign(base.stats, d.stats || {});
+  /* Fächer behalten ihre Farbe; wer durch die kurze Neutral-Phase schwarz wurde, bekommt wieder eine Farbe */
+  (D.subjects || []).forEach((s, i) => { if (!s.color || s.color === "#0f0f12") s.color = COLORS[i % COLORS.length]; }); (D.folders || []).forEach(f => { const sj = f.subjectId && (D.subjects || []).find(x => x.id === f.subjectId); if (sj && (!f.color || f.color === "#0f0f12")) f.color = sj.color; });
 }
 addEventListener("pagehide", () => KV.set("data", D));
 const blobToDataURL = b => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); });
@@ -234,38 +366,52 @@ const SUBJ = () => isUni() ? "Module" : "Fächer";
 
 /* ---------- AI ---------- */
 let serverAI = false, serverInfo = null;
-async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; } catch {} }
+/* Studix-AI-Budget pro Woche (Server liefert die echten Werte über GET /api/ai) */
+const AIQ = { free: 25000, pro: 150000, freeS: 5000, proS: 30000, hours: 168 };
+/* Weitere Gratis-Limits (gelten nur, solange man Pro kaufen kann): Dokumente, Whiteboards. Bild-Analyse und Sprache sind serverseitig nur für Pro. */
+const FREE_LIMITS = { docs: 100, boards: 10 };
+const freePlan = () => { try { return !!(BILL.cfg && BILL.cfg.enabled) && !isPlus(); } catch { return false; } };
+function limitHit(kind) {
+  if (!freePlan()) return false;
+  const boards = D.docs.filter(d => d.type === "draw").length, docs = D.docs.length - boards;
+  const hit = kind === "board" ? boards >= FREE_LIMITS.boards : docs >= FREE_LIMITS.docs;
+  if (hit && typeof proUpsell === "function") proUpsell(kind === "board" ? `Im Gratis-Konto kannst du bis zu ${FREE_LIMITS.boards} Whiteboards anlegen.` : `Im Gratis-Konto kannst du bis zu ${FREE_LIMITS.docs} Dokumente anlegen.`);
+  return hit;
+}
+async function probeServerAI() { if (!/^https?:/.test(location.protocol)) return; try { const r = await fetch("/api/ai", { cache: "no-store" }); if (!r.ok) return; const j = await r.json(); serverInfo = j; serverAI = !!j.configured; if (j.freeTokens) AIQ.free = j.freeTokens; if (j.proTokens) AIQ.pro = j.proTokens; if (j.freeSession) AIQ.freeS = j.freeSession; if (j.proSession) AIQ.proS = j.proSession; } catch {} }
 const hasKey = () => serverAI || !!D.profile.apiKey;
 function sysBase(extra = "") {
   const p = D.profile;
-  return `You are Lumi, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural." : ""}${extra ? "\n" + extra : ""}`;
+  return `You are Studix, a friendly, precise study assistant for a ${p.level === "uni" ? "university student" : "school student"}${p.name ? ` called ${p.name}` : ""}. Reply in German unless the user writes in another language. Be accurate and concise. For homework, guide with hints and steps first; give the final answer only if asked. Use plain text; simple "-" lists are fine, no markdown tables or headings with #.${swissOn() ? " The user is from Switzerland: write Swiss Standard German – NEVER use the letter ß, always write \"ss\" (e.g. \"Strasse\", \"gross\", \"dass\", \"Fuss\") – and prefer Swiss vocabulary (e.g. Velo, Znüni, Matura) where natural. Use the Swiss school context: grades 1–6 (6 = best, 4 = pass), Swiss school types and Swiss dates (TT.MM.JJJJ), currency CHF." : ""}${extra ? "\n" + extra : ""}`;
 }
 const sourcesOn = () => D.profile.sources !== false && !!(serverInfo && serverInfo.gemini);
-const swissOn = () => D.profile.swiss !== false;
+const swissOn = () => true;   // Studix ist für die Schweiz gemacht
 const swissFix = t => swissOn() && typeof t === "string" ? t.replace(/ß/g, "ss").replace(/ẞ/g, "SS") : t;
 async function ai(prompt, opts) { return swissFix(await aiCore(prompt, opts)); }
 const AI_MODELS = [
-  ["gemini-flash-lite-latest", "Flash Lite", "Standard · 500 Anfragen pro Tag", "Gemini"], ["gemini-flash-latest", "Flash", "Besser · nur ca. 20 pro Tag", "Gemini"], ["gemini-2.5-flash-lite", "2.5 Flash Lite", "Reserve · ca. 20 pro Tag", "Gemini"],
-  ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B", "Groq"]];
+  ["gemini-flash-lite-latest", "Flash Lite", "Standard · 500 pro Tag", "Gemini"], ["gemini-flash-latest", "Flash", "Besser · ca. 20 pro Tag", "Gemini"], ["gemini-2.5-flash-lite", "2.5 Flash Lite", "Reserve · ca. 20 pro Tag", "Gemini"],
+  ["groq:llama-3.1-8b-instant", "Llama 8B", "Extrem schnell · zählt 0,5×", "Groq"], ["groq:llama-3.3-70b-versatile", "Llama 70B", "Schnell und klug · zählt 0,5×", "Groq"], ["groq:openai/gpt-oss-120b", "GPT-OSS", "Gründlich · 120B · zählt 0,5×", "Groq"]];
 const AI_PROV = { Gemini: "Google Gemini", Groq: "Groq" };
 const aiModelProv = id => (AI_MODELS.find(m => m[0] === id) || [])[3] || "Gemini";
-const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; return ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !m[0].startsWith("groq:")); };
-const aiModelId = () => { const L = aiModelList(); return (L.find(m => m[0] === D.profile.aiModel) || L[0] || AI_MODELS[0])[0]; };
+const aiModelList = () => { const ids = serverInfo && Array.isArray(serverInfo.models) && serverInfo.models.length ? serverInfo.models : null; let L = ids ? AI_MODELS.filter(m => ids.includes(m[0])) : AI_MODELS.filter(m => !m[0].startsWith("groq:")); return L; };
+/* Standard ist das erste Modell der Liste (Flash Lite); gespeicherte, nicht mehr vorhandene Modelle (z. B. Pro) fallen darauf zurück */
+const aiModelId = () => { const L = aiModelList(), mine = L.find(m => m[0] === D.profile.aiModel); return (mine || L[0] || AI_MODELS[0])[0]; };
 const aiModelName = id => (AI_MODELS.find(m => m[0] === id) || [id, id])[1];
 /* schnelles Modell für Hintergrundaufgaben (Auto-Korrektur): bevorzugt Groq */
 const autoModelId = () => { const L = aiModelList(), pick = D.profile.autoModel && L.find(m => m[0] === D.profile.autoModel); return (pick || L.find(m => m[0] === "groq:llama-3.1-8b-instant") || L.find(m => m[0] === "gemini-flash-lite-latest") || L[0] || AI_MODELS[0])[0]; };
-async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature, sources = false } = {}) {
-  window.lastAiSources = [];
-  if (!hasKey()) { if (!quiet) toast("Lumi AI ist noch nicht eingerichtet (Einstellungen → Lumi AI). Lokale Hilfe wird verwendet."); return null; }
+async function aiCore(prompt, { system = "", history = [], max = 1500, image = null, quiet = false, model = "", temperature, sources = false, bg = false } = {}) {
+  window.lastAiSources = []; window.lastAiIssue = null;
+  if (!hasKey()) { if (!quiet) toast("Studix AI ist noch nicht eingerichtet (Einstellungen → Studix AI). Lokale Hilfe wird verwendet."); return null; }
   if (serverAI) {
     try {
-      const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
+      const r = await fetch("/api/ai", { method: "POST", headers: { "content-type": "application/json", ...(await authHeader()) }, body: JSON.stringify({ ...(bg ? { bg: true } : {}), system: system || sysBase(), messages: [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content: prompt }], max, model: model || aiModelId(), ...(typeof temperature === "number" ? { temperature } : {}), ...(sources ? { sources: true } : {}), image: image ? { data: image.data, type: image.type || "image/jpeg" } : null }) });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(r.status === 429 ? "Das kostenlose Lumi-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || r.status));
-      if (j.model && j.model !== (model || aiModelId()) && !quiet) toast(`${aiModelName(model || aiModelId())} ist gerade ausgelastet – ${aiModelName(j.model)} hat geantwortet.`);
+      if (j.usage && typeof aiuSet === "function") aiuSet(j.usage);
+      if (r.status === 402 && j.pro) { window.lastAiIssue = { kind: "pro", title: "Study Pro nötig", text: j.error || "Diese Funktion gehört zu Study Pro." }; if (!quiet && typeof proUpsell === "function") proUpsell(j.error); return null; }
+      if (!r.ok) { const msg = r.status === 429 && !j.limit ? "Das kostenlose Studix-AI-Limit ist gerade erreicht – bitte in einer Minute noch einmal versuchen." : (j.error || String(r.status)); window.lastAiIssue = r.status === 429 ? { kind: "limit", title: j.limit ? "Limit erreicht" : "Gerade viel los", text: msg } : { kind: "error", title: "Studix AI konnte nicht antworten", text: msg }; throw new Error(msg); }
       window.lastAiSources = Array.isArray(j.sources) ? j.sources : [];
       return j.text || "";
-    } catch (e) { if (!quiet) toast("Lumi-AI-Fehler: " + e.message); return null; }
+    } catch (e) { if (!window.lastAiIssue) window.lastAiIssue = { kind: "error", title: "Studix AI nicht erreichbar", text: String(e.message || e) }; if (!quiet) toast("Studix-AI-Fehler: " + e.message); return null; }
   }
   const content = image ? [{ type: "image", source: { type: "base64", media_type: image.type || "image/jpeg", data: image.data } }, { type: "text", text: prompt }] : prompt;
   const messages = [...history.map(m => ({ role: m.role, content: m.text })), { role: "user", content }];
@@ -278,7 +424,7 @@ async function aiCore(prompt, { system = "", history = [], max = 1500, image = n
     const j = await r.json();
     if (!r.ok) throw new Error(j.error?.message || r.status);
     return j.content.map(c => c.text || "").join("");
-  } catch (e) { toast("Lumi-AI-Fehler: " + e.message); return null; }
+  } catch (e) { toast("Studix-AI-Fehler: " + e.message); return null; }
 }
 function parseJSON(t) { if (!t) return null; try { const a = t.search(/[\[{]/); const b = Math.max(t.lastIndexOf("}"), t.lastIndexOf("]")); return JSON.parse(t.slice(a, b + 1)); } catch { return null; } }
 
@@ -365,3 +511,32 @@ menu = function (anchor, items) {
   return _menu(anchor, items);
 };
 P.aipanelOn = '<rect x="3" y="4.5" width="18" height="15" rx="4.5"/><path d="M15.5 4.5h1a4.5 4.5 0 0 1 4.5 4.5v6a4.5 4.5 0 0 1-4.5 4.5h-1z" fill="currentColor" stroke="none"/><path d="M15.5 4.5v15"/><path d="M8.4 9.4L11 12l-2.6 2.6"/>';
+
+
+/* ===== Dunkelmodus (Farbumkehr per CSS) mit kreisförmiger Überblendung ab dem Schalter ===== */
+const themeNow = () => document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+function themeApply(t) { document.documentElement.dataset.theme = t; try { localStorage.setItem("lumi-theme", t); } catch {} }
+let themeBusy = false;
+function themeToggle(btn, duration = 450) {
+  const next = themeNow() === "dark" ? "light" : "dark", root = document.documentElement;
+  if (themeBusy) return;
+  if (typeof document.startViewTransition !== "function" || matchMedia("(prefers-reduced-motion: reduce)").matches) return themeApply(next);
+  /* Prozentangaben statt Pixel (wie im Magic-UI-Original): vermeidet Versatz bei Skalierung wie Windows 150 % */
+  const W = innerWidth, H = innerHeight, r = btn.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+  const R = Math.hypot(Math.max(x, W - x), Math.max(y, H - y)), rad = v => (v / (Math.hypot(W, H) / Math.SQRT2) * 100) + "%", at = `${(x / W) * 100}% ${(y / H) * 100}%`;
+  const from = `circle(0% at ${at})`, to = `circle(${rad(R)} at ${at})`;
+  themeBusy = true; root.dataset.lumiThemeVt = "active"; root.style.setProperty("--lumi-theme-vt-duration", duration + "ms"); root.style.setProperty("--lumi-theme-vt-clip-from", from);
+  const vt = document.startViewTransition(() => themeApply(next));
+  const done = () => { themeBusy = false; delete root.dataset.lumiThemeVt; root.style.removeProperty("--lumi-theme-vt-duration"); root.style.removeProperty("--lumi-theme-vt-clip-from"); };
+  vt.finished.then(done, done);
+  vt.ready.then(() => root.animate({ clipPath: [from, to] }, { duration, easing: "ease-in-out", fill: "forwards", pseudoElement: "::view-transition-new(root)" })).catch(() => {});
+}
+
+/* Apple Pencil: beim Zeichnen nie Text markieren / Auswahl- und Kopier-Menü öffnen (iPadOS) */
+function penGuard(el, active = () => true) {
+  const ts = e => { if (active() && Array.from(e.touches || []).some(t => t.touchType === "stylus")) e.preventDefault(); };
+  const ss = e => { if (active() && !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target?.nodeType === 1 ? e.target : e.target?.parentNode)?.tagName || "")) e.preventDefault(); };
+  el.addEventListener("touchstart", ts, { passive: false }); el.addEventListener("touchmove", ts, { passive: false });
+  document.addEventListener("selectstart", ss);
+  return () => { el.removeEventListener("touchstart", ts); el.removeEventListener("touchmove", ts); document.removeEventListener("selectstart", ss); };
+}

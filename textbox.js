@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi Textfelder – frei platzierbare, skalierbare Textboxen auf der Notiz-Seite.
+/* Studix Textfelder – frei platzierbare, skalierbare Textboxen auf der Notiz-Seite.
    Daten: [{id, x, y, w, h, html, fs, fill, bd}] – x relativ zur Seitenmitte, y ab Seitenanfang (wie die Zeichnung). */
 const TB_FILL = [["", "Kein"], ["#f1f1f5", "Grau"], ["#0f0f12", "Schwarz"], ["#fff1a8", "Gelb"], ["#d8f3dc", "Grün"], ["#ffe0e0", "Rosa"]];
 

@@ -1,5 +1,5 @@
 "use strict";
-/* Lumi PDF editor – a PDF opens like a note: write text and draw directly on the pages. */
+/* Studix PDF editor – a PDF opens like a note: write text and draw directly on the pages. */
 
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
 let pdfReady = null;
@@ -17,10 +17,11 @@ async function pdfEditor(m, d, blob) {
   m.classList.add("doc-full");
   const fp = folderPath(d.folderId);
   m.innerHTML = `<div class="ned dfull pdfed"><div class="ned-bar">
-    <div class="nb-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="nb-name"><b id="cr" title="Zum Umbenennen klicken">${esc(d.title)}</b><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div></div>
-    <div class="ned-tools" id="tb"><span class="tt-lbl">Klicke auf die Seite, um Text zu schreiben</span><i class="sep"></i><button class="tbtn" id="fsm" title="Schrift kleiner" aria-label="Schrift kleiner"><b style="font-size:12px">A</b></button><button class="tbtn" id="fsp" title="Schrift größer" aria-label="Schrift größer"><b style="font-size:17px">A</b></button><label class="tbtn" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #1c1c22;line-height:1">A</b><input type="color" id="cin" value="#1c1c22" hidden></label></div>
-    <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><div class="modesw" id="msw" role="tablist"><i class="knob"></i><button role="tab" data-m="write" class="on">Schreiben</button><button role="tab" data-m="draw">Zeichnen</button></div><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button><button class="icon-btn aitog" id="ai-m" aria-label="AI ein- und ausklappen" title="AI ein- und ausklappen">${ic("aipanel")}<span class="hide-sm">AI</span></button></div></div>
-  <div class="pdfwrap"><article class="ned-paper pdfpaper" id="paperc"><div class="pdfpages" id="pages"><p class="empty pdfload">PDF wird geladen …</p></div></article></div></div>`;
+    <div class="nb-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><button class="icon-btn pdf-thtg" id="thtg" aria-label="Seitenübersicht" title="Seitenübersicht" aria-pressed="false">${ic("note")}</button><div class="nb-name"><b id="cr" title="Zum Umbenennen klicken">${esc(d.title)}</b><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div></div>
+    <div class="ned-tools" id="tb"><span class="tt-lbl">Auf die Seite tippen, um zu schreiben</span><i class="sep"></i><button class="tbtn" id="fsm" title="Schrift kleiner" aria-label="Schrift kleiner"><b style="font-size:12px">A</b></button><button class="tbtn" id="fsp" title="Schrift größer" aria-label="Schrift größer"><b style="font-size:17px">A</b></button><label class="tbtn" title="Textfarbe"><b id="cl" style="border-bottom:3px solid #1c1c22;line-height:1">A</b><input type="color" id="cin" value="#1c1c22" hidden></label></div>
+    <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><div class="modesw" id="msw" role="tablist"><i class="knob"></i><button role="tab" data-m="write" class="on" title="Text auf die Seite schreiben">${ic("text")}<span>Text</span></button><button role="tab" data-m="draw" title="Mit Stift zeichnen">${ic("brush")}<span>Zeichnen</span></button></div><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button><button class="icon-btn aitog" id="ai-m" aria-label="AI ein- und ausklappen" title="AI ein- und ausklappen">${ic("aipanel")}<span class="hide-sm">AI</span></button></div></div>
+  <div class="pdfwrap"><aside class="pdfthumbs" id="thumbs" aria-label="Seitenübersicht"></aside><article class="ned-paper pdfpaper" id="paperc"><div class="pdfpages" id="pages"><p class="empty pdfload">PDF wird geladen …</p></div></article>
+  <div class="pdfpager" id="pager" hidden><button class="tbtn" id="pgp" aria-label="Vorherige Seite" title="Vorherige Seite">${ic("back")}</button><span class="pgn"><input id="pgin" type="number" min="1" value="1" aria-label="Seite"><i>/</i><b id="pgn">1</b></span><button class="tbtn" id="pgx" aria-label="Nächste Seite" title="Nächste Seite">${ic("back")}</button></div></div></div>`;
   const paper = $("#paperc", m); setScroller(paper); const pages = $("#pages", m), svEl = $("#sv", m);
   $$("[data-p]", m).forEach(b => b.onclick = () => go("docs/" + b.dataset.p));
   $("#eb", m).onclick = () => go("docs/" + (d.folderId || ""));
@@ -52,6 +53,35 @@ async function pdfEditor(m, d, blob) {
     };
     const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) render(holders[+e.target.dataset.n - 1]); }), { rootMargin: "800px 0px" });
     holders.forEach(o => io.observe(o.h)); LEAVE.push(() => io.disconnect());
+    buildNav(holders, N);
+  }
+
+  /* page overview (thumbnails) + page counter: jump, current page follows the scroll */
+  function buildNav(holders, N) {
+    const th = $("#thumbs", m), pager = $("#pager", m), pgin = $("#pgin", m), tg = $("#thtg", m); let cur = 0;
+    $("#pgn", m).textContent = N; pgin.max = N; pager.hidden = false;
+    const dpr = Math.min(2, devicePixelRatio || 1), btns = holders.map((o, i) => {
+      const b = document.createElement("button"); b.className = "pdfth"; b.setAttribute("aria-label", "Seite " + (i + 1)); b.dataset.n = i; b.innerHTML = `<span class="th-c"><canvas></canvas></span><em>${i + 1}</em>`;
+      b.querySelector(".th-c").style.aspectRatio = `${o.vp.width} / ${o.vp.height}`; b.onclick = () => go1(i); th.appendChild(b); return b;
+    });
+    const tio = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return; const b = e.target, o = holders[+b.dataset.n]; tio.unobserve(b); const cv = b.querySelector("canvas"), vp = o.pg.getViewport({ scale: 112 * dpr / o.vp.width });
+      cv.width = Math.round(vp.width); cv.height = Math.round(vp.height); o.pg.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise.catch(() => {});
+    }), { root: th, rootMargin: "400px 0px" });
+    btns.forEach(b => tio.observe(b)); LEAVE.push(() => tio.disconnect());
+    const go1 = i => { i = Math.max(0, Math.min(N - 1, i)); holders[i].h.scrollIntoView({ behavior: "smooth", block: "start" }); };
+    const setCur = i => {
+      if (i === cur && btns[i].classList.contains("on")) return; cur = i; btns.forEach((b, k) => b.classList.toggle("on", k === i));
+      if (document.activeElement !== pgin) pgin.value = i + 1; const b = btns[i]; if (th.offsetParent) th.scrollTop = b.offsetTop - th.clientHeight / 2 + b.offsetHeight / 2;
+    };
+    let raf = 0; const track = () => { raf = 0; const y = innerHeight * .35; let best = 0; holders.forEach((o, i) => { if (o.h.getBoundingClientRect().top <= y) best = i; }); setCur(best); };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(track); };
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true }); LEAVE.push(() => document.removeEventListener("scroll", onScroll, true)); track();
+    $("#pgp", m).onclick = () => go1(cur - 1); $("#pgx", m).onclick = () => go1(cur + 1);
+    pgin.onchange = () => go1((+pgin.value || 1) - 1); pgin.onkeydown = e => { if (e.key === "Enter") pgin.blur(); e.stopPropagation(); };
+    const root = $(".pdfed", m); let open; try { open = localStorage.getItem("lumi.pdfth"); } catch {} open = open == null ? innerWidth >= 1100 : open === "1";
+    const setOpen = v => { open = v; root.classList.toggle("th-open", v); tg.classList.toggle("on", v); tg.setAttribute("aria-pressed", v); tg.innerHTML = ic(v ? "note-f" : "note"); try { localStorage.setItem("lumi.pdfth", v ? "1" : "0"); } catch {} };
+    tg.onclick = () => setOpen(!open); setOpen(open);
   }
 
   /* text annotations */
