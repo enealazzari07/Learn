@@ -4585,3 +4585,11 @@ html[data-theme=dark] .di{background:#2a2a33}html[data-theme=dark] .field.big:fo
 .tbtn.wide svg{width:16px;height:16px}
 html[data-theme=dark] .bo-note,html[data-theme=dark] .bo-card{background:#fff}
 .main.noselect .bo.bo [contenteditable][contenteditable]:not(#a):not(#b):not(#c){-webkit-user-select:text!important;user-select:text!important}
+
+/* Notizzettel mit Pin und Haftnotiz im Dokument */
+.pinnote{position:relative;margin:34px 0 18px;padding:16px 22px 10px;max-width:460px;background:#fff;border:1px solid #ababab;border-radius:6px;box-shadow:0 4px 8px rgba(0,0,0,.12)}
+.pinnote .pn-pin{position:absolute;left:calc(50% - 22px);top:-34px;width:44px;height:44px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));pointer-events:none;user-select:none}
+.pinnote h4{margin:0 0 8px;padding-bottom:8px;border-bottom:2px solid #f15353;font-size:20px;line-height:28px;font-weight:700;color:#575757}
+.pinnote p{margin:0;line-height:28px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#dde3f0 27px,#dde3f0 28px);min-height:84px}
+.stickynote{margin:14px 0;width:210px;min-height:150px;padding:16px 16px 12px;border-radius:3px;box-shadow:0 8px 14px rgba(0,0,0,.16);transform:rotate(-1deg)}
+.stickynote p{margin:0;font-size:17px;line-height:24px}
