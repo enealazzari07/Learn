@@ -1,6 +1,8 @@
 "use strict";
 P.hash = '<path d="M5 9h14M5 15h14M9 4v16M15 4v16"/>';
 P.user = '<circle cx="12" cy="8.5" r="3.6"/><path d="M5 19.5c.6-3.3 3.6-5.2 7-5.2s6.4 1.9 7 5.2"/>';
+Object.assign(P, { arrowr: '<path d="M5 12h14M13 6l6 6-6 6"/>', send: '<path d="M20 4L10.5 13.5M20 4l-6 16-3.5-6.5L4 10z"/>', chat: '<path d="M5 6.5C5 5.7 5.7 5 6.5 5h11c.8 0 1.5.7 1.5 1.5v8c0 .8-.7 1.5-1.5 1.5H10l-4 3.5V16h0c-.6 0-1-.4-1-1z"/><path d="M9 9h6M9 12h4"/>', userplus: '<circle cx="10" cy="8.5" r="3.4"/><path d="M3.5 19c.6-3.2 3.2-5 6.5-5s5.9 1.8 6.5 5M18 8v6M15 11h6"/>', full: '<path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4"/>', todo: '<path d="M4.5 7.5l1.6 1.6 2.9-3M4.5 15.5l1.6 1.6 2.9-3M12.5 7.5H20M12.5 15.5H20"/>', sumi: '<path d="M5 7h14M5 12h14M5 17h9"/>', xchk: '<path d="M7 4h7l4 4v12H7z"/><path d="M10 14l2 2 3.5-4"/>', lifebuoy: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2"/><path d="M6.4 6.4l3.3 3.3M14.3 14.3l3.3 3.3M17.6 6.4l-3.3 3.3M9.7 14.3l-3.3 3.3"/>', prof: '<rect x="5" y="4" width="14" height="16" rx="3"/><circle cx="12" cy="10" r="2.4"/><path d="M8 17c.5-2 2-3 4-3s3.5 1 4 3"/>' });
+P.chevr = '<path d="M9.5 6l6 6-6 6"/>';
 /* Whiteboard-Elemente (wie Miro): Notizzettel mit Pin, Haftnotizen, Pins, Karten, Formen, Rahmen.
    Liegen als echte, direkt bearbeitbare Elemente über der Zeichenfläche (Text überall editierbar, verschieb- und skalierbar). */
 const PIN_COLORS = ["#FFC907", "#525151", "#63A1FE", "#F26655", "#F5A429", "#DA9DFF", "#BDBDBD", "#39C15F"];
