@@ -196,6 +196,11 @@ function newMenu(anchor) {
   ]);
 }
 async function newSubject() {
+  if (desk() && curView === "docs" && !docFolder) {
+    const name = uniqName(isUni() ? "Neues Modul" : "Neues Fach", D.folders.map(f => f.name)), sub = { id: uid(), name, color: COLORS[D.subjects.length % COLORS.length] }, fid = uid();
+    D.subjects.push(sub); D.folders.push({ id: fid, name, parent: "", color: sub.color, subjectId: sub.id }); save(); refreshNav(); renderView();
+    setTimeout(() => inlineRename($(`.fold[data-f="${fid}"] .ftxt b`), name, v => { sub.name = v; const f = folderOf(fid); if (f) f.name = v; save(); refreshNav(); renderView(); }), 80); return;
+  }
   const uni = isUni(), word = uni ? "Modul" : "Fach", sugg = uni ? ["Analysis", "Informatik", "Statistik", "Recht", "BWL"] : ["Mathe", "Deutsch", "Englisch", "Biologie", "Geschichte"];
   let col = COLORS[D.subjects.length % COLORS.length];
   const r = await new Promise(res => {
@@ -225,8 +230,21 @@ const TEMPLATES = [
   ["protocol", "Protokoll", "<h1>Protokoll</h1><p>Datum · Teilnehmende</p><h2>Ziel</h2><p><br></p><h2>Durchführung</h2><p><br></p><h2>Ergebnis</h2><p><br></p>"],
 ];
 const PAPERS = [["white", "Leer"], ["lines", "Liniert"], ["grid", "Kariert"], ["dots", "Punkte"]];
+/* Am PC: ohne Popup sofort anlegen und direkt an Ort und Stelle benennen */
+const desk = () => matchMedia("(min-width:901px)").matches;
+let renameNext = false;
+function inlineRename(el, cur, onSave) {
+  if (!el) return false; const inp = document.createElement("input"); inp.className = "inl-rn"; inp.value = cur; inp.maxLength = 60; inp.setAttribute("aria-label", "Name");
+  const keep = el.textContent; el.textContent = ""; el.appendChild(inp); inp.focus(); inp.select();
+  ["click", "mousedown", "keyup"].forEach(t => inp.addEventListener(t, e => e.stopPropagation()));
+  let done = false; const fin = ok => { if (done) return; done = true; const v = inp.value.trim(); if (ok && v) onSave(v); else el.textContent = keep; };
+  inp.onblur = () => fin(true); inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); inp.blur(); } else if (e.key === "Escape") fin(false); };
+  return true;
+}
+const uniqName = (base, list) => { let n = base, i = 2; while (list.some(x => x.toLowerCase() === n.toLowerCase())) n = base + " " + i++; return n; };
 function docDialog(kind = "note", pre = null) {
   if (limitHit(kind === "draw" ? "board" : "doc")) return;
+  if (kind === "note" && !pre && desk()) { renameNext = true; return newNote("", "", "Unbenanntes Dokument", docFolder, D.profile.paper || "white", D.profile.pageMode !== false); }
   if (kind === "draw") return boardDialog(pre);
   const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank", pages = D.profile.pageMode !== false;
   const fname = () => { const fp = folderPath(folder); return fp.length ? fp[fp.length - 1].name : ""; };
@@ -263,6 +281,11 @@ function migrateFolders() {
 }
 async function newFolder(parent = docFolder) {
   const root = !parent;
+  if (desk() && curView === "docs") {
+    const name = uniqName("Neuer Ordner", D.folders.filter(f => (f.parent || "") === (parent || "")).map(f => f.name)), fid = uid();
+    D.folders.push({ id: fid, name, parent: parent || "", color: COLORS[D.folders.length % COLORS.length], subjectId: "" }); save(); refreshNav(); renderView();
+    setTimeout(() => inlineRename($(`.fold[data-f="${fid}"] .ftxt b`), name, v => { const f = folderOf(fid); if (f) f.name = v; save(); refreshNav(); renderView(); }), 80); return;
+  }
   const r = await new Promise(res => {
     const { el, close } = modal(`<div class="dh"><span class="di">${ic("folder")}</span><div><h3>${root ? "Neuer Ordner" : "Neuer Unterordner"}</h3><p class="note">${root ? "Zum Sortieren deiner Dokumente." : "Liegt in „" + esc(folderOf(parent)?.name || "") + "“."}</p></div></div><input class="field big" id="nf-n" placeholder="Name, z. B. Mathe oder Deutsch" maxlength="60" autocomplete="off">${root ? `<label class="sw-row nf-sub"><span>Ist ein ${isUni() ? "Modul" : "Fach"}<small>erscheint auch unter Noten</small></span><input type="checkbox" id="nf-s" class="sw"></label>` : ""}<div class="mf"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent" data-o>Erstellen</button></div>`, "sheet");
     const f = $("#nf-n", el); setTimeout(() => f.focus(), 30);
@@ -931,7 +954,7 @@ async function noteEditor(m, d) {
     let done = false; const fin = ok => { if (done) return; done = true; if (ok) { d.title = inp.value.trim() || "Unbenanntes Dokument"; d.updated = Date.now(); save(); } const nb = document.createElement("b"); nb.id = "cr"; nb.title = "Zum Umbenennen klicken"; nb.textContent = d.title; inp.replaceWith(nb); nb.onclick = rename; };
     inp.onblur = () => fin(true); inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); inp.blur(); } else if (e.key === "Escape") { fin(false); } };
   };
-  $("#cr", m).title = "Zum Umbenennen klicken"; $("#cr", m).onclick = rename;
+  $("#cr", m).title = "Zum Umbenennen klicken"; $("#cr", m).onclick = rename; if (renameNext) { renameNext = false; setTimeout(rename, 60); }
 
   /* floating selection menu */
   const bub = document.createElement("div"); bub.className = "bubble"; bub.hidden = true; document.body.appendChild(bub); LEAVE.push(() => bub.remove());

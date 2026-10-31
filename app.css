@@ -4520,3 +4520,4 @@ input.sw{appearance:none;-webkit-appearance:none;flex:none;width:44px;height:26p
 html[data-theme=dark] .di{background:#2a2a33}html[data-theme=dark] .field.big:focus,html[data-theme=dark] .field.big{background:#23232a}
 
 .nd-modal .nd-sw.seg{margin-right:0;width:calc(100% - 34px)}
+.inl-rn{width:100%;min-width:0;font:inherit;font-weight:700;color:inherit;background:#fff;border:2px solid var(--violet);border-radius:8px;padding:3px 6px;outline:0;box-shadow:0 0 0 4px rgba(91,61,245,.14)}
