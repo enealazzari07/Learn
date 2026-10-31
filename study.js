@@ -235,9 +235,9 @@ const desk = () => matchMedia("(min-width:901px)").matches;
 let renameNext = false;
 function inlineRename(el, cur, onSave) {
   if (!el) return false; const inp = document.createElement("input"); inp.className = "inl-rn"; inp.value = cur; inp.maxLength = 60; inp.setAttribute("aria-label", "Name");
-  const keep = el.textContent; el.textContent = ""; el.appendChild(inp); inp.focus(); inp.select();
+  const keep = el.innerHTML; el.textContent = ""; el.appendChild(inp); inp.focus(); inp.select();
   ["click", "mousedown", "keyup"].forEach(t => inp.addEventListener(t, e => e.stopPropagation()));
-  let done = false; const fin = ok => { if (done) return; done = true; const v = inp.value.trim(); if (ok && v) onSave(v); else el.textContent = keep; };
+  let done = false; const fin = ok => { if (done) return; done = true; const v = inp.value.trim(); if (ok && v) onSave(v); else el.innerHTML = keep; };
   inp.onblur = () => fin(true); inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); inp.blur(); } else if (e.key === "Escape") fin(false); };
   return true;
 }
@@ -310,7 +310,7 @@ function moveDoc(d, folderId) { d.folderId = folderId || ""; const sid = subject
 function folderMenu(btn, f) {
   menu(btn, [
     { label: "Öffnen", icon: "folder", fn: () => go("docs/" + f.id) },
-    { label: "Umbenennen", icon: "pen", fn: async () => { const n = await ask("Ordner umbenennen", { value: f.name }); if (n?.trim()) { f.name = n.trim(); save(); refreshNav(); renderView(); } } },
+    { label: "Umbenennen", icon: "pen", fn: async () => { const done = v => { f.name = v; save(); refreshNav(); renderView(); }; if (!(desk() && inlineRename($(`.fold[data-f="${f.id}"] .ftxt b`), f.name, done))) { const n = await ask("Ordner umbenennen", { value: f.name }); if (n?.trim()) done(n.trim()); } } },
     { label: "Farbe & Icon", icon: "brush", fn: () => { const { el } = modal(`<h3>Farbe & Icon</h3><div class="chips" style="gap:12px">${COLORS.map(c => `<button class="cdot ${c === f.color ? "on" : ""}" data-c="${c}" style="background:${c};width:38px;height:38px"></button>`).join("")}</div><p class="note" style="margin:18px 0 8px">Icon</p><div class="sji-grid">${Object.keys(SJI).map(k => `<button type="button" class="sji-b ${k === sjiOf(f) ? "on" : ""}" data-i="${k}" style="--c:${f.color}" aria-label="${k}">${sji(k)}</button>`).join("")}</div>`); const sub = D.subjects.find(x => x.id === f.subjectId), paint = () => { save(); refreshNav(); if (curView === "docs") V.docs($("#main")); };
       $$("[data-c]", el).forEach(b => b.onclick = () => { f.color = b.dataset.c; if (sub) sub.color = f.color; $$("[data-c]", el).forEach(x => x.classList.toggle("on", x === b)); $$(".sji-b", el).forEach(x => x.style.setProperty("--c", f.color)); paint(); });
       $$(".sji-b", el).forEach(b => b.onclick = () => { f.icon = b.dataset.i; if (sub) sub.icon = f.icon; $$(".sji-b", el).forEach(x => x.classList.toggle("on", x === b)); paint(); }); } },
@@ -393,7 +393,7 @@ function docCard(d) {
 function docMenu(btn, d) {
   menu(btn, [
     { label: "Öffnen", icon: "file", fn: () => openDoc(d) },
-    { label: "Umbenennen", icon: "pen", fn: async () => { const n = await ask("Umbenennen", { value: d.title }); if (n?.trim()) { d.title = n.trim(); d.updated = Date.now(); save(); renderView(); } } },
+    { label: "Umbenennen", icon: "pen", fn: async () => { const done = v => { d.title = v; d.updated = Date.now(); save(); renderView(); }; if (!(desk() && inlineRename($(`.drow[data-d="${d.id}"] .dr-t b, .doc[data-d="${d.id}"] .dt`), d.title, done))) { const n = await ask("Umbenennen", { value: d.title }); if (n?.trim()) done(n.trim()); } } },
     { label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); renderView(); } },
     { label: "Verschieben…", icon: "upload", fn: async () => { const t = await pickFolder("Verschieben nach…"); if (t !== null) { moveDoc(d, t); refreshNav(); renderView(); toast("Verschoben"); } } },
     ...D.subjects.length ? [{ label: "Fach zuordnen…", icon: "folder", fn: () => { const { el, close } = modal(`<h3>Fach zuordnen</h3><div class="chips">${[{ id: "", name: "Kein Fach", color: "#999" }, ...D.subjects].map(s => `<button class="chip" data-s="${s.id}"><i class="sdot" style="background:${s.color}"></i>${esc(s.name)}</button>`).join("")}</div>`); $$("[data-s]", el).forEach(b => b.onclick = () => { d.subjectId = b.dataset.s; save(); close(); renderView(); }); } }] : [],
