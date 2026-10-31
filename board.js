@@ -12,20 +12,20 @@ V.draw = async (m, id) => {
   if (id === "new") { if (limitHit("board")) return go("board"); const nid = uid(); D.docs.unshift({ id: nid, type: "draw", title: "Neue Zeichnung", subjectId: subjectOfFolder(docFolder), folderId: docFolder, updated: Date.now(), created: Date.now(), thumb: "" }); await KV.set("draw:" + nid, { strokes: [], bg: "grid", H: 1000 }); save(); return go("draw/" + nid); }
   const d = D.docs.find(x => x.id === id); if (!d || d.type !== "draw") return go("board");
   const saved = (await KV.get("draw:" + id)) || { strokes: [], bg: "grid", H: 1000 };
-  const W = saved.W || 1600, FMT = "endless"; const st = { cam: saved.cam || { x: -40, y: -40, z: 1 }, strokes: saved.strokes || [], hist: [], redo: [], tool: "pen", color: saved.bg === "dark" ? "#ffffff" : "#111111", size: 4, bg: saved.bg || "grid", H: saved.H || 1000, cur: null, penSeen: false, pending: null };
+  const W = saved.W || 1600, FMT = "endless"; const st = { cam: saved.cam || { x: -40, y: -40, z: 1 }, strokes: saved.strokes || [], objs: saved.objs || [], hist: [], redo: [], tool: "pen", color: saved.bg === "dark" ? "#ffffff" : "#111111", size: 4, bg: saved.bg || "grid", H: saved.H || 1000, cur: null, penSeen: false, pending: null };
   const COL = ["#111111", "#e5484d", "#f59e0b", "#16a34a", "#2563eb", "#7c3aed", "#ec4899", "#ffffff"];
   const TOOLS = [["hand", "Verschieben", "up"], ["pen", "Stift", "pen"], ["hl", "Marker", "hl"], ["eraser", "Radierer", "eraser"], ["line", "Linie", "line"], ["arrow", "Pfeil", "arrow"], ["rect", "Rechteck", "square"], ["ellipse", "Ellipse", "circle"], ["text", "Text", "text"], ["img", "Bild", "image"]];
   m.classList.add("doc-full");
   const fp = folderPath(d.folderId);
   m.innerHTML = `<div class="editor board dfull"><div class="dhead"><div class="ned-bar"><div class="nb-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="nb-name"><input class="nb-in" id="et" value="${esc(d.title)}" aria-label="Titel"><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div></div>
-  <div class="ned-tools btools">${TOOLS.map(([k, t, i]) => `<button class="tbtn ${k === st.tool ? "on" : ""}" data-t="${k}" title="${t}">${ic(i)}</button>`).join("")}<i class="sep"></i><button class="tbtn" id="un" title="Rückgängig (Strg+Z)">${ic("undo")}</button><button class="tbtn" id="re" title="Wiederholen">${ic("redo")}</button><button class="tbtn" id="cl" title="Alles löschen">${ic("trash")}</button></div>
+  <div class="ned-tools btools">${TOOLS.map(([k, t, i]) => `<button class="tbtn ${k === st.tool ? "on" : ""}" data-t="${k}" title="${t}">${ic(i)}</button>`).join("")}<i class="sep"></i><button class="tbtn wide" id="addo" title="Element hinzufügen">${ic("plus")}<span>Element</span></button><i class="sep"></i><button class="tbtn" id="un" title="Rückgängig (Strg+Z)">${ic("undo")}</button><button class="tbtn" id="re" title="Wiederholen">${ic("redo")}</button><button class="tbtn" id="cl" title="Alles löschen">${ic("trash")}</button></div>
   <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><button class="btn ghost small" id="exp">${ic("download")}<span class="hide-sm">PNG</span></button><button class="btn accent small" id="done">Fertig</button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button><button class="icon-btn aitog" id="ai-m" aria-label="AI ein- und ausklappen" title="AI ein- und ausklappen">${ic("aipanel")}<span class="hide-sm">AI</span></button></div></div>
   <div class="opts flat"><div class="cols">${COL.map(c => `<button class="cdot ${c === st.color ? "on" : ""}" data-c="${c}" style="background:${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="cc" value="#111111"></label></div><label class="sz">${ic("pen")}<input type="range" id="sz" min="1" max="24" value="4"></label><select id="bg" class="field slim"><option value="blank">Weiß</option><option value="lines">Liniert</option><option value="grid">Kariert</option><option value="dots">Punkte</option><option value="dark">Tafel</option></select></div></div>
   <div class="dpanel"><div class="cvwrap inf" id="cvw"><canvas id="cv"></canvas><div class="bzoom"><button id="zo" aria-label="Verkleinern">−</button><button id="zp" title="Auf 100 % / Inhalt zeigen">100 %</button><button id="zi" aria-label="Vergrößern">+</button></div><input class="texti" id="ti" hidden><input type="file" id="fi" accept="image/*" hidden></div></div></div>`;
   $$("[data-p]", m).forEach(x => x.onclick = () => go("docs/" + x.dataset.p));
   const cv = $("#cv", m), mctx = cv.getContext("2d"); let ctx = mctx; const cvw = $("#cvw", m), cam = st.cam; let dpr = 1, VW = 800, VH = 600; const imgs = new WeakMap(), titleEl = $("#et", m), savedEl = $("#sv", m);
   $("#bg", m).value = st.bg;
-  const hexA = (c, a) => c;
+  const hexA = (c, a) => c; let OBJ = null;
 
   /* drawing primitives */
   function bgDraw(vx, vy, vw, vh) {
@@ -52,10 +52,10 @@ V.draw = async (m, id) => {
     else if (s.type === "img") { let im = imgs.get(s); if (!im) { im = new Image(); im.onload = render; im.src = s.src; imgs.set(s, im); } if (im.complete && im.naturalWidth) ctx.drawImage(im, p[0][0], p[0][1], s.w, s.h); }
     ctx.restore();
   }
-  function paint(c2, vx, vy, vw, vh, z, scale) { const keep = ctx, kz = cam.z; ctx = c2; cam.z = z; c2.save(); c2.setTransform(scale * z, 0, 0, scale * z, -vx * z * scale, -vy * z * scale); bgDraw(vx, vy, vw, vh); st.strokes.forEach(strokeDraw); if (c2 === mctx && st.cur) strokeDraw(st.cur); c2.restore(); ctx = keep; cam.z = kz; }
-  function render() { paint(mctx, cam.x, cam.y, VW / cam.z, VH / cam.z, cam.z, dpr); }
+  function paint(c2, vx, vy, vw, vh, z, scale) { const keep = ctx, kz = cam.z; ctx = c2; cam.z = z; c2.save(); c2.setTransform(scale * z, 0, 0, scale * z, -vx * z * scale, -vy * z * scale); bgDraw(vx, vy, vw, vh); st.strokes.forEach(strokeDraw); OBJ && OBJ.paint(c2); if (c2 === mctx && st.cur) strokeDraw(st.cur); c2.restore(); ctx = keep; cam.z = kz; }
+  function render() { paint(mctx, cam.x, cam.y, VW / cam.z, VH / cam.z, cam.z, dpr); OBJ && OBJ.sync(); }
   function fit() { const r = cvw.getBoundingClientRect(); VW = Math.max(200, r.width); VH = Math.max(200, r.height); dpr = Math.min(2, window.devicePixelRatio || 1); const w = Math.round(VW * dpr), h = Math.round(VH * dpr); if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; } cv.style.width = VW + "px"; cv.style.height = VH + "px"; render(); }
-  function boundsOf() { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; st.strokes.forEach(s => { const pad = s.type === "hl" ? s.size * 2 : s.size; s.pts.forEach(p => { x0 = Math.min(x0, p[0] - pad); y0 = Math.min(y0, p[1] - pad); x1 = Math.max(x1, p[0] + pad); y1 = Math.max(y1, p[1] + pad); }); if (s.type === "img") { x1 = Math.max(x1, s.pts[0][0] + s.w); y1 = Math.max(y1, s.pts[0][1] + s.h); } if (s.type === "text") { const fs = s.size * 4 + 12; x1 = Math.max(x1, s.pts[0][0] + Math.max(...s.text.split("\n").map(l => l.length)) * fs * .6); y1 = Math.max(y1, s.pts[0][1] + s.text.split("\n").length * fs * 1.25); } }); return x0 > x1 ? null : { x0, y0, x1, y1 }; }
+  function boundsOf() { let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; st.strokes.forEach(s => { const pad = s.type === "hl" ? s.size * 2 : s.size; s.pts.forEach(p => { x0 = Math.min(x0, p[0] - pad); y0 = Math.min(y0, p[1] - pad); x1 = Math.max(x1, p[0] + pad); y1 = Math.max(y1, p[1] + pad); }); if (s.type === "img") { x1 = Math.max(x1, s.pts[0][0] + s.w); y1 = Math.max(y1, s.pts[0][1] + s.h); } if (s.type === "text") { const fs = s.size * 4 + 12; x1 = Math.max(x1, s.pts[0][0] + Math.max(...s.text.split("\n").map(l => l.length)) * fs * .6); y1 = Math.max(y1, s.pts[0][1] + s.text.split("\n").length * fs * 1.25); } }); const ob = OBJ && OBJ.bounds(); if (ob) { x0 = Math.min(x0, ob.x0); y0 = Math.min(y0, ob.y0); x1 = Math.max(x1, ob.x1); y1 = Math.max(y1, ob.y1); } return x0 > x1 ? null : { x0, y0, x1, y1 }; }
   function snapshot(maxPx) { const b = boundsOf() || { x0: 0, y0: 0, x1: 800, y1: 500 }, pad = 40, w = b.x1 - b.x0 + pad * 2, h = b.y1 - b.y0 + pad * 2, k = Math.min(2, maxPx / Math.max(w, h)), t = document.createElement("canvas"); t.width = Math.max(1, Math.round(w * k)); t.height = Math.max(1, Math.round(h * k)); paint(t.getContext("2d"), b.x0 - pad, b.y0 - pad, w, h, 1, k); return t; }
   function showAll() { const b = boundsOf(); if (!b) { cam.x = -40; cam.y = -40; cam.z = 1; } else { const w = b.x1 - b.x0 + 120, h = b.y1 - b.y0 + 120; cam.z = Math.max(.1, Math.min(1.5, Math.min(VW / w, VH / h))); cam.x = b.x0 - 60 - (VW / cam.z - w) / 2; cam.y = b.y0 - 60 - (VH / cam.z - h) / 2; } render(); updZoom(); touch(); }
   function zoomAt(cx, cy, nz) { nz = Math.max(.1, Math.min(4, nz)); const wx = cam.x + cx / cam.z, wy = cam.y + cy / cam.z; cam.z = nz; cam.x = wx - cx / nz; cam.y = wy - cy / nz; render(); updZoom(); }
@@ -76,12 +76,13 @@ V.draw = async (m, id) => {
   const persist = debounce(async () => {
     if (!D.docs.includes(d)) return;
     d.thumb = snapshot(480).toDataURL("image/jpeg", .6); d.title = titleEl.value.trim() || "Zeichnung"; d.updated = Date.now();
-    await KV.set("draw:" + id, { strokes: st.strokes, bg: st.bg, H: st.H, W, fmt: "endless", cam: { ...cam } }); save(); savedEl.textContent = "Gespeichert";
+    await KV.set("draw:" + id, { strokes: st.strokes, objs: st.objs, bg: st.bg, H: st.H, W, fmt: "endless", cam: { ...cam } }); save(); savedEl.textContent = "Gespeichert";
   }, 700);
   const touch = () => { savedEl.textContent = "Speichert…"; persist(); };
-  const snap = () => { st.hist.push([...st.strokes]); if (st.hist.length > 80) st.hist.shift(); st.redo = []; };
-  const undo = () => { if (!st.hist.length) return; st.redo.push([...st.strokes]); st.strokes = st.hist.pop(); render(); touch(); };
-  const redo = () => { if (!st.redo.length) return; st.hist.push([...st.strokes]); st.strokes = st.redo.pop(); render(); touch(); };
+  const snap = () => { st.hist.push({ s: [...st.strokes], o: JSON.stringify(st.objs) }); if (st.hist.length > 80) st.hist.shift(); st.redo = []; };
+  const restore = h => { st.strokes = h.s; st.objs = JSON.parse(h.o); OBJ && (OBJ.rebuild(), render()); };
+  const undo = () => { if (!st.hist.length) return; st.redo.push({ s: [...st.strokes], o: JSON.stringify(st.objs) }); restore(st.hist.pop()); render(); touch(); };
+  const redo = () => { if (!st.redo.length) return; st.hist.push({ s: [...st.strokes], o: JSON.stringify(st.objs) }); restore(st.redo.pop()); render(); touch(); };
 
   /* pointer handling */
   const pos = e => { const r = cv.getBoundingClientRect(); return [cam.x + (e.clientX - r.left) / cam.z, cam.y + (e.clientY - r.top) / cam.z]; };
@@ -138,25 +139,30 @@ V.draw = async (m, id) => {
   $("#zi", m).onclick = () => { zoomAt(VW / 2, VH / 2, cam.z * 1.25); touch(); }; $("#zo", m).onclick = () => { zoomAt(VW / 2, VH / 2, cam.z / 1.25); touch(); };
   $("#zp", m).onclick = () => { if (Math.abs(cam.z - 1) > .01) { zoomAt(VW / 2, VH / 2, 1); touch(); } else showAll(); };
   const ro = new ResizeObserver(fit); ro.observe(cvw);
-  const sk = e => { if (e.code === "Space" && !["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) { space = e.type === "keydown"; if (space) e.preventDefault(); cv.style.cursor = space ? "grab" : cv.style.cursor; } };
+  const sk = e => { if (e.code === "Space" && !e.target.isContentEditable && !["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) { space = e.type === "keydown"; if (space) e.preventDefault(); cv.style.cursor = space ? "grab" : cv.style.cursor; } };
   LEAVE.push(penGuard(cv)); m.classList.add("noselect");
   document.addEventListener("keydown", sk); document.addEventListener("keyup", sk); LEAVE.push(() => { ro.disconnect(); document.removeEventListener("keydown", sk); document.removeEventListener("keyup", sk); });
   $("#un", m).onclick = undo; $("#re", m).onclick = redo;
-  $("#cl", m).onclick = async () => { if (st.strokes.length && await confirmBox("Zeichenfläche komplett leeren?", "Leeren")) { snap(); st.strokes = []; render(); touch(); } };
+  $("#cl", m).onclick = async () => { if ((st.strokes.length || st.objs.length) && await confirmBox("Zeichenfläche komplett leeren?", "Leeren")) { snap(); st.strokes = []; st.objs = []; OBJ.rebuild(); render(); touch(); } };
   $("#fi", m).onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) { setTool("pen"); return; } const bmp = await createImageBitmap(f), s = Math.min(1, 700 / bmp.width), c = document.createElement("canvas"); c.width = bmp.width * s; c.height = bmp.height * s; c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); st.pending = { src: c.toDataURL("image/jpeg", .85), w: c.width, h: c.height }; st.tool = "place"; $$("[data-t]", m).forEach(b => b.classList.remove("on")); cv.style.touchAction = "pinch-zoom"; toast("Tippe dorthin, wo das Bild hin soll"); };
   $("#eb", m).onclick = () => go(d.folderId ? "docs/" + d.folderId : "board"); $("#et", m).oninput = touch;
   $("#done", m).onclick = () => go(d.folderId ? "docs/" + d.folderId : "board");
   $("#mo-m", m).onclick = e => menu(e.currentTarget, [{ label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); toast(d.pinned ? "Angeheftet" : "Gelöst"); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); go(d.folderId ? "docs/" + d.folderId : "board"); } }]);
   $("#exp", m).onclick = () => { snapshot(4000).toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = (d.title || "zeichnung") + ".png"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); }); };
   $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Skizze erklären lassen", icon: "help", fn: async () => explainCanvas("Erkläre, was auf dieser Skizze/Tafel zu sehen ist. Wenn es Mathematik oder Naturwissenschaft ist, erkläre die Idee und Rechenschritte und weise auf mögliche Fehler hin.") }, { label: "Handschrift in Text umwandeln", icon: "text", fn: async () => explainCanvas("Lies die Handschrift/Beschriftungen auf dem Bild und gib sie als sauberen Text wieder (Formeln in Textform).") }, { label: "Als Notiz speichern (Bild)", icon: "note", fn: () => newNote(d.subjectId, `<p><img src="${snapshot(1600).toDataURL("image/jpeg", .8)}"></p><p><br></p>`, d.title) }]);
-  async function explainCanvas(q) { if (!hasKey()) return toast("Bild-Analyse braucht die eingerichtete Studix AI (Einstellungen → Studix AI)."); if (!st.strokes.length) return toast("Zeichne zuerst etwas."); toast("Studix AI schaut hin…"); const t = snapshot(1400); const r = await ai(q, { image: { data: t.toDataURL("image/jpeg", .85).split(",")[1], type: "image/jpeg" } }); if (r) { const { el } = modal(`<h3>Studix AI</h3><textarea class="field" rows="12">${esc(r)}</textarea><div class="row end"><button class="btn" id="sn">Als Notiz speichern</button></div>`, "wide"); $("#sn", el).onclick = () => { el.closest(".mask").remove(); newNote(d.subjectId, textToHtml(r), d.title + " – Studix AI"); }; } }
+  async function explainCanvas(q) { if (!hasKey()) return toast("Bild-Analyse braucht die eingerichtete Studix AI (Einstellungen → Studix AI)."); if (!st.strokes.length && !st.objs.length) return toast("Zeichne zuerst etwas."); toast("Studix AI schaut hin…"); const t = snapshot(1400); const r = await ai(q, { image: { data: t.toDataURL("image/jpeg", .85).split(",")[1], type: "image/jpeg" } }); if (r) { const { el } = modal(`<h3>Studix AI</h3><textarea class="field" rows="12">${esc(r)}</textarea><div class="row end"><button class="btn" id="sn">Als Notiz speichern</button></div>`, "wide"); $("#sn", el).onclick = () => { el.closest(".mask").remove(); newNote(d.subjectId, textToHtml(r), d.title + " – Studix AI"); }; } }
   const key = e => {
-    if (!$("#cv")) return; const tag = e.target.tagName; if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    if (!$("#cv")) return; const tag = e.target.tagName; if (e.target.isContentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); }
     else if (!e.ctrlKey && !e.metaKey) { const k = { p: "pen", h: "hl", e: "eraser", l: "line", a: "arrow", r: "rect", o: "ellipse", t: "text" }[e.key.toLowerCase()]; if (k) setTool(k); }
   };
   document.addEventListener("keydown", key); LEAVE.push(() => { document.removeEventListener("keydown", key); persist(); });
+  OBJ = boardObjects({ host: cvw, cam, st, snap, touch }); LEAVE.push(() => OBJ.destroy());
+  $("#addo", m).onclick = e => menu(e.currentTarget, [
+    { label: "Notizzettel mit Pin", icon: "note", fn: () => OBJ.add("note") }, { label: "Haftnotiz", icon: "note", fn: () => OBJ.add("sticky") }, { label: "Pin", icon: "star", fn: () => OBJ.add("pin") }, "-",
+    { label: "Karte", icon: "newnote", fn: () => OBJ.add("card") }, { label: "Rechteck", icon: "square", fn: () => OBJ.add("shape", { kind: "rect" }) }, { label: "Abgerundet", icon: "square", fn: () => OBJ.add("shape", { kind: "round" }) }, { label: "Ellipse", icon: "circle", fn: () => OBJ.add("shape", { kind: "ellipse" }) }, { label: "Raute", icon: "square", fn: () => OBJ.add("shape", { kind: "diamond" }) }, "-",
+    { label: "Rahmen", icon: "folder", fn: () => OBJ.add("frame") }]);
   setTool("pen"); fit(); updZoom();
 };
 

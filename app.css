@@ -4539,3 +4539,49 @@ html[data-theme=dark] .di{background:#2a2a33}html[data-theme=dark] .field.big:fo
 .grow .icon-btn{width:30px;height:30px;opacity:.35}.grow:hover .icon-btn{opacity:1}
 .grow.add{display:flex;width:100%;justify-content:center;gap:8px;color:#777;font-weight:600;font-size:14px;background:transparent;border:0;padding:12px}.grow.add svg{width:16px;height:16px}.grow.add:hover{color:var(--violet)}
 @media (max-width:700px){.gsum{grid-template-columns:1fr 1fr}.grow{grid-template-columns:auto 1fr auto auto;row-gap:6px}.grow .gchips{grid-column:1/-1;grid-row:2}.grow .sname{grid-column:2}}
+
+/* ---------- Whiteboard-Elemente ---------- */
+.cvwrap.inf{position:relative}
+.bo-layer{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0;pointer-events:none;z-index:3}
+.bo{position:absolute;pointer-events:auto;box-sizing:border-box;font:500 16px/24px Inter,system-ui,sans-serif;color:#222}
+.bo [contenteditable]{outline:0;white-space:pre-wrap;word-break:break-word;cursor:text;min-height:1em;user-select:text;-webkit-user-select:text}
+.bo [contenteditable]:empty::before{content:attr(data-ph);color:#b5b5c0;pointer-events:none}
+.bo.on{outline:2px solid #5b3df5;outline-offset:3px;border-radius:6px}
+.bo-grip{touch-action:none;cursor:grab}.bo-grip:active{cursor:grabbing}
+.bo-rs{position:absolute;right:-8px;bottom:-8px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid #5b3df5;cursor:nwse-resize;touch-action:none;display:none}.bo.on .bo-rs{display:block}
+/* Notizzettel mit Pin */
+.bo-note{background:#fff;border:1px solid #ababab;border-radius:6px;box-shadow:0 4px 8px rgba(0,0,0,.12);padding:16px 20px 12px;display:flex;flex-direction:column}
+.bo-note .bo-pinw{position:absolute;left:calc(50% - 22px);top:-38px;width:44px;height:44px;z-index:2;filter:drop-shadow(0 4px 4px rgba(0,0,0,.25))}
+.bo-h{font-weight:700;font-size:20px;line-height:28px;color:#575757;padding-bottom:8px}
+.bo-rule{display:block;height:2px;background:#f15353;margin:0 -4px 6px;flex:none}
+.bo-b{flex:1;overflow:hidden;line-height:28px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,#dde3f0 27px,#dde3f0 28px)}
+/* Pin */
+.bo-pin{width:46px;height:46px}.bo-pin .pinsvg{width:46px;height:46px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));display:block}
+.pinsvg{display:block;width:100%;height:100%}
+/* Haftnotiz */
+.bo-sticky{padding:22px 14px 14px;box-shadow:0 8px 14px rgba(0,0,0,.16);border-radius:3px;font-size:17px;transform:rotate(-1deg)}
+.bo-sticky .bo-grip{position:absolute;left:0;right:0;top:0;height:18px}.bo-sticky .bo-t{height:100%;overflow:hidden}
+/* Karte */
+.bo-card{background:#fff;border-radius:14px;box-shadow:0 3px 10px rgba(0,0,0,.14);padding:22px 16px 14px;overflow:visible}
+.bo-card .bo-strip{position:absolute;left:0;right:0;top:0;height:6px;border-radius:14px 14px 0 0}
+.bo-card .bo-grip{position:absolute;left:0;right:0;top:6px;height:12px}.bo-card .bo-h{padding-bottom:4px;color:#111;font-size:18px}.bo-card .bo-t{color:#444;font-size:15px}
+/* Formen */
+.bo-shape{background:var(--f,#eceaff);border:1.5px solid rgba(0,0,0,.14);display:grid;place-items:center;text-align:center;font-weight:600;padding:12px 16px}
+.bo-shape .bo-t{width:100%;max-height:100%;overflow:hidden}.bo-shape .bo-grip{position:absolute;left:0;right:0;top:0;height:14px}
+.bo-shape.sh-round{border-radius:999px}.bo-shape.sh-rect{border-radius:6px}.bo-shape.sh-ellipse{border-radius:50%}
+.bo-shape.sh-diamond{border:0;background:transparent;isolation:isolate}.bo-shape.sh-diamond::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--f);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);filter:drop-shadow(0 0 1px rgba(0,0,0,.4))}
+/* Rahmen */
+.bo-frame{border:2px dashed var(--f,#8d8d98);border-radius:10px;pointer-events:none}
+.bo-frame .bo-ft{position:absolute;left:2px;top:-30px;min-width:70px;pointer-events:auto;font-weight:700;font-size:15px;color:var(--f);white-space:nowrap}
+.bo-frame .bo-grip{position:absolute;left:0;right:0;top:-34px;height:34px;pointer-events:auto;background:transparent;z-index:-1}.bo-frame .bo-rs{pointer-events:auto}
+/* Leiste über dem gewählten Element */
+.bo-bar{position:absolute;z-index:8;display:flex;align-items:center;gap:6px;padding:7px 9px;background:#fff;border-radius:14px;box-shadow:0 8px 28px rgba(15,12,35,.2),0 0 0 1px rgba(15,12,35,.06)}
+.bo-bar i{width:1px;height:20px;background:#e6e6ec;margin:0 3px}
+.bo-bar .bc{width:20px;height:20px;border-radius:50%;border:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}.bo-bar .bc.on{box-shadow:0 0 0 2px #fff,0 0 0 4px #5b3df5}
+.bo-bar button:not(.bc):not(.bk){width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:#555}.bo-bar button:not(.bc):not(.bk):hover{background:var(--soft)}.bo-bar svg{width:17px;height:17px}
+.bo-bar .bk{width:28px;height:28px;border-radius:8px;display:grid;place-items:center}.bo-bar .bk.on{background:#efeaff}.bo-bar .bk b{display:block;width:16px;height:12px;border:2px solid #555}
+.bk .sk-rect{border-radius:2px}.bk .sk-round{border-radius:99px}.bk .sk-ellipse{border-radius:50%}.bk .sk-diamond{transform:rotate(45deg) scale(.7);width:14px;height:14px}
+.tbtn.wide{width:auto;padding:0 12px 0 10px;gap:6px;display:inline-flex;align-items:center;font-weight:600;font-size:13.5px}
+.tbtn.wide svg{width:16px;height:16px}
+html[data-theme=dark] .bo-note,html[data-theme=dark] .bo-card{background:#fff}
+.main.noselect .bo.bo [contenteditable][contenteditable]:not(#a):not(#b):not(#c){-webkit-user-select:text!important;user-select:text!important}

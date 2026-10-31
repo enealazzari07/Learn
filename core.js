@@ -541,7 +541,7 @@ function themeToggle(btn, duration = 450) {
 /* Apple Pencil: beim Zeichnen nie Text markieren / Auswahl- und Kopier-Menü öffnen (iPadOS) */
 function penGuard(el, active = () => true) {
   const ts = e => { if (active() && Array.from(e.touches || []).some(t => t.touchType === "stylus")) e.preventDefault(); };
-  const ss = e => { if (active() && !/^(INPUT|TEXTAREA|SELECT)$/.test((e.target?.nodeType === 1 ? e.target : e.target?.parentNode)?.tagName || "")) e.preventDefault(); };
+  const ss = e => { const t = e.target?.nodeType === 1 ? e.target : e.target?.parentNode; if (active() && !/^(INPUT|TEXTAREA|SELECT)$/.test(t?.tagName || "") && !t?.closest?.("[contenteditable]")) e.preventDefault(); };
   el.addEventListener("touchstart", ts, { passive: false }); el.addEventListener("touchmove", ts, { passive: false });
   document.addEventListener("selectstart", ss);
   return () => { el.removeEventListener("touchstart", ts); el.removeEventListener("touchmove", ts); document.removeEventListener("selectstart", ss); };
