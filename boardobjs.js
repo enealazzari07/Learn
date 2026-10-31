@@ -1,5 +1,6 @@
 "use strict";
 P.hash = '<path d="M5 9h14M5 15h14M9 4v16M15 4v16"/>';
+P.user = '<circle cx="12" cy="8.5" r="3.6"/><path d="M5 19.5c.6-3.3 3.6-5.2 7-5.2s6.4 1.9 7 5.2"/>';
 /* Whiteboard-Elemente (wie Miro): Notizzettel mit Pin, Haftnotizen, Pins, Karten, Formen, Rahmen.
    Liegen als echte, direkt bearbeitbare Elemente über der Zeichenfläche (Text überall editierbar, verschieb- und skalierbar). */
 const PIN_COLORS = ["#FFC907", "#525151", "#63A1FE", "#F26655", "#F5A429", "#DA9DFF", "#BDBDBD", "#39C15F"];
