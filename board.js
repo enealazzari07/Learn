@@ -21,7 +21,7 @@ V.draw = async (m, id) => {
   m.innerHTML = `<div class="editor board dfull bd2"><div class="bd-stage"><div class="cvwrap inf" id="cvw"><canvas id="cv"></canvas><input class="texti" id="ti" hidden><input type="file" id="fi" accept="image/*" hidden><select id="bg" hidden><option value="blank">Weiß</option><option value="lines">Liniert</option><option value="grid">Kariert</option><option value="dots">Punkte</option><option value="dark">Tafel</option></select><button id="cl" hidden></button></div>
   <div class="bd-fl bd-bar" id="bar"><button class="bd-ib" id="eb" aria-label="Zurück" title="Zurück">${ic("back")}</button><button class="bd-ttl" id="tt" aria-haspopup="true" aria-expanded="false"><span class="bd-th">${d.thumb ? `<img src="${d.thumb}" alt="">` : ic("brush")}</span><b id="ttx">${esc(d.title)}</b>${ic("chev")}</button><i class="bd-vs"></i><button class="bd-ib" id="addo" title="Elemente hinzufügen" aria-label="Elemente">${ic("plus")}</button><button class="bd-ib" id="fr" title="Rahmen einfügen" aria-label="Rahmen">${ic("hash")}</button><button class="bd-ib" id="fit" title="Alles anzeigen" aria-label="Alles anzeigen">${ic("full")}</button><button class="bd-ib" id="mo-m" title="Mehr" aria-label="Mehr">${ic("more")}</button><i class="bd-vs"></i><i class="bd-vs"></i><button class="bd-ai2" id="ai-m" title="Studix AI" aria-label="Studix AI">${ic("spark")}</button><button class="bd-col" id="cob" aria-haspopup="true" aria-expanded="false"><span class="bd-avs"><span class="bd-me" style="background:${meCol()}">${esc(coIni(coName()))}</span><span class="bd-me inv">${ic("plus")}</span></span>${ic("chev")}</button><span class="saved" id="sv">Gespeichert</span>
   <input id="et" value="${esc(d.title)}" hidden><button id="exp" hidden></button><button id="done" hidden></button><button id="shb" hidden></button></div>
-  <div class="bd-pop bd-panel" id="pnl" hidden></div><div class="bd-pop bd-colm" id="colm" hidden></div>
+  <div class="bd-pop bd-panel" id="pnl" hidden></div><div class="bd-pop el-panel" id="elp" hidden></div><div class="bd-pop bd-colm" id="colm" hidden></div>
   <div class="bd-tools" role="toolbar" aria-label="Werkzeuge">${tb("hand")}${tb("pen")}${tb("hl")}${tb("eraser")}<i class="sep"></i><div class="bd-grp"><button class="tbtn" id="shp" title="Formen und Linien" aria-label="Formen">${ic("square")}<b class="cor"></b></button><div class="bd-fly" id="fly" hidden>${["rect", "ellipse", "line", "arrow"].map(tb).join("")}</div></div>${tb("text")}<button class="tbtn" id="qs" title="Haftnotiz" aria-label="Haftnotiz">${ic("note")}</button>${tb("img")}<i class="sep"></i><button class="tbtn" id="colb" title="Farbe" aria-label="Farbe" hidden><i class="cprev"></i></button><button class="tbtn" id="szb" title="Stärke" aria-label="Stärke" hidden><i class="sprev"></i></button><i class="sep" id="sep2" hidden></i><button class="tbtn" id="un" title="Rückgängig (Strg+Z)" aria-label="Rückgängig">${ic("undo")}</button><button class="tbtn" id="re" title="Wiederholen (Strg+Umschalt+Z)" aria-label="Wiederholen">${ic("redo")}</button></div>
   <div class="bd-prop" id="prop" hidden></div>
   <div class="bd-fl bd-bl"><button class="bd-ib" id="bgb" title="Hintergrund" aria-label="Hintergrund">${ic("hash")}</button></div>
@@ -194,7 +194,7 @@ V.draw = async (m, id) => {
     else if (!e.ctrlKey && !e.metaKey) { const k = { v: "hand", p: "pen", h: "hl", e: "eraser", l: "line", a: "arrow", r: "rect", o: "ellipse", t: "text" }[e.key.toLowerCase()]; if (k) setTool(k); }
   };
   document.addEventListener("keydown", key); LEAVE.push(() => { document.removeEventListener("keydown", key); persist(); });
-  OBJ = boardObjects({ host: cvw, cam, st, snap, touch }); LEAVE.push(() => OBJ.destroy());
+  OBJ = boardObjects({ host: cvw, cam, st, snap, touch, render }); LEAVE.push(() => OBJ.destroy());
   $("#qs", m).onclick = () => OBJ.add("sticky");
   const stage = $(".bd-stage", m); stage.appendChild($("#fly", m)); [stage, cvw].forEach(x => x.addEventListener("scroll", () => { x.scrollTop = 0; x.scrollLeft = 0; }));
   $("#shp", m).onclick = e => { e.stopPropagation(); const f = $("#fly", m); f.hidden = !f.hidden; if (!f.hidden) { const r = e.currentTarget.getBoundingClientRect(), sr = stage.getBoundingClientRect(); if (innerWidth > 900) { f.style.left = r.right - sr.left + 12 + "px"; f.style.top = r.top - sr.top + "px"; f.style.bottom = "auto"; } else { f.style.left = Math.max(8, r.left - sr.left - 40) + "px"; f.style.top = "auto"; f.style.bottom = sr.bottom - r.top + 10 + "px"; } } }; cvw.addEventListener("pointerdown", () => { $("#fly", m).hidden = true; });
@@ -202,7 +202,7 @@ V.draw = async (m, id) => {
   $("#shb", m).onclick = () => shareBoard();
   $("#fr", m).onclick = () => OBJ.add("frame"); $("#fit", m).onclick = () => showAll();
   const pnl = $("#pnl", m), colm = $("#colm", m), ttl = $("#tt", m), cob = $("#cob", m), me = coName();
-  const closePops = () => { pnl.hidden = colm.hidden = true; ttl.setAttribute("aria-expanded", "false"); cob.setAttribute("aria-expanded", "false"); $$(".bd-sub", m).forEach(x => x.remove()); };
+  const elp = $("#elp", m); const closePops = () => { pnl.hidden = colm.hidden = elp.hidden = true; $("#addo", m).setAttribute("aria-expanded", "false"); ttl.setAttribute("aria-expanded", "false"); cob.setAttribute("aria-expanded", "false"); $$(".bd-sub", m).forEach(x => x.remove()); };
   const syncTitle = () => { $("#ttx", m).textContent = titleEl.value.trim() || "Zeichnung"; const t = $(".pl-t", m); if (t && t.tagName === "H2") t.textContent = titleEl.value.trim() || "Zeichnung"; };
   const related = () => D.docs.filter(x => x.type === "draw" && x.id !== d.id).sort((a, b) => (b.folderId === d.folderId) - (a.folderId === d.folderId) || b.updated - a.updated).slice(0, 4);
   const ask2 = q => { closePops(); explainCanvas(q); };
@@ -241,12 +241,27 @@ V.draw = async (m, id) => {
     $$("[data-a]", colm).forEach(b => b.onclick = () => { const a = b.dataset.a; if (a === "inv") { closePops(); shareBoard(); } else toast(SOON); });
   }
   cob.onclick = e => { e.stopPropagation(); colm.hidden ? openColl() : closePops(); };
-  document.addEventListener("pointerdown", e => { if (!e.target.closest(".bd-pop, #tt, #cob")) closePops(); }, true);
-  document.addEventListener("keydown", e => { if (e.key === "Escape" && (!pnl.hidden || !colm.hidden)) closePops(); }); 
-  $("#addo", m).onclick = e => menu(e.currentTarget, [
-    { label: "Notizzettel mit Pin", icon: "note", fn: () => OBJ.add("note") }, { label: "Haftnotiz", icon: "note", fn: () => OBJ.add("sticky") }, { label: "Pin", icon: "star", fn: () => OBJ.add("pin") }, "-",
-    { label: "Karte", icon: "newnote", fn: () => OBJ.add("card") }, { label: "Rechteck", icon: "square", fn: () => OBJ.add("shape", { kind: "rect" }) }, { label: "Abgerundet", icon: "square", fn: () => OBJ.add("shape", { kind: "round" }) }, { label: "Ellipse", icon: "circle", fn: () => OBJ.add("shape", { kind: "ellipse" }) }, { label: "Raute", icon: "square", fn: () => OBJ.add("shape", { kind: "diamond" }) }, "-",
-    { label: "Rahmen", icon: "folder", fn: () => OBJ.add("frame") }]);
+  document.addEventListener("pointerdown", e => { if (!e.target.closest(".bd-pop, #tt, #cob, #addo")) closePops(); }, true);
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && (!pnl.hidden || !colm.hidden || !elp.hidden)) closePops(); }); 
+  let elTab = "Alle", elQ = "";
+  function openEl() {
+    closePops(); $("#addo", m).setAttribute("aria-expanded", "true"); const TABS = ["Alle", "Notizen", "Text", "Formen", "Sticker"];
+    elp.innerHTML = `<div class="el-h"><b>Elemente</b><div class="el-s">${ic("search")}<input id="el-q" placeholder="Suchen, z. B. Daumen, Stern, Haftnotiz …" autocomplete="off" value="${esc(elQ)}"></div></div><div class="el-tabs">${TABS.map(t => `<button data-t2="${t}" class="${t === elTab ? "on" : ""}">${t}</button>`).join("")}</div><div class="el-body" id="el-b"></div>`;
+    elp.hidden = false; const body = $("#el-b", elp), cat = OBJ.catalog();
+    const draw = () => {
+      const q = elQ.trim().toLowerCase(), list = cat.filter(([c, l, kw]) => (elTab === "Alle" || c === elTab) && (!q || (l + " " + kw + " " + c).toLowerCase().includes(q)));
+      body.innerHTML = ""; if (!list.length) { body.innerHTML = `<p class="el-none">Nichts gefunden.</p>`; return; }
+      const groups = {}; list.forEach(it => { const g = it[0] === "Sticker" ? "Sticker · " + it[4] : it[0]; (groups[g] = groups[g] || []).push(it); });
+      Object.entries(groups).forEach(([g, items]) => {
+        const sec = document.createElement("section"); sec.innerHTML = `<h4>${g}</h4><div class="el-grid ${g.startsWith("Sticker") ? "st" : ""}"></div>`; const grid = $(".el-grid", sec);
+        items.forEach(it => { const b = document.createElement("button"); b.className = "el-t"; b.title = it[1]; const st = it[0] === "Sticker"; b.appendChild(OBJ.preview(it[3], st ? 64 : 112, st ? 64 : 80)); if (!st) { const l = document.createElement("small"); l.textContent = it[1]; b.appendChild(l); } b.onclick = () => { OBJ.addSpec(it[3]); closePops(); }; grid.appendChild(b); });
+        body.appendChild(sec);
+      });
+    };
+    $$("[data-t2]", elp).forEach(b => b.onclick = () => { elTab = b.dataset.t2; $$("[data-t2]", elp).forEach(x => x.classList.toggle("on", x === b)); draw(); });
+    const qi = $("#el-q", elp); qi.oninput = () => { elQ = qi.value; draw(); }; setTimeout(() => qi.focus(), 30); draw();
+  }
+  $("#addo", m).onclick = e => { e.stopPropagation(); elp.hidden ? openEl() : closePops(); };
   setTool("pen"); fit(); updZoom();
 };
 
