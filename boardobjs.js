@@ -1,8 +1,9 @@
 "use strict";
+P.hash = '<path d="M5 9h14M5 15h14M9 4v16M15 4v16"/>';
 /* Whiteboard-Elemente (wie Miro): Notizzettel mit Pin, Haftnotizen, Pins, Karten, Formen, Rahmen.
    Liegen als echte, direkt bearbeitbare Elemente über der Zeichenfläche (Text überall editierbar, verschieb- und skalierbar). */
 const PIN_COLORS = ["#FFC907", "#525151", "#63A1FE", "#F26655", "#F5A429", "#DA9DFF", "#BDBDBD", "#39C15F"];
-const STICKY_COLORS = ["#fff2a8", "#ffd6e0", "#cfe8ff", "#d6f5d6", "#e5d9ff", "#ffe0b8"];
+const STICKY_COLORS = ["#FFEA79", "#93E396", "#B1D0FF", "#EABFFF", "#FFBDAE", "#EAC287", "#CED3DA", "#F8F8F8"];
 const SHAPE_COLORS = ["#ffffff", "#eceaff", "#e3f6ea", "#ffeedd", "#ffe3e3", "#e2eefe", "#111111"];
 const PIN_D = ["M52.4077 28.4448L68.5679 44.605L57.2243 63.3128L33.6999 39.7884L52.4077 28.4448Z", "M33.6997 39.7883L57.2241 63.3128L54.9294 80.3237C54.6149 82.655 51.7663 83.6169 50.1029 81.9535L15.059 46.9096C13.3956 45.2462 14.3575 42.3976 16.6888 42.0831L33.6997 39.7883Z", "M53.8598 8.20579C54.0341 5.77687 56.9827 4.67751 58.7046 6.39943L90.6132 38.308C92.3351 40.0299 91.2357 42.9784 88.8068 43.1527L68.5677 44.6051L52.4075 28.4448L53.8598 8.20579Z"];
 const PIN_TIP = "M16.1589 73.4895L28.8989 60.7495L36.2631 68.1137L30.0721 74.3046C30.0721 74.3046 28.1391 76.173 22.853 76.5439C17.5668 76.9148 16.1589 73.4895 16.1589 73.4895Z";

@@ -13,15 +13,14 @@ V.draw = async (m, id) => {
   const d = D.docs.find(x => x.id === id); if (!d || d.type !== "draw") return go("board");
   const saved = (await KV.get("draw:" + id)) || { strokes: [], bg: "grid", H: 1000 };
   const W = saved.W || 1600, FMT = "endless"; const st = { cam: saved.cam || { x: -40, y: -40, z: 1 }, strokes: saved.strokes || [], objs: saved.objs || [], hist: [], redo: [], tool: "pen", color: saved.bg === "dark" ? "#ffffff" : "#111111", size: 4, bg: saved.bg || "grid", H: saved.H || 1000, cur: null, penSeen: false, pending: null };
-  const COL = ["#111111", "#e5484d", "#f59e0b", "#16a34a", "#2563eb", "#7c3aed", "#ec4899", "#ffffff"];
-  const TOOLS = [["hand", "Verschieben", "up"], ["pen", "Stift", "pen"], ["hl", "Marker", "hl"], ["eraser", "Radierer", "eraser"], ["line", "Linie", "line"], ["arrow", "Pfeil", "arrow"], ["rect", "Rechteck", "square"], ["ellipse", "Ellipse", "circle"], ["text", "Text", "text"], ["img", "Bild", "image"]];
+  const COL = ["#111111", "#4b5563", "#9ca3af", "#e5484d", "#f59e0b", "#eab308", "#16a34a", "#0d9488", "#2563eb", "#7c3aed", "#ec4899", "#92400e", "#ffffff"], HLCOL = ["#ffe600", "#7ee787", "#ff9ecb", "#7cc4ff", "#ffb066"];
+  const TOOLS = [["hand", "Auswählen / Verschieben (V)", "up"], ["pen", "Stift (P)", "pen"], ["hl", "Marker (H)", "hl"], ["eraser", "Radierer (E)", "eraser"], ["line", "Linie (L)", "line"], ["arrow", "Pfeil (A)", "arrow"], ["rect", "Rechteck (R)", "square"], ["ellipse", "Ellipse (O)", "circle"], ["text", "Text (T)", "text"], ["img", "Bild einfügen", "image"]];
   m.classList.add("doc-full");
   const fp = folderPath(d.folderId);
-  m.innerHTML = `<div class="editor board dfull"><div class="dhead"><div class="ned-bar"><div class="nb-l"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="nb-name"><input class="nb-in" id="et" value="${esc(d.title)}" aria-label="Titel"><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div></div>
-  <div class="ned-tools btools">${TOOLS.map(([k, t, i]) => `<button class="tbtn ${k === st.tool ? "on" : ""}" data-t="${k}" title="${t}">${ic(i)}</button>`).join("")}<i class="sep"></i><button class="tbtn wide" id="addo" title="Element hinzufügen">${ic("plus")}<span>Element</span></button><i class="sep"></i><button class="tbtn" id="un" title="Rückgängig (Strg+Z)">${ic("undo")}</button><button class="tbtn" id="re" title="Wiederholen">${ic("redo")}</button><button class="tbtn" id="cl" title="Alles löschen">${ic("trash")}</button></div>
-  <div class="nb-r"><span class="saved" id="sv">Gespeichert</span><button class="btn ghost small" id="exp">${ic("download")}<span class="hide-sm">PNG</span></button><button class="btn accent small" id="done">Fertig</button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button><button class="icon-btn aitog" id="ai-m" aria-label="AI ein- und ausklappen" title="AI ein- und ausklappen">${ic("aipanel")}<span class="hide-sm">AI</span></button></div></div>
-  <div class="opts flat"><div class="cols">${COL.map(c => `<button class="cdot ${c === st.color ? "on" : ""}" data-c="${c}" style="background:${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="cc" value="#111111"></label></div><label class="sz">${ic("pen")}<input type="range" id="sz" min="1" max="24" value="4"></label><select id="bg" class="field slim"><option value="blank">Weiß</option><option value="lines">Liniert</option><option value="grid">Kariert</option><option value="dots">Punkte</option><option value="dark">Tafel</option></select></div></div>
-  <div class="dpanel"><div class="cvwrap inf" id="cvw"><canvas id="cv"></canvas><div class="bzoom"><button id="zo" aria-label="Verkleinern">−</button><button id="zp" title="Auf 100 % / Inhalt zeigen">100 %</button><button id="zi" aria-label="Vergrößern">+</button></div><input class="texti" id="ti" hidden><input type="file" id="fi" accept="image/*" hidden></div></div></div>`;
+  m.innerHTML = `<div class="editor board dfull bd2"><div class="bd-top"><button class="icon-btn" id="eb" aria-label="Zurück">${ic("back")}</button><div class="nb-name"><input class="nb-in" id="et" value="${esc(d.title)}" aria-label="Titel"><button class="nb-folder" data-p="${d.folderId || ""}">${ic("folder")}<span>${["Home", ...fp.map(f => f.name)].map(esc).join(" / ")}</span></button></div><span class="bd-sp"></span><span class="saved" id="sv">Gespeichert</span><button class="icon-btn" id="un" title="Rückgängig (Strg+Z)" aria-label="Rückgängig">${ic("undo")}</button><button class="icon-btn" id="re" title="Wiederholen (Strg+Shift+Z)" aria-label="Wiederholen">${ic("redo")}</button><button class="icon-btn" id="exp" title="Als PNG speichern" aria-label="PNG">${ic("download")}</button><button class="icon-btn aitog" id="ai-m" aria-label="AI" title="Studix AI">${ic("aipanel")}</button><button class="icon-btn" id="mo-m" aria-label="Mehr">${ic("more")}</button><button class="btn accent small" id="done">Fertig</button></div>
+  <div class="bd-stage"><div class="cvwrap inf" id="cvw"><canvas id="cv"></canvas><div class="bzoom"><button id="zo" aria-label="Verkleinern">−</button><button id="zp" title="Auf 100 % / Inhalt zeigen">100 %</button><button id="zi" aria-label="Vergrößern">+</button></div><input class="texti" id="ti" hidden><input type="file" id="fi" accept="image/*" hidden><select id="bg" hidden><option value="blank">Weiß</option><option value="lines">Liniert</option><option value="grid">Kariert</option><option value="dots">Punkte</option><option value="dark">Tafel</option></select><button id="cl" hidden></button></div>
+  <div class="bd-tools" role="toolbar" aria-label="Werkzeuge">${TOOLS.map(([k, t, i]) => `<button class="tbtn ${k === st.tool ? "on" : ""}" data-t="${k}" title="${t}" aria-label="${t}">${ic(i)}</button>`).join("")}<i class="sep"></i><button class="tbtn" id="qs" title="Haftnotiz" aria-label="Haftnotiz">${ic("note")}</button><button class="tbtn" id="addo" title="Weitere Elemente" aria-label="Elemente">${ic("plus")}</button></div>
+  <div class="bd-prop" id="prop" hidden></div><button class="bd-bg" id="bgb" title="Hintergrund">${ic("hash")}<span>Hintergrund</span></button></div></div>`;
   $$("[data-p]", m).forEach(x => x.onclick = () => go("docs/" + x.dataset.p));
   const cv = $("#cv", m), mctx = cv.getContext("2d"); let ctx = mctx; const cvw = $("#cvw", m), cam = st.cam; let dpr = 1, VW = 800, VH = 600; const imgs = new WeakMap(), titleEl = $("#et", m), savedEl = $("#sv", m);
   $("#bg", m).value = st.bg;
@@ -29,10 +28,10 @@ V.draw = async (m, id) => {
 
   /* drawing primitives */
   function bgDraw(vx, vy, vw, vh) {
-    const dk = st.bg === "dark"; ctx.fillStyle = dk ? "#1d2523" : "#fff"; ctx.fillRect(vx, vy, vw, vh); ctx.strokeStyle = dk ? "#2c3835" : "#e3e6ee"; ctx.fillStyle = dk ? "#3a4743" : "#cfd4df"; ctx.lineWidth = 1 / cam.z;
-    const g = cam.z < .3 ? 200 : cam.z < .6 ? 80 : 40, x0 = Math.floor(vx / g) * g, y0 = Math.floor(vy / g) * g, x1 = vx + vw, y1 = vy + vh;
+    const dk = st.bg === "dark"; ctx.fillStyle = dk ? "#1d2523" : "#fff"; ctx.fillRect(vx, vy, vw, vh); ctx.strokeStyle = dk ? "#2c3835" : "#e9ebf2"; ctx.fillStyle = dk ? "#3a4743" : "#cfd4df"; ctx.lineWidth = 1 / cam.z;
+    const g = cam.z < .35 ? 120 : cam.z < .7 ? 48 : 24, x0 = Math.floor(vx / g) * g, y0 = Math.floor(vy / g) * g, x1 = vx + vw, y1 = vy + vh;
     if (st.bg === "grid") { ctx.beginPath(); for (let x = x0; x <= x1; x += g) { ctx.moveTo(x, vy); ctx.lineTo(x, y1); } for (let y = y0; y <= y1; y += g) { ctx.moveTo(vx, y); ctx.lineTo(x1, y); } ctx.stroke(); }
-    else if (st.bg === "lines") { const l = g * 1.2, yy = Math.floor(vy / l) * l; ctx.beginPath(); for (let y = yy; y <= y1; y += l) { ctx.moveTo(vx, y); ctx.lineTo(x1, y); } ctx.stroke(); }
+    else if (st.bg === "lines") { const l = g * 1.5, yy = Math.floor(vy / l) * l; ctx.beginPath(); for (let y = yy; y <= y1; y += l) { ctx.moveTo(vx, y); ctx.lineTo(x1, y); } ctx.stroke(); }
     else if (st.bg === "dots") { const r = 1.2 / Math.min(1, cam.z) ; for (let x = x0; x <= x1; x += g) for (let y = y0; y <= y1; y += g) ctx.fillRect(x - r, y - r, r * 2, r * 2); }
   }
   function strokeDraw(s) {
@@ -88,7 +87,7 @@ V.draw = async (m, id) => {
   const pos = e => { const r = cv.getBoundingClientRect(); return [cam.x + (e.clientX - r.left) / cam.z, cam.y + (e.clientY - r.top) / cam.z]; };
   const ptrs = new Map(); let panning = null, gest = null, space = false;
   let drawing = false, erased = false;
-  const setTool = t => { st.tool = t; $$("[data-t]", m).forEach(b => b.classList.toggle("on", b.dataset.t === t)); cv.style.touchAction = "none"; cv.style.cursor = t === "hand" ? "grab" : t === "text" ? "text" : "crosshair"; if (t === "img") $("#fi", m).click(); };
+  const setTool = t => { if (t === "hl" && !HLCOL.includes(st.color)) { st.penColor = st.color; st.color = HLCOL[0]; } else if (t !== "hl" && HLCOL.includes(st.color) && st.penColor) { st.color = st.penColor; st.penColor = null; } st.tool = t; renderProp(); $$("[data-t]", m).forEach(b => b.classList.toggle("on", b.dataset.t === t)); cv.style.touchAction = "none"; cv.style.cursor = t === "hand" ? "grab" : t === "text" ? "text" : "crosshair"; if (t === "img") $("#fi", m).click(); };
   const beginGesture = () => { const [a, b] = [...ptrs.values()]; const r = cv.getBoundingClientRect(); gest = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: cam.z, cx: (a.x + b.x) / 2 - r.left, cy: (a.y + b.y) / 2 - r.top, wx: 0, wy: 0 }; gest.wx = cam.x + gest.cx / cam.z; gest.wy = cam.y + gest.cy / cam.z; };
   cv.addEventListener("pointerdown", e => {
     if (e.pointerType === "pen") st.penSeen = true; if (e.pointerType === "touch" && st.penSeen) return;
@@ -104,7 +103,7 @@ V.draw = async (m, id) => {
     if (["line", "arrow", "rect", "ellipse"].includes(st.tool)) st.cur.pts.push([p[0], p[1]]);
     render();
   });
-  function eraseAt(p) { const n = st.strokes.length; st.strokes = st.strokes.filter(s => !hit(s, p[0], p[1], 14 / cam.z)); if (st.strokes.length !== n) { erased = true; render(); } }
+  function eraseAt(p) { const n = st.strokes.length; st.strokes = st.strokes.filter(s => !hit(s, p[0], p[1], (st.esize || 14) / cam.z)); if (st.strokes.length !== n) { erased = true; render(); } }
   cv.addEventListener("pointermove", e => {
     if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (gest && ptrs.size >= 2) { const [a, b] = [...ptrs.values()], r = cv.getBoundingClientRect(), nz = Math.max(.1, Math.min(4, gest.z * (Math.hypot(a.x - b.x, a.y - b.y) / gest.d))), cx = (a.x + b.x) / 2 - r.left, cy = (a.y + b.y) / 2 - r.top; cam.z = nz; cam.x = gest.wx - cx / nz; cam.y = gest.wy - cy / nz; render(); updZoom(); return; }
@@ -131,10 +130,21 @@ V.draw = async (m, id) => {
 
   /* UI */
   $$("[data-t]", m).forEach(b => b.onclick = () => setTool(b.dataset.t));
-  $$("[data-c]", m).forEach(b => b.onclick = () => { st.color = b.dataset.c; $$("[data-c]", m).forEach(x => x.classList.toggle("on", x === b)); if (st.tool === "eraser" || st.tool === "hand") setTool("pen"); });
-  $("#cc", m).oninput = e => { st.color = e.target.value; $$("[data-c]", m).forEach(x => x.classList.remove("on")); if (st.tool === "eraser" || st.tool === "hand") setTool("pen"); };
-  $("#sz", m).oninput = e => st.size = +e.target.value;
+  function renderProp() {
+    const t = st.tool, el = $("#prop", m); if (!el) return; const draws = ["pen", "hl", "line", "arrow", "rect", "ellipse", "text"].includes(t);
+    if (!draws && t !== "eraser") { el.hidden = true; return; } el.hidden = false;
+    const NAME = { pen: "Stift", hl: "Marker", line: "Linie", arrow: "Pfeil", rect: "Rechteck", ellipse: "Ellipse", text: "Text", eraser: "Radierer" }[t], er = t === "eraser", cols = t === "hl" ? HLCOL : COL, val = er ? (st.esize || 14) : st.size, max = er ? 60 : t === "hl" ? 14 : 24, min = er ? 6 : 1;
+    const PS = [["Fein", 2], ["Normal", 4], ["Dick", 9], ["Pinsel", 16]];
+    el.innerHTML = `<b class="pp-h">${NAME}</b>${t === "pen" ? `<div class="pp-ps">${PS.map(([n, v]) => `<button type="button" data-ps="${v}" class="${st.size === v ? "on" : ""}"><i style="height:${Math.max(2, v / 2)}px"></i><span>${n}</span></button>`).join("")}</div>` : ""}
+    ${er ? "" : `<div class="cols">${cols.map(c => `<button class="cdot ${c.toLowerCase() === st.color.toLowerCase() ? "on" : ""}" data-c="${c}" style="background:${c}" aria-label="Farbe ${c}"></button>`).join("")}<label class="cdot pick" title="Eigene Farbe"><input type="color" id="cc" value="${/^#[0-9a-f]{6}$/i.test(st.color) ? st.color : "#111111"}"></label></div>`}
+    <label class="pp-sz"><span>${t === "text" ? "Schriftgröße" : er ? "Radiergröße" : "Stärke"}</span><input type="range" id="sz" min="${min}" max="${max}" value="${val}"><output>${val}</output></label>`;
+    $$("[data-c]", el).forEach(b => b.onclick = () => { st.color = b.dataset.c; $$("[data-c]", el).forEach(x => x.classList.toggle("on", x === b)); });
+    const cc = $("#cc", el); if (cc) cc.oninput = e => { st.color = e.target.value; $$("[data-c]", el).forEach(x => x.classList.remove("on")); };
+    const sz = $("#sz", el); sz.oninput = e => { if (er) st.esize = +e.target.value; else { st.size = +e.target.value; $$("[data-ps]", el).forEach(x => x.classList.toggle("on", +x.dataset.ps === st.size)); } $("output", el).textContent = e.target.value; };
+    $$("[data-ps]", el).forEach(b => b.onclick = () => { st.size = +b.dataset.ps; sz.value = st.size; $("output", el).textContent = st.size; $$("[data-ps]", el).forEach(x => x.classList.toggle("on", x === b)); });
+  }
   $("#bg", m).onchange = e => { st.bg = e.target.value; render(); touch(); };
+  $("#bgb", m).onclick = e => menu(e.currentTarget, [["blank", "Weiß"], ["grid", "Kariert"], ["lines", "Liniert"], ["dots", "Punkte"], ["dark", "Tafel"]].map(([k, l]) => ({ label: (st.bg === k ? "✓ " : "") + l, icon: "hash", fn: () => { $("#bg", m).value = k; $("#bg", m).dispatchEvent(new Event("change")); } })));
   cvw.addEventListener("wheel", e => { e.preventDefault(); const r = cv.getBoundingClientRect(); if (e.ctrlKey || e.metaKey) zoomAt(e.clientX - r.left, e.clientY - r.top, cam.z * Math.exp(-e.deltaY * .01)); else { cam.x += e.deltaX / cam.z; cam.y += e.deltaY / cam.z; render(); } touch(); }, { passive: false });
   $("#zi", m).onclick = () => { zoomAt(VW / 2, VH / 2, cam.z * 1.25); touch(); }; $("#zo", m).onclick = () => { zoomAt(VW / 2, VH / 2, cam.z / 1.25); touch(); };
   $("#zp", m).onclick = () => { if (Math.abs(cam.z - 1) > .01) { zoomAt(VW / 2, VH / 2, 1); touch(); } else showAll(); };
@@ -147,7 +157,7 @@ V.draw = async (m, id) => {
   $("#fi", m).onchange = async e => { const f = e.target.files[0]; e.target.value = ""; if (!f) { setTool("pen"); return; } const bmp = await createImageBitmap(f), s = Math.min(1, 700 / bmp.width), c = document.createElement("canvas"); c.width = bmp.width * s; c.height = bmp.height * s; c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height); st.pending = { src: c.toDataURL("image/jpeg", .85), w: c.width, h: c.height }; st.tool = "place"; $$("[data-t]", m).forEach(b => b.classList.remove("on")); cv.style.touchAction = "pinch-zoom"; toast("Tippe dorthin, wo das Bild hin soll"); };
   $("#eb", m).onclick = () => go(d.folderId ? "docs/" + d.folderId : "board"); $("#et", m).oninput = touch;
   $("#done", m).onclick = () => go(d.folderId ? "docs/" + d.folderId : "board");
-  $("#mo-m", m).onclick = e => menu(e.currentTarget, [{ label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); toast(d.pinned ? "Angeheftet" : "Gelöst"); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); go(d.folderId ? "docs/" + d.folderId : "board"); } }]);
+  $("#mo-m", m).onclick = e => menu(e.currentTarget, [{ label: "Alles leeren", icon: "trash", fn: () => $("#cl", m).click() }, "-", { label: d.pinned ? "Lösen" : "Anheften", icon: "star", fn: () => { d.pinned = !d.pinned; save(); toast(d.pinned ? "Angeheftet" : "Gelöst"); } }, "-", { label: "Löschen", icon: "trash", danger: true, fn: async () => { await deleteDoc(d); go(d.folderId ? "docs/" + d.folderId : "board"); } }]);
   $("#exp", m).onclick = () => { snapshot(4000).toBlob(b => { const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = (d.title || "zeichnung") + ".png"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); }); };
   $("#ai-m", m).onclick = e => menu(e.currentTarget, [{ label: "Skizze erklären lassen", icon: "help", fn: async () => explainCanvas("Erkläre, was auf dieser Skizze/Tafel zu sehen ist. Wenn es Mathematik oder Naturwissenschaft ist, erkläre die Idee und Rechenschritte und weise auf mögliche Fehler hin.") }, { label: "Handschrift in Text umwandeln", icon: "text", fn: async () => explainCanvas("Lies die Handschrift/Beschriftungen auf dem Bild und gib sie als sauberen Text wieder (Formeln in Textform).") }, { label: "Als Notiz speichern (Bild)", icon: "note", fn: () => newNote(d.subjectId, `<p><img src="${snapshot(1600).toDataURL("image/jpeg", .8)}"></p><p><br></p>`, d.title) }]);
   async function explainCanvas(q) { if (!hasKey()) return toast("Bild-Analyse braucht die eingerichtete Studix AI (Einstellungen → Studix AI)."); if (!st.strokes.length && !st.objs.length) return toast("Zeichne zuerst etwas."); toast("Studix AI schaut hin…"); const t = snapshot(1400); const r = await ai(q, { image: { data: t.toDataURL("image/jpeg", .85).split(",")[1], type: "image/jpeg" } }); if (r) { const { el } = modal(`<h3>Studix AI</h3><textarea class="field" rows="12">${esc(r)}</textarea><div class="row end"><button class="btn" id="sn">Als Notiz speichern</button></div>`, "wide"); $("#sn", el).onclick = () => { el.closest(".mask").remove(); newNote(d.subjectId, textToHtml(r), d.title + " – Studix AI"); }; } }
@@ -155,10 +165,11 @@ V.draw = async (m, id) => {
     if (!$("#cv")) return; const tag = e.target.tagName; if (e.target.isContentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); e.shiftKey ? redo() : undo(); }
     else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); }
-    else if (!e.ctrlKey && !e.metaKey) { const k = { p: "pen", h: "hl", e: "eraser", l: "line", a: "arrow", r: "rect", o: "ellipse", t: "text" }[e.key.toLowerCase()]; if (k) setTool(k); }
+    else if (!e.ctrlKey && !e.metaKey) { const k = { v: "hand", p: "pen", h: "hl", e: "eraser", l: "line", a: "arrow", r: "rect", o: "ellipse", t: "text" }[e.key.toLowerCase()]; if (k) setTool(k); }
   };
   document.addEventListener("keydown", key); LEAVE.push(() => { document.removeEventListener("keydown", key); persist(); });
   OBJ = boardObjects({ host: cvw, cam, st, snap, touch }); LEAVE.push(() => OBJ.destroy());
+  $("#qs", m).onclick = () => OBJ.add("sticky");
   $("#addo", m).onclick = e => menu(e.currentTarget, [
     { label: "Notizzettel mit Pin", icon: "note", fn: () => OBJ.add("note") }, { label: "Haftnotiz", icon: "note", fn: () => OBJ.add("sticky") }, { label: "Pin", icon: "star", fn: () => OBJ.add("pin") }, "-",
     { label: "Karte", icon: "newnote", fn: () => OBJ.add("card") }, { label: "Rechteck", icon: "square", fn: () => OBJ.add("shape", { kind: "rect" }) }, { label: "Abgerundet", icon: "square", fn: () => OBJ.add("shape", { kind: "round" }) }, { label: "Ellipse", icon: "circle", fn: () => OBJ.add("shape", { kind: "ellipse" }) }, { label: "Raute", icon: "square", fn: () => OBJ.add("shape", { kind: "diamond" }) }, "-",
