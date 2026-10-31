@@ -479,3 +479,20 @@ body{background:#fff}
 @font-face{font-family:"Chakra Petch";font-weight:700;font-style:normal;font-display:swap;src:url(fonts/ChakraPetch-700.woff2) format("woff2")}
 .wm{font-family:"Chakra Petch",var(--font,system-ui),sans-serif;font-weight:700;letter-spacing:-.005em}
 .wm b{font:inherit;letter-spacing:inherit}
+
+/* Handy-Feinschliff der Startseite (nur <=700px; iPad/PC bleiben unverändert) */
+@media (max-width:700px){
+  html,body,#landing{overflow-x:clip;max-width:100%}
+  #landing{position:relative;overflow:clip}
+  .hero3{padding-top:104px;padding-bottom:24px}
+  .hero3 h1{font-size:clamp(34px,10.4vw,44px);margin-top:18px;letter-spacing:-.045em}
+  .hero3 .sub{font-size:16.5px;margin-top:18px;padding:0 4px}
+  .hero3 .hero-cta{margin-top:26px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .hero3 .hero-cta .btn{min-width:min(280px,100%);justify-content:center;margin:0}
+  .sec.feat,#faq.sec{padding-top:56px;padding-bottom:56px}
+  .feat h2{margin-bottom:28px}
+  .fcard,.bn-card{border-radius:24px}
+  footer{padding:36px 24px 56px;gap:24px}
+  .pnav .btn{min-height:44px}.pnav .burger{width:44px;height:44px}
+  .faq summary{min-height:44px;display:flex;align-items:center}
+}
