@@ -196,8 +196,22 @@ function newMenu(anchor) {
   ]);
 }
 async function newSubject() {
-  const n = await ask(isUni() ? "Neues Modul" : "Neues Fach", { placeholder: "z. B. Biologie", ok: "Hinzufügen" }); if (!n || !n.trim()) return;
-  const sub = { id: uid(), name: n.trim(), color: COLORS[D.subjects.length % COLORS.length] }; D.subjects.push(sub); D.folders.push({ id: uid(), name: sub.name, parent: "", color: sub.color, subjectId: sub.id }); save(); refreshNav(); renderView();
+  const uni = isUni(), word = uni ? "Modul" : "Fach", sugg = uni ? ["Analysis", "Informatik", "Statistik", "Recht", "BWL"] : ["Mathe", "Deutsch", "Englisch", "Biologie", "Geschichte"];
+  let col = COLORS[D.subjects.length % COLORS.length];
+  const r = await new Promise(res => {
+    const { el, close } = modal(`<div class="dh"><span class="di" id="ns-i" style="--c:${col}">${ic("star")}</span><div><h3>Neues ${word}</h3><p class="note">Alles dazu landet gesammelt in einem Ordner.</p></div></div>
+    <input class="field big" id="ns-n" placeholder="Name, z. B. ${sugg[0]}" maxlength="60" autocomplete="off">
+    <div class="nd-sugg">${sugg.map(x => `<button type="button" class="chip" data-s="${x}">${x}</button>`).join("")}</div>
+    <label class="lbl">Farbe</label><div class="swatches" id="ns-c">${COLORS.slice(0, 10).map(c => `<button type="button" data-c="${c}" class="${c === col ? "on" : ""}" style="--c:${c}" aria-label="Farbe"></button>`).join("")}</div>
+    <div class="mf"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent" data-o>Hinzufügen</button></div>`, "sheet");
+    const f = $("#ns-n", el); setTimeout(() => f.focus(), 40); let done = false; const fin = v => { if (done) return; done = true; close(); res(v); };
+    $$("[data-s]", el).forEach(b => b.onclick = () => { f.value = b.dataset.s; f.focus(); });
+    $$("#ns-c button", el).forEach(b => b.onclick = () => { col = b.dataset.c; $$("#ns-c button", el).forEach(x => x.classList.toggle("on", x === b)); $("#ns-i", el).style.setProperty("--c", col); });
+    const ok = () => f.value.trim() ? fin(f.value.trim()) : (f.focus(), f.classList.add("shake"), setTimeout(() => f.classList.remove("shake"), 400));
+    $("[data-c]", el).onclick = () => fin(null); $(".x", el).onclick = () => fin(null); $("[data-o]", el).onclick = ok; f.onkeydown = e => { if (e.key === "Enter") ok(); };
+  });
+  if (!r) return;
+  const sub = { id: uid(), name: r, color: col }; D.subjects.push(sub); D.folders.push({ id: uid(), name: sub.name, parent: "", color: sub.color, subjectId: sub.id }); save(); refreshNav(); renderView();
 }
 function subjectSelect(id = "", cls = "") { return `<select class="field slim ${cls}">${`<option value="">Kein ${isUni() ? "Modul" : "Fach"}</option>`}${D.subjects.map(s => `<option value="${s.id}" ${s.id === id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>`; }
 
@@ -215,12 +229,13 @@ function docDialog(kind = "note", pre = null) {
   if (limitHit(kind === "draw" ? "board" : "doc")) return;
   if (kind === "draw") return boardDialog(pre);
   const isNote = kind === "note"; let folder = pre && pre.folder !== undefined ? pre.folder : docFolder, paper = isNote ? (D.profile.paper || "white") : "grid", tpl = "blank", pages = D.profile.pageMode !== false;
-  const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument</button><button type="button" role="tab" id="nd-swb">Whiteboard</button><button type="button" role="tab" id="nd-swd">Design</button></div><p class="eyebrow">Neues Dokument</p>
-  <input class="nd-name" id="nd-n" placeholder="Wie soll das Dokument heißen?" autocomplete="off" maxlength="80">
-  <label class="lbl">Format</label><div class="chips nd-fmt" id="nd-fm"><button type="button" class="chip ${(D.profile.pageMode !== false) ? "on" : ""}" data-k="a4">A4-Seiten</button><button type="button" class="chip ${D.profile.pageMode === false ? "on" : ""}" data-k="endless">Endlos</button></div><label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
-  <div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent big" id="nd-go">Dokument erstellen</button></div></div>`, "wide nd-modal");
-  const nameIn = $("#nd-n", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); }; $("#nd-swd", el).onclick = () => { const n = nameIn.value, f = folder; close(); dsCreateDialog({ name: n, folder: f }); };
   const fname = () => { const fp = folderPath(folder); return fp.length ? fp[fp.length - 1].name : ""; };
+  const { el, close } = modal(`<div class="nd"><div class="nd-sw seg" role="tablist" aria-label="Art"><button type="button" class="on" role="tab">Dokument</button><button type="button" role="tab" id="nd-swb">Whiteboard</button><button type="button" role="tab" id="nd-swd">Design</button></div>
+  <input class="nd-name" id="nd-n" placeholder="Unbenanntes Dokument" autocomplete="off" maxlength="80">
+  <div class="nd-where">${ic("folder")}<span>${esc(fname() || "Dokumente")}</span></div>
+  <label class="lbl">Format</label><div class="chips nd-fmt" id="nd-fm"><button type="button" class="chip ${(D.profile.pageMode !== false) ? "on" : ""}" data-k="a4">A4-Seiten</button><button type="button" class="chip ${D.profile.pageMode === false ? "on" : ""}" data-k="endless">Endlos</button></div><label class="lbl">${isNote ? "Papier" : "Hintergrund"}</label><div class="papers" id="nd-p">${PAPERS.map(([k, l]) => `<button type="button" data-k="${k}" class="pp ${k === paper ? "on" : ""}"><i class="pv ${k}"></i><b>${l}</b></button>`).join("")}</div>
+  <div class="mf"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent" id="nd-go">Erstellen</button></div></div>`, "sheet nd-modal");
+  const nameIn = $("#nd-n", el); if (pre && pre.name) nameIn.value = pre.name; $("#nd-swb", el).onclick = () => { const n = nameIn.value, f = folder; close(); boardDialog({ name: n, folder: f }); }; $("#nd-swd", el).onclick = () => { const n = nameIn.value, f = folder; close(); dsCreateDialog({ name: n, folder: f }); };
   setTimeout(() => nameIn.focus(), 40);
   $$("#nd-fm .chip", el).forEach(b => b.onclick = () => { pages = b.dataset.k === "a4"; $$("#nd-fm .chip", el).forEach(x => x.classList.toggle("on", x === b)); });
   $$("#nd-p .pp", el).forEach(b => b.onclick = () => { paper = b.dataset.k; $$("#nd-p .pp", el).forEach(x => x.classList.toggle("on", x === b)); });
@@ -249,7 +264,7 @@ function migrateFolders() {
 async function newFolder(parent = docFolder) {
   const root = !parent;
   const r = await new Promise(res => {
-    const { el, close } = modal(`<h3>Neuer Ordner</h3><input class="field" id="nf-n" placeholder="z. B. Mathe oder Deutsch">${root ? `<label class="chk nf-sub"><input type="checkbox" id="nf-s"><span>Ist ein ${isUni() ? "Modul" : "Fach"} <small>– erscheint auch unter Noten</small></span></label>` : ""}<div class="row end"><button class="btn ghost" data-c>Abbrechen</button><button class="btn" data-o>Erstellen</button></div>`);
+    const { el, close } = modal(`<div class="dh"><span class="di">${ic("folder")}</span><div><h3>${root ? "Neuer Ordner" : "Neuer Unterordner"}</h3><p class="note">${root ? "Zum Sortieren deiner Dokumente." : "Liegt in „" + esc(folderOf(parent)?.name || "") + "“."}</p></div></div><input class="field big" id="nf-n" placeholder="Name, z. B. Mathe oder Deutsch" maxlength="60" autocomplete="off">${root ? `<label class="sw-row nf-sub"><span>Ist ein ${isUni() ? "Modul" : "Fach"}<small>erscheint auch unter Noten</small></span><input type="checkbox" id="nf-s" class="sw"></label>` : ""}<div class="mf"><button class="btn ghost" data-c>Abbrechen</button><button class="btn accent" data-o>Erstellen</button></div>`, "sheet");
     const f = $("#nf-n", el); setTimeout(() => f.focus(), 30);
     let done = false; const fin = v => { if (done) return; done = true; close(); res(v); };
     const ok = () => fin({ name: f.value, subject: !!$("#nf-s", el)?.checked });
