@@ -4522,3 +4522,20 @@ html[data-theme=dark] .di{background:#2a2a33}html[data-theme=dark] .field.big:fo
 .nd-modal .nd-sw.seg{margin-right:0;width:calc(100% - 34px)}
 .inl-rn{display:block;width:100%;min-width:0;font:inherit;color:inherit;background:transparent;border:0;border-bottom:2px solid currentColor;border-radius:0;padding:0;margin:0;outline:0;text-overflow:ellipsis}
 .fold .inl-rn{color:#fff;border-color:rgba(255,255,255,.85)}
+
+/* Noten: kompakt – Kennzahlen in einer Zeile, ein Fach pro Zeile mit allen Noten */
+.gsum{display:grid;grid-template-columns:1.2fr .8fr .8fr 1.6fr;gap:1px;background:var(--line,#e8e8ee);border:1px solid var(--line,#e8e8ee);border-radius:18px;overflow:hidden;margin:6px 0 16px}
+.gsum>div{background:#fff;padding:12px 16px;min-width:0}.gsum small{display:block;font-size:12px;color:#8a8a98;font-weight:600}.gsum b{display:block;font-size:22px;letter-spacing:-.03em;margin-top:2px}.gsum .gs-avg b{font-size:28px}.gsum .gs-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.glist{display:flex;flex-direction:column;border:1px solid var(--line,#e8e8ee);border-radius:18px;background:#fff;overflow:hidden}
+.grow{display:grid;grid-template-columns:auto 150px 1fr auto auto;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line,#eeeef2);min-height:52px}
+.grow:last-child{border-bottom:0}.grow:hover{background:#fafafc}
+.grow .scol{width:14px;height:14px;border-radius:50%;background:var(--c);position:relative;overflow:hidden;cursor:pointer;flex:none}.grow .scol input{position:absolute;inset:-8px;opacity:0;cursor:pointer}
+.grow .sname{border:0;background:transparent;font:inherit;font-weight:650;font-size:15px;min-width:0;padding:5px 6px;border-radius:8px;outline:0}.grow .sname:focus{background:var(--soft);box-shadow:0 0 0 2px var(--violet)}
+.grow .gchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0}
+.grow .gchip{display:inline-flex;flex-direction:row;align-items:baseline;gap:6px;padding:4px 10px;min-width:0;width:auto;height:auto;border-radius:10px;background:color-mix(in srgb,var(--c) 12%,#fff);border:0;font:inherit;cursor:pointer}.grow .gchip b{color:var(--c);font-size:14.5px}.grow .gchip small{font-size:11.5px;color:#777;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.grow .gchip:hover{filter:brightness(.96)}
+.grow .gadd{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;color:#8a8a98;border:1.5px dashed #d2d2dc;background:transparent}.grow .gadd:hover{color:var(--violet);border-color:var(--violet)}.grow .gadd svg{width:14px;height:14px}
+.grow .gnone{font-size:13px;color:#a0a0ac;margin-right:4px}
+.grow .gavg{display:flex;align-items:baseline;gap:4px;min-width:54px;justify-content:flex-end}.grow .gavg small{color:#8a8a98;font-size:12px}.grow .gavg b{font-size:18px;color:var(--c,#999)}
+.grow .icon-btn{width:30px;height:30px;opacity:.35}.grow:hover .icon-btn{opacity:1}
+.grow.add{display:flex;width:100%;justify-content:center;gap:8px;color:#777;font-weight:600;font-size:14px;background:transparent;border:0;padding:12px}.grow.add svg{width:16px;height:16px}.grow.add:hover{color:var(--violet)}
+@media (max-width:700px){.gsum{grid-template-columns:1fr 1fr}.grow{grid-template-columns:auto 1fr auto auto;row-gap:6px}.grow .gchips{grid-column:1/-1;grid-row:2}.grow .sname{grid-column:2}}
